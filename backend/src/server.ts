@@ -2,10 +2,10 @@ import express from "express"
 import dotenv from "dotenv"
 import cors from "cors"
 
-import usersRoute from "./routes/usersRoute"
 import { connectDB } from "./config/db"
 
-
+import usersRoute from "./routes/users.route"
+import discogsRoute from './routes/discogs.route'
 
 dotenv.config()
 
@@ -17,7 +17,7 @@ app.use(cors({
 }))
 app.use(express.json());
 app.use("/api/users", usersRoute)
-
+app.use('/api/discogs', discogsRoute);
 
 
 connectDB().then(() => {
