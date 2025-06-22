@@ -36,9 +36,21 @@ export async function createUser(req: Request, res: Response) {
 
 export async function updateUser(req: Request, res: Response) { 
     try {
-         const { name, email, password } = req.body;
-         await User.findByIdAndUpdate(req.params.id, {name, email, password})
-         res.status(200).json({message: "User modified"});
+        const { name, email, password } = req.body;
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (password) user.password = password;
+
+        await user.save();
+        
+        res.status(200).json({message: "User updated successfully"});
         
     } catch (error) {
         console.error("Error in updateUser controller", error)
