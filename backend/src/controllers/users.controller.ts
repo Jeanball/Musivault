@@ -21,22 +21,10 @@ export async function getUserById(req: Request, res: Response) {
     }
 }
 
-export async function createUser(req: Request, res: Response) { 
-    try {
-        const { name, email, password, createdAt } = req.body;
-        const newUser = new User({ name, email, password, createdAt})
-
-        await newUser.save();
-        res.status(201).json({message: "User created successfully."})
-    } catch (error) {
-        console.error("Error in createUser controller", error)
-        res.status(500).json({message: "Internal server error"});
-    }
-}
 
 export async function updateUser(req: Request, res: Response) { 
     try {
-        const { name, email, password } = req.body;
+        const { username, email, password } = req.body;
         const user = await User.findById(req.params.id);
 
         if (!user) {
@@ -44,7 +32,7 @@ export async function updateUser(req: Request, res: Response) {
             return;
         }
 
-        if (name) user.name = name;
+        if (username) user.username = username;
         if (email) user.email = email;
         if (password) user.password = password;
 
