@@ -52,7 +52,7 @@ export async function loginUser(req: Request, res: Response) {
         const token = generateToken(user.id.toString());
         
         res.cookie('jwt', token, {
-            httpOnly: false,
+            httpOnly: true,
             secure: process.env.NODE_ENV !== 'development',
             sameSite: 'lax',
             maxAge: 15 * 24 * 60 * 60 * 1000
@@ -82,34 +82,5 @@ export async function logoutUser(req: Request, res: Response) {
     } catch (error) {
         console.error("Error in logoutUser controller", error);
         res.status(500).json({ message: "Internal server error" });
-    }
-}
-
-export async function verifyUser(req: Request, res: Response) {
-    try {
-        const token = req.cookies.jwt;
-        if (!token) {
-           res.json({ status: false, message: "No token" });
-           return;
-        }
-
-        if (!process.env.JWT_SECRET) {
-            throw new Error("JWT_SECRET is not defined.");
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
-        const user = await User.findById(decoded.id).select("-password");
-
-        if (user) {
-            res.json({ status: true, user: user.username });
-            return;
-        } else {
-            res.json({ status: false, message: "User not found" });
-            return;
-        }
-
-    } catch (error) {
-        res.json({ status: false, message: "Invalid token" });
-        return;
     }
 }

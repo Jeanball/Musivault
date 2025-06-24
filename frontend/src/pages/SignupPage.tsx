@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { useAuthRedirect } from "../hooks/useAuthRedirect";
 
 // Interface pour l'état du formulaire, maintenant avec 'username'
 interface SignupFormState {
@@ -19,14 +20,11 @@ interface ApiResponse {
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
-    const [inputValue, setInputValue] = useState<SignupFormState>({
-        email: "",
-        password: "",
-        username: "",
-    });
-
+    const [inputValue, setInputValue] = useState<SignupFormState>({email: "", password: "", username: ""});
+    const { isLoading } = useAuthRedirect();
     const { email, password, username } = inputValue;
 
+    
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setInputValue({
@@ -76,6 +74,14 @@ const SignupPage: React.FC = () => {
             username: "",
         });
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-base-200">
+                <span className="loading loading-spinner loading-lg"></span>
+            </div>
+        );
+    }
 
     return (
         <div className="hero min-h-screen bg-base-200">

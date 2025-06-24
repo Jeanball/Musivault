@@ -20,11 +20,6 @@ const HomePage: React.FC = () => {
 
     useEffect(() => {
         const verifyUserFromCookie = async () => {
-            if (!cookies.jwt) {
-                navigate("/login");
-                return;
-            }
-
             try {
                 const { data } = await axios.post<VerificationResponse>(
                     "http://localhost:5001/api/auth/verify",
