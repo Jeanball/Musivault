@@ -8,7 +8,7 @@ import { connectDB } from "./config/db"
 import usersRoute from "./routes/users.route"
 import discogsRoute from './routes/discogs.route'
 import authRoute from './routes/auth.route'
-
+import collectionRoute from './routes/collection.route'
 dotenv.config()
 
 const app = express()
@@ -24,6 +24,7 @@ app.use(cookieParser())
 app.use('/api/users', usersRoute);
 app.use('/api/discogs', discogsRoute);
 app.use('/api/auth', authRoute);
+app.use('/api/collection', collectionRoute)
 
 
 connectDB().then(() => {

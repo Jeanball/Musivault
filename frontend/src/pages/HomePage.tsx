@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useCookies } from "react-cookie"; // Importer le hook
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -30,7 +30,12 @@ const HomePage: React.FC = () => {
                 const { status, user } = data;
                 if (status) {
                     setUsername(user);
-                    toast.success(`Bienvenue, ${user} !`, { position: "top-right" });
+                    const hasBeenWelcomed = sessionStorage.getItem('hasWelcomed');
+                    if (!hasBeenWelcomed) {
+                        toast.success(`Bienvenue, ${user} !`, { position: "top-right" });
+                        // On place le marqueur dans le sessionStorage
+                        sessionStorage.setItem('hasWelcomed', 'true');
+                    }
                 } else {
                     removeCookie("jwt", { path: '/' });
                     navigate("/login");
@@ -75,6 +80,9 @@ const HomePage: React.FC = () => {
             <div className="navbar bg-base-100 rounded-box shadow-xl mb-8">
                 <div className="flex-1">
                     <span className="btn btn-ghost text-xl">Bonjour, {username}</span>
+                </div>
+                <div className="flex-1">
+                <Link to="/collection" className="btn btn-ghost text-xl">Ma Collection</Link>
                 </div>
                 <div className="flex-none">
                     <button onClick={handleLogout} className="btn btn-outline btn-error">
