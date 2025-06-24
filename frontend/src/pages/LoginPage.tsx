@@ -4,8 +4,6 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
-// L'import et l'utilisation de useAuth ont été retirés.
-
 // Interface pour l'état du formulaire
 interface LoginFormState {
   email: string;
@@ -50,18 +48,13 @@ const LoginPage: React.FC = () => {
         e.preventDefault();
         try {
             await axios.post<LoginApiResponse>(
-                "http://localhost:5001/api/auth/login", // Utiliser la route d'API correcte
+                "http://localhost:5001/api/auth/login",
                 { ...inputValue },
                 { withCredentials: true }
             );
 
             handleSuccess("Connexion réussie !");
             
-            // La mise à jour du contexte a été retirée.
-            // setAuthUser(data);
-            
-            // On utilise un petit délai pour laisser le temps à la notification de s'afficher
-            // avant de rediriger l'utilisateur.
             setTimeout(() => {
                 navigate("/");
             }, 1000);

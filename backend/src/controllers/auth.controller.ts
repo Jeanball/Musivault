@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import User from '../models/User';
 import { generateToken } from '../utils/SecretToken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 export async function signupUser(req: Request, res: Response, next: NextFunction) { 
     try {
@@ -15,7 +16,7 @@ export async function signupUser(req: Request, res: Response, next: NextFunction
         res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict'
+        sameSite: 'lax'
     });
         await newUser.save();
         res.status(201).json({message: "User created successfully.", success: true, newUser})
@@ -26,14 +27,14 @@ export async function signupUser(req: Request, res: Response, next: NextFunction
     }
 }
 
-
-export async function loginUser(req: Request, res: Response, next: NextFunction) {
+export async function loginUser(req: Request, res: Response) {
     try {
         const { email, password } = req.body;
-        if(!email || !password ){
-            res.json({message:'All fields are required'});
+        if (!email || !password) {
+            res.status(400).json({ message: 'All fields are required' });
             return;
         }
+
         const user = await User.findOne({ email });
         if (!user) {
             console.log("Login failed: User not found.");
@@ -48,16 +49,20 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
             return;
         }
 
-        const token = generateToken(user.id);
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development', // C'est bien là
-            sameSite: 'strict',                        // Et c'est bien là aussi
+        const token = generateToken(user.id.toString());
+        
+        res.cookie('jwt', token, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: 'lax',
             maxAge: 15 * 24 * 60 * 60 * 1000
         });
 
-        res.status(200).json({ message: "User logged in successfully!", success: true});
-        next();
+        res.status(200).json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+        });
 
     } catch (error) {
         console.error("Error in loginUser controller", error);
@@ -69,16 +74,42 @@ export async function logoutUser(req: Request, res: Response) {
     try {
         res.cookie('jwt', '', {
             httpOnly: true,
-            // --- AJOUTS CRUCIAUX ---
-            // Ces options doivent correspondre à celles utilisées lors du login
-            secure: process.env.NODE_ENV !== 'development', 
-            sameSite: 'strict',
-            // ---
-            expires: new Date(0) // On fait expirer le cookie immédiatement
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: 'lax',
+            expires: new Date(0)
         });
         res.status(200).json({ message: "User logged out successfully." });
     } catch (error) {
         console.error("Error in logoutUser controller", error);
         res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function verifyUser(req: Request, res: Response) {
+    try {
+        const token = req.cookies.jwt;
+        if (!token) {
+           res.json({ status: false, message: "No token" });
+           return;
+        }
+
+        if (!process.env.JWT_SECRET) {
+            throw new Error("JWT_SECRET is not defined.");
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+        const user = await User.findById(decoded.id).select("-password");
+
+        if (user) {
+            res.json({ status: true, user: user.username });
+            return;
+        } else {
+            res.json({ status: false, message: "User not found" });
+            return;
+        }
+
+    } catch (error) {
+        res.json({ status: false, message: "Invalid token" });
+        return;
     }
 }

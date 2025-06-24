@@ -6,34 +6,30 @@ import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import SearchBar from "../components/SearchBar";
 
-// Interface pour la réponse attendue de votre API de vérification
+
 interface VerificationResponse {
     status: boolean;
-    user: string; // Le nom d'utilisateur
+    user: string;
 }
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
-    // Utiliser le hook useCookies. Le nom du cookie est 'jwt'.
-    const [cookies, removeCookie] = useCookies(["token"]); 
+    const [cookies, removeCookie] = useCookies(["jwt"]); 
     const [username, setUsername] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const verifyUserFromCookie = async () => {
-            // Si le cookie 'jwt' n'existe pas, on redirige immédiatement
-            if (!cookies.token) {
+            if (!cookies.jwt) {
                 navigate("/login");
-                return; // Important de sortir de la fonction ici
+                return;
             }
 
             try {
-                // On appelle la route de vérification (vous devez créer cette route POST sur votre backend)
-                // Elle doit pointer vers votre fonction userVerification
                 const { data } = await axios.post<VerificationResponse>(
-                    "http://localhost:5001/api/auth/", // Assurez-vous que cette route existe
-                    {}, // Le corps de la requête est vide
-                    { withCredentials: true } // Ceci est crucial pour envoyer les cookies
+                    "http://localhost:5001/api/auth/verify",
+                    {},
+                    { withCredentials: true } 
                 );
 
                 const { status, user } = data;
@@ -41,14 +37,13 @@ const HomePage: React.FC = () => {
                     setUsername(user);
                     toast.success(`Bienvenue, ${user} !`, { position: "top-right" });
                 } else {
-                    // Si le statut est false, le token est invalide. On le supprime et on redirige.
-                    removeCookie("token", { path: '/' });
+                    removeCookie("jwt", { path: '/' });
                     navigate("/login");
                 }
 
             } catch (error) {
                 console.error("Verification failed", error);
-                removeCookie("token", { path: '/' });
+                removeCookie("jwt", { path: '/' });
                 navigate("/login");
             } finally {
                 setIsLoading(false);
@@ -56,17 +51,15 @@ const HomePage: React.FC = () => {
         };
 
         verifyUserFromCookie();
-    }, [cookies, navigate, removeCookie]); // Le hook se redéclenche si les cookies changent
+    }, [cookies, navigate, removeCookie]);
 
     const handleLogout = async () => {
         try {
-            // La déconnexion doit se faire côté serveur pour supprimer le cookie httpOnly
             await axios.post(
                 "http://localhost:5001/api/auth/logout",
                 {},
                 { withCredentials: true }
             );
-            // On redirige vers la page de connexion
             navigate("/login");
         } catch (error) {
             console.error("Logout failed", error);

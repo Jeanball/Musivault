@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css'; // N'oubliez pas d'importer le CSS pour react-toastify
+import 'react-toastify/dist/ReactToastify.css';
 
 // Interface pour l'état du formulaire, maintenant avec 'username'
 interface SignupFormState {
   email: string;
   password: string;
-  username: string; // Changé de 'name' à 'username'
+  username: string; 
 }
 
 // Interface pour la réponse attendue de l'API
@@ -27,7 +27,6 @@ const SignupPage: React.FC = () => {
 
     const { email, password, username } = inputValue;
 
-    // L'événement est maintenant typé : React.ChangeEvent<HTMLInputElement>
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setInputValue({
@@ -46,13 +45,11 @@ const SignupPage: React.FC = () => {
             position: "bottom-right",
         });
 
-    // L'événement est maintenant typé : React.FormEvent<HTMLFormElement>
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            // L'appel axios est typé pour s'attendre à une ApiResponse
             const { data } = await axios.post<ApiResponse>(
-                "http://localhost:5001/api/auth/signup", // Assurez-vous que c'est la bonne route pour créer un utilisateur
+                "http://localhost:5001/api/auth/signup",
                 { ...inputValue },
                 { withCredentials: true }
             );
@@ -61,7 +58,7 @@ const SignupPage: React.FC = () => {
             if (success) {
                 handleSuccess(message);
                 setTimeout(() => {
-                    navigate("/login"); // Rediriger vers la page de connexion après une inscription réussie
+                    navigate("/login");
                 }, 1000);
             } else {
                 handleError(message);
@@ -72,12 +69,11 @@ const SignupPage: React.FC = () => {
             handleError(error.response?.data?.message || "An error occurred during signup.");
         }
         
-        // Vider le formulaire après la tentative
         setInputValue({
             ...inputValue,
             email: "",
             password: "",
-            username: "", // Changé de 'name' à 'username'
+            username: "",
         });
     };
 
