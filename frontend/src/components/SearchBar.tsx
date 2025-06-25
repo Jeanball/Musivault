@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from "react-toastify";
 import AlbumCard from './AlbumCard';
-import AlbumDetailModal, { type AlbumDetails } from './AlbumDetailModal';
+import AlbumDetailModal, { type AlbumDetails, type FormatDetails } from './AlbumDetailModal';
 import type { DiscogsResult } from '../types';
 
 const BATCH_SIZE = 5;
@@ -68,7 +68,7 @@ const SearchBar: React.FC = () => {
         setSelectedAlbum(null);
     };
 
-    const handleConfirmAddToCollection = async (format: string) => {
+    const handleConfirmAddToCollection = async (format: FormatDetails) => {
         if (!selectedAlbum) return;
 
         setIsSubmitting(true);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import axios from 'axios';
+import type { FormatDetails } from '../components/AlbumDetailModal';
 
 // Interfaces pour typer les données reçues
 interface Album {
@@ -14,7 +15,7 @@ interface Album {
 interface CollectionItem {
     _id: string;
     album: Album;
-    format: string;
+    format: FormatDetails; 
     addedAt: string;
 }
 
@@ -46,15 +47,15 @@ const CollectionPage: React.FC = () => {
         );
     }
 
-    return (
+return (
         <div className="p-4 md:p-8" data-theme="dark">
             <div className="navbar bg-base-100 rounded-box shadow-xl mb-8">
                 <div className="flex-1">
-                    <h1 className="text-xl font-bold">Ma Collection</h1>
+                    <h1 className="btn btn-ghost text-xl normal-case">Ma Collection</h1>
                 </div>
                 <div className="flex-none">
                     <Link to="/" className="btn btn-outline btn-primary">
-                        Retour à la recherche
+                        Retour à la Recherche
                     </Link>
                 </div>
             </div>
@@ -65,16 +66,32 @@ const CollectionPage: React.FC = () => {
                     <p className="mt-2 text-gray-400">Commencez par rechercher des albums pour les ajouter.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                     {collection.map((item) => (
-                        <div key={item._id} className="card bg-base-200 shadow-xl image-full">
+                        <div key={item._id} className="card bg-base-200 shadow-xl transition-transform hover:scale-105">
                             <figure>
-                                <img src={item.album.cover_image} alt={item.album.title} />
+                                <img src={item.album.cover_image} alt={item.album.title} className="aspect-square object-cover" />
                             </figure>
-                            <div className="card-body p-4 justify-end">
-                                <h2 className="card-title text-base leading-tight">{item.album.title}</h2>
-                                <p className="text-sm text-gray-300">{item.album.artist}</p>
-                                <div className="badge badge-secondary mt-2">{item.format}</div>
+                            <div className="card-body p-4">
+                                <h2 className="card-title text-base font-bold leading-tight truncate" title={item.album.title}>
+                                    {item.album.title}
+                                </h2>
+                                <p className="text-sm text-gray-400 -mt-1 truncate" title={item.album.artist}>
+                                    {item.album.artist}
+                                </p>
+                                
+                                <div className="divider my-2"></div>
+
+                                <div className="text-xs space-y-1">
+                                    <p><strong>Format:</strong> {item.format.name}</p>
+                                    {item.format.text && (
+                                        <p><strong>Version:</strong> {item.format.text}</p>
+                                    )}
+
+                                    {item.format.descriptions && item.format.descriptions.length > 0 && (
+                                        <p><strong>Descriptions:</strong> {item.format.descriptions.join(', ')}</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}

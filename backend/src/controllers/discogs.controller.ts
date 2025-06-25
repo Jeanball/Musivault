@@ -9,7 +9,13 @@ interface DiscogsResult {
   year: number;
 }
 
-interface DiscogsFormat { name: string; }
+interface DiscogsFormat {
+    name: string;
+    qty: string;
+    text?: string;
+    descriptions?: string[];
+}
+
 interface DiscogsReleaseResponse {
     id: number;
     title: string;
@@ -86,9 +92,12 @@ export async function getReleaseDetails(req: Request, res: Response) {
             artist: data.artists?.map(a => a.name).join(', ') || 'Artiste inconnu',
             year: data.year,
             cover_image: data.images?.find(img => img.type === 'primary')?.uri || data.images?.[0]?.uri || '',
-            availableFormats: data.formats?.map(f => f.name) || [] 
+            availableFormats: data.formats?.map(f => ({
+                name: f.name,
+                descriptions: f.descriptions || [],
+                text: f.text || ''
+            })) || [] 
         };
-
         res.status(200).json(cleanedData);
 
     } catch (error) {

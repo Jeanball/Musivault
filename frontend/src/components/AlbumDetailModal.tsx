@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 
 
+export interface FormatDetails {
+    name: string;
+    descriptions: string[];
+    text: string;
+}
+
 export interface AlbumDetails {
     discogsId: number;
     title: string;
@@ -8,18 +14,18 @@ export interface AlbumDetails {
     year: string;
     thumb: string;
     cover_image: string;
-    availableFormats?: string[];
+    availableFormats?: FormatDetails[]; 
 }
 
 interface AlbumDetailModalProps {
     album: AlbumDetails | null;
     onClose: () => void;
-    onConfirm: (format: string) => void;
+    onConfirm: (format: FormatDetails) => void; 
     isSubmitting: boolean;
 }
 
 const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onConfirm, isSubmitting }) => {
-    const [selectedFormat, setSelectedFormat] = useState<string>('');
+    const [selectedFormat, setSelectedFormat] = useState<FormatDetails | null>(null);
 
     if (!album) {
         return null;
@@ -45,20 +51,23 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
                     </div>
                 </div>
                 <div className="divider my-6">Choisissez votre format</div>
-                <div className="flex flex-wrap justify-center gap-3">
-                    {formats.length > 0 ? (
-                        formats.map((format) => (
-                            <button
-                                key={format}
-                                onClick={() => setSelectedFormat(format)}
-                                className={`btn ${selectedFormat === format ? 'btn-primary' : 'btn-outline'}`}
-                            >
-                                {format}
-                            </button>
-                        ))
-                    ) : (
-                        <p className="text-gray-500">Aucun format spécifique trouvé.</p>
-                    )}
+                <div className="flex flex-col items-center gap-4">
+                    {formats.map((format, index) => (
+                        <button
+                            key={index} // Utiliser l'index comme clé ici est sûr
+                            onClick={() => setSelectedFormat(format)}
+                            // On compare l'objet entier pour le style
+                            className={`btn btn-block h-auto py-2 ${selectedFormat === format ? 'btn-primary' : 'btn-outline'}`}
+                        >
+                           {/* ... (le JSX pour afficher les détails du format) ... */}
+                           <div className="text-left w-full">
+                                <div className="font-bold text-lg">{format.name} <span className="text-accent">{format.text}</span></div>
+                                <div className="text-xs font-normal opacity-70 normal-case">
+                                    {format.descriptions.join(', ')}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
                 </div>
                 <div className="modal-action mt-8">
                     <button className="btn btn-ghost" onClick={onClose}>Annuler</button>

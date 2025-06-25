@@ -3,7 +3,11 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface ICollectionItem extends Document {
   user: mongoose.Types.ObjectId;
   album: mongoose.Types.ObjectId;
-  format: string;
+  format: {
+    name: string;
+    descriptions: string[];
+    text: string;
+  };
   addedAt: Date;
 }
 
@@ -19,8 +23,9 @@ const collectionItemSchema = new Schema<ICollectionItem>({
     required: true,
   },
   format: {
-    type: String,
-    required: true,
+    name: { type: String, required: true },
+    descriptions: { type: [String], default: [] },
+    text: { type: String, default: '' },
   },
   addedAt: {
     type: Date,
