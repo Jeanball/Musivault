@@ -4,6 +4,7 @@ import { CookiesProvider } from 'react-cookie';
 import CollectionPage from './pages/CollectionPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
+import VersionsPage from './pages/VersionsPage';
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
         <Route path='/login' element={<LoginPage/>}/>
         <Route path='/signup' element={<SignupPage/>}/>
         <Route path='/collection' element={<CollectionPage />}></Route>
+        <Route path="/master/:masterId" element={<VersionsPage />} />
       </Routes>
       </CookiesProvider>
     </div>
