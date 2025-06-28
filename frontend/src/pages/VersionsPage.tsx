@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 
 interface MasterVersion {
@@ -76,6 +76,7 @@ const VersionsPage: React.FC = () => {
         try {
             await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
             toast.success(`"${selectedAlbum.title}" added to your collection!`);
+            console.log(selectedAlbum.title)
             setSelectedAlbum(null);
         } catch (err: any) {
             toast.error(err.response?.data?.message || "An error occured.");
@@ -94,7 +95,7 @@ const VersionsPage: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-8" data-theme="dark">
+        <div className="p-4 md:p-8" >
             <div className="flex flex-col md:flex-row gap-8">
                 
                 <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
@@ -109,15 +110,15 @@ const VersionsPage: React.FC = () => {
                     <div className="flex justify-between items-center mb-4">
                          <div className="flex items-center gap-2">
                             <p className="text-sm">Filtrer par :</p>
-                            <button onClick={() => setFilter('all')} className={`btn btn-xs ${filter === 'all' ? 'btn-active btn-neutral' : ''}`}>Tous</button>
+                            <button onClick={() => setFilter('all')} className={`btn btn-xs ${filter === 'all' ? 'btn-active btn-neutral' : ''}`}>All</button>
                             {pageData.formatCounts.CD > 0 && (
                                 <button onClick={() => setFilter('CD')} className={`btn btn-xs ${filter === 'CD' ? 'btn-active btn-neutral' : ''}`}>
-                                    CD <div className="badge badge-secondary ml-2">{pageData.formatCounts.CD}</div>
+                                    CD <div className="badge badge-primary ml-2">{pageData.formatCounts.CD}</div>
                                 </button>
                             )}
                             {pageData.formatCounts.Vinyl > 0 && (
                                 <button onClick={() => setFilter('Vinyl')} className={`btn btn-xs ${filter === 'Vinyl' ? 'btn-active btn-neutral' : ''}`}>
-                                    Vinyl <div className="badge badge-accent ml-2">{pageData.formatCounts.Vinyl}</div>
+                                    Vinyl <div className="badge badge-primary ml-2">{pageData.formatCounts.Vinyl}</div>
                                 </button>
                             )}
                         </div>
@@ -143,7 +144,7 @@ const VersionsPage: React.FC = () => {
                                         <td>{version.label}</td>
                                         <td>{version.country}</td>
                                         <td className="text-right">
-                                            <button className="btn btn-sm btn-secondary" onClick={() => handleShowDetails(version.id)}>
+                                            <button className="btn btn-sm btn-primary" onClick={() => handleShowDetails(version.id)}>
                                                 Add
                                             </button>
                                         </td>
@@ -161,7 +162,9 @@ const VersionsPage: React.FC = () => {
                 onConfirm={handleConfirmAddToCollection}
                 isSubmitting={isSubmitting}
             />
+        <ToastContainer />
         </div>
+
     );
 };
 

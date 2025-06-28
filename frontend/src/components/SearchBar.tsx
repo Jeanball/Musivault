@@ -80,7 +80,7 @@ const SearchBar: React.FC = () => {
             
             {searchResults.length > visibleCount && (
                 <div className="mt-8 text-center">
-                    <button onClick={handleShowMore} className="btn btn-accent">
+                    <button onClick={handleShowMore} className="btn btn-primary">
                         Voir plus
                     </button>
                 </div>

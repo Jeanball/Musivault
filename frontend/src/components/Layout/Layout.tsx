@@ -57,11 +57,12 @@ const Layout: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-8" data-theme="dark">
+        <div className="p-4 md:p-8">
             <Navbar username={username} onLogout={handleLogout} />
             <main>
                 <Outlet />
             </main>
+
         </div>
     );
 };

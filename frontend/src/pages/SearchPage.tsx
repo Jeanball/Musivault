@@ -4,7 +4,7 @@ import SearchBar from "../components/SearchBar";
 
 const SearchPage: React.FC = () => {
     return (
-        <div className="p-4 md:p-8" data-theme="dark">
+        <div className="p-4 md:p-8">
 
             <div className="text-center">
                 <h1 className="text-4xl font-bold">Add new album to your collection</h1>

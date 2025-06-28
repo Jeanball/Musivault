@@ -7,22 +7,22 @@ import { useAuthRedirect } from "../hooks/useAuthRedirect";
 
 // Interface pour l'état du formulaire
 interface LoginFormState {
-  email: string;
+  identifier: string;
   password: string;
 }
 
 // Interface pour la réponse de l'API de connexion
 interface LoginApiResponse {
   _id: string;
-  name: string;
+  username: string;
   email: string;
 }
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
-    const [inputValue, setInputValue] = useState<LoginFormState>({ email: "", password: "",});
+    const [inputValue, setInputValue] = useState<LoginFormState>({ identifier: "", password: "",});
     const { isLoading } = useAuthRedirect();
-    const { email, password } = inputValue;
+    const { identifier, password } = inputValue;
 
 
 
@@ -67,7 +67,7 @@ const LoginPage: React.FC = () => {
         }
 
         setInputValue({
-            email: "",
+            identifier: "",
             password: "",
         });
 
@@ -89,15 +89,15 @@ const LoginPage: React.FC = () => {
                 <form className="card-body" onSubmit={handleSubmit}>
                     <h2 className="card-title text-2xl font-bold self-center">Login</h2>
                     <div className="form-control">
-                        <label className="label" htmlFor="email">
-                            <span className="label-text">Email</span>
+                        <label className="label" htmlFor="identifier">
+                            <span className="label-text">Email or Username</span>
                         </label>
                         <input
-                            id="email"
-                            type="email"
-                            name="email"
-                            value={email}
-                            placeholder="Enter your email"
+                            id="identifier"
+                            type="text"
+                            name="identifier"
+                            value={identifier}
+                            placeholder="Enter your username or email"
                             onChange={handleOnChange}
                             className="input input-bordered"
                             required
@@ -112,7 +112,7 @@ const LoginPage: React.FC = () => {
                             type="password"
                             name="password"
                             value={password}
-                            placeholder="Entrez votre mot de passe"
+                            placeholder="Enter your password"
                             onChange={handleOnChange}
                             className="input input-bordered"
                             required

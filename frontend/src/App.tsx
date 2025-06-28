@@ -7,26 +7,30 @@ import SignupPage from './pages/SignupPage'
 import VersionsPage from './pages/VersionsPage';
 import SearchPage from './pages/SearchPage'
 import HomePage from './pages/HomePage';
+import { ThemeProvider } from './context/ThemeContext';
+
 
 const App = () => {
   return (
-    <div data-theme="dark">
+    <ThemeProvider>
       <CookiesProvider>
-      <Routes>
-        {/* Public Routes */}
-        <Route path='/login' element={<LoginPage/>}/>
-        <Route path='/signup' element={<SignupPage/>}/>
-        <Route path='/home' element={<HomePage/>}/>
+        <div >
+          <Routes>
+            {/* Public Routes */}
+            <Route path='/login' element={<LoginPage/>}/>
+            <Route path='/signup' element={<SignupPage/>}/>
+            <Route path='/home' element={<HomePage/>}/>
 
-        {/* Protected Routes */}
-        <Route element={<Layout />}>
-          <Route path='/' element={<SearchPage/>}/>
-          <Route path='/collection' element={<CollectionPage />}></Route>
-          <Route path="/master/:masterId" element={<VersionsPage />} />
-        </Route>
-      </Routes>
+            {/* Protected Routes */}
+            <Route element={<Layout />}>
+              <Route path='/' element={<SearchPage/>}/>
+              <Route path='/collection' element={<CollectionPage />}></Route>
+              <Route path="/master/:masterId" element={<VersionsPage />} />
+            </Route>
+          </Routes>
+        </div>
       </CookiesProvider>
-    </div>
+    </ThemeProvider> 
   )
 }
 

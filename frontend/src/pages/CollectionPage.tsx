@@ -85,7 +85,7 @@ const CollectionPage: React.FC = () => {
     }
 
 return (
-        <div className="p-4 md:p-8" data-theme="dark">
+        <div className="p-4 md:p-8">
                 <div className="flex-none gap-2">
                      <div className="join">
                         <button className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-active' : ''}`} onClick={() => setLayout('grid')}>Grille</button>
@@ -102,7 +102,7 @@ return (
                    <div className="space-y-10">
                         {Object.entries(groupedByArtist).map(([artist, items]) => (
                             <div key={artist}>
-                                <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-primary/20">{artist}</h2>
+                                <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-primary/50">{artist}</h2>
                                 {layout === 'grid' ? (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                         {items.map((item) => (
