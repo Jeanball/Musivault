@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import AlbumDetailModal, { type AlbumDetails } from '../components/AlbumDetailModal';
+import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 
 interface MasterVersion {
     id: number;

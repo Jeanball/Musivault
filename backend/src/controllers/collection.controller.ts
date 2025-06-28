@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Album from '../models/Album';
+import Album, { IAlbum } from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
 
 
@@ -22,7 +22,14 @@ export async function getMyCollection(req: Request, res: Response) {
         const userId = req.user._id;
 
         const collection = await CollectionItem.find({ user: userId })
-            .populate('album'); 
+            .populate<{album: IAlbum}>('album'); 
+
+        collection.sort((a, b) => {
+            if (a.album && b.album) {
+                return a.album.artist.localeCompare(b.album.artist);
+            }
+            return 0;
+        });
 
         res.status(200).json(collection);
 
@@ -31,7 +38,6 @@ export async function getMyCollection(req: Request, res: Response) {
         res.status(500).json({ message: "Erreur interne du serveur" });
     }
 }
-
 
 export async function addToCollection(req: Request, res: Response) {
     try {
@@ -76,6 +82,30 @@ export async function addToCollection(req: Request, res: Response) {
 
     } catch (error) {
         console.error("Erreur lors de l'ajout à la collection :", error);
+        res.status(500).json({ message: "Erreur interne du serveur" });
+    }
+}
+
+export async function deleteFromCollection(req: Request, res: Response) {
+    try {
+        if (!req.user) {
+            res.status(401).json({ message: "Utilisateur non authentifié." });
+            return;
+        }
+        const userId = req.user._id;
+        const { itemId } = req.params;
+
+        const itemToDelete = await CollectionItem.findOneAndDelete({ _id: itemId, user: userId });
+
+        if (!itemToDelete) {
+            res.status(404).json({ message: "Élément non trouvé dans votre collection." });
+            return;
+        }
+
+        res.status(200).json({ message: "Album supprimé de votre collection avec succès." });
+
+    } catch (error) {
+        console.error("Erreur lors de la suppression de l'élément de la collection :", error);
         res.status(500).json({ message: "Erreur interne du serveur" });
     }
 }
