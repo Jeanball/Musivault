@@ -29,23 +29,18 @@ export async function signupUser(req: Request, res: Response, next: NextFunction
 
 export async function loginUser(req: Request, res: Response) {
     try {
-        const { email, password } = req.body;
-        if (!email || !password) {
+        const { identifier, password } = req.body;
+        if (!identifier || !password) {
             res.status(400).json({ message: 'All fields are required' });
             return;
         }
 
-        const user = await User.findOne({ email });
-        if (!user) {
+        const user = await User.findOne({
+            $or: [{ email: identifier }, { username: identifier }],
+        });
+        if (!user || !(await user.comparePassword(password))) {
             console.log("Login failed: User not found.");
-            res.status(401).json({ message: "Invalid email or password." });
-            return;
-        }
-
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            console.log("Login failed: Password does not match.");
-            res.status(401).json({ message: "Invalid email or password." });
+            res.status(401).json({ message: "Invalid credentials" });
             return;
         }
 
