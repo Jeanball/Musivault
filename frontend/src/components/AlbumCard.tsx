@@ -44,7 +44,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingD
             {artist}
         </p>
         <p className="text-sm text-gray-500 mt-1">
-          Année: {result.year || 'N/A'}
+          Year: {result.year || 'N/A'}
         </p>
       </div>
 

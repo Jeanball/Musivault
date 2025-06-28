@@ -5,11 +5,10 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import AlbumDetailModal, { type AlbumDetails } from '../components/AlbumDetailModal';
 
-// --- Interfaces mises à jour pour correspondre au nouveau format du backend ---
 interface MasterVersion {
     id: number;
     title: string;
-    format: string; // Le format détaillé complet, pour la modale
+    format: string;
     label: string;
     country: string;
     released: string;
@@ -17,7 +16,7 @@ interface MasterVersion {
 }
 interface VersionsPageData {
     masterTitle: string;
-    coverImage: string; // L'image de couverture du master
+    coverImage: string;
     formatCounts: { [key: string]: number };
     versions: MasterVersion[];
 }
@@ -31,7 +30,6 @@ const VersionsPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [filter, setFilter] = useState<FormatFilter>('all');
 
-    // --- Logique pour la modale (inchangée) ---
     const [selectedAlbum, setSelectedAlbum] = useState<AlbumDetails | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -42,11 +40,10 @@ const VersionsPage: React.FC = () => {
                 const { data } = await axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, {
                     withCredentials: true
                 });
-                console.log("Données reçues du backend pour la page des versions :", data);
                 setPageData(data);
             } catch (error) {
-                console.log(error)
-                toast.error("Impossible de charger les versions de cet album.");
+                console.log("Error charging versions on this album: ",error)
+                toast.error("Error charging versions on this album.");
                 navigate('/');
             } finally {
                 setIsLoading(false);
@@ -55,7 +52,6 @@ const VersionsPage: React.FC = () => {
         fetchVersions();
     }, [masterId, navigate]);
 
-    // La logique de filtrage utilise maintenant majorFormat
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
         if (filter === 'all') return pageData.versions;
@@ -64,14 +60,13 @@ const VersionsPage: React.FC = () => {
         );
     }, [pageData, filter]);
 
-    // --- Fonctions de la modale (inchangées) ---
     const handleShowDetails = async (releaseId: number) => {
         try {
             const response = await axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, { withCredentials: true });
             setSelectedAlbum(response.data);
         } catch (err) {
             console.log(err)
-            toast.error("Impossible de récupérer les détails de cette version.");
+            toast.error("Error by retrieving data on this version.");
         }
     };
 
@@ -80,10 +75,10 @@ const VersionsPage: React.FC = () => {
         setIsSubmitting(true);
         try {
             await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
-            toast.success(`"${selectedAlbum.title}" a été ajouté à votre collection !`);
+            toast.success(`"${selectedAlbum.title}" added to your collection!`);
             setSelectedAlbum(null);
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "Une erreur est survenue.");
+            toast.error(err.response?.data?.message || "An error occured.");
         } finally {
             setIsSubmitting(false);
         }
@@ -95,24 +90,21 @@ const VersionsPage: React.FC = () => {
     }
 
     if (!pageData) {
-        return <div className="text-center p-8">Aucune donnée trouvée pour cet album.</div>
+        return <div className="text-center p-8">No data for this album.</div>
     }
 
     return (
         <div className="p-4 md:p-8" data-theme="dark">
-            {/* --- NOUVELLE STRUCTURE DE MISE EN PAGE --- */}
             <div className="flex flex-col md:flex-row gap-8">
                 
-                {/* --- COLONNE DE GAUCHE : IMAGE ET TITRE --- */}
                 <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
                     {pageData.coverImage && (
                         <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-lg shadow-2xl" />
                     )}
                     <h1 className="text-2xl font-bold mt-4">{pageData.masterTitle}</h1>
-                    <p className="text-gray-400">Sélectionnez la version que vous possédez.</p>
+                    <p className="text-gray-400">Choose your version.</p>
                 </div>
 
-                {/* --- COLONNE DE DROITE : FILTRES ET TABLEAU --- */}
                 <div className="flex-1">
                     <div className="flex justify-between items-center mb-4">
                          <div className="flex items-center gap-2">
@@ -129,17 +121,17 @@ const VersionsPage: React.FC = () => {
                                 </button>
                             )}
                         </div>
-                        <Link to="/" className="btn btn-sm btn-outline">Revenir à la recherche</Link>
+                        <Link to="/" className="btn btn-sm btn-outline">Return to Homepage</Link>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="table table-zebra w-full">
                             <thead>
                                 <tr>
-                                    <th>Sortie</th>
+                                    <th>Released</th>
                                     <th>Format</th>
                                     <th>Label</th>
-                                    <th>Pays</th>
+                                    <th>Country</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -152,7 +144,7 @@ const VersionsPage: React.FC = () => {
                                         <td>{version.country}</td>
                                         <td className="text-right">
                                             <button className="btn btn-sm btn-secondary" onClick={() => handleShowDetails(version.id)}>
-                                                Ajouter...
+                                                Add
                                             </button>
                                         </td>
                                     </tr>

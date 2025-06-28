@@ -87,7 +87,7 @@ const SignupPage: React.FC = () => {
         <div className="hero min-h-screen bg-base-200">
             <div className="card shrink-0 w-full max-w-md shadow-2xl bg-base-100">
                 <form className="card-body" onSubmit={handleSubmit}>
-                    <h2 className="card-title text-2xl font-bold self-center">Créer un compte</h2>
+                    <h2 className="card-title text-2xl font-bold self-center">Create an account</h2>
                     <div className="form-control">
                         <label className="label" htmlFor="email">
                             <span className="label-text">Email</span>
@@ -97,7 +97,7 @@ const SignupPage: React.FC = () => {
                             type="email"
                             name="email"
                             value={email}
-                            placeholder="Entrez votre email"
+                            placeholder="Enter your email"
                             onChange={handleOnChange}
                             className="input input-bordered"
                             required
@@ -105,14 +105,14 @@ const SignupPage: React.FC = () => {
                     </div>
                     <div className="form-control">
                         <label className="label" htmlFor="username">
-                            <span className="label-text">Nom d'utilisateur</span>
+                            <span className="label-text">Username</span>
                         </label>
                         <input
                             id="username"
                             type="text"
                             name="username"
                             value={username}
-                            placeholder="Entrez votre nom d'utilisateur"
+                            placeholder="Entrez your username"
                             onChange={handleOnChange}
                             className="input input-bordered"
                             required
@@ -120,26 +120,26 @@ const SignupPage: React.FC = () => {
                     </div>
                     <div className="form-control">
                         <label className="label" htmlFor="password">
-                            <span className="label-text">Mot de passe</span>
+                            <span className="label-text">Password</span>
                         </label>
                         <input
                             id="password"
                             type="password"
                             name="password"
                             value={password}
-                            placeholder="Entrez votre mot de passe"
+                            placeholder="Enter your password"
                             onChange={handleOnChange}
                             className="input input-bordered"
                             required
                         />
                     </div>
                     <div className="form-control mt-6">
-                        <button type="submit" className="btn btn-primary">S'inscrire</button>
+                        <button type="submit" className="btn btn-primary">Sign Up</button>
                     </div>
                     <div className="text-center mt-4">
                         <span className="text-sm">
-                            Vous avez déjà un compte ?{" "}
-                            <Link to="/login" className="link link-primary">Se connecter</Link>
+                            Already have an account?{" "}
+                            <Link to="/login" className="link link-primary">Login</Link>
                         </span>
                     </div>
                 </form>

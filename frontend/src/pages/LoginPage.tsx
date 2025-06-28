@@ -53,7 +53,7 @@ const LoginPage: React.FC = () => {
                 { withCredentials: true }
             );
 
-            handleSuccess("Connexion réussie !");
+            handleSuccess("Connection Succeeded!");
             
             setTimeout(() => {
                 navigate("/");
@@ -87,7 +87,7 @@ const LoginPage: React.FC = () => {
         <div className="hero min-h-screen bg-base-200">
             <div className="card shrink-0 w-full max-w-md shadow-2xl bg-base-100">
                 <form className="card-body" onSubmit={handleSubmit}>
-                    <h2 className="card-title text-2xl font-bold self-center">Se connecter</h2>
+                    <h2 className="card-title text-2xl font-bold self-center">Login</h2>
                     <div className="form-control">
                         <label className="label" htmlFor="email">
                             <span className="label-text">Email</span>
@@ -97,7 +97,7 @@ const LoginPage: React.FC = () => {
                             type="email"
                             name="email"
                             value={email}
-                            placeholder="Entrez votre email"
+                            placeholder="Enter your email"
                             onChange={handleOnChange}
                             className="input input-bordered"
                             required
@@ -105,7 +105,7 @@ const LoginPage: React.FC = () => {
                     </div>
                     <div className="form-control">
                         <label className="label" htmlFor="password">
-                            <span className="label-text">Mot de passe</span>
+                            <span className="label-text">Password</span>
                         </label>
                         <input
                             id="password"
@@ -119,12 +119,12 @@ const LoginPage: React.FC = () => {
                         />
                     </div>
                     <div className="form-control mt-6">
-                        <button type="submit" className="btn btn-primary">Se connecter</button>
+                        <button type="submit" className="btn btn-primary">Login</button>
                     </div>
                     <div className="text-center mt-4">
                         <span className="text-sm">
-                            Vous n'avez pas de compte ?{" "}
-                            <Link to="/signup" className="link link-primary">S'inscrire</Link>
+                            You don't have an account?{" "}
+                            <Link to="/signup" className="link link-primary">Sign Up</Link>
                         </span>
                     </div>
                 </form>
