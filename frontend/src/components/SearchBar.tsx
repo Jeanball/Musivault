@@ -27,7 +27,7 @@ const SearchBar: React.FC = () => {
             setSearchResults(response.data);
         } catch (err) {
             console.log(err)
-            toast.error("La recherche a échoué.");
+            toast.error("Search failed.");
         } finally {
             setIsLoading(false);
         }
@@ -55,7 +55,7 @@ const SearchBar: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleKeyPress}
-                    placeholder="Rechercher un album..."
+                    placeholder="Search an album..."
                     className="flex-grow input input-bordered"
                 />
                 <button
@@ -63,7 +63,7 @@ const SearchBar: React.FC = () => {
                     disabled={isLoading}
                     className="btn btn-primary"
                 >
-                    {isLoading ? <span className="loading loading-spinner"></span> : 'Rechercher'}
+                    {isLoading ? <span className="loading loading-spinner"></span> : 'Search'}
                 </button>
             </div>
 

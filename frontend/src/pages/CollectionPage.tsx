@@ -31,7 +31,7 @@ const CollectionPage: React.FC = () => {
                 });
                 setCollection(data);
             } catch (error) {
-                console.error("Impossible de charger la collection", error);
+                console.error("Error by charging collection: ", error);
             } finally {
                 setIsLoading(false);
             }
@@ -51,19 +51,19 @@ return (
         <div className="p-4 md:p-8" data-theme="dark">
             <div className="navbar bg-base-100 rounded-box shadow-xl mb-8">
                 <div className="flex-1">
-                    <h1 className="btn btn-ghost text-xl normal-case">Ma Collection</h1>
+                    <h1 className="btn btn-ghost text-xl normal-case">My Collection</h1>
                 </div>
                 <div className="flex-none">
                     <Link to="/" className="btn btn-outline btn-primary">
-                        Retour à la Recherche
+                        Back to Homepage
                     </Link>
                 </div>
             </div>
 
             {collection.length === 0 ? (
                 <div className="text-center py-20">
-                    <h2 className="text-2xl font-semibold">Votre collection est vide.</h2>
-                    <p className="mt-2 text-gray-400">Commencez par rechercher des albums pour les ajouter.</p>
+                    <h2 className="text-2xl font-semibold">Your collection is empty.</h2>
+                    <p className="mt-2 text-gray-400">Start by searching new albums on Homepage.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
