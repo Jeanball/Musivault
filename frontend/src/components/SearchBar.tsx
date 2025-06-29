@@ -1,47 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { toast } from "react-toastify";
 import AlbumCard from './AlbumCard';
 import type { DiscogsResult } from '../types';
+import { useDebounce } from '../hooks/useDebounce'; 
 
-const BATCH_SIZE = 5;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 const SearchBar: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [searchResults, setSearchResults] = useState<DiscogsResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
     const navigate = useNavigate();
 
-    const handleSearch = async () => {
-        if (!searchQuery.trim()) return;
-        setVisibleCount(BATCH_SIZE);
-        setIsLoading(true);
-        setSearchResults([]);
-        try {
-            const response = await axios.get<DiscogsResult[]>(`/api/discogs/search`, {
-                params: { q: searchQuery }, 
-                withCredentials: true
-            });
-            setSearchResults(response.data);
-        } catch (err) {
-            console.log(err)
-            toast.error("Search failed.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-    const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter') {
-            handleSearch();
-        }
-    };
+    useEffect(() => {
+        if (debouncedSearchQuery.length > 2) {
+            setIsLoading(true);
+            
+            const search = async () => {
+                try {
+                    const response = await axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/search`, {
+                        params: { q: debouncedSearchQuery }, 
+                        withCredentials: true
+                    });
+                    
+                    if (Array.isArray(response.data)) {
+                        setSearchResults(response.data);
+                    } else {
+                        setSearchResults([]);
+                    }
 
-    const handleShowMore = () => {
-        setVisibleCount(prevCount => prevCount + BATCH_SIZE);
-    };
+                } catch (err) {
+                    console.log(err)
+                    toast.error("Search failed.");
+                    setSearchResults([]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            search();
+        } else {
+            setSearchResults([]);
+        }
+    }, [debouncedSearchQuery]);
 
     const handleSelectMaster = (masterId: number) => {
         navigate(`/master/${masterId}`);
@@ -49,26 +53,21 @@ const SearchBar: React.FC = () => {
 
     return (
         <div className="w-full max-w-4xl mx-auto">
-            <div className="flex items-center gap-2 mb-8">
+            <div className="relative">
                 <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Search an album..."
-                    className="flex-grow input input-bordered"
+                    placeholder="Commencez à taper pour rechercher un album..."
+                    className="input input-bordered w-full pr-10"
                 />
-                <button
-                    onClick={handleSearch}
-                    disabled={isLoading}
-                    className="btn btn-primary"
-                >
-                    {isLoading ? <span className="loading loading-spinner"></span> : 'Search'}
-                </button>
+                {isLoading && (
+                    <span className="loading loading-spinner loading-sm absolute top-1/2 right-3 -translate-y-1/2"></span>
+                )}
             </div>
 
             <div className="space-y-4 mt-8">
-                {searchResults.slice(0, visibleCount).map((result) => (
+                {searchResults.map((result) => (
                    <AlbumCard
                         key={result.id}
                         result={result}
@@ -77,14 +76,6 @@ const SearchBar: React.FC = () => {
                    />
                 ))}
             </div>
-            
-            {searchResults.length > visibleCount && (
-                <div className="mt-8 text-center">
-                    <button onClick={handleShowMore} className="btn btn-primary">
-                        Voir plus
-                    </button>
-                </div>
-            )}
         </div>
     );
 };
