@@ -50,6 +50,7 @@ export async function loginUser(req: Request, res: Response) {
             httpOnly: true,
             secure: process.env.NODE_ENV !== 'development',
             sameSite: 'lax',
+            path: "/",
             maxAge: 15 * 24 * 60 * 60 * 1000
         });
 
