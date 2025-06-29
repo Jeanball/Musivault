@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router';
 import axios from 'axios';
-import { useCookies } from 'react-cookie';
 import Navbar from '../Navbar';
 
 interface VerificationResponse {
@@ -9,9 +8,8 @@ interface VerificationResponse {
     user: string;
 }
 
-const Layout: React.FC = () => {
+const PrivateLayout: React.FC = () => {
     const navigate = useNavigate();
-    const [cookies, , removeCookie] = useCookies(["jwt"]);
     const [username, setUsername] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -23,25 +21,24 @@ const Layout: React.FC = () => {
                 );
                 if (data.status) {
                     setUsername(data.user);
+                    console.log(data.user)
+                    setIsLoading(false);
                 } else {
-                    removeCookie("jwt", { path: '/' });
                     navigate("/login");
                 }
             } catch (error) {
                 console.log(error)
-                removeCookie("jwt", { path: '/' });
                 navigate("/login");
             } finally {
                 setIsLoading(false);
             }
         };
         verifyUser();
-    }, [cookies, navigate, removeCookie]);
+    }, [navigate]);
 
     const handleLogout = async () => {
         try {
             await axios.post("/api/auth/logout", {}, { withCredentials: true });
-            removeCookie("jwt", { path: '/' });
             navigate("/login");
         } catch (error) {
             console.error("Disconnection failed.", error);
@@ -67,4 +64,4 @@ const Layout: React.FC = () => {
     );
 };
 
-export default Layout;
+export default PrivateLayout;

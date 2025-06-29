@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router';
 import axios from 'axios';
 
-export const useAuthRedirect = () => {
+const PublicLayout: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const navigate = useNavigate();
 
@@ -10,9 +10,7 @@ export const useAuthRedirect = () => {
         const checkAuthStatus = async () => {
             try {
                 const { data } = await axios.post(
-                    "http://localhost:5001/api/auth/verify",
-                    {},
-                    { withCredentials: true }
+                    "/api/auth/verify", {}, { withCredentials: true }
                 );
                 if (data.status) {
                     navigate("/");
@@ -20,7 +18,7 @@ export const useAuthRedirect = () => {
                     setIsLoading(false);
                 }
             } catch (error) {
-                console.error("Erreur lors de la vérification de l'authentification :", error);
+                console.log(error)
                 setIsLoading(false);
             }
         };
@@ -28,5 +26,15 @@ export const useAuthRedirect = () => {
         checkAuthStatus();
     }, [navigate]);
 
-    return { isLoading };
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <span className="loading loading-spinner loading-lg"></span>
+            </div>
+        );
+    }
+    
+    return <Outlet />;
 };
+
+export default PublicLayout;
