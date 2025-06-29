@@ -16,6 +16,8 @@ interface LoginApiResponse {
   username: string;
   email: string;
 }
+const API_BASE_URL = import.meta.env.API_URL || '';
+
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -46,7 +48,7 @@ const LoginPage: React.FC = () => {
         e.preventDefault();
         try {
             await axios.post<LoginApiResponse>(
-                "http://localhost:5001/api/auth/login",
+                `${API_BASE_URL}/api/auth/login`,
                 { ...inputValue },
                 { withCredentials: true }
             );

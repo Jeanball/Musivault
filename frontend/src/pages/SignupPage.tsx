@@ -17,6 +17,8 @@ interface ApiResponse {
     message: string;
 }
 
+const API_BASE_URL = import.meta.env.API_URL || '';
+
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
     const [inputValue, setInputValue] = useState<SignupFormState>({email: "", password: "", username: ""});
@@ -45,7 +47,7 @@ const SignupPage: React.FC = () => {
         e.preventDefault();
         try {
             const { data } = await axios.post<ApiResponse>(
-                "http://localhost:5001/api/auth/signup",
+                `${API_BASE_URL}:5001/api/auth/signup`,
                 { ...inputValue },
                 { withCredentials: true }
             );

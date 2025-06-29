@@ -5,9 +5,9 @@ import protectRoute from '../middlewares/protectRoute';
 
 const router = Router();
 
-router.post('/verify', protectRoute, userVerification);
+router.post('/verify', userVerification);
 router.post('/login', loginUser);
 router.post('/signup', signupUser);
-router.post('/logout', protectRoute, logoutUser);
+router.post('/logout', logoutUser);
 
 export default router;
