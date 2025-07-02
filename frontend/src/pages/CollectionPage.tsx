@@ -93,13 +93,12 @@ const CollectionPage: React.FC = () => {
         <div className="p-4 md:p-8">
             <div className="navbar bg-base-100 rounded-box shadow-xl mb-8">
                 <div className="flex-1">
-                    <h1 className="btn btn-ghost text-xl normal-case">My Collection</h1>
-                </div>
-                <div className="flex-none gap-2">
                     <div className="join">
                         <button className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-active' : ''}`} onClick={() => setLayout('grid')}>Grille</button>
                         <button className={`btn join-item btn-sm ${layout === 'list' ? 'btn-active' : ''}`} onClick={() => setLayout('list')}>Liste</button>
                     </div>
+                </div>
+                <div className="flex-none gap-2">
                     <Link to="/" className="btn btn-outline btn-primary btn-sm">Add an album</Link>
                 </div>
             </div>
@@ -107,7 +106,7 @@ const CollectionPage: React.FC = () => {
             <div className="form-control mb-8">
                 <input 
                     type="text" 
-                    placeholder="Rechercher dans votre collection..." 
+                    placeholder="Search an album..." 
                     className="input input-bordered w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
