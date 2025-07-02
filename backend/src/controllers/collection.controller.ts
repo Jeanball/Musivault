@@ -20,17 +20,32 @@ export async function getMyCollection(req: Request, res: Response) {
             return;
         }
         const userId = req.user._id;
+        const { sort, limit } = req.query;
 
-        const collection = await CollectionItem.find({ user: userId })
-            .populate<{album: IAlbum}>('album'); 
+        let query = CollectionItem.find({ user: userId })
+            .populate<{album: IAlbum}>('album');
 
-        collection.sort((a, b) => {
-            if (a.album && b.album) {
-                return a.album.artist.localeCompare(b.album.artist);
+        if (sort === 'latest') {
+            query = query.sort({ addedAt: -1 });
+        }
+
+        if (limit) {
+            const numLimit = parseInt(limit as string, 10);
+            if (!isNaN(numLimit)) {
+                query = query.limit(numLimit);
             }
-            return 0;
-        });
+        }
 
+        const collection = await query.exec();
+
+        if (sort !== 'latest') {
+            collection.sort((a, b) => {
+                if (a.album && b.album) {
+                    return a.album.artist.localeCompare(b.album.artist);
+                }
+                return 0;
+            });
+        }
         res.status(200).json(collection);
 
     } catch (error) {

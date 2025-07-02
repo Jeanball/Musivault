@@ -58,7 +58,7 @@ const SearchBar: React.FC = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Commencez à taper pour rechercher un album..."
+                    placeholder="Start typing to find an album..."
                     className="input input-bordered w-full pr-10"
                 />
                 {isLoading && (
