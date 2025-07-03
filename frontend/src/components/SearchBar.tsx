@@ -48,7 +48,7 @@ const SearchBar: React.FC = () => {
     }, [debouncedSearchQuery]);
 
     const handleSelectMaster = (masterId: number) => {
-        navigate(`/master/${masterId}`);
+        navigate(`/app/master/${masterId}`);
     };
 
     return (

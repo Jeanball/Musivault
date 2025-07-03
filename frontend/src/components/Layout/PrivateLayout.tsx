@@ -39,7 +39,7 @@ const PrivateLayout: React.FC = () => {
     const handleLogout = async () => {
         try {
             await axios.post("/api/auth/logout", {}, { withCredentials: true });
-            navigate("/login");
+            navigate("/");
         } catch (error) {
             console.error("Disconnection failed.", error);
         }

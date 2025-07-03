@@ -35,13 +35,13 @@ const Navbar: React.FC<NavbarProps> = ({ username, onLogout }) => {
       {/* --- BIG SCREEN --- */}
       <div className="navbar bg-base-100 rounded-box shadow-xl mb-8 hidden lg:flex">
         <div className="navbar-start">
-          <Link to="/" className="btn btn-ghost text-xl normal-case">
+          <Link to="/app" className="btn btn-ghost text-xl normal-case">
             MUSIVAULT
           </Link>
         </div>
         <div className="navbar-center">
           <ul className="menu menu-horizontal px-1">
-            <li><Link to="/collection">My Collection</Link></li>
+            <li><Link to="/app/collection">My Collection</Link></li>
             <li tabIndex={0}>
               <details ref={detailsRef}>
                 <summary>Theme</summary>
@@ -74,11 +74,11 @@ const Navbar: React.FC<NavbarProps> = ({ username, onLogout }) => {
 
       {/* --- MOBILE --- */}
       <div className="btm-nav lg:hidden z-10">
-        <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+        <Link to="/app" className={location.pathname === '/app' ? 'active' : ''}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <span className="btm-nav-label">Search</span>
         </Link>
-        <Link to="/collection" className={location.pathname.startsWith('/collection') ? 'active' : ''}>
+        <Link to="/app/collection" className={location.pathname.startsWith('/app/collection') ? 'active' : ''}>
            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
           <span className="btm-nav-label">Collection</span>
         </Link>

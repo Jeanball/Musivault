@@ -56,7 +56,7 @@ const LoginPage: React.FC = () => {
             handleSuccess("Connection Succeeded!");
             
             setTimeout(() => {
-                navigate("/");
+                navigate("/app");
             }, 1000);
 
 
