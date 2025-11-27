@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import axios from 'axios';
+import Hero from '../components/Hero';
+import Footer from '../components/Footer';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -47,21 +49,11 @@ const LandingPage: React.FC = () => {
 
   // Si l'utilisateur n'est pas connecté, on affiche la page de présentation.
   return (
-    <div className="hero min-h-screen" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=2070&auto=format&fit=crop)' }}>
-      <div className="hero-overlay bg-opacity-60"></div>
-      <div className="hero-content text-center text-neutral-content">
-        <div className="max-w-md">
-          <h1 className="mb-5 text-5xl font-bold">Votre Collection Musicale</h1>
-          <p className="mb-5">
-            Organisez, découvrez et gérez votre collection de vinyles et de CD. Retrouvez facilement toutes les éditions de vos albums préférés.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Link to="/login" className="btn btn-primary">Se connecter</Link>
-            <Link to="/signup" className="btn btn-outline btn-secondary">Créer un compte</Link>
-          </div>
-        </div>
-      </div>
+    <div>    
+      <Hero />
+      <Footer />
     </div>
+
   );
 };
 

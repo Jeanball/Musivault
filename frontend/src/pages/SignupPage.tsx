@@ -47,7 +47,7 @@ const SignupPage: React.FC = () => {
         e.preventDefault();
         try {
             const { data } = await axios.post<ApiResponse>(
-                `${API_BASE_URL}:5001/api/auth/signup`,
+                `${API_BASE_URL}/api/auth/signup`,
                 { ...inputValue },
                 { withCredentials: true }
             );

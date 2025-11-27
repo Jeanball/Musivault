@@ -12,8 +12,8 @@ const ShowAlbumModal: React.FC<AlbumDetailModalProps> = ({ item, onClose, onDele
     if (!item) return null;
 
     return (
-<dialog id="collection_item_modal" className="modal" open={!!item}>
-            <div className="modal-box w-11/12 max-w-2xl">
+        <dialog id="collection_item_modal" className="modal modal-bottom sm:modal-middle" open={!!item}>
+            <div className="modal-box">
                 <div className="flex flex-col sm:flex-row gap-6">
                     <img src={item.album.cover_image} alt={item.album.title} className="w-48 h-48 object-cover rounded-lg shadow-lg mx-auto sm:mx-0" />
                     <div className="flex-1">
@@ -29,8 +29,8 @@ const ShowAlbumModal: React.FC<AlbumDetailModalProps> = ({ item, onClose, onDele
                     </div>
                 </div>
 
-                <div className="modal-action mt-6">
-                    <button className="btn btn-ghost" onClick={onClose}>Close</button>
+                <div className="modal-action mt-6">                
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={onClose}>✕</button>
                     <button className="btn btn-error" onClick={() => onDelete(item._id)} disabled={isDeleting}>
                         {isDeleting ? <span className="loading loading-spinner"></span> : "Delete"}
                     </button>
