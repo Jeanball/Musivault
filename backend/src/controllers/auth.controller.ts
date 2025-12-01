@@ -13,9 +13,9 @@ export async function signupUser(req: Request, res: Response, next: NextFunction
         }
         const newUser = new User({ username, email, password, createdAt})
         const token = generateToken(newUser.id);
-        res.cookie('token', token, {
+        res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
+        secure: process.env.NODE_ENV === "production",
         sameSite: 'lax'
     });
         await newUser.save();
@@ -48,7 +48,7 @@ export async function loginUser(req: Request, res: Response) {
         
         res.cookie('jwt', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development',
+            secure: process.env.NODE_ENV === "production",
             sameSite: 'lax',
             path: "/",
             maxAge: 15 * 24 * 60 * 60 * 1000
@@ -70,7 +70,7 @@ export async function logoutUser(req: Request, res: Response) {
     try {
         res.cookie('jwt', '', {
             httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development',
+            secure: process.env.NODE_ENV === "production",
             sameSite: 'lax',
             expires: new Date(0)
         });
