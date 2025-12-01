@@ -58,6 +58,7 @@ export async function loginUser(req: Request, res: Response) {
             _id: user._id,
             username: user.username,
             email: user.email,
+            isAdmin: user.isAdmin,
         });
 
     } catch (error) {
