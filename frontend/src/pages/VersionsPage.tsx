@@ -24,7 +24,7 @@ interface VersionsPageData {
 type FormatFilter = 'all' | 'CD' | 'Vinyl';
 
 const VersionsPage: React.FC = () => {
-    const { masterId } = useParams<{ masterId: string }>();
+    const { masterId, releaseId } = useParams<{ masterId?: string; releaseId?: string }>();
     const navigate = useNavigate();
     const [pageData, setPageData] = useState<VersionsPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -35,9 +35,15 @@ const VersionsPage: React.FC = () => {
 
     useEffect(() => {
         const fetchVersions = async () => {
-            if (!masterId) return;
+            if (!masterId && !releaseId) return;
+            
             try {
-                const { data } = await axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, {
+                // Déterminer l'endpoint en fonction du type de paramètre
+                const endpoint = masterId
+                    ? `/api/discogs/master/${masterId}/versions`
+                    : `/api/discogs/release/${releaseId}/versions`;
+                
+                const { data } = await axios.get<VersionsPageData>(endpoint, {
                     withCredentials: true
                 });
                 setPageData(data);
@@ -50,7 +56,7 @@ const VersionsPage: React.FC = () => {
             }
         };
         fetchVersions();
-    }, [masterId, navigate]);
+    }, [masterId, releaseId, navigate]);
 
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];

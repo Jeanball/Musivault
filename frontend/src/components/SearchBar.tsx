@@ -47,8 +47,20 @@ const SearchBar: React.FC = () => {
         }
     }, [debouncedSearchQuery]);
 
-    const handleSelectMaster = (masterId: number) => {
-        navigate(`/app/master/${masterId}`);
+    const handleSelectResult = (result: DiscogsResult) => {
+        if (result.type === 'artist') {
+            // C'est un artiste, on va vers sa discographie
+            navigate(`/app/artist/${result.id}`);
+        } else if (result.type === 'master') {
+            // C'est un master, on va directement à ses versions
+            navigate(`/app/master/${result.id}`);
+        } else if (result.master_id) {
+            // C'est une release avec un master parent, on va vers le master
+            navigate(`/app/master/${result.master_id}`);
+        } else {
+            // Release orpheline, on utilise la nouvelle route
+            navigate(`/app/release/${result.id}`);
+        }
     };
 
     return (
@@ -71,7 +83,7 @@ const SearchBar: React.FC = () => {
                    <AlbumCard
                         key={result.id}
                         result={result}
-                        onShowDetails={() => handleSelectMaster(result.id)}
+                        onShowDetails={() => handleSelectResult(result)}
                         isLoadingDetails={false}
                    />
                 ))}
