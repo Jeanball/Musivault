@@ -4,6 +4,8 @@ import CollectionPage from './pages/CollectionPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import VersionsPage from './pages/VersionsPage';
+import ReleasePage from './pages/ReleasePage';
+import ArtistAlbumsPage from './pages/ArtistAlbumsPage';
 import HomePage from './pages/HomePage';
 import LandingPage from './pages/LandingPage';
 import { ThemeProvider } from './context/ThemeContext';
@@ -27,6 +29,8 @@ const App = () => {
               <Route index element={<HomePage />} /> {/* La page d'accueil de l'app est maintenant à /app */}
               <Route path="collection" element={<CollectionPage />} />
               <Route path="master/:masterId" element={<VersionsPage />} />
+              <Route path="release/:releaseId" element={<ReleasePage />} />
+              <Route path="artist/:artistId" element={<ArtistAlbumsPage />} />
             </Route>
           </Routes>
         </div>

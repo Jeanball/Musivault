@@ -9,6 +9,15 @@ interface DiscogsResult {
   year: number;
 }
 
+interface DiscogsSearchResultExtended {
+    id: number;
+    title: string;
+    year: string;
+    thumb: string;
+    type: 'master' | 'release';
+    master_id?: number; // Présent sur les releases qui ont un master
+}
+
 interface DiscogsFormat {
     name: string;
     qty: string;
@@ -33,6 +42,15 @@ interface DiscogsSearchResult {
     year: string;
     thumb: string;
     type: 'master' | 'release';
+}
+
+interface DiscogsSearchResultExtended {
+    id: number;
+    title: string;
+    year: string;
+    thumb: string;
+    type: 'master' | 'release';
+    master_id?: number; // Présent sur les releases qui ont un master
 }
 interface DiscogsMasterVersionsResult {
     id: number; // C'est le release_id
@@ -72,6 +90,75 @@ interface DiscogsMasterVersionsResponse {
     }[];
 }
 
+export async function searchAlbums(req: Request, res: Response) {
+    try {
+        const { q } = req.query;
+        const discogsKey = process.env.DISCOGS_KEY;
+        const discogsSecret = process.env.DISCOGS_SECRET;
+
+        if (!q) {
+            res.status(400).json({ message: "Le paramètre de recherche 'q' est manquant." });
+            return;
+        }
+        if (!discogsKey || !discogsSecret) {
+            res.status(500).json({ message: "Erreur de configuration du serveur." });
+            return;
+        }
+
+        const discogsApiUrl = `https://api.discogs.com/database/search`;
+        const authParams = {
+            q: q,
+            key: discogsKey,
+            secret: discogsSecret
+        };
+        const headers = { 'User-Agent': 'Musivault/1.0' };
+
+        // 1. Lancer les deux recherches en parallèle
+        const [mastersResponse, releasesResponse] = await Promise.all([
+            axios.get<{ results: DiscogsSearchResultExtended[] }>(discogsApiUrl, {
+                params: { ...authParams, type: 'master' },
+                headers
+            }),
+            axios.get<{ results: DiscogsSearchResultExtended[] }>(discogsApiUrl, {
+                params: { ...authParams, type: 'release' },
+                headers
+            })
+        ]);
+
+        const masters = mastersResponse.data.results || [];
+        const releases = releasesResponse.data.results || [];
+
+        // 2. Créer un Set des master IDs trouvés
+        const masterIds = new Set(masters.map(m => m.id));
+
+        // 3. Filtrer les releases orphelines (sans master ou master pas dans nos résultats)
+        const orphanReleases = releases.filter(r => !r.master_id || !masterIds.has(r.master_id));
+
+        // 4. Combiner : masters d'abord, puis releases orphelines
+        const combined = [
+            ...masters.map(item => ({
+                id: item.id,
+                title: item.title,
+                year: item.year,
+                thumb: item.thumb,
+                type: 'master' as const
+            })),
+            ...orphanReleases.map(item => ({
+                id: item.id,
+                title: item.title,
+                year: item.year,
+                thumb: item.thumb,
+                type: 'release' as const
+            }))
+        ];
+
+        res.status(200).json(combined);
+
+    } catch (error) {
+        console.error("Erreur lors de la recherche d'albums sur Discogs:", error);
+        res.status(500).json({ message: "Échec de la recherche." });
+    }
+}
 
 export async function searchMasters(req: Request, res: Response) {
     try {
@@ -223,6 +310,127 @@ export async function searchDiscogs(req: Request, res: Response) {
     } catch (error) {
         console.error("Erreur lors de la recherche sur Discogs:", error);
         res.status(500).json({ message: "Échec de la recherche." });
+    }
+}
+
+// Recherche d'artistes
+export async function searchArtists(req: Request, res: Response) {
+    try {
+        const { q } = req.query;
+        const discogsKey = process.env.DISCOGS_KEY;
+        const discogsSecret = process.env.DISCOGS_SECRET;
+
+        if (!q) {
+            res.status(400).json({ message: "Le paramètre de recherche 'q' est manquant." });
+            return;
+        }
+        if (!discogsKey || !discogsSecret) {
+            res.status(500).json({ message: "Erreur de configuration du serveur." });
+            return;
+        }
+
+        const discogsApiUrl = `https://api.discogs.com/database/search`;
+        
+        const response = await axios.get<{ results: { id: number; title: string; thumb: string }[] }>(discogsApiUrl, {
+            params: {
+                q: q,
+                type: 'artist',
+                key: discogsKey,
+                secret: discogsSecret
+            },
+            headers: { 'User-Agent': 'Musivault/1.0' }
+        });
+
+        const cleanedResults = response.data.results.map(item => ({
+            id: item.id,
+            name: item.title,
+            thumb: item.thumb
+        }));
+        
+        res.status(200).json(cleanedResults);
+
+    } catch (error) {
+        console.error("Erreur lors de la recherche d'artistes sur Discogs:", error);
+        res.status(500).json({ message: "Échec de la recherche." });
+    }
+}
+
+// Récupérer les albums (releases) d'un artiste
+export async function getArtistReleases(req: Request, res: Response) {
+    try {
+        const { artistId } = req.params;
+        const { sort = 'year', order = 'desc' } = req.query;
+        const discogsKey = process.env.DISCOGS_KEY;
+        const discogsSecret = process.env.DISCOGS_SECRET;
+
+        if (!discogsKey || !discogsSecret) {
+            res.status(500).json({ message: "Erreur de configuration du serveur." });
+            return;
+        }
+
+        // Récupérer les infos de l'artiste
+        const artistUrl = `https://api.discogs.com/artists/${artistId}`;
+        const releasesUrl = `https://api.discogs.com/artists/${artistId}/releases`;
+        
+        const authParams = {
+            key: discogsKey,
+            secret: discogsSecret
+        };
+        const headers = { 'User-Agent': 'Musivault/1.0' };
+
+        const [artistResponse, releasesResponse] = await Promise.all([
+            axios.get<{ name: string; images?: { uri: string }[] }>(artistUrl, { params: authParams, headers }),
+            axios.get<{ releases: { id: number; title: string; year: number; thumb: string; type: string; role: string; artist: string; main_release?: number }[] }>(releasesUrl, { 
+                params: { ...authParams, per_page: 100, sort: 'year', sort_order: order },
+                headers 
+            })
+        ]);
+
+        // Filtrer pour ne garder que les albums (type master ou release avec role "Main")
+        const releases = releasesResponse.data.releases || [];
+        const albums = releases
+            .filter(r => r.role === 'Main' && (r.type === 'master' || r.type === 'release'))
+            .map(r => ({
+                id: r.type === 'master' ? r.id : (r.main_release || r.id),
+                title: r.title,
+                year: r.year || 0,
+                thumb: r.thumb,
+                type: r.type as 'master' | 'release'
+            }));
+
+        // Dédoublonner par titre (garder le premier, généralement le master)
+        const seen = new Set<string>();
+        const uniqueAlbums = albums.filter(album => {
+            const key = album.title.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+
+        // Trier selon les paramètres
+        const sortedAlbums = [...uniqueAlbums].sort((a, b) => {
+            if (sort === 'title') {
+                const comparison = a.title.localeCompare(b.title);
+                return order === 'asc' ? comparison : -comparison;
+            } else {
+                // Par année
+                const comparison = a.year - b.year;
+                return order === 'asc' ? comparison : -comparison;
+            }
+        });
+
+        res.status(200).json({
+            artist: {
+                id: artistId,
+                name: artistResponse.data.name,
+                image: artistResponse.data.images?.[0]?.uri || ''
+            },
+            albums: sortedAlbums
+        });
+
+    } catch (error) {
+        console.error(`Erreur lors de la récupération des albums de l'artiste ${req.params.artistId}:`, error);
+        res.status(500).json({ message: "Échec de la récupération des albums." });
     }
 }
 

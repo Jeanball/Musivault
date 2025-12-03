@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
@@ -122,7 +122,7 @@ const VersionsPage: React.FC = () => {
                                 </button>
                             )}
                         </div>
-                        <Link to="/" className="btn btn-sm btn-outline">Return to Homepage</Link>
+                        <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline">← Back</button>
                     </div>
 
                     <div className="overflow-x-auto">
