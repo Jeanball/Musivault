@@ -34,7 +34,7 @@ const HomePage: React.FC = () => {
 
 
     return (
-        <div className="p-4 md:p-8">
+        <div>
 
             <div className="text-center p-8 bg-base-200 rounded-box shadow-lg">
                 <h1 className="text-4xl md:text-5xl font-bold">MUSIVAULT</h1>
@@ -48,7 +48,7 @@ const HomePage: React.FC = () => {
                 {isLoading ? (
                 <div className="flex justify-center"><span className="loading loading-dots loading-lg"></span></div>
                 ) : latestAdditions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {latestAdditions.map(item => (
                     <div key={item._id} className="card card-side bg-base-200 shadow-xl">
                         <figure className="w-24 h-24 flex-shrink-0">

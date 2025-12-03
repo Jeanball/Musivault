@@ -15,6 +15,18 @@ import type { CollectionItem, LayoutType } from '../types/collection';
 
 
 const CollectionPage: React.FC = () => {
+<<<<<<< HEAD
+=======
+    const [collection, setCollection] = useState<CollectionItem[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    // Default to grid on mobile, list on desktop
+    const [layout, setLayout] = useState<'grid' | 'list'>(() => {
+        if (typeof window !== 'undefined') {
+            return window.innerWidth < 1024 ? 'grid' : 'list';
+        }
+        return 'list';
+    });
+>>>>>>> 1b1bf1c (Upgrade mobile view)
     const navigate = useNavigate();
     const [layout, setLayout] = useState<LayoutType>('table');
     const [searchTerm, setSearchTerm] = useState('');
@@ -31,9 +43,53 @@ const CollectionPage: React.FC = () => {
         setSelectedItem(item);
     };
 
+<<<<<<< HEAD
     const handleDeleteAndClose = async (itemId: string) => {
         await handleDeleteItem(itemId);
         setSelectedItem(null);
+=======
+    // Handle window resize for responsive layout switching
+    useEffect(() => {
+        const handleResize = () => {
+            const isMobile = window.innerWidth < 1024;
+            setLayout(isMobile ? 'grid' : 'list');
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const groupedByArtist = useMemo(() => {
+        const filteredCollection = collection.filter(item => {
+            const term = searchTerm.toLowerCase();
+            return item.album.title.toLowerCase().includes(term) || 
+                   item.album.artist.toLowerCase().includes(term);
+        });
+
+        return filteredCollection.reduce((acc, item) => {
+            const artist = item.album.artist;
+            if (!acc[artist]) {
+                acc[artist] = [];
+            }
+            acc[artist].push(item);
+            return acc;
+        }, {} as Record<string, CollectionItem[]>);
+    }, [collection, searchTerm]); 
+
+        const handleDeleteItem = async (itemId: string) => {
+        setIsDeleting(true);
+        try {
+            await axios.delete(`/api/collection/${itemId}`, { withCredentials: true });
+            setCollection(currentCollection => currentCollection.filter(item => item._id !== itemId));
+            toast.success("Album deleted of your collection!");
+            setSelectedItem(null); 
+        } catch (error) {
+            console.log(error)
+            toast.error("Suppression failed.");
+        } finally {
+            setIsDeleting(false);
+        }
+>>>>>>> 1b1bf1c (Upgrade mobile view)
     };
 
     if (isLoading) {
@@ -45,9 +101,24 @@ const CollectionPage: React.FC = () => {
     }
 
     return (
+<<<<<<< HEAD
         <div className="p-2 md:p-4">
             <CollectionHeader layout={layout} onLayoutChange={setLayout} />
             <CollectionStats stats={stats} />
+=======
+        <div>
+            <div className="navbar bg-base-100 rounded-box shadow-xl mb-8">
+                <div className="flex-1">
+                    <div className="join">
+                        <button className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-active' : ''}`} onClick={() => setLayout('grid')}>Grille</button>
+                        <button className={`btn join-item btn-sm ${layout === 'list' ? 'btn-active' : ''}`} onClick={() => setLayout('list')}>Liste</button>
+                    </div>
+                </div>
+                <div className="flex-none gap-2">
+                    <Link to="/" className="btn btn-outline btn-primary btn-sm">Add an album</Link>
+                </div>
+            </div>
+>>>>>>> 1b1bf1c (Upgrade mobile view)
 
             <div className="form-control mb-4">
                 <input 

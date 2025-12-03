@@ -38,7 +38,7 @@ const SettingsPage: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-8 max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
                 <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm">

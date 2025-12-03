@@ -57,13 +57,14 @@ const PrivateLayout: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-8">
-            <Navbar username={username} onLogout={handleLogout} />
-            <main>
-                <Outlet />
-            </main>
-
-        </div>
+        <>
+            <div className="p-4 md:p-8 pb-20 lg:pb-8">
+                <Navbar username={username} onLogout={handleLogout} />
+                <main>
+                    <Outlet />
+                </main>
+            </div>
+        </>
     );
 };
 
