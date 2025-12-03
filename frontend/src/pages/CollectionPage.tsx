@@ -1,84 +1,39 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import axios from 'axios';
-import type { FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import ShowAlbumModal from '../components/Modal/ShowAlbumModal';
-import { toast } from 'react-toastify';
+import CollectionFilters from '../components/Collection/CollectionFilters';
+import CollectionStats from '../components/Collection/CollectionStats';
+import CollectionHeader from '../components/Collection/Layout/CollectionHeader';
+import CollectionTableView from '../components/Collection/Views/CollectionTableView';
+import CollectionGridView from '../components/Collection/Views/CollectionGridView';
+import CollectionListView from '../components/Collection/Views/CollectionListView';
+import { useCollectionData } from '../hooks/collection/useCollectionData';
+import { useCollectionFilters } from '../hooks/collection/useCollectionFilters';
+import { useCollectionSort } from '../hooks/collection/useCollectionSort';
+import { useCollectionStats } from '../hooks/collection/useCollectionStats';
+import type { CollectionItem, LayoutType } from '../types/collection';
 
-interface Album {
-    _id: string;
-    title: string;
-    artist: string;
-    cover_image: string;
-    thumb: string;
-    year: string;
-}
-
-
-export interface CollectionItem {
-    _id: string;
-    album: Album;
-    format: FormatDetails; 
-    addedAt: string;
-}
 
 const CollectionPage: React.FC = () => {
-    const [collection, setCollection] = useState<CollectionItem[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [layout, setLayout] = useState<'grid' | 'list'>('list');
     const navigate = useNavigate();
+    const [layout, setLayout] = useState<LayoutType>('table');
     const [searchTerm, setSearchTerm] = useState('');
-
     const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
-    const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+    // Hooks personnalisés
+    const { collection, isLoading, isDeleting, handleDeleteItem } = useCollectionData();
+    const { filters, setFilters, filteredCollection, groupedByArtist } = useCollectionFilters(collection, searchTerm);
+    const { sortBy, sortOrder, handleSort, getSortIcon, sortedCollection } = useCollectionSort(filteredCollection);
+    const stats = useCollectionStats(collection);
 
 
-    useEffect(() => {
-        const fetchCollection = async () => {
-            try {
-                const { data } = await axios.get<CollectionItem[]>('/api/collection', {
-                    withCredentials: true,
-                });
-                setCollection(data);
-            } catch (error) {
-                console.error("Error by charging collection: ", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchCollection();
-    }, [navigate]);
+    const handleItemClick = (item: CollectionItem) => {
+        setSelectedItem(item);
+    };
 
-    const groupedByArtist = useMemo(() => {
-        const filteredCollection = collection.filter(item => {
-            const term = searchTerm.toLowerCase();
-            return item.album.title.toLowerCase().includes(term) || 
-                   item.album.artist.toLowerCase().includes(term);
-        });
-
-        return filteredCollection.reduce((acc, item) => {
-            const artist = item.album.artist;
-            if (!acc[artist]) {
-                acc[artist] = [];
-            }
-            acc[artist].push(item);
-            return acc;
-        }, {} as Record<string, CollectionItem[]>);
-    }, [collection, searchTerm]); 
-
-        const handleDeleteItem = async (itemId: string) => {
-        setIsDeleting(true);
-        try {
-            await axios.delete(`/api/collection/${itemId}`, { withCredentials: true });
-            setCollection(currentCollection => currentCollection.filter(item => item._id !== itemId));
-            toast.success("Album deleted of your collection!");
-            setSelectedItem(null); 
-        } catch (error) {
-            console.log(error)
-            toast.error("Suppression failed.");
-        } finally {
-            setIsDeleting(false);
-        }
+    const handleDeleteAndClose = async (itemId: string) => {
+        await handleDeleteItem(itemId);
+        setSelectedItem(null);
     };
 
     if (isLoading) {
@@ -90,20 +45,11 @@ const CollectionPage: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-8">
-            <div className="navbar bg-base-100 rounded-box shadow-xl mb-8">
-                <div className="flex-1">
-                    <div className="join">
-                        <button className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-active' : ''}`} onClick={() => setLayout('grid')}>Grille</button>
-                        <button className={`btn join-item btn-sm ${layout === 'list' ? 'btn-active' : ''}`} onClick={() => setLayout('list')}>Liste</button>
-                    </div>
-                </div>
-                <div className="flex-none gap-2">
-                    <Link to="/" className="btn btn-outline btn-primary btn-sm">Add an album</Link>
-                </div>
-            </div>
+        <div className="p-2 md:p-4">
+            <CollectionHeader layout={layout} onLayoutChange={setLayout} />
+            <CollectionStats stats={stats} />
 
-            <div className="form-control mb-8">
+            <div className="form-control mb-4">
                 <input 
                     type="text" 
                     placeholder="Search an album..." 
@@ -112,72 +58,53 @@ const CollectionPage: React.FC = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+
+            {/* Filtres Avancés */}
+            <CollectionFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                availableFormats={stats.availableFormats}
+                availableDecades={stats.availableDecades}
+                totalResults={collection.length}
+                filteredResults={filteredCollection.length}
+            />
             
 
-            {Object.keys(groupedByArtist).length === 0 && !isLoading ? (
+            {/* Contenu principal */}
+            {(layout === 'table' ? sortedCollection.length === 0 : Object.keys(groupedByArtist).length === 0) && !isLoading ? (
                 <div className="text-center py-20">
                     <h2 className="text-2xl font-semibold">No result found.</h2>
                     <p className="mt-2 text-gray-400">Please try again</p>
                 </div>
             ) : (
-                <div className="space-y-10">
-                    {Object.entries(groupedByArtist).map(([artist, items]) => (
-                        <div key={artist}>
-                            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-primary/50">{artist}</h2>
-                            {layout === 'grid' ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                    {items.map((item) => (
-                                        <div key={item._id} onClick={() => setSelectedItem(item)} className="card bg-base-200 shadow-xl transition-transform hover:scale-105 cursor-pointer">
-                                            <figure><img src={item.album.cover_image || item.album.thumb} alt={item.album.title} className="aspect-square object-cover" /></figure>
-                                            <div className="card-body p-3">
-                                                <h2 className="card-title text-sm font-bold leading-tight truncate" title={item.album.title}>{item.album.title}</h2>
-                                                <div className="card-actions justify-start mt-2">
-                                                    <div className="badge badge-secondary">{item.format.name}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="table w-full">
-                                        <thead>
-                                            <tr>
-                                                <th>Cover</th>
-                                                <th>Album</th>
-                                                <th>Format</th>
-                                                <th>Released</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {items.map((item) => (
-                                                <tr key={item._id} onClick={() => setSelectedItem(item)} className="hover cursor-pointer">
-                                                    <td>
-                                                        <div className="avatar">
-                                                            <div className="w-12 h-12 rounded-lg"><img src={item.album.thumb || item.album.cover_image} alt={item.album.title} /></div>
-                                                        </div>
-                                                    </td>
-                                                    <td><div className="font-bold">{item.album.title}</div></td>
-                                                    <td>
-                                                        <div className="font-semibold">{item.format.name}</div>
-                                                        <div className="text-xs opacity-70">{item.format.text}</div>
-                                                    </td>
-                                                    <td>{item.album.year}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
+                <>
+                    {layout === 'table' && (
+                        <CollectionTableView
+                            items={sortedCollection}
+                            onItemClick={handleItemClick}
+                            onSort={handleSort}
+                            getSortIcon={getSortIcon}
+                        />
+                    )}
+                    {layout === 'grid' && (
+                        <CollectionGridView
+                            groupedItems={groupedByArtist}
+                            onItemClick={handleItemClick}
+                        />
+                    )}
+                    {layout === 'list' && (
+                        <CollectionListView
+                            groupedItems={groupedByArtist}
+                            onItemClick={handleItemClick}
+                        />
+                    )}
+                </>
             )}
 
             <ShowAlbumModal
                 item={selectedItem}
                 onClose={() => setSelectedItem(null)}
-                onDelete={handleDeleteItem}
+                onDelete={handleDeleteAndClose}
                 isDeleting={isDeleting}
             />
         </div>
