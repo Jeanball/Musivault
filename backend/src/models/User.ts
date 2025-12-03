@@ -1,11 +1,16 @@
 import mongoose, { Schema, Document } from "mongoose"
 import bcrypt from "bcryptjs"
 
+export interface IUserPreferences {
+  theme: string
+}
+
 export interface IUser extends Document {
   username: string
   email: string
   password: string
   isAdmin: boolean
+  preferences: IUserPreferences
   createdAt: Date
   comparePassword(password: string): Promise<boolean>
 }
@@ -28,6 +33,12 @@ const userSchema = new Schema<IUser>({
   isAdmin: {
     type: Boolean,
     default: false,
+  },
+  preferences: {
+    theme: {
+      type: String,
+      default: 'dark'
+    }
   },
   createdAt: {
     type: Date,

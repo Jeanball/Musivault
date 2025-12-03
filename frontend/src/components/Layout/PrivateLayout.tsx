@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router';
 import axios from 'axios';
 import Navbar from '../Navbar';
+import { useTheme } from '../../context/ThemeContext';
 
 interface VerificationResponse {
     status: boolean;
@@ -10,6 +11,7 @@ interface VerificationResponse {
 
 const PrivateLayout: React.FC = () => {
     const navigate = useNavigate();
+    const { syncThemeFromServer } = useTheme();
     const [username, setUsername] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -21,7 +23,8 @@ const PrivateLayout: React.FC = () => {
                 );
                 if (data.status) {
                     setUsername(data.user);
-                    console.log(data.user)
+                    // Synchroniser le thème depuis le serveur une fois l'utilisateur vérifié
+                    await syncThemeFromServer();
                     setIsLoading(false);
                 } else {
                     navigate("/login");
@@ -34,7 +37,7 @@ const PrivateLayout: React.FC = () => {
             }
         };
         verifyUser();
-    }, [navigate]);
+    }, [navigate, syncThemeFromServer]);
 
     const handleLogout = async () => {
         try {

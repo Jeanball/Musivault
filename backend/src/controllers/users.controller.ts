@@ -67,3 +67,57 @@ export async function createAdminUser(req: Request, res: Response) {
     await newAdmin.save();
     res.status(201).json({ message: "Admin user created successfully." });
 }
+
+// ===== PREFERENCES =====
+
+export async function getPreferences(req: Request, res: Response) {
+    try {
+        if (!req.user) {
+            res.status(401).json({ message: "Non autorisé" });
+            return;
+        }
+
+        const user = await User.findById(req.user._id).select('preferences');
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        res.status(200).json(user.preferences);
+    } catch (error) {
+        console.error("Error in getPreferences controller", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function updatePreferences(req: Request, res: Response) {
+    try {
+        if (!req.user) {
+            res.status(401).json({ message: "Non autorisé" });
+            return;
+        }
+
+        const { theme } = req.body;
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        // Mettre à jour les préférences
+        if (theme !== undefined) {
+            user.preferences = { ...user.preferences, theme };
+        }
+
+        await user.save();
+
+        res.status(200).json({ 
+            message: "Preferences updated successfully",
+            preferences: user.preferences 
+        });
+    } catch (error) {
+        console.error("Error in updatePreferences controller", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}

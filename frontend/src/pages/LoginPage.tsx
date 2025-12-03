@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { useTheme } from "../context/ThemeContext";
 
 // Interface pour l'état du formulaire
 interface LoginFormState {
@@ -21,10 +22,9 @@ const API_BASE_URL = import.meta.env.API_URL || '';
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
+    const { syncThemeFromServer } = useTheme();
     const [inputValue, setInputValue] = useState<LoginFormState>({ identifier: "", password: "",});
     const { identifier, password } = inputValue;
-
-
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -52,6 +52,9 @@ const LoginPage: React.FC = () => {
                 { ...inputValue },
                 { withCredentials: true }
             );
+
+            // Synchroniser le thème depuis le serveur après connexion
+            await syncThemeFromServer();
 
             handleSuccess("Connection Succeeded!");
             
