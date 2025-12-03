@@ -23,7 +23,9 @@ const ShowAlbumModal: React.FC<AlbumDetailModalProps> = ({ item, onClose, onDele
                         <div className="divider my-2"></div>
                         <div className="text-sm space-y-1">
                             <p><strong>Format :</strong> {item.format.name}</p>
-                            {item.format.text && <p><strong>Version :</strong> {item.format.text}</p>}
+                            {item.format.text && item.format.text !== item.format.name && (
+                                <p><strong>Version :</strong> {item.format.text}</p>
+                            )}
                             {item.format.descriptions?.length > 0 && <p><strong>Détails :</strong> {item.format.descriptions.join(', ')}</p>}
                         </div>
                     </div>
