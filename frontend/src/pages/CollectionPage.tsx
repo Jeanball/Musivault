@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
 import ShowAlbumModal from '../components/Modal/ShowAlbumModal';
 import CollectionFilters from '../components/Collection/CollectionFilters';
 import CollectionStats from '../components/Collection/CollectionStats';
@@ -15,7 +14,6 @@ import type { CollectionItem, LayoutType } from '../types/collection';
 
 
 const CollectionPage: React.FC = () => {
-    const navigate = useNavigate();
     const [layout, setLayout] = useState<LayoutType>('table');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
@@ -23,7 +21,7 @@ const CollectionPage: React.FC = () => {
     // Hooks personnalisés
     const { collection, isLoading, isDeleting, handleDeleteItem } = useCollectionData();
     const { filters, setFilters, filteredCollection, groupedByArtist } = useCollectionFilters(collection, searchTerm);
-    const { sortBy, sortOrder, handleSort, getSortIcon, sortedCollection } = useCollectionSort(filteredCollection);
+    const { handleSort, getSortIcon, sortedCollection } = useCollectionSort(filteredCollection);
     const stats = useCollectionStats(collection);
 
 
