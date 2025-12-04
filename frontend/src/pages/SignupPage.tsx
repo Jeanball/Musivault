@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { toastService, toastMessages } from "../utils/toast";
 
 // Interface pour l'état du formulaire, maintenant avec 'username'
 interface SignupFormState {
@@ -33,16 +34,6 @@ const SignupPage: React.FC = () => {
         });
     };
 
-    const handleError = (err: string) =>
-        toast.error(err, {
-            position: "bottom-left",
-        });
-
-    const handleSuccess = (msg: string) =>
-        toast.success(msg, {
-            position: "bottom-right",
-        });
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
@@ -54,17 +45,17 @@ const SignupPage: React.FC = () => {
             
             const { success, message } = data;
             if (success) {
-                handleSuccess(message);
+                toastService.success(message);
                 setTimeout(() => {
                     navigate("/login");
                 }, 1000);
             } else {
-                handleError(message);
+                toastService.error(message);
             }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.log(error);
-            handleError(error.response?.data?.message || "An error occurred during signup.");
+            toastService.error(error.response?.data?.message || toastMessages.auth.signupError);
         }
         
         setInputValue({

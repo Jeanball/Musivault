@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTheme } from "../context/ThemeContext";
+import { toastService, toastMessages } from "../utils/toast";
 
 // Interface pour l'état du formulaire
 interface LoginFormState {
@@ -34,16 +35,6 @@ const LoginPage: React.FC = () => {
         });
     };
 
-    const handleError = (err: string) =>
-        toast.error(err, {
-            position: "bottom-left",
-        });
-
-    const handleSuccess = (msg: string) =>
-        toast.success(msg, {
-            position: "bottom-right",
-        });
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
@@ -56,26 +47,22 @@ const LoginPage: React.FC = () => {
             // Synchroniser le thème depuis le serveur après connexion
             await syncThemeFromServer();
 
-            handleSuccess("Connection Succeeded!");
+            toastService.success(toastMessages.auth.loginSuccess);
             
             setTimeout(() => {
                 navigate("/app");
             }, 1000);
 
-
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.log(error);
-            handleError(error.response?.data?.message || "An error occurred during login.");
+            toastService.error(error.response?.data?.message || toastMessages.auth.loginError);
         }
 
         setInputValue({
             identifier: "",
             password: "",
         });
-
-
-
     };
 
     return (
