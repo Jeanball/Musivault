@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import type { CollectionStats } from '../../types/collection';
+import type { CollectionStats as CollectionStatsType } from '../../types/collection';
 
 interface CollectionStatsProps {
-    stats: CollectionStats;
+    stats: CollectionStatsType;
 }
 
 const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {

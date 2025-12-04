@@ -2,6 +2,8 @@ import express from "express"
 import dotenv from "dotenv"
 import cors from "cors"
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 import { connectDB } from "./config/db"
 
@@ -21,11 +23,18 @@ app.use(cors({
 }))
 app.use(express.json());
 app.use(cookieParser())
-
+app.use(helmet());
+app.use(rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+}));
 
 app.use('/api/users', usersRoute);
 app.use('/api/discogs', discogsRoute);
-app.use('/api/auth', authRoute);
+app.use('/api/auth', rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+}), authRoute);
 app.use('/api/collection', collectionRoute)
 
 

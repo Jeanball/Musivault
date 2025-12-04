@@ -4,10 +4,10 @@ import protectRoute from '../middlewares/protectRoute';
 
 const router = express.Router();
 
-router.get('/search', searchAlbums);
-router.get('/search/artists', searchArtists);
-router.get('/artist/:artistId/releases', getArtistReleases);
-router.get('/release/:releaseId', getReleaseDetails);
-router.get('/master/:masterId/versions', getMasterVersions);
+router.get('/search', protectRoute, searchAlbums);
+router.get('/search/artists', protectRoute, searchArtists);
+router.get('/artist/:artistId/releases', protectRoute, getArtistReleases);
+router.get('/release/:releaseId', protectRoute, getReleaseDetails);
+router.get('/master/:masterId/versions', protectRoute, getMasterVersions);
 
 export default router;
