@@ -34,10 +34,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Charger le thème du serveur au montage (si l'utilisateur est connecté)
-    useEffect(() => {
-        syncThemeFromServer();
-    }, []);
+
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme, syncThemeFromServer }}>
