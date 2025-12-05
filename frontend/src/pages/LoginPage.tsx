@@ -3,28 +3,28 @@ import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useTheme } from "../context/ThemeContext";
+
 import { toastService, toastMessages } from "../utils/toast";
 
 // Interface pour l'état du formulaire
 interface LoginFormState {
-  identifier: string;
-  password: string;
+    identifier: string;
+    password: string;
 }
 
 // Interface pour la réponse de l'API de connexion
 interface LoginApiResponse {
-  _id: string;
-  username: string;
-  email: string;
+    _id: string;
+    username: string;
+    email: string;
 }
 const API_BASE_URL = import.meta.env.API_URL || '';
 
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
-    const { syncThemeFromServer } = useTheme();
-    const [inputValue, setInputValue] = useState<LoginFormState>({ identifier: "", password: "",});
+    // const { syncThemeFromServer } = useTheme();
+    const [inputValue, setInputValue] = useState<LoginFormState>({ identifier: "", password: "", });
     const { identifier, password } = inputValue;
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,16 +44,15 @@ const LoginPage: React.FC = () => {
                 { withCredentials: true }
             );
 
-            // Synchroniser le thème depuis le serveur après connexion
-            await syncThemeFromServer();
+
 
             toastService.success(toastMessages.auth.loginSuccess);
-            
+
             setTimeout(() => {
                 navigate("/app");
             }, 1000);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.log(error);
             toastService.error(error.response?.data?.message || toastMessages.auth.loginError);

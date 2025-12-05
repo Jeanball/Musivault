@@ -13,7 +13,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     const [theme, setTheme] = useState<Theme>(
-        localStorage.getItem('theme') || 'dark'
+        localStorage.getItem('theme') || 'light'
     );
 
     // Appliquer le thème au DOM et localStorage
@@ -34,10 +34,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Charger le thème du serveur au montage (si l'utilisateur est connecté)
-    useEffect(() => {
-        syncThemeFromServer();
-    }, []);
+
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme, syncThemeFromServer }}>

@@ -37,7 +37,7 @@ const userSchema = new Schema<IUser>({
   preferences: {
     theme: {
       type: String,
-      default: 'dark'
+      default: 'light'
     }
   },
   createdAt: {
@@ -60,9 +60,9 @@ userSchema.pre<IUser>("save", async function (next) {
   } catch (error) {
 
     if (error instanceof Error) {
-        next(error);
+      next(error);
     } else {
-        next(new Error('An unknown error occurred during password hashing'));
+      next(new Error('An unknown error occurred during password hashing'));
     }
   }
 })

@@ -5,10 +5,7 @@ import { toast } from 'react-toastify';
 import { useTheme } from '../context/ThemeContext';
 
 const themes = [
-    "light", "dark", "cupcake", "bumblebee", "emerald", "corporate",
-    "synthwave", "retro", "cyberpunk", "valentine", "halloween", "garden",
-    "forest", "aqua", "lofi", "pastel", "fantasy", "wireframe", "black",
-    "luxury", "dracula", "cmyk", "autumn", "business", "acid", "lemonade"
+    "light", "dark"
 ];
 
 const SettingsPage: React.FC = () => {
@@ -66,11 +63,10 @@ const SettingsPage: React.FC = () => {
                             <button
                                 key={themeOption}
                                 onClick={() => handleThemeChange(themeOption)}
-                                className={`btn btn-sm capitalize ${
-                                    theme === themeOption 
-                                        ? 'btn-primary' 
-                                        : 'btn-outline'
-                                }`}
+                                className={`btn btn-sm capitalize ${theme === themeOption
+                                    ? 'btn-primary'
+                                    : 'btn-outline'
+                                    }`}
                             >
                                 {themeOption}
                                 {theme === themeOption && (
