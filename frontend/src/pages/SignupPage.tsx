@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { toastService, toastMessages } from "../utils/toast";
 
 // Interface pour l'état du formulaire, maintenant avec 'username'
 interface SignupFormState {
-  email: string;
-  password: string;
-  username: string; 
+    email: string;
+    password: string;
+    username: string;
 }
 
 // Interface pour la réponse attendue de l'API
@@ -22,10 +20,10 @@ const API_BASE_URL = import.meta.env.API_URL || '';
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
-    const [inputValue, setInputValue] = useState<SignupFormState>({email: "", password: "", username: ""});
+    const [inputValue, setInputValue] = useState<SignupFormState>({ email: "", password: "", username: "" });
     const { email, password, username } = inputValue;
 
-    
+
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setInputValue({
@@ -42,7 +40,7 @@ const SignupPage: React.FC = () => {
                 { ...inputValue },
                 { withCredentials: true }
             );
-            
+
             const { success, message } = data;
             if (success) {
                 toastService.success(message);
@@ -52,12 +50,12 @@ const SignupPage: React.FC = () => {
             } else {
                 toastService.error(message);
             }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.log(error);
             toastService.error(error.response?.data?.message || toastMessages.auth.signupError);
         }
-        
+
         setInputValue({
             ...inputValue,
             email: "",
@@ -126,7 +124,6 @@ const SignupPage: React.FC = () => {
                         </span>
                     </div>
                 </form>
-                <ToastContainer />
             </div>
         </div>
     );

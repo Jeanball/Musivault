@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 
 interface MasterVersion {
@@ -42,7 +42,7 @@ const VersionsPage: React.FC = () => {
                 });
                 setPageData(data);
             } catch (error) {
-                console.log("Error charging versions on this album: ",error)
+                console.log("Error charging versions on this album: ", error)
                 toast.error("Error charging versions on this album.");
                 navigate('/');
             } finally {
@@ -55,7 +55,7 @@ const VersionsPage: React.FC = () => {
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
         if (filter === 'all') return pageData.versions;
-        return pageData.versions.filter(version => 
+        return pageData.versions.filter(version =>
             version.majorFormat.toLowerCase().includes(filter.toLowerCase())
         );
     }, [pageData, filter]);
@@ -97,7 +97,7 @@ const VersionsPage: React.FC = () => {
     return (
         <div className="p-4 md:p-8" >
             <div className="flex flex-col md:flex-row gap-8">
-                
+
                 <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
                     {pageData.coverImage && (
                         <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-lg shadow-2xl" />
@@ -108,7 +108,7 @@ const VersionsPage: React.FC = () => {
 
                 <div className="flex-1">
                     <div className="flex justify-between items-center mb-4">
-                         <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <p className="text-sm">Filtrer par :</p>
                             <button onClick={() => setFilter('all')} className={`btn btn-xs ${filter === 'all' ? 'btn-active btn-neutral' : ''}`}>All</button>
                             {pageData.formatCounts.CD > 0 && (
@@ -162,7 +162,6 @@ const VersionsPage: React.FC = () => {
                 onConfirm={handleConfirmAddToCollection}
                 isSubmitting={isSubmitting}
             />
-        <ToastContainer />
         </div>
 
     );

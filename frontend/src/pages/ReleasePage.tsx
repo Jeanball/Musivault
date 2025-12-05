@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 
 const ReleasePage: React.FC = () => {
@@ -61,14 +61,14 @@ const ReleasePage: React.FC = () => {
     return (
         <div className="p-4 md:p-8">
             <div className="flex flex-col md:flex-row gap-8 max-w-4xl mx-auto">
-                
+
                 {/* Cover Image */}
                 <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
                     {albumDetails.cover_image && (
-                        <img 
-                            src={albumDetails.cover_image} 
-                            alt={`Cover of ${albumDetails.title}`} 
-                            className="w-full h-auto object-cover rounded-lg shadow-2xl" 
+                        <img
+                            src={albumDetails.cover_image}
+                            alt={`Cover of ${albumDetails.title}`}
+                            className="w-full h-auto object-cover rounded-lg shadow-2xl"
                         />
                     )}
                 </div>
@@ -96,7 +96,7 @@ const ReleasePage: React.FC = () => {
 
                     {/* Actions */}
                     <div className="mt-8 flex gap-4">
-                        <button 
+                        <button
                             className="btn btn-primary"
                             onClick={() => setShowModal(true)}
                         >
@@ -116,7 +116,6 @@ const ReleasePage: React.FC = () => {
                 onConfirm={handleConfirmAddToCollection}
                 isSubmitting={isSubmitting}
             />
-            <ToastContainer />
         </div>
     );
 };

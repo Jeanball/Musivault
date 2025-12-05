@@ -1,5 +1,7 @@
 import { Route, Routes } from 'react-router'
-import { CookiesProvider } from 'react-cookie'; 
+import { CookiesProvider } from 'react-cookie';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import CollectionPage from './pages/CollectionPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
@@ -21,13 +23,13 @@ const App = () => {
         <div >
           <Routes>
             {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path='/login' element={<LoginPage/>}/>
-              <Route path='/signup' element={<SignupPage/>}/>
+            <Route path="/" element={<LandingPage />} />
+            <Route path='/login' element={<LoginPage />} />
+            <Route path='/signup' element={<SignupPage />} />
 
             {/* Protected Routes */}
             <Route path="/app" element={<PrivateLayout />}>
-              <Route index element={<HomePage />} /> {/* La page d'accueil de l'app est maintenant à /app */}
+              <Route index element={<HomePage />} />
               <Route path="collection" element={<CollectionPage />} />
               <Route path="master/:masterId" element={<VersionsPage />} />
               <Route path="release/:releaseId" element={<ReleasePage />} />
@@ -36,8 +38,21 @@ const App = () => {
             </Route>
           </Routes>
         </div>
+
+        {/* Global Toast Container */}
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
       </CookiesProvider>
-    </ThemeProvider> 
+    </ThemeProvider>
   )
 }
 

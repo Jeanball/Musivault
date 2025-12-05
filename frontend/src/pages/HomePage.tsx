@@ -1,5 +1,3 @@
-import { ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
 import SearchBar from "../components/SearchBar";
 import { useEffect, useState } from "react";
 import type { CollectionItem } from "../types/collection";
@@ -68,7 +66,6 @@ const HomePage: React.FC = () => {
           </div>
         )}
       </div>
-      <ToastContainer />
     </div>
   );
 };

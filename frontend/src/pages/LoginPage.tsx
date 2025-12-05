@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
 import { toastService, toastMessages } from "../utils/toast";
 
 // Interface pour l'état du formulaire
@@ -109,7 +106,6 @@ const LoginPage: React.FC = () => {
                         </span>
                     </div>
                 </form>
-                <ToastContainer />
             </div>
         </div>
     );
