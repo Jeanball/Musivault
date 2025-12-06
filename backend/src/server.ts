@@ -15,10 +15,21 @@ dotenv.config()
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '5001', 10);
-const allowedOrigins = ['http://localhost:5173', `http://10.0.0.153:5173`];
+const allowedOrigins = process.env.NODE_ENV === 'production'
+    ? ['http://localhost:3000', 'http://localhost']
+    : ['http://localhost:5173', `http://10.0.0.153:5173`];
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'production') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }))
 app.use(express.json());
@@ -33,9 +44,14 @@ app.use('/api/auth', rateLimit({
 }), authRoute);
 app.use('/api/collection', collectionRoute)
 
+// Health check endpoint for Docker
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 
 connectDB().then(() => {
     app.listen(PORT, '0.0.0.0', () => {
-        console.log("Server is running on PORT :",PORT)
+        console.log("Server is running on PORT :", PORT)
     });
 });

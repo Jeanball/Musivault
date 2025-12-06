@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # MongoDB database
+  mongodb:
+    image: mongo:7
+    container_name: musivault-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: musivault
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - musivault-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/musivault --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: musivault-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGO_URI=${MONGO_URI:-mongodb://mongodb:27017/musivault}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - DISCOGS_KEY=${DISCOGS_KEY}
+      - DISCOGS_SECRET=${DISCOGS_SECRET}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - musivault-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: musivault-frontend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:80"
+    depends_on:
+      - backend
+    networks:
+      - musivault-network
+
+networks:
+  musivault-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
