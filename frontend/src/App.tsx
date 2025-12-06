@@ -16,6 +16,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import PrivateLayout from './components/Layout/PrivateLayout';
 
 
+import PublicLayout from './components/Layout/PublicLayout';
 
 const App = () => {
   return (
@@ -23,12 +24,14 @@ const App = () => {
       <CookiesProvider>
         <div >
           <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path='/login' element={<LoginPage />} />
-            <Route path='/signup' element={<SignupPage />} />
+            {/* Public Routes - Forced Dark Theme */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path='/login' element={<LoginPage />} />
+              <Route path='/signup' element={<SignupPage />} />
+            </Route>
 
-            {/* Protected Routes */}
+            {/* Protected Routes - User Theme */}
             <Route path="/app" element={<PrivateLayout />}>
               <Route index element={<HomePage />} />
               <Route path="collection" element={<CollectionPage />} />

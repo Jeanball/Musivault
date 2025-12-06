@@ -1,5 +1,5 @@
 import React from 'react'
-import type { CollectionItem } from '../../pages/CollectionPage';
+import type { CollectionItem } from '../../types/collection';
 
 interface AlbumDetailModalProps {
     item: CollectionItem | null;
@@ -31,7 +31,7 @@ const ShowAlbumModal: React.FC<AlbumDetailModalProps> = ({ item, onClose, onDele
                     </div>
                 </div>
 
-                <div className="modal-action mt-6">                
+                <div className="modal-action mt-6">
                     <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={onClose}>✕</button>
                     <button className="btn btn-error" onClick={() => onDelete(item._id)} disabled={isDeleting}>
                         {isDeleting ? <span className="loading loading-spinner"></span> : "Delete"}
@@ -42,7 +42,7 @@ const ShowAlbumModal: React.FC<AlbumDetailModalProps> = ({ item, onClose, onDele
                 <button onClick={onClose}>close</button>
             </form>
         </dialog>
-  )
+    )
 }
 
 export default ShowAlbumModal

@@ -16,8 +16,9 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
       {/* --- BIG SCREEN --- */}
       <div className="navbar bg-base-100 rounded-box shadow-xl mb-8 hidden lg:flex">
         <div className="navbar-start">
-          <Link to="/app" className="btn btn-ghost text-xl normal-case">
-            MUSIVAULT
+          <Link to="/app" className="btn btn-ghost normal-case gap-2">
+            <img src="/icons/icon-192x192.png" alt="Musivault Logo" className="w-8 h-8 rounded-lg shadow-sm" />
+            <span className="text-xl font-bold">MUSIVAULT</span>
           </Link>
         </div>
         <div className="navbar-center">

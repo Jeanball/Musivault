@@ -35,7 +35,10 @@ const HomePage: React.FC = () => {
     <div>
 
       <div className="text-center p-8 bg-base-200 rounded-box shadow-lg">
-        <h1 className="text-4xl md:text-5xl font-bold">MUSIVAULT</h1>
+        <div className="flex flex-col items-center justify-center mb-4">
+          <img src="/icons/icon-192x192.png" alt="Musivault Logo" className="w-16 h-16 rounded-xl shadow-lg mb-2" />
+          <h1 className="text-4xl md:text-5xl font-bold">MUSIVAULT</h1>
+        </div>
         <p className="py-6">
           Use the search bar below to find and add new albums.
         </p>
