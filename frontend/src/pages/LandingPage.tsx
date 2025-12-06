@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import axios from 'axios';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
+import Features from '../components/Features';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -49,11 +50,11 @@ const LandingPage: React.FC = () => {
 
   // Si l'utilisateur n'est pas connecté, on affiche la page de présentation.
   return (
-    <div>    
+    <div>
       <Hero />
+      <Features />
       <Footer />
     </div>
-
   );
 };
 
