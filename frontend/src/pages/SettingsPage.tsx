@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toastService } from '../utils/toast';
 import { useTheme } from '../context/ThemeContext';
 import CsvImport from '../components/Settings/CsvImport';
 
@@ -20,7 +20,7 @@ const SettingsPage: React.FC = () => {
 
         try {
             await axios.put('/api/users/preferences', { theme: newTheme }, { withCredentials: true });
-            toast.success('Theme saved!');
+            toastService.success('Theme saved!');
         } catch (error) {
             console.error('Failed to save theme to server:', error);
         } finally {

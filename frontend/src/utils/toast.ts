@@ -15,20 +15,20 @@ const successOptions: ToastOptions = {
   position: 'bottom-right',
   style: {
     ...baseToastOptions.style,
-    background: 'var(--fallback-s,oklch(var(--s)))',
-    color: 'var(--fallback-sc,oklch(var(--sc)))',
-    border: '1px solid var(--fallback-s,oklch(var(--s)))',
+    background: 'var(--fallback-p,oklch(var(--p)))',
+    color: 'var(--fallback-pc,oklch(var(--pc)))',
+    border: '1px solid var(--fallback-p,oklch(var(--p)))',
   }
 };
 
 const errorOptions: ToastOptions = {
   ...baseToastOptions,
-  position: 'bottom-left',
+  position: 'bottom-right',
   style: {
     ...baseToastOptions.style,
-    background: 'var(--fallback-b2,oklch(var(--b2)))',
-    color: 'var(--fallback-bc,oklch(var(--bc)))',
-    border: '1px solid var(--fallback-b3,oklch(var(--b3)))',
+    background: 'var(--fallback-er,oklch(var(--er)))',
+    color: 'var(--fallback-erc,oklch(var(--erc)))',
+    border: '1px solid var(--fallback-er,oklch(var(--er)))',
   }
 };
 

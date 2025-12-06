@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toastService } from '../utils/toast';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 
 const ReleasePage: React.FC = () => {
@@ -23,7 +23,7 @@ const ReleasePage: React.FC = () => {
                 setAlbumDetails(data);
             } catch (error) {
                 console.log("Error loading release details:", error);
-                toast.error("Error loading release details.");
+                toastService.error("Error loading release details.");
                 navigate('/app');
             } finally {
                 setIsLoading(false);
@@ -37,10 +37,10 @@ const ReleasePage: React.FC = () => {
         setIsSubmitting(true);
         try {
             await axios.post('/api/collection', { ...albumDetails, format }, { withCredentials: true });
-            toast.success(`"${albumDetails.title}" added to your collection!`);
+            toastService.success(`"${albumDetails.title}" added to your collection!`);
             setShowModal(false);
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "An error occurred.");
+            toastService.error(err.response?.data?.message || "An error occurred.");
         } finally {
             setIsSubmitting(false);
         }

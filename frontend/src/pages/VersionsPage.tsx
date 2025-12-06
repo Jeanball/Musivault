@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toastService } from '../utils/toast';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 
 interface MasterVersion {
@@ -43,7 +43,7 @@ const VersionsPage: React.FC = () => {
                 setPageData(data);
             } catch (error) {
                 console.log("Error charging versions on this album: ", error)
-                toast.error("Error charging versions on this album.");
+                toastService.error("Error charging versions on this album.");
                 navigate('/');
             } finally {
                 setIsLoading(false);
@@ -66,7 +66,7 @@ const VersionsPage: React.FC = () => {
             setSelectedAlbum(response.data);
         } catch (err) {
             console.log(err)
-            toast.error("Error by retrieving data on this version.");
+            toastService.error("Error by retrieving data on this version.");
         }
     };
 
@@ -75,11 +75,11 @@ const VersionsPage: React.FC = () => {
         setIsSubmitting(true);
         try {
             await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
-            toast.success(`"${selectedAlbum.title}" added to your collection!`);
+            toastService.success(`"${selectedAlbum.title}" added to your collection!`);
             console.log(selectedAlbum.title)
             setSelectedAlbum(null);
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "An error occured.");
+            toastService.error(err.response?.data?.message || "An error occured.");
         } finally {
             setIsSubmitting(false);
         }

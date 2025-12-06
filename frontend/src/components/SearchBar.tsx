@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
-import { toast } from "react-toastify";
+import { toastService } from "../utils/toast";
 import AlbumCard from './AlbumCard';
 import type { DiscogsResult, ArtistResult } from '../types';
-import { useDebounce } from '../hooks/useDebounce'; 
+import { useDebounce } from '../hooks/useDebounce';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -23,19 +23,19 @@ const SearchBar: React.FC = () => {
     useEffect(() => {
         if (debouncedSearchQuery.length > 2) {
             setIsLoading(true);
-            
+
             const search = async () => {
                 try {
                     if (searchType === 'album') {
                         const response = await axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/search`, {
-                            params: { q: debouncedSearchQuery }, 
+                            params: { q: debouncedSearchQuery },
                             withCredentials: true
                         });
                         setAlbumResults(Array.isArray(response.data) ? response.data : []);
                         setArtistResults([]);
                     } else {
                         const response = await axios.get<ArtistResult[]>(`${API_BASE_URL}/api/discogs/search/artists`, {
-                            params: { q: debouncedSearchQuery }, 
+                            params: { q: debouncedSearchQuery },
                             withCredentials: true
                         });
                         setArtistResults(Array.isArray(response.data) ? response.data : []);
@@ -43,7 +43,7 @@ const SearchBar: React.FC = () => {
                     }
                 } catch (err) {
                     console.log(err)
-                    toast.error("Search failed.");
+                    toastService.error("Search failed.");
                     setAlbumResults([]);
                     setArtistResults([]);
                 } finally {
@@ -73,13 +73,13 @@ const SearchBar: React.FC = () => {
         <div className="w-full max-w-4xl mx-auto">
             {/* Filtre de recherche */}
             <div className="flex gap-2 mb-4">
-                <button 
+                <button
                     className={`btn btn-sm ${searchType === 'album' ? 'btn-primary' : 'btn-outline'}`}
                     onClick={() => setSearchType('album')}
                 >
                     Albums
                 </button>
-                <button 
+                <button
                     className={`btn btn-sm ${searchType === 'artist' ? 'btn-primary' : 'btn-outline'}`}
                     onClick={() => setSearchType('artist')}
                 >
@@ -119,14 +119,14 @@ const SearchBar: React.FC = () => {
             {searchType === 'artist' && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
                     {artistResults.map((artist) => (
-                        <div 
+                        <div
                             key={artist.id}
                             className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
                             onClick={() => handleSelectArtist(artist)}
                         >
                             <figure className="px-4 pt-4">
-                                <img 
-                                    src={artist.thumb || '/placeholder-artist.png'} 
+                                <img
+                                    src={artist.thumb || '/placeholder-artist.png'}
                                     alt={artist.name}
                                     className="rounded-full w-24 h-24 object-cover mx-auto"
                                 />

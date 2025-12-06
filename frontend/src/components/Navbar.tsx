@@ -3,15 +3,16 @@ import { Link, useLocation } from 'react-router';
 
 interface NavbarProps {
   username: string;
+  isAdmin: boolean;
   onLogout: () => void;
 }
 
 
-const Navbar: React.FC<NavbarProps> = ({ username, onLogout }) => {
+const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
   const location = useLocation();
 
   return (
-   <>
+    <>
       {/* --- BIG SCREEN --- */}
       <div className="navbar bg-base-100 rounded-box shadow-xl mb-8 hidden lg:flex">
         <div className="navbar-start">
@@ -37,6 +38,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, onLogout }) => {
               <li className="p-2 font-semibold">Hi, {username}</li>
               <div className="divider my-0"></div>
               <li><Link to="/app/settings">Settings</Link></li>
+              {isAdmin && <li><Link to="/app/admin">Admin</Link></li>}
               <li><a onClick={onLogout}>Logout</a></li>
             </ul>
           </div>
@@ -50,7 +52,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, onLogout }) => {
           <span className="btm-nav-label">Search</span>
         </Link>
         <Link to="/app/collection" className={location.pathname.startsWith('/app/collection') ? 'active' : ''}>
-           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
           <span className="btm-nav-label">Collection</span>
         </Link>
         <button className={`dropdown dropdown-top dropdown-end ${location.pathname === '/app/settings' ? 'active' : ''}`}>
@@ -64,6 +66,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, onLogout }) => {
             <li className="p-2 font-semibold text-center">Hi, {username}</li>
             <div className="divider my-0"></div>
             <li><Link to="/app/settings">Settings</Link></li>
+            {isAdmin && <li><Link to="/app/admin">Admin</Link></li>}
             <li><a onClick={onLogout}>Logout</a></li>
           </ul>
         </button>

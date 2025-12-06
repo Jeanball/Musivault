@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toastService } from '../utils/toast';
 import type { ArtistPageData, ArtistAlbum } from '../types';
 
 type SortField = 'title' | 'year';
@@ -26,7 +26,7 @@ const ArtistAlbumsPage: React.FC = () => {
                 setPageData(data);
             } catch (error) {
                 console.log("Error loading artist albums:", error);
-                toast.error("Error loading artist albums.");
+                toastService.error("Error loading artist albums.");
                 navigate('/app');
             } finally {
                 setIsLoading(false);
@@ -37,7 +37,7 @@ const ArtistAlbumsPage: React.FC = () => {
 
     const sortedAlbums = useMemo(() => {
         if (!pageData) return [];
-        
+
         return [...pageData.albums].sort((a, b) => {
             if (sortField === 'title') {
                 const comparison = a.title.localeCompare(b.title);
@@ -78,8 +78,8 @@ const ArtistAlbumsPage: React.FC = () => {
             {/* Header avec info artiste */}
             <div className="flex flex-col md:flex-row gap-6 mb-8">
                 {pageData.artist.image && (
-                    <img 
-                        src={pageData.artist.image} 
+                    <img
+                        src={pageData.artist.image}
                         alt={pageData.artist.name}
                         className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover shadow-xl mx-auto md:mx-0"
                     />
@@ -97,13 +97,13 @@ const ArtistAlbumsPage: React.FC = () => {
             <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-base-200 rounded-lg">
                 <span className="text-sm font-medium">Sort by:</span>
                 <div className="flex gap-2">
-                    <button 
+                    <button
                         className={`btn btn-sm ${sortField === 'title' ? 'btn-primary' : 'btn-outline'}`}
                         onClick={() => setSortField('title')}
                     >
                         Title
                     </button>
-                    <button 
+                    <button
                         className={`btn btn-sm ${sortField === 'year' ? 'btn-primary' : 'btn-outline'}`}
                         onClick={() => setSortField('year')}
                     >
@@ -111,7 +111,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     </button>
                 </div>
                 <div className="divider divider-horizontal mx-0"></div>
-                <button 
+                <button
                     className="btn btn-sm btn-ghost"
                     onClick={toggleSortOrder}
                 >
@@ -122,14 +122,14 @@ const ArtistAlbumsPage: React.FC = () => {
             {/* Grille d'albums */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {sortedAlbums.map((album) => (
-                    <div 
+                    <div
                         key={`${album.type}-${album.id}`}
                         className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-all hover:scale-105"
                         onClick={() => handleAlbumClick(album)}
                     >
                         <figure className="px-3 pt-3">
-                            <img 
-                                src={album.thumb || '/placeholder-album.png'} 
+                            <img
+                                src={album.thumb || '/placeholder-album.png'}
                                 alt={album.title}
                                 className="rounded-lg w-full aspect-square object-cover"
                             />

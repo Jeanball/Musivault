@@ -13,13 +13,13 @@ export interface AlbumDetails {
     year: string;
     thumb: string;
     cover_image: string;
-    availableFormats?: FormatDetails[]; 
+    availableFormats?: FormatDetails[];
 }
 
 interface AlbumDetailModalProps {
     album: AlbumDetails | null;
     onClose: () => void;
-    onConfirm: (format: FormatDetails) => void; 
+    onConfirm: (format: FormatDetails) => void;
     isSubmitting: boolean;
 }
 
@@ -38,7 +38,7 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
 
     const formats = album.availableFormats || [];
 
-     return (
+    return (
         <dialog id="album_detail_modal" className="modal" open={!!album}>
             <div className="modal-box w-11/12 max-w-2xl">
                 <div className="flex flex-col sm:flex-row gap-6">
@@ -57,7 +57,7 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
                             onClick={() => setSelectedFormat(format)}
                             className={`btn btn-block h-auto py-2 ${selectedFormat === format ? 'btn-primary' : 'btn-outline'}`}
                         >
-                           <div className="text-left w-full">
+                            <div className="text-left w-full">
                                 <div className="font-bold text-lg">{format.name} <span className="text-accent">{format.text}</span></div>
                                 <div className="text-xs font-normal opacity-70 normal-case">
                                     {format.descriptions.join(', ')}
@@ -69,7 +69,7 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
                 <div className="modal-action mt-8">
                     <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
                     <button
-                        className="btn btn-success"
+                        className="btn btn-primary"
                         onClick={handleConfirmClick}
                         disabled={!selectedFormat || isSubmitting}
                     >

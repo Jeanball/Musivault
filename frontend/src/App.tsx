@@ -9,6 +9,7 @@ import VersionsPage from './pages/VersionsPage';
 import ReleasePage from './pages/ReleasePage';
 import ArtistAlbumsPage from './pages/ArtistAlbumsPage';
 import SettingsPage from './pages/SettingsPage';
+import AdminPage from './pages/AdminPage';
 import HomePage from './pages/HomePage';
 import LandingPage from './pages/LandingPage';
 import { ThemeProvider } from './context/ThemeContext';
@@ -35,6 +36,7 @@ const App = () => {
               <Route path="release/:releaseId" element={<ReleasePage />} />
               <Route path="artist/:artistId" element={<ArtistAlbumsPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="admin" element={<AdminPage />} />
             </Route>
           </Routes>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toastService } from '../../utils/toast';
 
 interface ImportResult {
     imported: number;
@@ -43,9 +43,9 @@ const CsvImport: React.FC = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setImportResult(data);
-            toast.success(`Import complete: ${data.imported} added, ${data.failed} failed`);
+            toastService.success(`Import complete: ${data.imported} added, ${data.failed} failed`);
         } catch (error) {
-            toast.error('Import failed.');
+            toastService.error('Import failed.');
         } finally {
             setIsImporting(false);
             if (inputElement) inputElement.value = '';

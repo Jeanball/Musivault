@@ -1,19 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router';
+import React, { useEffect, useState, useRef } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
 import Navbar from '../Navbar';
 import { useTheme } from '../../context/ThemeContext';
+import { toastService, toastMessages } from '../../utils/toast';
 
 interface VerificationResponse {
     status: boolean;
     user: string;
+    isAdmin: boolean;
+}
+
+interface LocationState {
+    showLoginSuccess?: boolean;
 }
 
 const PrivateLayout: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { syncThemeFromServer } = useTheme();
     const [username, setUsername] = useState<string>("");
+    const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const hasShownLoginToast = useRef(false);
 
     useEffect(() => {
         const verifyUser = async () => {
@@ -23,8 +32,19 @@ const PrivateLayout: React.FC = () => {
                 );
                 if (data.status) {
                     setUsername(data.user);
+                    setIsAdmin(data.isAdmin);
                     // Synchroniser le thème depuis le serveur une fois l'utilisateur vérifié
                     await syncThemeFromServer();
+
+                    // Show login success toast AFTER theme sync (only once)
+                    const state = location.state as LocationState;
+                    if (state?.showLoginSuccess && !hasShownLoginToast.current) {
+                        hasShownLoginToast.current = true;
+                        toastService.success(toastMessages.auth.loginSuccess);
+                        // Clear the state to prevent showing toast on refresh
+                        window.history.replaceState({}, document.title);
+                    }
+
                     setIsLoading(false);
                 } else {
                     navigate("/login");
@@ -37,7 +57,7 @@ const PrivateLayout: React.FC = () => {
             }
         };
         verifyUser();
-    }, [navigate, syncThemeFromServer]);
+    }, [navigate, syncThemeFromServer, location.state]);
 
     const handleLogout = async () => {
         try {
@@ -59,7 +79,7 @@ const PrivateLayout: React.FC = () => {
     return (
         <>
             <div className="p-4 md:p-8 pb-20 lg:pb-8">
-                <Navbar username={username} onLogout={handleLogout} />
+                <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
                 <main>
                     <Outlet />
                 </main>

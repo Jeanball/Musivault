@@ -40,14 +40,8 @@ const LoginPage: React.FC = () => {
                 { ...inputValue },
                 { withCredentials: true }
             );
-
-
-
-            toastService.success(toastMessages.auth.loginSuccess);
-
-            setTimeout(() => {
-                navigate("/app");
-            }, 1000);
+            // Navigate with state to show toast after theme sync
+            navigate("/app", { state: { showLoginSuccess: true } });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
