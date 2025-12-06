@@ -11,6 +11,11 @@ interface VerificationResponse {
     isAdmin: boolean;
 }
 
+export interface PrivateOutletContext {
+    username: string;
+    isAdmin: boolean;
+}
+
 interface LocationState {
     showLoginSuccess?: boolean;
 }
@@ -81,7 +86,7 @@ const PrivateLayout: React.FC = () => {
             <div className="p-4 md:p-8 pb-20 lg:pb-8">
                 <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
                 <main>
-                    <Outlet />
+                    <Outlet context={{ username, isAdmin } satisfies PrivateOutletContext} />
                 </main>
             </div>
         </>

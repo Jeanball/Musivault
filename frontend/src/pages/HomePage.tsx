@@ -1,74 +1,115 @@
 import SearchBar from "../components/SearchBar";
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router";
+import ShowAlbumModal from "../components/Modal/ShowAlbumModal";
+import { useCollectionData } from "../hooks/collection/useCollectionData";
 import type { CollectionItem } from "../types/collection";
+import type { PrivateOutletContext } from "../components/Layout/PrivateLayout";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 
 const HomePage: React.FC = () => {
-  const [latestAdditions, setLatestAdditions] = useState<CollectionItem[]>([]);
+  const { username } = useOutletContext<PrivateOutletContext>();
+  const [collection, setCollection] = useState<CollectionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
+  const { isDeleting, handleDeleteItem } = useCollectionData(); // Reuse delete logic
+
+  const handleDeleteAndClose = async (itemId: string) => {
+    await handleDeleteItem(itemId);
+    setSelectedItem(null);
+    // Refresh collection after delete
+    setCollection(prev => prev.filter(item => item._id !== itemId));
+  };
 
   useEffect(() => {
-    const fetchLatestAdditions = async () => {
+    const fetchCollection = async () => {
       try {
         const { data } = await axios.get<CollectionItem[]>(
-          `${API_BASE_URL}/api/collection?sort=latest&limit=3`,
+          `${API_BASE_URL}/api/collection?sort=latest`,
           { withCredentials: true }
         );
+
         if (Array.isArray(data)) {
-          setLatestAdditions(data);
+          setCollection(data);
         }
       } catch (error) {
-        console.error("Impossible de charger les derniers ajouts", error);
+        console.error("Impossible de charger la collection", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchLatestAdditions();
+    fetchCollection();
   }, []);
 
-
+  // Get latest 6 for display
+  const latestAdditions = collection.slice(0, 6);
 
   return (
-    <div>
+    <div className="space-y-8">
+      {/* HEADER */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Welcome Card */}
 
-      <div className="text-center p-8 bg-base-200 rounded-box shadow-lg">
-        <div className="flex flex-col items-center justify-center mb-4">
-          <img src="/icons/icon-192x192.png" alt="Musivault Logo" className="w-16 h-16 rounded-xl shadow-lg mb-2" />
-          <h1 className="text-4xl md:text-5xl font-bold">MUSIVAULT</h1>
+        <div className="card-body justify-center">
+          <h2 className="text-center text-3xl font-bold">Welcome back, {username || 'audiophile'}!</h2>
+          <p className="text-center">Ready to spin some records?</p>
         </div>
-        <p className="py-6">
-          Use the search bar below to find and add new albums.
-        </p>
+
+      </div>
+
+      {/* SEARCH SECTION */}
+      <div className="bg-base-200 p-6 rounded-box shadow-md">
+        <h3 className="text-xl font-bold mb-4 text-center ">Quick Search</h3>
         <SearchBar />
       </div>
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-4">Last added</h2>
+
+      {/* RECENT ADDS GRID */}
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Freshly Added</h2>
+          <a href="/app/collection" className="btn btn-ghost btn-sm">View All &rarr;</a>
+        </div>
+
         {isLoading ? (
-          <div className="flex justify-center"><span className="loading loading-dots loading-lg"></span></div>
+          <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg"></span></div>
         ) : latestAdditions.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {latestAdditions.map(item => (
-              <div key={item._id} className="card card-side bg-base-200 shadow-xl">
-                <figure className="w-24 h-24 flex-shrink-0">
-                  <img src={item.album.thumb || item.album.cover_image} alt={item.album.title} />
+              <div
+                key={item._id}
+                onClick={() => setSelectedItem(item)}
+                className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+              >
+                <figure className="aspect-square relative overflow-hidden">
+                  <img src={item.album.cover_image || "/placeholder_album.png"} alt={item.album.title} className="object-cover w-full h-full" />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="badge badge-primary">{item.format.name}</span>
+                  </div>
                 </figure>
-                <div className="card-body p-4">
-                  <h3 className="card-title text-base leading-tight truncate">{item.album.title}</h3>
-                  <p className="text-sm opacity-70 truncate">{item.album.artist}</p>
-                  <div className="badge badge-accent mt-2">{item.format.name}</div>
+                <div className="card-body p-3 gap-1">
+                  <h3 className="card-title text-sm leading-tight truncate block" title={item.album.title}>{item.album.title}</h3>
+                  <p className="text-xs opacity-70 truncate block">{item.album.artist}</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center p-8 bg-base-200 rounded-box">
-            <p>Your collection is empty. Add your first album to see it!</p>
+          <div className="text-center p-12 bg-base-200 rounded-box border-2 border-dashed border-base-content/20">
+            <p className="text-lg opacity-60">Your vault is empty.</p>
+            <p className="text-sm opacity-50">Start by searching above!</p>
           </div>
         )}
       </div>
+
+      <ShowAlbumModal
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+        onDelete={handleDeleteAndClose}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 };

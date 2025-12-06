@@ -72,7 +72,7 @@ const SearchBar: React.FC = () => {
     return (
         <div className="w-full max-w-4xl mx-auto">
             {/* Filtre de recherche */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 justify-center">
                 <button
                     className={`btn btn-sm ${searchType === 'album' ? 'btn-primary' : 'btn-outline'}`}
                     onClick={() => setSearchType('album')}
@@ -80,7 +80,7 @@ const SearchBar: React.FC = () => {
                     Albums
                 </button>
                 <button
-                    className={`btn btn-sm ${searchType === 'artist' ? 'btn-primary' : 'btn-outline'}`}
+                    className={`btn btn-sm  ${searchType === 'artist' ? 'btn-primary' : 'btn-outline'} `}
                     onClick={() => setSearchType('artist')}
                 >
                     Artists
