@@ -4,7 +4,8 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "start": "ts-node src/server.ts"
+    "start": "ts-node src/server.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
