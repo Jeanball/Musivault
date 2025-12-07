@@ -24,10 +24,10 @@ interface CsvRowRaw {
 }
 
 interface CsvRow {
-  artiste: string;
+  artist: string;
   album: string;
-  annee?: string;
-  type: 'Vinyl' | 'CD';
+  year?: string;
+  format: 'Vinyl' | 'CD';
 }
 
 interface FoundAlbumInfo {
@@ -183,28 +183,28 @@ export async function importCollectionCSV(req: Request, res: Response) {
       });
       const typeNorm = normalizeType(mapped['type']);
       return {
-        artiste: (mapped['artiste'] || '').toString().trim(),
+        artist: (mapped['artiste'] || '').toString().trim(),
         album: (mapped['album'] || '').toString().trim(),
-        annee: (mapped['annee'] || '').toString().trim() || undefined,
-        type: (typeNorm || 'Vinyl')
+        year: (mapped['annee'] || '').toString().trim() || undefined,
+        format: (typeNorm || 'Vinyl')
       };
     });
 
     const userId = req.user._id;
     let imported = 0;
-    const failures: Array<{ index: number; artiste: string; album: string; reason: string }> = [];
+    const failures: Array<{ index: number; artist: string; album: string; reason: string }> = [];
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      if (!row.artiste || !row.album) {
-        failures.push({ index: i + 1, artiste: row.artiste || '', album: row.album || '', reason: 'Champs Artiste/Album manquants' });
+      if (!row.artist || !row.album) {
+        failures.push({ index: i + 1, artist: row.artist || '', album: row.album || '', reason: 'Champs Artiste/Album manquants' });
         continue;
       }
 
       try {
-        const found = await searchDiscogsByArtistAlbum(row.artiste, row.album, row.annee);
+        const found = await searchDiscogsByArtistAlbum(row.artist, row.album, row.year);
         if (!found) {
-          failures.push({ index: i + 1, artiste: row.artiste, album: row.album, reason: 'Aucun résultat Discogs' });
+          failures.push({ index: i + 1, artist: row.artist, album: row.album, reason: 'Aucun résultat Discogs' });
           continue;
         }
 
@@ -225,19 +225,19 @@ export async function importCollectionCSV(req: Request, res: Response) {
           console.log(`[CSV Import] Album already exists in DB`);
         }
 
-        console.log(`[CSV Import] Checking if already in collection (format: ${row.type})`);
-        const exists = await CollectionItem.findOne({ user: userId, album: album._id, 'format.name': row.type });
+        console.log(`[CSV Import] Checking if already in collection (format: ${row.format})`);
+        const exists = await CollectionItem.findOne({ user: userId, album: album._id, 'format.name': row.format });
         if (exists) {
           console.log(`[CSV Import] Already in collection, skipping`);
-          failures.push({ index: i + 1, artiste: row.artiste, album: row.album, reason: 'Déjà présent dans ce format' });
+          failures.push({ index: i + 1, artist: row.artist, album: row.album, reason: 'Déjà présent dans ce format' });
           continue;
         }
 
         console.log(`[CSV Import] Adding to collection...`);
         const formatObj = {
-          name: row.type,
+          name: row.format,
           descriptions: [],
-          text: row.type
+          text: row.format
         };
         const newItem = new CollectionItem({ user: userId, album: album._id, format: formatObj });
         await newItem.save();
@@ -245,7 +245,7 @@ export async function importCollectionCSV(req: Request, res: Response) {
         imported++;
       } catch (err: any) {
         console.log(`[CSV Import] ERROR during processing:`, err.message);
-        failures.push({ index: i + 1, artiste: row.artiste, album: row.album, reason: 'Erreur lors du traitement' });
+        failures.push({ index: i + 1, artist: row.artist, album: row.album, reason: 'Erreur lors du traitement' });
       }
     }
 
