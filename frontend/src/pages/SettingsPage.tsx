@@ -139,7 +139,7 @@ const SettingsPage: React.FC = () => {
                         </div>
 
                         <div className="text-xs opacity-70 mt-4 text-center">
-                            <p>Made with ❤️ for music lovers</p>
+                            <p>Made with ❤️ by <a href="https://github.com/jeanball" target="_blank" rel="noopener noreferrer">Jeanball</a></p>
                         </div>
                     </div>
                 </div>
