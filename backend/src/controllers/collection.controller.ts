@@ -2,149 +2,29 @@ import { Request, Response } from 'express';
 import type { Express } from 'express';
 import Album, { IAlbum } from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
-import axios from 'axios';
-import { Readable } from 'stream';
-import csv from 'csv-parser';
+import { csvImportService } from '../services/csv-import.service';
 
+// ===== Types =====
 
 interface AddToCollectionBody {
   discogsId: number;
   title: string;
   artist: string;
   year: string;
-  thumb: string,
+  thumb: string;
   cover_image: string;
   format: string;
 }
 
-// ===== IMPORT CSV =====
-
-interface CsvRowRaw {
-  [key: string]: string | undefined;
-}
-
-interface CsvRow {
-  artist: string;
-  album: string;
-  year?: string;
-  format: 'Vinyl' | 'CD';
-}
-
-interface FoundAlbumInfo {
-  discogsId: number;
-  title: string;
-  artist: string;
-  year: string;
-  thumb: string;
-  cover_image: string;
-}
-
-function normalizeHeader(header: string): string {
-  // Lowercase, remove anything in parentheses, trim spaces
-  return header.toLowerCase().replace(/\(.*\)/g, '').trim();
-}
-
-function normalizeType(input?: string): 'Vinyl' | 'CD' | undefined {
-  if (!input) return undefined;
-  const v = input.toLowerCase().trim();
-  if (['vinyl', 'vinyle', 'lp', '33', '33t', '45', '45t', 'records'].some(k => v.includes(k))) return 'Vinyl';
-  if (['cd', 'compact disc', 'compact-disc'].some(k => v.includes(k))) return 'CD';
-  return undefined;
-}
-
-async function searchDiscogsByArtistAlbum(artist: string, title: string, year?: string): Promise<FoundAlbumInfo | null> {
-  const key = process.env.DISCOGS_KEY;
-  const secret = process.env.DISCOGS_SECRET;
-
-  console.log(`[CSV Import] Searching Discogs for: "${artist}" - "${title}" (year: ${year || 'N/A'})`);
-
-  if (!key || !secret) {
-    console.log('[CSV Import] ERROR: DISCOGS_KEY or DISCOGS_SECRET not set');
-    return null;
-  }
-
-  const base = 'https://api.discogs.com/database/search';
-  const headers = { 'User-Agent': 'Musivault/1.0' };
-
-  // Utiliser 'q' pour une recherche plus flexible
-  const authParams: Record<string, string> = {
-    key,
-    secret,
-    q: `${artist} ${title}`
-  };
-
-  // Try masters first
-  try {
-    console.log('[CSV Import] Trying masters...');
-    const masters = await axios.get<{ results: any[] }>(base, {
-      headers,
-      params: { ...authParams, type: 'master' }
-    });
-    let pick = masters.data.results || [];
-    console.log(`[CSV Import] Found ${pick.length} masters`);
-
-    if (year && year.trim()) {
-      const y = year.trim();
-      const filtered = pick.filter(r => (r.year?.toString() || '') === y);
-      if (filtered.length) pick = filtered;
-    }
-    if (pick.length) {
-      const r = pick[0];
-      console.log(`[CSV Import] Selected master: ${r.title} (ID: ${r.id})`);
-      return {
-        discogsId: r.id,
-        title: r.title,
-        artist: artist,
-        year: (r.year?.toString() || ''),
-        thumb: r.thumb || '',
-        cover_image: r.cover_image || r.thumb || ''
-      };
-    }
-  } catch (err: any) {
-    console.log('[CSV Import] Master search error:', err.message);
-  }
-
-  // Fallback to releases
-  try {
-    console.log('[CSV Import] Trying releases...');
-    const releases = await axios.get<{ results: any[] }>(base, {
-      headers,
-      params: { ...authParams, type: 'release' }
-    });
-    let pick = releases.data.results || [];
-    console.log(`[CSV Import] Found ${pick.length} releases`);
-
-    if (year && year.trim()) {
-      const y = year.trim();
-      const filtered = pick.filter(r => (r.year?.toString() || '') === y);
-      if (filtered.length) pick = filtered;
-    }
-    if (pick.length) {
-      const r = pick[0];
-      console.log(`[CSV Import] Selected release: ${r.title} (ID: ${r.id})`);
-      return {
-        discogsId: r.id,
-        title: r.title,
-        artist: artist,
-        year: (r.year?.toString() || ''),
-        thumb: r.thumb || '',
-        cover_image: r.cover_image || r.thumb || ''
-      };
-    }
-  } catch (err: any) {
-    console.log('[CSV Import] Release search error:', err.message);
-  }
-
-  console.log('[CSV Import] No results found');
-  return null;
-}
+// ===== CSV Import =====
 
 export async function downloadTemplate(req: Request, res: Response) {
   const csvContent = [
-    'Artiste,Album,Annee (Optionnel),Type (Vinyl ou CD)',
+    'Artist,Album,Year (Optional),Format (Vinyl or CD)',
     'Daft Punk,Discovery,2001,Vinyl',
     'Radiohead,OK Computer, ,CD'
   ].join('\n');
+
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="musivault_import_template.csv"');
   res.status(200).send(csvContent);
@@ -153,119 +33,35 @@ export async function downloadTemplate(req: Request, res: Response) {
 export async function importCollectionCSV(req: Request, res: Response) {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'Utilisateur non authentifié.' });
+      res.status(401).json({ message: 'Unauthorized' });
       return;
     }
-    // Multer should have attached file as req.file
+
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) {
-      res.status(400).json({ message: 'Fichier CSV manquant. Form field name must be "file".' });
+      res.status(400).json({ message: 'Missing CSV file. Form field name must be "file".' });
       return;
     }
 
-    const rawRows: CsvRowRaw[] = [];
-
-    await new Promise<void>((resolve, reject) => {
-      // Create a stream from the uploaded buffer
-      const stream = Readable.from(file.buffer.toString());
-      stream
-        .pipe(csv())
-        .on('data', (row: any) => rawRows.push(row))
-        .on('end', () => resolve())
-        .on('error', (err: any) => reject(err));
-    });
-
-    const rows: CsvRow[] = rawRows.map((r) => {
-      // Normalize headers
-      const mapped: Record<string, string | undefined> = {};
-      Object.keys(r).forEach((k) => {
-        mapped[normalizeHeader(k)] = (r as any)[k];
-      });
-      const typeNorm = normalizeType(mapped['type']);
-      return {
-        artist: (mapped['artiste'] || '').toString().trim(),
-        album: (mapped['album'] || '').toString().trim(),
-        year: (mapped['annee'] || '').toString().trim() || undefined,
-        format: (typeNorm || 'Vinyl')
-      };
-    });
-
-    const userId = req.user._id;
-    let imported = 0;
-    const failures: Array<{ index: number; artist: string; album: string; reason: string }> = [];
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      if (!row.artist || !row.album) {
-        failures.push({ index: i + 1, artist: row.artist || '', album: row.album || '', reason: 'Champs Artiste/Album manquants' });
-        continue;
-      }
-
-      try {
-        const found = await searchDiscogsByArtistAlbum(row.artist, row.album, row.year);
-        if (!found) {
-          failures.push({ index: i + 1, artist: row.artist, album: row.album, reason: 'Aucun résultat Discogs' });
-          continue;
-        }
-
-        console.log(`[CSV Import] Saving album to DB: ${found.title} (discogsId: ${found.discogsId})`);
-        let album = await Album.findOne({ discogsId: found.discogsId });
-        if (!album) {
-          album = new Album({
-            discogsId: found.discogsId,
-            title: found.title,
-            artist: found.artist,
-            year: found.year,
-            thumb: found.thumb,
-            cover_image: found.cover_image,
-          });
-          await album.save();
-          console.log(`[CSV Import] Album created in DB`);
-        } else {
-          console.log(`[CSV Import] Album already exists in DB`);
-        }
-
-        console.log(`[CSV Import] Checking if already in collection (format: ${row.format})`);
-        const exists = await CollectionItem.findOne({ user: userId, album: album._id, 'format.name': row.format });
-        if (exists) {
-          console.log(`[CSV Import] Already in collection, skipping`);
-          failures.push({ index: i + 1, artist: row.artist, album: row.album, reason: 'Déjà présent dans ce format' });
-          continue;
-        }
-
-        console.log(`[CSV Import] Adding to collection...`);
-        const formatObj = {
-          name: row.format,
-          descriptions: [],
-          text: row.format
-        };
-        const newItem = new CollectionItem({ user: userId, album: album._id, format: formatObj });
-        await newItem.save();
-        console.log(`[CSV Import] SUCCESS: Added to collection`);
-        imported++;
-      } catch (err: any) {
-        console.log(`[CSV Import] ERROR during processing:`, err.message);
-        failures.push({ index: i + 1, artist: row.artist, album: row.album, reason: 'Erreur lors du traitement' });
-      }
-    }
-
-    res.status(200).json({ imported, failed: failures.length, failures });
+    const result = await csvImportService.importFromCsv(file.buffer, req.user._id);
+    res.status(200).json(result);
   } catch (error) {
-    console.error('Erreur lors de l\'import CSV :', error);
-    res.status(500).json({ message: 'Erreur interne du serveur' });
+    console.error('Error during CSV import:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+// ===== Collection CRUD =====
 
 export async function getMyCollection(req: Request, res: Response) {
   try {
     if (!req.user) {
-      res.status(401).json({ message: "Utilisateur non authentifié." });
+      res.status(401).json({ message: 'Unauthorized' });
       return;
     }
-    const userId = req.user._id;
-    const { sort, limit } = req.query;
 
-    let query = CollectionItem.find({ user: userId })
+    const { sort, limit } = req.query;
+    let query = CollectionItem.find({ user: req.user._id })
       .populate<{ album: IAlbum }>('album');
 
     if (sort === 'latest') {
@@ -281,6 +77,7 @@ export async function getMyCollection(req: Request, res: Response) {
 
     const collection = await query.exec();
 
+    // Sort by artist if not sorting by latest
     if (sort !== 'latest') {
       collection.sort((a, b) => {
         if (a.album && b.album) {
@@ -289,41 +86,26 @@ export async function getMyCollection(req: Request, res: Response) {
         return 0;
       });
     }
-    res.status(200).json(collection);
 
+    res.status(200).json(collection);
   } catch (error) {
-    console.error("Erreur lors de la récupération de la collection :", error);
-    res.status(500).json({ message: "Erreur interne du serveur" });
+    console.error('Error fetching collection:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
 
-export const getUserCollection = async (req: Request, res: Response) => {
-  try {
-    // Assuming req.userId is set by an auth middleware
-    const userId = req.user?._id; // Use req.user._id from existing auth pattern
-    if (!userId) {
-      res.status(401).json({ message: "Utilisateur non authentifié." });
-      return;
-    }
-    const collection = await CollectionItem.find({ user: userId }).populate('album'); // Use CollectionItem
-    res.status(200).json(collection);
-  } catch (error) {
-    console.error('Error in getUserCollection:', error);
-    res.status(500).json({ error: 'Failed to fetch collection' });
-  }
-};
-
 export async function getCollectionItemById(req: Request, res: Response) {
   try {
-    const { itemId } = req.params;
-    const userId = req.user?._id;
-
-    if (!userId) {
-      res.status(401).json({ message: "Utilisateur non authentifié." });
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 
-    const item = await CollectionItem.findOne({ _id: itemId, user: userId }).populate('album');
+    const { itemId } = req.params;
+    const item = await CollectionItem.findOne({
+      _id: itemId,
+      user: req.user._id
+    }).populate('album');
 
     if (!item) {
       res.status(404).json({ error: 'Item not found' });
@@ -332,7 +114,7 @@ export async function getCollectionItemById(req: Request, res: Response) {
 
     res.status(200).json(item);
   } catch (error) {
-    console.error('Error in getCollectionItemById:', error);
+    console.error('Error fetching collection item:', error);
     res.status(500).json({ error: 'Failed to fetch collection item' });
   }
 }
@@ -340,70 +122,67 @@ export async function getCollectionItemById(req: Request, res: Response) {
 export async function addToCollection(req: Request, res: Response) {
   try {
     if (!req.user) {
-      res.status(401).json({ message: "Utilisateur non authentifié." });
+      res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 
     const { discogsId, title, artist, year, thumb, cover_image, format } = req.body as AddToCollectionBody;
 
-    const userId = req.user._id;
-
-
-    let album = await Album.findOne({ discogsId: discogsId });
-
+    // Find or create album
+    let album = await Album.findOne({ discogsId });
     if (!album) {
       album = new Album({ discogsId, title, artist, year, thumb, cover_image });
       await album.save();
     }
 
+    // Check for duplicate
     const existingItem = await CollectionItem.findOne({
-      user: userId,
+      user: req.user._id,
       album: album._id,
       format: format
     });
 
     if (existingItem) {
-      res.status(409).json({ message: "Vous avez déjà cet album dans ce format." });
+      res.status(409).json({ message: 'You already have this album in this format.' });
       return;
     }
 
-
-    const newCollectionItem = new CollectionItem({
-      user: userId,
+    // Create collection item
+    const newItem = new CollectionItem({
+      user: req.user._id,
       album: album._id,
       format: format,
     });
+    await newItem.save();
 
-    await newCollectionItem.save();
-
-    res.status(201).json({ message: "Album ajouté à votre collection avec succès !", item: newCollectionItem });
-
+    res.status(201).json({ message: 'Album added to your collection!', item: newItem });
   } catch (error) {
-    console.error("Erreur lors de l'ajout à la collection :", error);
-    res.status(500).json({ message: "Erreur interne du serveur" });
+    console.error('Error adding to collection:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
 
 export async function deleteFromCollection(req: Request, res: Response) {
   try {
     if (!req.user) {
-      res.status(401).json({ message: "Utilisateur non authentifié." });
+      res.status(401).json({ message: 'Unauthorized' });
       return;
     }
-    const userId = req.user._id;
-    const { itemId } = req.params;
 
-    const itemToDelete = await CollectionItem.findOneAndDelete({ _id: itemId, user: userId });
+    const { itemId } = req.params;
+    const itemToDelete = await CollectionItem.findOneAndDelete({
+      _id: itemId,
+      user: req.user._id
+    });
 
     if (!itemToDelete) {
-      res.status(404).json({ message: "Élément non trouvé dans votre collection." });
+      res.status(404).json({ message: 'Item not found in your collection.' });
       return;
     }
 
-    res.status(200).json({ message: "Album supprimé de votre collection avec succès." });
-
+    res.status(200).json({ message: 'Album removed from your collection.' });
   } catch (error) {
-    console.error("Erreur lors de la suppression de l'élément de la collection :", error);
-    res.status(500).json({ message: "Erreur interne du serveur" });
+    console.error('Error deleting from collection:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
