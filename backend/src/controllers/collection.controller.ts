@@ -8,13 +8,13 @@ import csv from 'csv-parser';
 
 
 interface AddToCollectionBody {
-    discogsId: number;
-    title: string;
-    artist: string;
-    year: string;
-    thumb: string,
-    cover_image: string;
-    format: string;
+  discogsId: number;
+  title: string;
+  artist: string;
+  year: string;
+  thumb: string,
+  cover_image: string;
+  format: string;
 }
 
 // ===== IMPORT CSV =====
@@ -55,9 +55,9 @@ function normalizeType(input?: string): 'Vinyl' | 'CD' | undefined {
 async function searchDiscogsByArtistAlbum(artist: string, title: string, year?: string): Promise<FoundAlbumInfo | null> {
   const key = process.env.DISCOGS_KEY;
   const secret = process.env.DISCOGS_SECRET;
-  
+
   console.log(`[CSV Import] Searching Discogs for: "${artist}" - "${title}" (year: ${year || 'N/A'})`);
-  
+
   if (!key || !secret) {
     console.log('[CSV Import] ERROR: DISCOGS_KEY or DISCOGS_SECRET not set');
     return null;
@@ -67,9 +67,9 @@ async function searchDiscogsByArtistAlbum(artist: string, title: string, year?: 
   const headers = { 'User-Agent': 'Musivault/1.0' };
 
   // Utiliser 'q' pour une recherche plus flexible
-  const authParams: Record<string, string> = { 
-    key, 
-    secret, 
+  const authParams: Record<string, string> = {
+    key,
+    secret,
     q: `${artist} ${title}`
   };
 
@@ -82,7 +82,7 @@ async function searchDiscogsByArtistAlbum(artist: string, title: string, year?: 
     });
     let pick = masters.data.results || [];
     console.log(`[CSV Import] Found ${pick.length} masters`);
-    
+
     if (year && year.trim()) {
       const y = year.trim();
       const filtered = pick.filter(r => (r.year?.toString() || '') === y);
@@ -113,7 +113,7 @@ async function searchDiscogsByArtistAlbum(artist: string, title: string, year?: 
     });
     let pick = releases.data.results || [];
     console.log(`[CSV Import] Found ${pick.length} releases`);
-    
+
     if (year && year.trim()) {
       const y = year.trim();
       const filtered = pick.filter(r => (r.year?.toString() || '') === y);
@@ -257,113 +257,153 @@ export async function importCollectionCSV(req: Request, res: Response) {
 }
 
 export async function getMyCollection(req: Request, res: Response) {
-    try {
-        if (!req.user) {
-            res.status(401).json({ message: "Utilisateur non authentifié." });
-            return;
-        }
-        const userId = req.user._id;
-        const { sort, limit } = req.query;
-
-        let query = CollectionItem.find({ user: userId })
-            .populate<{album: IAlbum}>('album');
-
-        if (sort === 'latest') {
-            query = query.sort({ addedAt: -1 });
-        }
-
-        if (limit) {
-            const numLimit = parseInt(limit as string, 10);
-            if (!isNaN(numLimit)) {
-                query = query.limit(numLimit);
-            }
-        }
-
-        const collection = await query.exec();
-
-        if (sort !== 'latest') {
-            collection.sort((a, b) => {
-                if (a.album && b.album) {
-                    return a.album.artist.localeCompare(b.album.artist);
-                }
-                return 0;
-            });
-        }
-        res.status(200).json(collection);
-
-    } catch (error) {
-        console.error("Erreur lors de la récupération de la collection :", error);
-        res.status(500).json({ message: "Erreur interne du serveur" });
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: "Utilisateur non authentifié." });
+      return;
     }
+    const userId = req.user._id;
+    const { sort, limit } = req.query;
+
+    let query = CollectionItem.find({ user: userId })
+      .populate<{ album: IAlbum }>('album');
+
+    if (sort === 'latest') {
+      query = query.sort({ addedAt: -1 });
+    }
+
+    if (limit) {
+      const numLimit = parseInt(limit as string, 10);
+      if (!isNaN(numLimit)) {
+        query = query.limit(numLimit);
+      }
+    }
+
+    const collection = await query.exec();
+
+    if (sort !== 'latest') {
+      collection.sort((a, b) => {
+        if (a.album && b.album) {
+          return a.album.artist.localeCompare(b.album.artist);
+        }
+        return 0;
+      });
+    }
+    res.status(200).json(collection);
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la collection :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+}
+
+export const getUserCollection = async (req: Request, res: Response) => {
+  try {
+    // Assuming req.userId is set by an auth middleware
+    const userId = req.user?._id; // Use req.user._id from existing auth pattern
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié." });
+      return;
+    }
+    const collection = await CollectionItem.find({ user: userId }).populate('album'); // Use CollectionItem
+    res.status(200).json(collection);
+  } catch (error) {
+    console.error('Error in getUserCollection:', error);
+    res.status(500).json({ error: 'Failed to fetch collection' });
+  }
+};
+
+export async function getCollectionItemById(req: Request, res: Response) {
+  try {
+    const { itemId } = req.params;
+    const userId = req.user?._id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Utilisateur non authentifié." });
+      return;
+    }
+
+    const item = await CollectionItem.findOne({ _id: itemId, user: userId }).populate('album');
+
+    if (!item) {
+      res.status(404).json({ error: 'Item not found' });
+      return;
+    }
+
+    res.status(200).json(item);
+  } catch (error) {
+    console.error('Error in getCollectionItemById:', error);
+    res.status(500).json({ error: 'Failed to fetch collection item' });
+  }
 }
 
 export async function addToCollection(req: Request, res: Response) {
-    try {
-        if (!req.user) {
-            res.status(401).json({ message: "Utilisateur non authentifié." });
-            return;
-        }
-
-        const { discogsId, title, artist, year, thumb, cover_image, format } = req.body as AddToCollectionBody;
-        
-        const userId = req.user._id;
-
-
-        let album = await Album.findOne({ discogsId: discogsId });
-        
-        if (!album) {
-            album = new Album({ discogsId, title, artist, year, thumb, cover_image });
-            await album.save();
-        }
-
-        const existingItem = await CollectionItem.findOne({
-            user: userId,
-            album: album._id,
-            format: format
-        });
-
-        if (existingItem) {
-            res.status(409).json({ message: "Vous avez déjà cet album dans ce format." });
-            return;
-        }
-        
-
-        const newCollectionItem = new CollectionItem({
-            user: userId,
-            album: album._id,
-            format: format,
-        });
-
-        await newCollectionItem.save();
-
-        res.status(201).json({ message: "Album ajouté à votre collection avec succès !", item: newCollectionItem });
-
-    } catch (error) {
-        console.error("Erreur lors de l'ajout à la collection :", error);
-        res.status(500).json({ message: "Erreur interne du serveur" });
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: "Utilisateur non authentifié." });
+      return;
     }
+
+    const { discogsId, title, artist, year, thumb, cover_image, format } = req.body as AddToCollectionBody;
+
+    const userId = req.user._id;
+
+
+    let album = await Album.findOne({ discogsId: discogsId });
+
+    if (!album) {
+      album = new Album({ discogsId, title, artist, year, thumb, cover_image });
+      await album.save();
+    }
+
+    const existingItem = await CollectionItem.findOne({
+      user: userId,
+      album: album._id,
+      format: format
+    });
+
+    if (existingItem) {
+      res.status(409).json({ message: "Vous avez déjà cet album dans ce format." });
+      return;
+    }
+
+
+    const newCollectionItem = new CollectionItem({
+      user: userId,
+      album: album._id,
+      format: format,
+    });
+
+    await newCollectionItem.save();
+
+    res.status(201).json({ message: "Album ajouté à votre collection avec succès !", item: newCollectionItem });
+
+  } catch (error) {
+    console.error("Erreur lors de l'ajout à la collection :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
 }
 
 export async function deleteFromCollection(req: Request, res: Response) {
-    try {
-        if (!req.user) {
-            res.status(401).json({ message: "Utilisateur non authentifié." });
-            return;
-        }
-        const userId = req.user._id;
-        const { itemId } = req.params;
-
-        const itemToDelete = await CollectionItem.findOneAndDelete({ _id: itemId, user: userId });
-
-        if (!itemToDelete) {
-            res.status(404).json({ message: "Élément non trouvé dans votre collection." });
-            return;
-        }
-
-        res.status(200).json({ message: "Album supprimé de votre collection avec succès." });
-
-    } catch (error) {
-        console.error("Erreur lors de la suppression de l'élément de la collection :", error);
-        res.status(500).json({ message: "Erreur interne du serveur" });
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: "Utilisateur non authentifié." });
+      return;
     }
+    const userId = req.user._id;
+    const { itemId } = req.params;
+
+    const itemToDelete = await CollectionItem.findOneAndDelete({ _id: itemId, user: userId });
+
+    if (!itemToDelete) {
+      res.status(404).json({ message: "Élément non trouvé dans votre collection." });
+      return;
+    }
+
+    res.status(200).json({ message: "Album supprimé de votre collection avec succès." });
+
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'élément de la collection :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
 }

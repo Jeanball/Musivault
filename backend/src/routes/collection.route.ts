@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { addToCollection, getMyCollection , deleteFromCollection, importCollectionCSV, downloadTemplate } from '../controllers/collection.controller';
+import { addToCollection, getMyCollection, getCollectionItemById, deleteFromCollection, importCollectionCSV, downloadTemplate } from '../controllers/collection.controller';
 import protectRoute from '../middlewares/protectRoute';
 
 const router = Router();
@@ -9,6 +9,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 
 router.post('/', protectRoute, addToCollection);
 router.get('/', protectRoute, getMyCollection);
+router.get('/:itemId', protectRoute, getCollectionItemById);
 router.delete('/:itemId', protectRoute, deleteFromCollection);
 
 // CSV import endpoints

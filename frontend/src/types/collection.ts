@@ -7,12 +7,13 @@ export interface Album {
     cover_image: string;
     thumb: string;
     year: string;
+    discogsId?: number;
 }
 
 export interface CollectionItem {
     _id: string;
     album: Album;
-    format: FormatDetails; 
+    format: FormatDetails;
     addedAt: string;
 }
 
