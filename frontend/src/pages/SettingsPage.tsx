@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { toastService } from '../utils/toast';
 import { useTheme } from '../context/ThemeContext';
 import CsvImport from '../components/Settings/CsvImport';
+
+interface VersionInfo {
+    version: string;
+    buildDate: string;
+    commitSha: string;
+    environment: string;
+}
 
 const themes = [
     "light", "dark"
@@ -13,6 +20,13 @@ const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
     const { theme, setTheme } = useTheme();
     const [isSaving, setIsSaving] = useState(false);
+    const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+
+    useEffect(() => {
+        axios.get<VersionInfo>('/api/version')
+            .then(res => setVersionInfo(res.data))
+            .catch(err => console.error('Failed to fetch version:', err));
+    }, []);
 
     const handleThemeChange = async (newTheme: string) => {
         setTheme(newTheme);
@@ -78,6 +92,58 @@ const SettingsPage: React.FC = () => {
             <div className="mt-6">
                 <CsvImport />
             </div>
+
+            {/* About Section */}
+            {versionInfo && (
+                <div className="card bg-base-200 shadow-xl mt-6">
+                    <div className="card-body">
+                        <h2 className="card-title flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            About Musivault
+                        </h2>
+
+                        <div className="stats stats-vertical shadow">
+                            <div className="stat">
+                                <div className="stat-title">Version</div>
+                                <div className="stat-value text-primary text-2xl">v{versionInfo.version}</div>
+                                <div className="stat-desc">Current release</div>
+                            </div>
+
+                            <div className="stat">
+                                <div className="stat-title">Environment</div>
+                                <div className="stat-value text-xl capitalize">{versionInfo.environment}</div>
+                                <div className="stat-desc">Running mode</div>
+                            </div>
+
+                            <div className="stat">
+                                <div className="stat-title">Build Date</div>
+                                <div className="stat-value text-sm">
+                                    {new Date(versionInfo.buildDate).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}
+                                </div>
+                                <div className="stat-desc">
+                                    {new Date(versionInfo.buildDate).toLocaleTimeString()}
+                                </div>
+                            </div>
+
+                            <div className="stat">
+                                <div className="stat-title">Commit</div>
+                                <div className="stat-value text-sm font-mono">{versionInfo.commitSha.substring(0, 7)}</div>
+                                <div className="stat-desc">Git SHA</div>
+                            </div>
+                        </div>
+
+                        <div className="text-xs opacity-70 mt-4 text-center">
+                            <p>Made with ❤️ for music lovers</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

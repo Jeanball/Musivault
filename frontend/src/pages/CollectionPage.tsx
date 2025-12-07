@@ -13,8 +13,11 @@ import { useCollectionStats } from '../hooks/collection/useCollectionStats';
 import type { CollectionItem, LayoutType } from '../types/collection';
 
 
+
 const CollectionPage: React.FC = () => {
-    const [layout, setLayout] = useState<LayoutType>('table');
+    // Detect mobile device and set default layout accordingly
+    const isMobile = window.innerWidth < 768; // md breakpoint in Tailwind
+    const [layout, setLayout] = useState<LayoutType>(isMobile ? 'grid' : 'table');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
 
@@ -48,9 +51,9 @@ const CollectionPage: React.FC = () => {
             <CollectionStats stats={stats} />
 
             <div className="form-control mb-4">
-                <input 
-                    type="text" 
-                    placeholder="Search an album..." 
+                <input
+                    type="text"
+                    placeholder="Search an album..."
                     className="input input-bordered w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -66,7 +69,7 @@ const CollectionPage: React.FC = () => {
                 totalResults={collection.length}
                 filteredResults={filteredCollection.length}
             />
-            
+
 
             {/* Contenu principal */}
             {(layout === 'table' ? sortedCollection.length === 0 : Object.keys(groupedByArtist).length === 0) && !isLoading ? (

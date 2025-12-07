@@ -1,8 +1,17 @@
 {
+  "name": "musivault",
+  "version": "1.0.0",
+  "description": "A beautiful web application to manage and explore your music collection",
+  "private": true,
   "devDependencies": {
     "concurrently": "^9.2.1"
   },
   "scripts": {
-    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\""
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "version:patch": "./scripts/bump-version.sh patch",
+    "version:minor": "./scripts/bump-version.sh minor",
+    "version:major": "./scripts/bump-version.sh major",
+    "release": "./scripts/release.sh",
+    "validate:version": "./scripts/validate-version.sh"
   }
 }

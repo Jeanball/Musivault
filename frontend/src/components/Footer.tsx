@@ -1,10 +1,27 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+interface VersionInfo {
+    version: string;
+}
 
 const Footer = () => {
+    const [version, setVersion] = useState<string>('');
+
+    useEffect(() => {
+        axios.get<VersionInfo>('/api/version')
+            .then(res => setVersion(res.data.version))
+            .catch(() => setVersion(''));
+    }, []);
+
     return (
         <footer className="footer px-4 py-2 bg-neutral text-neutral-content flex flex-col md:flex-row justify-between items-center gap-2">
             <aside className="flex items-center gap-2">
                 <img src="/icons/icon-192x192.png" alt="Musivault Logo" className="w-8 h-8 rounded-lg shadow-sm" />
-                <p className="text-sm">Copyright © {new Date().getFullYear()} - Jeanball</p>
+                <div className="flex flex-col md:flex-row md:items-center md:gap-2">
+                    <p className="text-sm">Copyright © {new Date().getFullYear()} - Jeanball</p>
+                    {version && <span className="text-xs opacity-60">v{version}</span>}
+                </div>
             </aside>
             <nav>
                 <a href="https://github.com/Jeanball/Musivault" target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm btn-circle">

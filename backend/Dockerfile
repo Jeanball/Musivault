@@ -1,4 +1,10 @@
 # Multi-stage build for optimized image size
+
+# Build arguments
+ARG VERSION=dev
+ARG COMMIT_SHA=unknown
+ARG BUILD_DATE=unknown
+
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -17,6 +23,21 @@ RUN npm run build
 
 # Production stage
 FROM node:20-alpine
+
+# Re-declare build args for this stage
+ARG VERSION
+ARG COMMIT_SHA
+ARG BUILD_DATE
+
+# Set as environment variables
+ENV APP_VERSION=$VERSION
+ENV COMMIT_SHA=$COMMIT_SHA
+ENV BUILD_DATE=$BUILD_DATE
+
+# Add metadata labels
+LABEL version=$VERSION
+LABEL commit=$COMMIT_SHA
+LABEL build_date=$BUILD_DATE
 
 WORKDIR /app
 

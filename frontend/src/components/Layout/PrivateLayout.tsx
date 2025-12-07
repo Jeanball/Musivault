@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
 import Navbar from '../Navbar';
+import Footer from '../Footer';
 import { useTheme } from '../../context/ThemeContext';
 import { toastService, toastMessages } from '../../utils/toast';
 
@@ -82,14 +83,15 @@ const PrivateLayout: React.FC = () => {
     }
 
     return (
-        <>
-            <div className="p-4 md:p-8 pb-20 lg:pb-8">
+        <div className="flex flex-col min-h-screen">
+            <div className="flex-1 p-4 md:p-8 pb-20 lg:pb-8">
                 <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
                 <main>
                     <Outlet context={{ username, isAdmin } satisfies PrivateOutletContext} />
                 </main>
             </div>
-        </>
+            <Footer />
+        </div>
     );
 };
 

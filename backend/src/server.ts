@@ -4,6 +4,8 @@ import cors from "cors"
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import fs from 'fs';
+import path from 'path';
 
 import { connectDB } from "./config/db"
 
@@ -12,6 +14,22 @@ import discogsRoute from './routes/discogs.route'
 import authRoute from './routes/auth.route'
 import collectionRoute from './routes/collection.route'
 dotenv.config()
+
+// Read version from VERSION file
+const getVersion = (): string => {
+    try {
+        const versionPath = path.join(__dirname, '../..', 'VERSION');
+        return fs.readFileSync(versionPath, 'utf-8').trim();
+    } catch (error) {
+        console.warn('Could not read VERSION file, using default');
+        return '0.0.0-dev';
+    }
+};
+
+const VERSION = getVersion();
+const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString();
+const COMMIT_SHA = process.env.COMMIT_SHA || 'dev';
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '5001', 10);
@@ -44,14 +62,39 @@ app.use('/api/auth', rateLimit({
 }), authRoute);
 app.use('/api/collection', collectionRoute)
 
-// Health check endpoint for Docker
+// Version middleware - adds version header to all responses
+app.use((req, res, next) => {
+    res.setHeader('X-App-Version', VERSION);
+    next();
+});
+
+// Version endpoint
+app.get('/api/version', (req, res) => {
+    res.status(200).json({
+        version: VERSION,
+        buildDate: BUILD_DATE,
+        commitSha: COMMIT_SHA,
+        environment: NODE_ENV
+    });
+});
+
+// Health check endpoint for Docker (enhanced with version)
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.status(200).json({
+        status: 'ok',
+        version: VERSION,
+        timestamp: new Date().toISOString()
+    });
 });
 
 
 connectDB().then(() => {
     app.listen(PORT, '0.0.0.0', () => {
-        console.log("Server is running on PORT :", PORT)
+        console.log("=================================");
+        console.log(`🚀 Musivault API v${VERSION}`);
+        console.log(`📡 Server running on PORT: ${PORT}`);
+        console.log(`🌍 Environment: ${NODE_ENV}`);
+        console.log(`📦 Commit: ${COMMIT_SHA.substring(0, 7)}`);
+        console.log("=================================");
     });
 });

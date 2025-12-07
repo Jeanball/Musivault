@@ -1,4 +1,10 @@
 # Multi-stage build for optimized production image
+
+# Build arguments
+ARG VERSION=dev
+ARG COMMIT_SHA=unknown
+ARG BUILD_DATE=unknown
+
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -17,6 +23,16 @@ RUN npm run build
 
 # Production stage with Nginx
 FROM nginx:alpine
+
+# Re-declare build args
+ARG VERSION
+ARG COMMIT_SHA
+ARG BUILD_DATE
+
+# Add metadata labels
+LABEL version=$VERSION
+LABEL commit=$COMMIT_SHA
+LABEL build_date=$BUILD_DATE
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
