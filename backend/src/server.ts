@@ -15,14 +15,26 @@ import authRoute from './routes/auth.route'
 import collectionRoute from './routes/collection.route'
 dotenv.config()
 
-// Read version from VERSION file
+// Read version from environment variable (Docker) or VERSION file (development)
 const getVersion = (): string => {
+    // In Docker, APP_VERSION is set as an environment variable during build
+    if (process.env.APP_VERSION) {
+        return process.env.APP_VERSION;
+    }
+
+    // In development, read from VERSION file
     try {
-        const versionPath = path.join(__dirname, '../..', 'VERSION');
+        const versionPath = path.join(__dirname, '..', 'VERSION');
         return fs.readFileSync(versionPath, 'utf-8').trim();
-    } catch (error) {
-        console.warn('Could not read VERSION file, using default');
-        return '0.0.0-dev';
+    } catch {
+        try {
+            // Try one more level up (from src/server.ts)
+            const versionPath = path.join(__dirname, '../..', 'VERSION');
+            return fs.readFileSync(versionPath, 'utf-8').trim();
+        } catch {
+            console.warn('Could not read VERSION file, using default');
+            return '0.0.0-dev';
+        }
     }
 };
 
