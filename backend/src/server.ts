@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { connectDB } from "./config/db"
+import { seedAdminUser } from "./config/seed"
 
 import usersRoute from "./routes/users.route"
 import discogsRoute from './routes/discogs.route'
@@ -47,7 +48,7 @@ const app = express()
 const PORT = parseInt(process.env.PORT || '5001', 10);
 const allowedOrigins = process.env.NODE_ENV === 'production'
     ? ['http://localhost:3000', 'http://localhost']
-    : ['http://localhost:5173', `http://10.0.0.153:5173`];
+    : ['http://localhost:5173', 'http://10.0.0.153:5173', 'http://localhost:3000', 'http://10.0.0.153:3000'];
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -100,7 +101,10 @@ app.get('/api/health', (req, res) => {
 });
 
 
-connectDB().then(() => {
+connectDB().then(async () => {
+    // Seed admin user if ADMIN_* env vars are set and no admin exists
+    await seedAdminUser();
+
     app.listen(PORT, '0.0.0.0', () => {
         console.log("=================================");
         console.log(`🚀 Musivault API v${VERSION}`);
