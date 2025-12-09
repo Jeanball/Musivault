@@ -60,8 +60,8 @@ const ShowAlbumModal: React.FC<ShowAlbumModalProps> = ({ item, onClose, onDelete
     };
 
     return (
-        <dialog id="collection_item_modal" className="modal modal-bottom sm:modal-middle" open={!!item}>
-            <div className="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
+        <dialog id="collection_item_modal" className="modal modal-middle px-4" open={!!item}>
+            <div className="modal-box max-w-4xl w-full max-h-[80vh] overflow-y-auto pb-6">
                 {/* Close button */}
                 <button
                     onClick={onClose}
@@ -180,13 +180,13 @@ const ShowAlbumModal: React.FC<ShowAlbumModalProps> = ({ item, onClose, onDelete
                         )}
 
                         {/* Actions */}
-                        <div className="modal-action">
+                        <div className="flex flex-col gap-2 mt-6">
                             <button
                                 onClick={() => {
                                     navigate(`/app/album/${item._id}`);
                                     onClose();
                                 }}
-                                className="btn btn-primary"
+                                className="btn btn-primary w-full"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -195,12 +195,12 @@ const ShowAlbumModal: React.FC<ShowAlbumModalProps> = ({ item, onClose, onDelete
                             </button>
                             <button
                                 onClick={handleDelete}
-                                className={`btn btn-error ${isDeleting ? 'loading' : ''}`}
+                                className={`btn btn-error w-full ${isDeleting ? 'loading' : ''}`}
                                 disabled={isDeleting}
                             >
-                                {isDeleting ? 'Deleting...' : 'Remove from Collection'}
+                                {isDeleting ? 'Deleting...' : 'Remove'}
                             </button>
-                            <button onClick={onClose} className="btn">
+                            <button onClick={onClose} className="btn btn-ghost w-full">
                                 Close
                             </button>
                         </div>

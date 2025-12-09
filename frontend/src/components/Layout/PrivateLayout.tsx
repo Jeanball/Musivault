@@ -84,13 +84,15 @@ const PrivateLayout: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <div className="flex-1 p-4 md:p-8 pb-20 lg:pb-8">
+            <div className="flex-1 p-4 md:p-8">
                 <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
                 <main>
                     <Outlet context={{ username, isAdmin } satisfies PrivateOutletContext} />
                 </main>
             </div>
-            <Footer />
+            <div className="mb-16 lg:mb-0">
+                <Footer />
+            </div>
         </div>
     );
 };
