@@ -59,7 +59,7 @@ export const toastService = {
   })
 };
 
-// Messages prédéfinis pour les actions courantes
+// Predefined messages for common actions
 export const toastMessages = {
   auth: {
     loginSuccess: 'Connection successful!',

@@ -12,23 +12,23 @@ const CollectionHeader: React.FC<CollectionHeaderProps> = ({ layout, onLayoutCha
         <div className="navbar bg-base-100 rounded-box shadow-xl mb-4">
             <div className="flex-1">
                 <div className="join">
-                    <button 
-                        className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-active' : ''}`} 
+                    <button
+                        className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-active' : ''}`}
                         onClick={() => onLayoutChange('grid')}
                     >
-                        Grille
+                        Grid
                     </button>
-                    <button 
-                        className={`btn join-item btn-sm ${layout === 'list' ? 'btn-active' : ''}`} 
+                    <button
+                        className={`btn join-item btn-sm ${layout === 'list' ? 'btn-active' : ''}`}
                         onClick={() => onLayoutChange('list')}
                     >
-                        Liste
+                        List
                     </button>
-                    <button 
-                        className={`btn join-item btn-sm ${layout === 'table' ? 'btn-active' : ''}`} 
+                    <button
+                        className={`btn join-item btn-sm ${layout === 'table' ? 'btn-active' : ''}`}
                         onClick={() => onLayoutChange('table')}
                     >
-                        Tableau
+                        Table
                     </button>
                 </div>
             </div>

@@ -10,19 +10,19 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
 
     const applyFilters = (items: CollectionItem[]) => {
         return items.filter(item => {
-            // Filtre par recherche textuelle
+            // Filter by text search
             const term = searchTerm.toLowerCase();
-            const matchesSearch = item.album.title.toLowerCase().includes(term) || 
-                                item.album.artist.toLowerCase().includes(term);
-            
+            const matchesSearch = item.album.title.toLowerCase().includes(term) ||
+                item.album.artist.toLowerCase().includes(term);
+
             if (!matchesSearch) return false;
 
-            // Filtre par format
+            // Filter by format
             if (filters.format !== 'all' && item.format.name !== filters.format) {
                 return false;
             }
 
-            // Filtre par décennie
+            // Filter by decade
             if (filters.decade !== 'all') {
                 const year = parseInt(item.album.year);
                 if (year) {
@@ -34,11 +34,11 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
                 }
             }
 
-            // Filtre par période d'ajout
+            // Filter by added period
             if (filters.addedPeriod !== 'all') {
                 const addedDate = new Date(item.addedAt);
                 const now = new Date();
-                
+
                 switch (filters.addedPeriod) {
                     case 'thisWeek':
                         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

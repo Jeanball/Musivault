@@ -1,29 +1,30 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Hook personnalisé pour "débattre" une valeur.
- * Il ne met à jour la valeur retournée que si aucun nouveau changement n'est survenu
- * pendant le délai spécifié (delay).
- * @param value La valeur à débattre (ex: le texte de la recherche)
- * @param delay Le délai en millisecondes (ex: 500)
- * @returns La valeur débattue.
+ * Custom hook to debounce a value.
+ * It only updates the returned value if no new changes have occurred
+ * during the specified delay.
+ * @param value The value to debounce (e.g., search text)
+ * @param delay The delay in milliseconds (e.g., 500)
+ * @returns The debounced value.
  */
 export function useDebounce<T>(value: T, delay: number): T {
-  // État interne pour stocker la valeur débattue
+  // Internal state to store the debounced value
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    // On met en place un minuteur pour mettre à jour la valeur après le délai
+    // Set up a timer to update the value after the delay
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
-    // Fonction de nettoyage : si la valeur change (l'utilisateur tape à nouveau),
-    // on annule le minuteur précédent pour en créer un nouveau.
+    // Cleanup function: if the value changes (user types again),
+    // cancel the previous timer to create a new one.
     return () => {
       clearTimeout(handler);
     };
-  }, [value, delay]); // L'effet se redéclenche uniquement si la valeur ou le délai change
+  }, [value, delay]); // Effect re-triggers only if value or delay changes
 
   return debouncedValue;
 }
+

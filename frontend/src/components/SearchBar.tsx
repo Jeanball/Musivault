@@ -71,7 +71,7 @@ const SearchBar: React.FC = () => {
 
     return (
         <div className="w-full max-w-4xl mx-auto">
-            {/* Filtre de recherche */}
+            {/* Search filter */}
             <div className="flex gap-2 mb-4 justify-center">
                 <button
                     className={`btn btn-sm ${searchType === 'album' ? 'btn-primary' : 'btn-outline'}`}
@@ -87,7 +87,7 @@ const SearchBar: React.FC = () => {
                 </button>
             </div>
 
-            {/* Barre de recherche */}
+            {/* Search bar */}
             <div className="relative">
                 <input
                     type="text"
@@ -101,7 +101,7 @@ const SearchBar: React.FC = () => {
                 )}
             </div>
 
-            {/* Résultats albums */}
+            {/* Album results */}
             {searchType === 'album' && (
                 <div className="space-y-4 mt-8">
                     {albumResults.map((result) => (
@@ -115,7 +115,7 @@ const SearchBar: React.FC = () => {
                 </div>
             )}
 
-            {/* Résultats artistes */}
+            {/* Artist results */}
             {searchType === 'artist' && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
                     {artistResults.map((artist) => (

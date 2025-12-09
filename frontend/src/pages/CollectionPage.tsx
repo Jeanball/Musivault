@@ -21,7 +21,7 @@ const CollectionPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
 
-    // Hooks personnalisés
+    // Custom hooks
     const { collection, isLoading, isDeleting, handleDeleteItem } = useCollectionData();
     const { filters, setFilters, filteredCollection, groupedByArtist } = useCollectionFilters(collection, searchTerm);
     const { handleSort, getSortIcon, sortedCollection } = useCollectionSort(filteredCollection);
@@ -60,7 +60,7 @@ const CollectionPage: React.FC = () => {
                 />
             </div>
 
-            {/* Filtres Avancés */}
+            {/* Advanced Filters */}
             <CollectionFilters
                 filters={filters}
                 onFiltersChange={setFilters}
@@ -71,7 +71,7 @@ const CollectionPage: React.FC = () => {
             />
 
 
-            {/* Contenu principal */}
+            {/* Main content */}
             {(layout === 'table' ? sortedCollection.length === 0 : Object.keys(groupedByArtist).length === 0) && !isLoading ? (
                 <div className="text-center py-20">
                     <h2 className="text-2xl font-semibold">No result found.</h2>

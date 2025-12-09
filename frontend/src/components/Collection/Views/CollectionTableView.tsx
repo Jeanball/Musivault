@@ -20,51 +20,51 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                 <thead>
                     <tr>
                         <th>Cover</th>
-                        <th 
-                            className="cursor-pointer hover:bg-base-200" 
+                        <th
+                            className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('artist')}
                         >
-                            Artiste {getSortIcon('artist')}
+                            Artist {getSortIcon('artist')}
                         </th>
-                        <th 
-                            className="cursor-pointer hover:bg-base-200" 
+                        <th
+                            className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('album')}
                         >
                             Album {getSortIcon('album')}
                         </th>
-                        <th 
-                            className="cursor-pointer hover:bg-base-200" 
+                        <th
+                            className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('format')}
                         >
                             Format {getSortIcon('format')}
                         </th>
-                        <th 
-                            className="cursor-pointer hover:bg-base-200" 
+                        <th
+                            className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('year')}
                         >
-                            Année {getSortIcon('year')}
+                            Year {getSortIcon('year')}
                         </th>
-                        <th 
-                            className="cursor-pointer hover:bg-base-200" 
+                        <th
+                            className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('addedAt')}
                         >
-                            Ajouté le {getSortIcon('addedAt')}
+                            Added {getSortIcon('addedAt')}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
                     {items.map((item) => (
-                        <tr 
-                            key={item._id} 
-                            onClick={() => onItemClick(item)} 
+                        <tr
+                            key={item._id}
+                            onClick={() => onItemClick(item)}
                             className="hover cursor-pointer"
                         >
                             <td>
                                 <div className="avatar">
                                     <div className="w-12 h-12 rounded-lg">
-                                        <img 
-                                            src={item.album.thumb || item.album.cover_image} 
-                                            alt={item.album.title} 
+                                        <img
+                                            src={item.album.thumb || item.album.cover_image}
+                                            alt={item.album.title}
                                         />
                                     </div>
                                 </div>
@@ -82,7 +82,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                 )}
                             </td>
                             <td>{item.album.year || 'N/A'}</td>
-                            <td>{new Date(item.addedAt).toLocaleDateString('fr-FR')}</td>
+                            <td>{new Date(item.addedAt).toLocaleDateString('en-US')}</td>
                         </tr>
                     ))}
                 </tbody>

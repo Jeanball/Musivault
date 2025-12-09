@@ -38,82 +38,82 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     return (
         <div className="bg-base-100 rounded-box shadow-lg p-4 mb-6">
             <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                {/* Filtres */}
+                {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                    {/* Filtre par Format */}
+                    {/* Filter by Format */}
                     <div className="form-control">
                         <label className="label label-text text-xs">Format</label>
-                        <select 
+                        <select
                             className="select select-bordered select-sm w-full max-w-xs"
                             value={filters.format}
                             onChange={(e) => handleFilterChange('format', e.target.value)}
                         >
-                            <option value="all">Tous les formats</option>
+                            <option value="all">All formats</option>
                             {availableFormats.map(format => (
                                 <option key={format} value={format}>{format}</option>
                             ))}
                         </select>
                     </div>
 
-                    {/* Filtre par Décennie */}
+                    {/* Filter by Decade */}
                     <div className="form-control">
-                        <label className="label label-text text-xs">Décennie</label>
-                        <select 
+                        <label className="label label-text text-xs">Decade</label>
+                        <select
                             className="select select-bordered select-sm w-full max-w-xs"
                             value={filters.decade}
                             onChange={(e) => handleFilterChange('decade', e.target.value)}
                         >
-                            <option value="all">Toutes les décennies</option>
+                            <option value="all">All decades</option>
                             {availableDecades.sort().map(decade => (
                                 <option key={decade} value={decade}>{decade}</option>
                             ))}
                         </select>
                     </div>
 
-                    {/* Filtre par Période d'ajout */}
+                    {/* Filter by Added Period */}
                     <div className="form-control">
-                        <label className="label label-text text-xs">Ajouté</label>
-                        <select 
+                        <label className="label label-text text-xs">Added</label>
+                        <select
                             className="select select-bordered select-sm w-full max-w-xs"
                             value={filters.addedPeriod}
                             onChange={(e) => handleFilterChange('addedPeriod', e.target.value)}
                         >
-                            <option value="all">Toutes les périodes</option>
-                            <option value="thisWeek">Cette semaine</option>
-                            <option value="thisMonth">Ce mois</option>
-                            <option value="thisYear">Cette année</option>
-                            <option value="lastYear">L'année dernière</option>
+                            <option value="all">All periods</option>
+                            <option value="thisWeek">This week</option>
+                            <option value="thisMonth">This month</option>
+                            <option value="thisYear">This year</option>
+                            <option value="lastYear">Last year</option>
                         </select>
                     </div>
                 </div>
 
-                {/* Résultats et Reset */}
+                {/* Results and Reset */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     <div className="text-sm text-gray-500">
                         {filteredResults} / {totalResults} albums
                     </div>
-                    
+
                     {hasActiveFilters && (
-                        <button 
+                        <button
                             className="btn btn-ghost btn-sm"
                             onClick={resetFilters}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                            Effacer filtres
+                            Reset filters
                         </button>
                     )}
                 </div>
             </div>
 
-            {/* Indicateurs de filtres actifs */}
+            {/* Active filters indicators */}
             {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-base-300">
                     {filters.format !== 'all' && (
                         <div className="badge badge-primary gap-1">
                             Format: {filters.format}
-                            <button 
+                            <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('format', 'all')}
                             >
@@ -123,8 +123,8 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                     )}
                     {filters.decade !== 'all' && (
                         <div className="badge badge-secondary gap-1">
-                            Décennie: {filters.decade}
-                            <button 
+                            Decade: {filters.decade}
+                            <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('decade', 'all')}
                             >
@@ -134,10 +134,10 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                     )}
                     {filters.addedPeriod !== 'all' && (
                         <div className="badge badge-accent gap-1">
-                            Période: {filters.addedPeriod === 'thisWeek' ? 'Cette semaine' : 
-                                     filters.addedPeriod === 'thisMonth' ? 'Ce mois' :
-                                     filters.addedPeriod === 'thisYear' ? 'Cette année' : 'L\'année dernière'}
-                            <button 
+                            Period: {filters.addedPeriod === 'thisWeek' ? 'This week' :
+                                filters.addedPeriod === 'thisMonth' ? 'This month' :
+                                    filters.addedPeriod === 'thisYear' ? 'This year' : 'Last year'}
+                            <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('addedPeriod', 'all')}
                             >

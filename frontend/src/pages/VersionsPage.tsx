@@ -109,7 +109,7 @@ const VersionsPage: React.FC = () => {
                 <div className="flex-1">
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-2">
-                            <p className="text-sm">Filtrer par :</p>
+                            <p className="text-sm">Filter by:</p>
                             <button onClick={() => setFilter('all')} className={`btn btn-xs ${filter === 'all' ? 'btn-active btn-neutral' : ''}`}>All</button>
                             {pageData.formatCounts.CD > 0 && (
                                 <button onClick={() => setFilter('CD')} className={`btn btn-xs ${filter === 'CD' ? 'btn-active btn-neutral' : ''}`}>

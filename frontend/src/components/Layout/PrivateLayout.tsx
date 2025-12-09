@@ -39,7 +39,7 @@ const PrivateLayout: React.FC = () => {
                 if (data.status) {
                     setUsername(data.user);
                     setIsAdmin(data.isAdmin);
-                    // Synchroniser le thème depuis le serveur une fois l'utilisateur vérifié
+                    // Sync theme from server once user is verified
                     await syncThemeFromServer();
 
                     // Show login success toast AFTER theme sync (only once)

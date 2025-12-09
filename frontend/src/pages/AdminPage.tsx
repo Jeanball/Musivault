@@ -45,7 +45,7 @@ const AdminPage: React.FC = () => {
                 setUsers(allUsers);
             } catch (error) {
                 console.error('Error fetching users:', error);
-                toastService.error('Accès refusé ou erreur serveur');
+                toastService.error('Access denied or server error');
                 navigate('/app');
             } finally {
                 setIsLoading(false);
@@ -58,28 +58,28 @@ const AdminPage: React.FC = () => {
     // Delete user
     const handleDeleteUser = async (userId: string, username: string) => {
         if (userId === currentUserId) {
-            toastService.error('Vous ne pouvez pas vous supprimer vous-même');
+            toastService.error('You cannot delete yourself');
             return;
         }
 
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${username}" ?`)) {
+        if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
             return;
         }
 
         try {
             await axios.delete(`/api/users/${userId}`, { withCredentials: true });
             setUsers(users.filter((u) => u._id !== userId));
-            toastService.success(`Utilisateur "${username}" supprimé`);
+            toastService.success(`User "${username}" deleted`);
         } catch (error) {
             console.error('Error deleting user:', error);
-            toastService.error('Erreur lors de la suppression');
+            toastService.error('Error during deletion');
         }
     };
 
     // Toggle admin status
     const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean, username: string) => {
         if (userId === currentUserId) {
-            toastService.error('Vous ne pouvez pas modifier votre propre statut admin');
+            toastService.error('You cannot modify your own admin status');
             return;
         }
 
@@ -97,11 +97,11 @@ const AdminPage: React.FC = () => {
             );
 
             toastService.success(
-                `${username} est maintenant ${!currentIsAdmin ? 'admin' : 'utilisateur standard'}`
+                `${username} is now ${!currentIsAdmin ? 'admin' : 'standard user'}`
             );
         } catch (error) {
             console.error('Error updating user:', error);
-            toastService.error('Erreur lors de la mise à jour');
+            toastService.error('Error during update');
         }
     };
 

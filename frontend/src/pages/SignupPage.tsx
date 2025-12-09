@@ -3,14 +3,14 @@ import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import { toastService, toastMessages } from "../utils/toast";
 
-// Interface pour l'état du formulaire, maintenant avec 'username'
+// Interface for the form state, now with 'username'
 interface SignupFormState {
     email: string;
     password: string;
     username: string;
 }
 
-// Interface pour la réponse attendue de l'API
+// Interface for the expected API response
 interface ApiResponse {
     success: boolean;
     message: string;
@@ -93,7 +93,7 @@ const SignupPage: React.FC = () => {
                             type="text"
                             name="username"
                             value={username}
-                            placeholder="Entrez your username"
+                            placeholder="Enter your username"
                             onChange={handleOnChange}
                             className="input input-bordered"
                             required

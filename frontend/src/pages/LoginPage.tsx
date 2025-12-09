@@ -4,13 +4,13 @@ import axios from "axios";
 import Footer from "../components/Footer";
 import { toastService, toastMessages } from "../utils/toast";
 
-// Interface pour l'état du formulaire
+// Interface for the form state
 interface LoginFormState {
     identifier: string;
     password: string;
 }
 
-// Interface pour la réponse de l'API de connexion
+// Interface for the login API response
 interface LoginApiResponse {
     _id: string;
     username: string;

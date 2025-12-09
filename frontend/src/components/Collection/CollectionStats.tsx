@@ -10,7 +10,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
 
     return (
         <div className="bg-base-100 rounded-box shadow-lg mb-4">
-            {/* Header avec bouton toggle */}
+            {/* Header with toggle button */}
             <div
                 className="flex flex-wrap items-center justify-between p-3 md:p-4 cursor-pointer hover:bg-base-200 rounded-t-box gap-2"
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -24,7 +24,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                     <div className="min-w-0">
                         <h3 className="font-semibold text-base md:text-lg truncate">Collection Stats</h3>
                         <p className="text-xs md:text-sm text-gray-500 truncate">
-                            {stats.total} albums • {Object.keys(stats.formatCounts).length} formats • {Object.keys(stats.decadeCounts).length} décennies
+                            {stats.total} albums • {Object.keys(stats.formatCounts).length} formats • {Object.keys(stats.decadeCounts).length} decades
                         </p>
                     </div>
                 </div>
@@ -43,7 +43,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                 </div>
             </div>
 
-            {/* Contenu déroulant */}
+            {/* Collapsible content */}
             <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[600px] lg:max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="stats stats-vertical lg:stats-horizontal w-full">
                     <div className="stat">

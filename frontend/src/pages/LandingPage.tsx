@@ -11,27 +11,27 @@ const LandingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Ce `useEffect` s'exécute une seule fois au chargement de la page.
+  // This `useEffect` runs only once when the page loads.
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // On tente de vérifier si un cookie de session valide existe.
+        // Try to verify if a valid session cookie exists.
         const { data } = await axios.post(
           `${API_BASE_URL}/api/auth/verify`,
           {},
           { withCredentials: true }
         );
 
-        // Si le statut est true, l'utilisateur est connecté.
+        // If status is true, the user is logged in.
         if (data.status) {
-          navigate('/app'); // On le redirige immédiatement vers l'application.
+          navigate('/app'); // Redirect to the app immediately.
         } else {
-          // Sinon, l'utilisateur n'est pas connecté, on peut afficher la page.
+          // Otherwise, the user is not logged in, we can display the page.
           setIsLoading(false);
         }
       } catch (error) {
         console.log(error)
-        // Une erreur signifie aussi que l'utilisateur n'est pas connecté.
+        // An error also means the user is not logged in.
         setIsLoading(false);
       }
     };
@@ -39,7 +39,7 @@ const LandingPage: React.FC = () => {
     checkAuthStatus();
   }, [navigate]);
 
-  // Pendant la vérification, on affiche un écran de chargement pour éviter un flash de contenu.
+  // During verification, we display a loading screen to avoid a content flash.
   if (isLoading) {
     return (
       <div className="hero min-h-screen bg-base-200">
@@ -48,7 +48,7 @@ const LandingPage: React.FC = () => {
     );
   }
 
-  // Si l'utilisateur n'est pas connecté, on affiche la page de présentation.
+  // If the user is not logged in, display the landing page.
   return (
     <div>
       <Hero />

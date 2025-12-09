@@ -75,7 +75,7 @@ const ArtistAlbumsPage: React.FC = () => {
 
     return (
         <div className="p-4 md:p-8">
-            {/* Header avec info artiste */}
+            {/* Header with artist info */}
             <div className="flex flex-col md:flex-row gap-6 mb-8">
                 {pageData.artist.image && (
                     <img
@@ -93,7 +93,7 @@ const ArtistAlbumsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Contrôles de tri */}
+            {/* Sort controls */}
             <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-base-200 rounded-lg">
                 <span className="text-sm font-medium">Sort by:</span>
                 <div className="flex gap-2">
@@ -119,7 +119,7 @@ const ArtistAlbumsPage: React.FC = () => {
                 </button>
             </div>
 
-            {/* Grille d'albums */}
+            {/* Albums grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {sortedAlbums.map((album) => (
                     <div

@@ -16,13 +16,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         localStorage.getItem('theme') || 'light'
     );
 
-    // Appliquer le thème au DOM et localStorage
+    // Apply theme to DOM and localStorage
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    // Fonction pour synchroniser le thème depuis le serveur (appelée après login)
+    // Function to sync theme from server (called after login)
     const syncThemeFromServer = async () => {
         try {
             const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
@@ -30,7 +30,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
                 setTheme(data.theme);
             }
         } catch {
-            // Silencieux si non connecté ou erreur - on garde le thème local
+            // Silent if not logged in or error - keep local theme
         }
     };
 
