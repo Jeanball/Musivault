@@ -31,6 +31,75 @@ function cleanAlbumTitle(title: string): string {
 /** Rate limiting delay */
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+/**
+ * Normalize a string for comparison: lowercase, remove special chars, extra spaces
+ */
+function normalizeString(str: string): string {
+    return str
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '') // Remove special characters
+        .replace(/\s+/g, ' ')     // Normalize spaces
+        .trim();
+}
+
+/**
+ * Calculate similarity between two strings (0-1 score)
+ * Uses a simple approach: what percentage of words from str1 are in str2
+ */
+function calculateSimilarity(str1: string, str2: string): number {
+    const norm1 = normalizeString(str1);
+    const norm2 = normalizeString(str2);
+
+    if (norm1 === norm2) return 1;
+    if (!norm1 || !norm2) return 0;
+
+    const words1 = norm1.split(' ');
+    const words2Set = new Set(norm2.split(' '));
+
+    let matches = 0;
+    for (const word of words1) {
+        if (words2Set.has(word)) matches++;
+    }
+
+    return matches / words1.length;
+}
+
+/**
+ * Check if an artist name matches (handles variations like "Artist (2)")
+ */
+function artistMatches(searchArtist: string, resultArtist: string): boolean {
+    const normSearch = normalizeString(searchArtist);
+    const normResult = normalizeString(resultArtist.replace(/\(\d+\)/g, '')); // Remove (2), (3) etc.
+
+    return normResult.includes(normSearch) || normSearch.includes(normResult) ||
+        calculateSimilarity(normSearch, normResult) >= 0.8;
+}
+
+/**
+ * Score a Discogs result based on how well it matches the search criteria
+ */
+function scoreResult(result: any, searchArtist: string, searchTitle: string, searchYear?: string): number {
+    let score = 0;
+
+    // Title match (from Discogs format "Artist - Title")
+    const cleanedTitle = cleanAlbumTitle(result.title || '');
+    const titleSim = calculateSimilarity(searchTitle, cleanedTitle);
+    score += titleSim * 50; // Max 50 points for title
+
+    // Artist match - check in title prefix or artist field
+    const titlePrefix = result.title?.split(' - ')[0] || '';
+    if (artistMatches(searchArtist, titlePrefix)) {
+        score += 30;
+    }
+
+    // Year match (bonus points)
+    if (searchYear && result.year?.toString() === searchYear.trim()) {
+        score += 20;
+    }
+
+    return score;
+}
+
 // ===== Main Service =====
 
 const DISCOGS_BASE_URL = 'https://api.discogs.com';
@@ -56,14 +125,15 @@ export async function searchByArtistAlbum(
         return null;
     }
 
-    const authParams = { key, secret, q: `${artist} ${title}` };
+    // Use separate artist and release_title params for better matching
+    const authParams = { key, secret, artist, release_title: title };
 
     // Try masters first
-    const masterResult = await searchMasters(authParams, artist, year);
+    const masterResult = await searchMasters(authParams, artist, title, year);
     if (masterResult) return masterResult;
 
-    // Fallback to releases
-    const releaseResult = await searchReleases(authParams, artist, year);
+    // Fallback to releases with combined query
+    const releaseResult = await searchReleases({ key, secret, q: `${artist} ${title}` }, artist, title, year);
     if (releaseResult) return releaseResult;
 
     console.log('[Discogs] No results found');
@@ -72,7 +142,8 @@ export async function searchByArtistAlbum(
 
 async function searchMasters(
     authParams: Record<string, string>,
-    artist: string,
+    searchArtist: string,
+    searchTitle: string,
     year?: string
 ): Promise<FoundAlbumInfo | null> {
     try {
@@ -87,20 +158,27 @@ async function searchMasters(
         let results = response.data.results || [];
         console.log(`[Discogs] Found ${results.length} masters`);
 
-        // Filter by year if provided
-        if (year?.trim()) {
-            const filtered = results.filter(r => r.year?.toString() === year.trim());
-            if (filtered.length) results = filtered;
-        }
-
         if (!results.length) return null;
 
-        const r = results[0];
+        // Score all results and pick the best match
+        const scored = results.map(r => ({
+            result: r,
+            score: scoreResult(r, searchArtist, searchTitle, year)
+        }));
+        scored.sort((a, b) => b.score - a.score);
+
+        // Require minimum score of 30 (at least artist match)
+        if (scored[0].score < 30) {
+            console.log(`[Discogs] Best match score ${scored[0].score} too low, skipping`);
+            return null;
+        }
+
+        const r = scored[0].result;
         const cleanedTitle = cleanAlbumTitle(r.title);
-        console.log(`[Discogs] Selected master: ${r.title} -> ${cleanedTitle} (ID: ${r.id})`);
+        console.log(`[Discogs] Selected master: ${r.title} -> ${cleanedTitle} (ID: ${r.id}, Score: ${scored[0].score})`);
 
         // Fetch main_release ID (required for album detail view)
-        return await fetchMainRelease(r, authParams, artist, cleanedTitle);
+        return await fetchMainRelease(r, authParams, searchArtist, cleanedTitle);
     } catch (err: any) {
         console.log('[Discogs] Master search error:', err.message);
         return null;
@@ -147,7 +225,8 @@ async function fetchMainRelease(
 
 async function searchReleases(
     authParams: Record<string, string>,
-    artist: string,
+    searchArtist: string,
+    searchTitle: string,
     year?: string
 ): Promise<FoundAlbumInfo | null> {
     try {
@@ -162,22 +241,29 @@ async function searchReleases(
         let results = response.data.results || [];
         console.log(`[Discogs] Found ${results.length} releases`);
 
-        // Filter by year if provided
-        if (year?.trim()) {
-            const filtered = results.filter(r => r.year?.toString() === year.trim());
-            if (filtered.length) results = filtered;
-        }
-
         if (!results.length) return null;
 
-        const r = results[0];
+        // Score all results and pick the best match
+        const scored = results.map(r => ({
+            result: r,
+            score: scoreResult(r, searchArtist, searchTitle, year)
+        }));
+        scored.sort((a, b) => b.score - a.score);
+
+        // Require minimum score of 30 (at least artist match)
+        if (scored[0].score < 30) {
+            console.log(`[Discogs] Best match score ${scored[0].score} too low, skipping`);
+            return null;
+        }
+
+        const r = scored[0].result;
         const cleanedTitle = cleanAlbumTitle(r.title);
-        console.log(`[Discogs] Selected release: ${r.title} -> ${cleanedTitle} (ID: ${r.id})`);
+        console.log(`[Discogs] Selected release: ${r.title} -> ${cleanedTitle} (ID: ${r.id}, Score: ${scored[0].score})`);
 
         return {
             discogsId: r.id,
             title: cleanedTitle,
-            artist,
+            artist: searchArtist,
             year: r.year?.toString() || '',
             thumb: r.thumb || '',
             cover_image: r.cover_image || r.thumb || ''

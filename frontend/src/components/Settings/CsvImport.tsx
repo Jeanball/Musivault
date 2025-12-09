@@ -5,6 +5,8 @@ import { toastService } from '../../utils/toast';
 interface ImportResult {
     imported: number;
     failed: number;
+    skipped: number;
+    logId: string;
     failures: { index: number; artist: string; album: string; reason: string }[];
 }
 
@@ -27,6 +29,31 @@ const CsvImport: React.FC = () => {
         link.remove();
     };
 
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const downloadLog = async (logId: string) => {
+        setIsDownloading(true);
+        try {
+            const response = await axios.get(`/api/collection/import/logs/${logId}/download`, {
+                withCredentials: true,
+                responseType: 'blob'
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `import_log_${logId}.json`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            toastService.error('Failed to download log. Try again in a moment.');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         const inputElement = e.target;
@@ -43,7 +70,7 @@ const CsvImport: React.FC = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setImportResult(data);
-            toastService.success(`Import complete: ${data.imported} added, ${data.failed} failed`);
+            toastService.success(`Import complete: ${data.imported} added, ${data.skipped} skipped, ${data.failed} failed`);
         } catch (error) {
             toastService.error('Import failed.');
         } finally {
@@ -83,9 +110,25 @@ const CsvImport: React.FC = () => {
 
                 {importResult && (
                     <div className="mt-4">
-                        <p className="text-sm">
-                            <strong>Result:</strong> {importResult.imported} imported, {importResult.failed} failed
-                        </p>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <p className="text-sm">
+                                <strong>Result:</strong> {importResult.imported} imported, {importResult.skipped} skipped, {importResult.failed} failed
+                            </p>
+                            <button
+                                className="btn btn-ghost btn-xs"
+                                onClick={() => downloadLog(importResult.logId)}
+                                disabled={isDownloading}
+                            >
+                                {isDownloading ? (
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                )}
+                                Download Log
+                            </button>
+                        </div>
                         {importResult.failures.length > 0 && (
                             <div className="overflow-x-auto mt-2">
                                 <table className="table table-zebra table-sm">

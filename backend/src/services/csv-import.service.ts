@@ -1,8 +1,17 @@
 import { Readable } from 'stream';
 import csv from 'csv-parser';
+import fs from 'fs';
+import path from 'path';
 import Album from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
+import ImportLog, { IImportLogEntry } from '../models/ImportLog';
 import { discogsService, FoundAlbumInfo } from './discogs.service';
+
+// Ensure logs directory exists
+const LOGS_DIR = path.join(__dirname, '../../logs/imports');
+if (!fs.existsSync(LOGS_DIR)) {
+    fs.mkdirSync(LOGS_DIR, { recursive: true });
+}
 
 // ===== Types =====
 
@@ -20,7 +29,16 @@ export interface CsvRow {
 export interface ImportResult {
     imported: number;
     failed: number;
+    skipped: number;
+    logId: string;
     failures: Array<{ index: number; artist: string; album: string; reason: string }>;
+}
+
+interface ProcessRowResult {
+    success: boolean;
+    skipped?: boolean;
+    reason?: string;
+    matchedData?: FoundAlbumInfo;
 }
 
 // ===== Helpers =====
@@ -71,11 +89,12 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
 
 /**
  * Process a single import row: search Discogs, create/find album, add to collection
+ * Returns detailed result including matched data for logging
  */
 export async function processImportRow(
     row: CsvRow,
     userId: any
-): Promise<{ success: boolean; reason?: string }> {
+): Promise<ProcessRowResult> {
     // Validate row
     if (!row.artist || !row.album) {
         return { success: false, reason: 'Missing Artist/Album' };
@@ -84,7 +103,7 @@ export async function processImportRow(
     // Search Discogs
     const found = await discogsService.searchByArtistAlbum(row.artist, row.album, row.year);
     if (!found) {
-        return { success: false, reason: 'No Discogs result' };
+        return { success: false, reason: 'No Discogs match found' };
     }
 
     // Find or create album
@@ -109,7 +128,12 @@ export async function processImportRow(
         'format.name': row.format
     });
     if (exists) {
-        return { success: false, reason: 'Already in collection (same format)' };
+        return {
+            success: false,
+            skipped: true,
+            reason: 'Already in collection',
+            matchedData: found
+        };
     }
 
     // Add to collection
@@ -121,47 +145,143 @@ export async function processImportRow(
     await newItem.save();
     console.log(`[Import] Added to collection: ${album.title}`);
 
-    return { success: true };
+    return { success: true, matchedData: found };
 }
 
 /**
  * Import albums from CSV buffer for a user
+ * Creates detailed import log in database
  */
-export async function importFromCsv(buffer: Buffer, userId: any): Promise<ImportResult> {
+export async function importFromCsv(
+    buffer: Buffer,
+    userId: any,
+    fileName?: string
+): Promise<ImportResult> {
     const rows = await parseCsvBuffer(buffer);
 
     let imported = 0;
+    let skipped = 0;
     const failures: ImportResult['failures'] = [];
+    const logEntries: IImportLogEntry[] = [];
 
     for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const logEntry: IImportLogEntry = {
+            rowIndex: i + 1,
+            inputArtist: row.artist,
+            inputAlbum: row.album,
+            inputYear: row.year,
+            inputFormat: row.format,
+            status: 'failed'
+        };
+
         try {
-            const result = await processImportRow(rows[i], userId);
+            const result = await processImportRow(row, userId);
+
+            // Add matched data to log entry
+            if (result.matchedData) {
+                logEntry.matchedArtist = result.matchedData.artist;
+                logEntry.matchedAlbum = result.matchedData.title;
+                logEntry.matchedYear = result.matchedData.year;
+                logEntry.discogsId = result.matchedData.discogsId;
+            }
+
             if (result.success) {
                 imported++;
+                logEntry.status = 'success';
+            } else if (result.skipped) {
+                skipped++;
+                logEntry.status = 'skipped';
+                logEntry.reason = result.reason;
             } else {
+                logEntry.status = 'failed';
+                logEntry.reason = result.reason;
                 failures.push({
                     index: i + 1,
-                    artist: rows[i].artist,
-                    album: rows[i].album,
+                    artist: row.artist,
+                    album: row.album,
                     reason: result.reason!
                 });
             }
         } catch (err: any) {
             console.log(`[Import] Error processing row ${i + 1}:`, err.message);
+            logEntry.status = 'failed';
+            logEntry.reason = `Processing error: ${err.message}`;
             failures.push({
                 index: i + 1,
-                artist: rows[i].artist,
-                album: rows[i].album,
+                artist: row.artist,
+                album: row.album,
                 reason: 'Processing error'
             });
         }
+
+        logEntries.push(logEntry);
     }
 
-    return { imported, failed: failures.length, failures };
+    // Save import log to database
+    const importLog = new ImportLog({
+        user: userId,
+        fileName: fileName || 'import.csv',
+        totalRows: rows.length,
+        successCount: imported,
+        failCount: failures.length,
+        skipCount: skipped,
+        entries: logEntries
+    });
+    await importLog.save();
+    console.log(`[Import] Log saved with ID: ${importLog._id}`);
+
+    // Also save to file for server-side access
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const logFileName = `import_${timestamp}_${String(importLog._id)}.json`;
+    const logFilePath = path.join(LOGS_DIR, logFileName);
+
+    const fileLogData = {
+        _id: String(importLog._id),
+        importedAt: new Date().toISOString(),
+        fileName: fileName || 'import.csv',
+        summary: {
+            totalRows: rows.length,
+            successCount: imported,
+            failCount: failures.length,
+            skipCount: skipped
+        },
+        entries: logEntries
+    };
+
+    fs.writeFileSync(logFilePath, JSON.stringify(fileLogData, null, 2));
+    console.log(`[Import] Log file saved: ${logFilePath}`);
+
+    return {
+        imported,
+        failed: failures.length,
+        skipped,
+        logId: String(importLog._id),
+        failures
+    };
+}
+
+/**
+ * Get import logs for a user
+ */
+export async function getImportLogs(userId: any, limit: number = 10) {
+    return ImportLog.find({ user: userId })
+        .select('-entries') // Don't include full entries for list view
+        .sort({ importedAt: -1 })
+        .limit(limit);
+}
+
+/**
+ * Get a specific import log with full details
+ */
+export async function getImportLogById(logId: string, userId: any) {
+    return ImportLog.findOne({ _id: logId, user: userId });
 }
 
 export const csvImportService = {
     parseCsvBuffer,
     processImportRow,
-    importFromCsv
+    importFromCsv,
+    getImportLogs,
+    getImportLogById
 };
