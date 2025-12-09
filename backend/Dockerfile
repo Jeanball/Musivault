@@ -50,12 +50,11 @@ COPY --from=builder /app/dist ./dist
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
-    chown -R nodejs:nodejs /app
+    adduser -S nodejs -u 1001
 
-# Create logs directory at root (outside /app) and assign to nodejs user
-RUN mkdir -p /logs/imports && \
-    chown -R nodejs:nodejs /logs
+# Create logs directory inside /app (will be owned by root, then chown everything)
+RUN mkdir -p /app/logs/imports && \
+    chown -R nodejs:nodejs /app
 
 USER nodejs
 

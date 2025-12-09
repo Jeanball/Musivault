@@ -33,6 +33,8 @@ services:
       - JWT_SECRET=${JWT_SECRET:-${SESSION_SECRET}}
       - DISCOGS_KEY=${DISCOGS_KEY}
       - DISCOGS_SECRET=${DISCOGS_SECRET}
+      - CORS_ORIGINS=*
+      - TRUST_PROXY=true
       # Initial admin (optional - remove after first run)
       - ADMIN_EMAIL=${ADMIN_EMAIL:-}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-}

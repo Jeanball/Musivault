@@ -45,11 +45,24 @@ const COMMIT_SHA = process.env.COMMIT_SHA || 'dev';
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const app = express()
+
+// Trust proxy setting for Docker environments (behind Nginx)
+// Required for express-rate-limit to work correctly with X-Forwarded-For headers
+// Enable in production OR when TRUST_PROXY is explicitly set (for Docker dev)
+if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
+    app.set('trust proxy', 1);
+}
+
 const PORT = parseInt(process.env.PORT || '5001', 10);
 // CORS configuration
 // In Docker production: Nginx proxies /api requests, so browser sees same-origin (no CORS needed)
-// For flexibility, users can set CORS_ORIGINS env var with comma-separated origins
+// For flexibility, users can set CORS_ORIGINS env var with comma-separated origins or * for all
 const getCorsOrigins = (): string[] | true => {
+    // Check if CORS_ORIGINS is explicitly set to allow all
+    if (process.env.CORS_ORIGINS === '*') {
+        return true as const;
+    }
+
     // In production with Docker, allow all origins since Nginx handles proxying
     if (process.env.NODE_ENV === 'production') {
         // If user wants to restrict origins, they can set CORS_ORIGINS

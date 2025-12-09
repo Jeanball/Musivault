@@ -39,7 +39,7 @@ services:
       mongodb:
         condition: service_healthy
     volumes:
-      - import_logs:/logs
+      - import_logs:/app/logs
     networks:
       - musivault-network
     healthcheck:
