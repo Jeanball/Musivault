@@ -37,7 +37,7 @@ const userSchema = new Schema<IUser>({
   preferences: {
     theme: {
       type: String,
-      default: 'light'
+      default: 'dark'
     }
   },
   createdAt: {
