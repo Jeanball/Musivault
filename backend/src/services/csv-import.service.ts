@@ -8,7 +8,10 @@ import ImportLog, { IImportLogEntry } from '../models/ImportLog';
 import { discogsService, FoundAlbumInfo } from './discogs.service';
 
 // Ensure logs directory exists
-const LOGS_DIR = path.join(__dirname, '../../logs/imports');
+// Use absolute path /logs/imports in Docker, or fallback to relative path for local dev
+const LOGS_DIR = process.env.NODE_ENV === 'production'
+    ? '/logs/imports'
+    : path.join(__dirname, '../../logs/imports');
 if (!fs.existsSync(LOGS_DIR)) {
     fs.mkdirSync(LOGS_DIR, { recursive: true });
 }
