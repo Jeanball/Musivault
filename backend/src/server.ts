@@ -46,21 +46,42 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '5001', 10);
-const allowedOrigins = process.env.NODE_ENV === 'production'
-    ? ['http://localhost:3000', 'http://localhost']
-    : ['http://localhost:5173', 'http://10.0.0.153:5173', 'http://localhost:3000', 'http://10.0.0.153:3000'];
+// CORS configuration
+// In Docker production: Nginx proxies /api requests, so browser sees same-origin (no CORS needed)
+// For flexibility, users can set CORS_ORIGINS env var with comma-separated origins
+const getCorsOrigins = (): string[] | true => {
+    // In production with Docker, allow all origins since Nginx handles proxying
+    if (process.env.NODE_ENV === 'production') {
+        // If user wants to restrict origins, they can set CORS_ORIGINS
+        if (process.env.CORS_ORIGINS) {
+            return process.env.CORS_ORIGINS.split(',').map(o => o.trim());
+        }
+        // Default: allow all origins (Nginx proxy makes this safe)
+        return true as const;
+    }
+
+    // Development mode: use CORS_ORIGINS if set, otherwise default to localhost
+    if (process.env.CORS_ORIGINS) {
+        return process.env.CORS_ORIGINS.split(',').map(o => o.trim());
+    }
+    return ['http://localhost:5173', 'http://localhost:3000'];
+};
+
+const corsOrigins = getCorsOrigins();
 
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
+    origin: corsOrigins === true
+        ? true  // Allow all origins
+        : (origin, callback) => {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
 
-        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'production') {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+            if (corsOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
     credentials: true
 }))
 app.use(express.json());
