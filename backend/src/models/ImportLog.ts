@@ -22,6 +22,7 @@ export interface IImportLog extends Document {
     successCount: number;
     failCount: number;
     skipCount: number;
+    status: 'pending' | 'processing' | 'completed' | 'error';
     entries: IImportLogEntry[];
 }
 
@@ -47,6 +48,7 @@ const importLogSchema = new Schema<IImportLog>({
     successCount: { type: Number, required: true },
     failCount: { type: Number, required: true },
     skipCount: { type: Number, default: 0 },
+    status: { type: String, enum: ['pending', 'processing', 'completed', 'error'], default: 'processing' },
     entries: [importLogEntrySchema]
 });
 

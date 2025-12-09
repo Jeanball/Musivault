@@ -139,7 +139,7 @@ connectDB().then(async () => {
     // Seed admin user if ADMIN_* env vars are set and no admin exists
     await seedAdminUser();
 
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
         console.log("=================================");
         console.log(`🚀 Musivault API v${VERSION}`);
         console.log(`📡 Server running on PORT: ${PORT}`);
@@ -147,4 +147,5 @@ connectDB().then(async () => {
         console.log(`📦 Commit: ${COMMIT_SHA.substring(0, 7)}`);
         console.log("=================================");
     });
+    server.setTimeout(3600000); // 1 hour timeout for long imports
 });

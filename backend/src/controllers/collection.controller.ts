@@ -49,12 +49,14 @@ export async function importCollectionCSV(req: Request, res: Response) {
       file.originalname
     );
 
-    res.status(200).json({
-      message: `Import complete: ${result.imported} imported, ${result.skipped} skipped, ${result.failed} failed`,
-      ...result
+    res.status(202).json({
+      message: `Import started with ${result.totalRows} rows`,
+      logId: result.logId,
+      totalRows: result.totalRows,
+      status: 'processing'
     });
   } catch (error) {
-    console.error('Error during CSV import:', error);
+    console.error('Error starting CSV import:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

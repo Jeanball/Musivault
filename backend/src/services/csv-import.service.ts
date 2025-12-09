@@ -5,12 +5,14 @@ import path from 'path';
 import Album from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
 import ImportLog, { IImportLogEntry } from '../models/ImportLog';
+import User from '../models/User';
 import { discogsService, FoundAlbumInfo } from './discogs.service';
 
 // Ensure logs directory exists
 // Use /app/logs/imports in Docker, or fallback to relative path for local dev
-const LOGS_DIR = process.env.NODE_ENV === 'production'
-    ? '/app/logs/imports'
+const DOCKER_LOGS_ROOT = '/logs';
+const LOGS_DIR = fs.existsSync(DOCKER_LOGS_ROOT)
+    ? path.join(DOCKER_LOGS_ROOT, 'imports')
     : path.join(__dirname, '../../logs/imports');
 
 // Create directory if it doesn't exist (with error handling)
@@ -165,13 +167,49 @@ export async function importFromCsv(
     buffer: Buffer,
     userId: any,
     fileName?: string
-): Promise<ImportResult> {
+): Promise<{ logId: string; totalRows: number }> {
     const rows = await parseCsvBuffer(buffer);
 
+    // Create initial import log
+    const importLog = new ImportLog({
+        user: userId,
+        fileName: fileName || 'import.csv',
+        totalRows: rows.length,
+        successCount: 0,
+        failCount: 0,
+        skipCount: 0,
+        status: 'processing',
+        entries: []
+    });
+    await importLog.save();
+    const logId = String(importLog._id);
+
+    console.log(`[Import] Started import ${logId} with ${rows.length} rows`);
+
+    // Run processing in background (no await)
+    processImportBackground(rows, importLog, userId).catch(err => {
+        console.error(`[Import] Background process failed for ${logId}:`, err);
+        importLog.status = 'error';
+        importLog.save();
+    });
+
+    return {
+        logId,
+        totalRows: rows.length
+    };
+}
+
+/**
+ * Background processor for import rows
+ */
+async function processImportBackground(
+    rows: CsvRow[],
+    importLog: any,
+    userId: any
+) {
     let imported = 0;
     let skipped = 0;
-    const failures: ImportResult['failures'] = [];
-    const logEntries: IImportLogEntry[] = [];
+    let failures = 0;
 
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -187,7 +225,6 @@ export async function importFromCsv(
         try {
             const result = await processImportRow(row, userId);
 
-            // Add matched data to log entry
             if (result.matchedData) {
                 logEntry.matchedArtist = result.matchedData.artist;
                 logEntry.matchedAlbum = result.matchedData.title;
@@ -203,71 +240,68 @@ export async function importFromCsv(
                 logEntry.status = 'skipped';
                 logEntry.reason = result.reason;
             } else {
+                failures++;
                 logEntry.status = 'failed';
                 logEntry.reason = result.reason;
-                failures.push({
-                    index: i + 1,
-                    artist: row.artist,
-                    album: row.album,
-                    reason: result.reason!
-                });
             }
         } catch (err: any) {
             console.log(`[Import] Error processing row ${i + 1}:`, err.message);
             logEntry.status = 'failed';
             logEntry.reason = `Processing error: ${err.message}`;
-            failures.push({
-                index: i + 1,
-                artist: row.artist,
-                album: row.album,
-                reason: 'Processing error'
-            });
+            failures++;
         }
 
-        logEntries.push(logEntry);
+        // Update log document incrementally
+        // We push the new entry and update counts
+        // To be safe and avoid race conditions or massive writes, we could batch,
+        // but for 1 update every 1.1s, direct update is fine.
+        importLog.entries.push(logEntry);
+        importLog.successCount = imported;
+        importLog.skipCount = skipped;
+        importLog.failCount = failures;
+
+        // Save progress
+        await importLog.save();
     }
 
-    // Save import log to database
-    const importLog = new ImportLog({
-        user: userId,
-        fileName: fileName || 'import.csv',
-        totalRows: rows.length,
-        successCount: imported,
-        failCount: failures.length,
-        skipCount: skipped,
-        entries: logEntries
-    });
+    // Mark as completed
+    importLog.status = 'completed';
     await importLog.save();
-    console.log(`[Import] Log saved with ID: ${importLog._id}`);
+    console.log(`[Import] Finished import ${importLog._id}`);
 
-    // Also save to file for server-side access
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const logFileName = `import_${timestamp}_${String(importLog._id)}.json`;
-    const logFilePath = path.join(LOGS_DIR, logFileName);
+    // Save final JSON file log
+    await saveJsonLogFile(importLog);
+}
 
-    const fileLogData = {
-        _id: String(importLog._id),
-        importedAt: new Date().toISOString(),
-        fileName: fileName || 'import.csv',
-        summary: {
-            totalRows: rows.length,
-            successCount: imported,
-            failCount: failures.length,
-            skipCount: skipped
-        },
-        entries: logEntries
-    };
+async function saveJsonLogFile(importLog: any) {
+    try {
+        // Get user info for filename
+        const userId = importLog.user;
+        const userDoc = await User.findById(userId);
+        const safeUsername = userDoc ? userDoc.username.replace(/[^a-zA-Z0-9_-]/g, '_') : 'unknown';
 
-    fs.writeFileSync(logFilePath, JSON.stringify(fileLogData, null, 2));
-    console.log(`[Import] Log file saved: ${logFilePath}`);
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const logFileName = `import_${timestamp}_${safeUsername}_${String(importLog._id)}.json`;
+        const logFilePath = path.join(LOGS_DIR, logFileName);
 
-    return {
-        imported,
-        failed: failures.length,
-        skipped,
-        logId: String(importLog._id),
-        failures
-    };
+        const fileLogData = {
+            _id: String(importLog._id),
+            importedAt: new Date().toISOString(),
+            fileName: importLog.fileName,
+            summary: {
+                totalRows: importLog.totalRows,
+                successCount: importLog.successCount,
+                failCount: importLog.failCount,
+                skipCount: importLog.skipCount
+            },
+            entries: importLog.entries
+        };
+
+        fs.writeFileSync(logFilePath, JSON.stringify(fileLogData, null, 2));
+        console.log(`[Import] Log file saved: ${logFilePath}`);
+    } catch (err) {
+        console.error('[Import] Failed to save JSON log file:', err);
+    }
 }
 
 /**

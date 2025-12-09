@@ -13,6 +13,14 @@ interface ImportResult {
 const CsvImport: React.FC = () => {
     const [isImporting, setIsImporting] = useState(false);
     const [importResult, setImportResult] = useState<ImportResult | null>(null);
+    const [progress, setProgress] = useState<{
+        processed: number;
+        total: number;
+        success: number;
+        failed: number;
+        skipped: number;
+        status: string;
+    } | null>(null);
 
     const downloadTemplate = () => {
         const csv = [
@@ -54,6 +62,56 @@ const CsvImport: React.FC = () => {
         }
     };
 
+    const pollStatus = async (logId: string) => {
+        const intervalId = setInterval(async () => {
+            try {
+                const { data } = await axios.get(`/api/collection/import/logs/${logId}`, {
+                    withCredentials: true
+                });
+
+                setProgress({
+                    processed: data.successCount + data.failCount + data.skipCount,
+                    total: data.totalRows,
+                    success: data.successCount,
+                    failed: data.failCount,
+                    skipped: data.skipCount,
+                    status: data.status
+                });
+
+                if (data.status === 'completed' || data.status === 'error') {
+                    clearInterval(intervalId);
+                    setIsImporting(false);
+
+                    if (data.status === 'completed') {
+                        toastService.success(`Import finished: ${data.successCount} added`);
+                        // Transform log entries to expected failures result
+                        const failures = data.entries
+                            .filter((e: any) => e.status === 'failed')
+                            .map((e: any) => ({
+                                index: e.rowIndex,
+                                artist: e.inputArtist,
+                                album: e.inputAlbum,
+                                reason: e.reason || 'Unknown error'
+                            }));
+
+                        setImportResult({
+                            imported: data.successCount,
+                            failed: data.failCount,
+                            skipped: data.skipCount,
+                            logId: data._id,
+                            failures
+                        });
+                    } else {
+                        toastService.error('Import stopped with errors');
+                    }
+                }
+            } catch (err) {
+                console.error('Polling error', err);
+                // Don't stop polling on single error, but maybe warn?
+            }
+        }, 2000);
+    };
+
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         const inputElement = e.target;
@@ -61,20 +119,36 @@ const CsvImport: React.FC = () => {
 
         setIsImporting(true);
         setImportResult(null);
+        setProgress(null);
 
         try {
             const formData = new FormData();
             formData.append('file', file);
+            // Start the import
             const { data } = await axios.post('/api/collection/import', formData, {
                 withCredentials: true,
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setImportResult(data);
-            toastService.success(`Import complete: ${data.imported} added, ${data.skipped} skipped, ${data.failed} failed`);
+
+            toastService.info('Import started. Please wait...');
+
+            // Initial progress state
+            setProgress({
+                processed: 0,
+                total: data.totalRows,
+                success: 0,
+                failed: 0,
+                skipped: 0,
+                status: 'processing'
+            });
+
+            // Start polling
+            pollStatus(data.logId);
+
         } catch (error) {
-            toastService.error('Import failed.');
-        } finally {
+            toastService.error('Failed to start import.');
             setIsImporting(false);
+        } finally {
             if (inputElement) inputElement.value = '';
         }
     };
@@ -87,7 +161,6 @@ const CsvImport: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16h16V8l-6-4H4z" />
                     </svg>
                     Import Collection (CSV)
-                    {isImporting && <span className="loading loading-spinner loading-xs"></span>}
                 </h2>
                 <p className="text-sm text-gray-500">
                     CSV format: Artist, Album, Format (Vinyl or CD), Year (Optional)
@@ -97,22 +170,42 @@ const CsvImport: React.FC = () => {
                     <button className="btn btn-outline btn-sm" onClick={downloadTemplate}>
                         Download CSV template
                     </button>
-                    <label className="btn btn-primary btn-sm">
-                        Choose a CSV file
-                        <input
-                            type="file"
-                            accept=".csv,text/csv"
-                            className="hidden"
-                            onChange={handleFileUpload}
-                        />
-                    </label>
+                    {!isImporting && (
+                        <label className="btn btn-primary btn-sm">
+                            Choose a CSV file
+                            <input
+                                type="file"
+                                accept=".csv,text/csv"
+                                className="hidden"
+                                onChange={handleFileUpload}
+                            />
+                        </label>
+                    )}
                 </div>
 
-                {importResult && (
+                {isImporting && progress && (
+                    <div className="mt-4 w-full">
+                        <p className="text-sm font-semibold mb-2">
+                            Importing {progress.processed} of {progress.total} albums...
+                        </p>
+                        <progress
+                            className="progress progress-primary w-full"
+                            value={progress.processed}
+                            max={progress.total}
+                        ></progress>
+                        <div className="flex gap-4 mt-2 text-xs">
+                            <span className="text-success">{progress.success} Success</span>
+                            <span className="text-warning">{progress.skipped} Skipped</span>
+                            <span className="text-error">{progress.failed} Failed</span>
+                        </div>
+                    </div>
+                )}
+
+                {importResult && !isImporting && (
                     <div className="mt-4">
                         <div className="flex flex-wrap items-center gap-3">
                             <p className="text-sm">
-                                <strong>Result:</strong> {importResult.imported} imported, {importResult.skipped} skipped, {importResult.failed} failed
+                                <strong>Complete!</strong> {importResult.imported} imported, {importResult.skipped} skipped, {importResult.failed} failed
                             </p>
                             <button
                                 className="btn btn-ghost btn-xs"
@@ -130,7 +223,7 @@ const CsvImport: React.FC = () => {
                             </button>
                         </div>
                         {importResult.failures.length > 0 && (
-                            <div className="overflow-x-auto mt-2">
+                            <div className="overflow-x-auto mt-2 max-h-60">
                                 <table className="table table-zebra table-sm">
                                     <thead>
                                         <tr>

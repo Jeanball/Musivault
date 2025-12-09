@@ -42,6 +42,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+    volumes:
+      - import_logs:/logs
     networks:
       - musivault-network
     healthcheck:
@@ -71,4 +73,6 @@ networks:
 
 volumes:
   mongodb_data:
+    driver: local
+  import_logs:
     driver: local

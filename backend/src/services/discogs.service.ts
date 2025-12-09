@@ -104,7 +104,7 @@ function scoreResult(result: any, searchArtist: string, searchTitle: string, sea
 
 const DISCOGS_BASE_URL = 'https://api.discogs.com';
 const HEADERS = { 'User-Agent': 'Musivault/1.0' };
-const RATE_LIMIT_MS = 1500;
+const RATE_LIMIT_MS = 1100;
 
 /**
  * Search Discogs for an album by artist and title.
