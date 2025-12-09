@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Import files (personal collection data)
+musivault_import.csv
+*_import.csv
+*.import.csv
