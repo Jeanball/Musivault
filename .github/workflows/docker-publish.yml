@@ -9,6 +9,13 @@ on:
     branches: ['main']
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: 'Target platforms (comma-separated)'
+        required: false
+        default: 'linux/amd64'
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -75,7 +82,7 @@ jobs:
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
 
       - name: Image digest
         run: echo ${{ steps.meta.outputs.digest }}
