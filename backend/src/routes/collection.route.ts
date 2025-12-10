@@ -9,7 +9,8 @@ import {
     downloadTemplate,
     getImportLogs,
     getImportLogById,
-    downloadImportLog
+    downloadImportLog,
+    updateCollectionItem
 } from '../controllers/collection.controller';
 import protectRoute from '../middlewares/protectRoute';
 
@@ -27,6 +28,7 @@ router.get('/import/logs/:logId/download', protectRoute, downloadImportLog);
 router.post('/', protectRoute, addToCollection);
 router.get('/', protectRoute, getMyCollection);
 router.get('/:itemId', protectRoute, getCollectionItemById);
+router.put('/:itemId', protectRoute, updateCollectionItem);
 router.delete('/:itemId', protectRoute, deleteFromCollection);
 
 export default router;

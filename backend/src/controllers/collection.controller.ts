@@ -274,3 +274,36 @@ export async function deleteFromCollection(req: Request, res: Response) {
     res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+export async function updateCollectionItem(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { itemId } = req.params;
+    const { format } = req.body;
+
+    if (!format || !format.name) {
+      res.status(400).json({ message: "Format name is required" });
+      return;
+    }
+
+    const updatedItem = await CollectionItem.findOneAndUpdate(
+      { _id: itemId, user: req.user._id },
+      { $set: { "format.name": format.name } },
+      { new: true }
+    );
+
+    if (!updatedItem) {
+      res.status(404).json({ message: 'Item not found in your collection' });
+      return;
+    }
+
+    res.status(200).json(updatedItem);
+  } catch (error) {
+    console.error('Error updating collection item:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}

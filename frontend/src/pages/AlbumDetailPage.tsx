@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
+import { toastService } from '../utils/toast';
 import type { CollectionItem } from '../types/collection';
 
 interface Track {
@@ -76,6 +77,21 @@ const AlbumDetailPage: React.FC = () => {
         }
     };
 
+    const handleDelete = async () => {
+        if (!confirm('Are you sure you want to remove this album from your collection?')) {
+            return;
+        }
+
+        try {
+            await axios.delete(`/api/collection/${item?._id}`, { withCredentials: true });
+            toastService.success('Album removed from collection');
+            navigate('/app');
+        } catch (error) {
+            console.error('Failed to delete album:', error);
+            toastService.error('Failed to remove album');
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -96,10 +112,22 @@ const AlbumDetailPage: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto p-4">
-            {/* Back button */}
-            <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm mb-6">
-                ← Back
-            </button>
+            {/* Header Actions */}
+            <div className="flex justify-between items-center mb-6">
+                <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm">
+                    ← Back
+                </button>
+                <button
+                    onClick={handleDelete}
+                    className="btn btn-ghost btn-sm text-error hover:bg-error/10"
+                    title="Remove from collection"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Album
+                </button>
+            </div>
 
             {/* Header Section */}
             <div className="flex flex-col lg:flex-row gap-8 mb-8">
@@ -125,7 +153,35 @@ const AlbumDetailPage: React.FC = () => {
                         </div>
                         <div className="stat bg-base-200 rounded-lg p-4">
                             <div className="stat-title">Format</div>
-                            <div className="stat-value text-2xl capitalize">{item.format.name}</div>
+                            <div className="stat-value text-2xl">
+                                <select
+                                    className="select select-ghost w-full max-w-xs text-2xl font-bold p-0 h-auto min-h-0 focus:bg-transparent"
+                                    value={item.format.name}
+                                    onChange={async (e) => {
+                                        const newFormat = e.target.value;
+                                        try {
+                                            await axios.put(`/api/collection/${item._id}`, {
+                                                format: { name: newFormat }
+                                            }, { withCredentials: true });
+
+                                            // Optimistic update
+                                            setItem(prev => prev ? {
+                                                ...prev,
+                                                format: { ...prev.format, name: newFormat }
+                                            } : null);
+                                            toastService.success(`Format updated to ${newFormat}`);
+                                        } catch (error) {
+                                            console.error('Failed to update format:', error);
+                                            toastService.error('Failed to update format');
+                                        }
+                                    }}
+                                >
+                                    <option value="Vinyl">Vinyl</option>
+                                    <option value="CD">CD</option>
+                                    <option value="Digital">Digital</option>
+                                    <option value="Cassette">Cassette</option>
+                                </select>
+                            </div>
                         </div>
                         <div className="stat bg-base-200 rounded-lg p-4">
                             <div className="stat-title">Added</div>

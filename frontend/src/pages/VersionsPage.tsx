@@ -107,7 +107,7 @@ const VersionsPage: React.FC = () => {
                 </div>
 
                 <div className="flex-1">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex flex-wrap gap-4 justify-between items-center mb-4">
                         <div className="flex items-center gap-2">
                             <p className="text-sm">Filter by:</p>
                             <button onClick={() => setFilter('all')} className={`btn btn-xs ${filter === 'all' ? 'btn-active btn-neutral' : ''}`}>All</button>
@@ -125,34 +125,39 @@ const VersionsPage: React.FC = () => {
                         <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline">← Back</button>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="table table-zebra w-full">
-                            <thead>
-                                <tr>
-                                    <th>Released</th>
-                                    <th>Format</th>
-                                    <th>Label</th>
-                                    <th>Country</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredVersions.map((version) => (
-                                    <tr key={version.id} className="hover">
-                                        <td>{version.released || 'N/A'}</td>
-                                        <td>{version.majorFormat}</td>
-                                        <td>{version.label}</td>
-                                        <td>{version.country}</td>
-                                        <td className="text-right">
-                                            <button className="btn btn-sm btn-primary" onClick={() => handleShowDetails(version.id)}>
-                                                Add
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {filteredVersions.map((version) => (
+                            <div key={version.id} className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="card-body p-3">
+                                    <h3 className="card-title text-xs flex justify-between items-start">
+                                        <span>{version.released || 'N/A'}</span>
+                                        <span className="badge badge-neutral badge-xs">{version.country || '?'}</span>
+                                    </h3>
+
+                                    <div className="my-1 space-y-0.5">
+                                        <div className="font-bold text-sm truncate" title={version.majorFormat}>{version.majorFormat}</div>
+                                        <div className="text-xs text-gray-500 truncate" title={version.label}>
+                                            {version.label}
+                                        </div>
+                                    </div>
+
+                                    <div className="card-actions mt-2">
+                                        <button
+                                            className="btn btn-primary btn-xs w-full"
+                                            onClick={() => handleShowDetails(version.id)}
+                                        >
+                                            Select
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
+                    {filteredVersions.length === 0 && (
+                        <div className="text-center py-10 opacity-50">
+                            No versions found matching your filter.
+                        </div>
+                    )}
                 </div>
             </div>
 
