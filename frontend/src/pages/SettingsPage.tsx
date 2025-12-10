@@ -88,6 +88,74 @@ const SettingsPage: React.FC = () => {
                 </div>
             </div>
 
+            {/* Password Section */}
+            <div className="card bg-base-200 shadow-xl mt-6">
+                <div className="card-body">
+                    <h2 className="card-title flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        Change Password
+                    </h2>
+
+                    <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        const form = e.target as HTMLFormElement;
+                        const currentPassword = (form.elements.namedItem('currentPassword') as HTMLInputElement).value;
+                        const newPassword = (form.elements.namedItem('newPassword') as HTMLInputElement).value;
+                        const confirmPassword = (form.elements.namedItem('confirmPassword') as HTMLInputElement).value;
+
+                        if (newPassword !== confirmPassword) {
+                            toastService.error("New passwords do not match");
+                            return;
+                        }
+
+                        if (newPassword.length < 6) {
+                            toastService.error("Password must be at least 6 characters");
+                            return;
+                        }
+
+                        try {
+                            await axios.put('/api/users/password', { currentPassword, newPassword }, { withCredentials: true });
+                            toastService.success('Password updated successfully');
+                            form.reset();
+                        } catch (error: any) {
+                            toastService.error(error.response?.data?.message || 'Failed to update password');
+                        }
+                    }}>
+                        <div className="form-control w-full">
+                            <label className="label">
+                                <span className="label-text">Current Password</span>
+                            </label>
+                            <input type="password" name="currentPassword" placeholder="Current password" className="input input-bordered w-full" required />
+                        </div>
+
+                        <div className="flex gap-4 mt-2">
+                            <div className="form-control w-1/2">
+                                SettingsPage.tsx
+                                Open
+
+                                <label className="label">
+                                    <span className="label-text">New Password</span>
+                                </label>
+                                <input type="password" name="newPassword" placeholder="New password" className="input input-bordered w-full" required />
+                            </div>
+
+                            <div className="form-control w-1/2">
+                                <label className="label">
+                                    <span className="label-text">Confirm New Password</span>
+                                </label>
+                                <input type="password" name="confirmPassword" placeholder="Confirm new password" className="input input-bordered w-full" required />
+                            </div>
+                        </div>
+
+                        <div className="card-actions justify-end mt-4">
+                            <button type="submit" className="btn btn-primary btn-sm">Update Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             {/* Import CSV Section */}
             <div className="mt-6">
                 <CsvImport />

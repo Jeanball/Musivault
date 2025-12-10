@@ -105,6 +105,29 @@ const AdminPage: React.FC = () => {
         }
     };
 
+    // Reset user password
+    const handleResetPassword = async (userId: string, username: string) => {
+        const newPassword = prompt(`Enter new password for ${username}:`);
+        if (!newPassword) return;
+
+        if (newPassword.length < 6) {
+            toastService.error('Password must be at least 6 characters');
+            return;
+        }
+
+        try {
+            await axios.put(
+                `/api/users/${userId}`,
+                { password: newPassword },
+                { withCredentials: true }
+            );
+            toastService.success(`Password updated for ${username}`);
+        } catch (error) {
+            console.error('Error updating password:', error);
+            toastService.error('Failed to update password');
+        }
+    };
+
     // Stats
     const totalUsers = users.length;
     const totalAdmins = users.filter((u) => u.isAdmin).length;
@@ -116,10 +139,12 @@ const AdminPage: React.FC = () => {
 
     // Format date
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('fr-CA', {
+        return new Date(dateString).toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
@@ -233,7 +258,9 @@ const AdminPage: React.FC = () => {
                                 <tr>
                                     <th>Username</th>
                                     <th>Email</th>
-                                    <th>Admin</th>
+                                    <th>Role</th>
+                                    <th>Albums</th>
+                                    <th>Last Login</th>
                                     <th>Created</th>
                                     <th>Actions</th>
                                 </tr>
@@ -280,9 +307,24 @@ const AdminPage: React.FC = () => {
                                                 <span className="badge badge-ghost">User</span>
                                             )}
                                         </td>
+                                        <td>
+                                            <div className="badge badge-neutral">{user.albumCount || 0}</div>
+                                        </td>
+                                        <td>
+                                            {user.lastLogin ? formatDate(user.lastLogin) : <span className="text-gray-400 italic">Never</span>}
+                                        </td>
                                         <td>{formatDate(user.createdAt)}</td>
                                         <td>
                                             <div className="flex gap-2">
+                                                <button
+                                                    className="btn btn-xs btn-ghost"
+                                                    onClick={() => handleResetPassword(user._id, user.username)}
+                                                    title="Change Password"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                                    </svg>
+                                                </button>
                                                 <button
                                                     className="btn btn-xs btn-ghost"
                                                     onClick={() => handleToggleAdmin(user._id, user.isAdmin, user.username)}

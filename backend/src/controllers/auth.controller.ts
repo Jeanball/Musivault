@@ -3,27 +3,27 @@ import User from '../models/User';
 import { generateToken } from '../utils/SecretToken';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-export async function signupUser(req: Request, res: Response, next: NextFunction) { 
+export async function signupUser(req: Request, res: Response, next: NextFunction) {
     try {
         const { username, email, password, createdAt } = req.body;
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-        res.json({ message: "User already exists" });
-        return;
+            res.json({ message: "User already exists" });
+            return;
         }
-        const newUser = new User({ username, email, password, createdAt})
+        const newUser = new User({ username, email, password, createdAt })
         const token = generateToken(newUser.id);
         res.cookie('jwt', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: 'lax'
-    });
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: 'lax'
+        });
         await newUser.save();
-        res.status(201).json({message: "User created successfully.", success: true, newUser})
+        res.status(201).json({ message: "User created successfully.", success: true, newUser })
         next();
     } catch (error) {
         console.error("Error in createUser controller", error)
-        res.status(500).json({message: "Internal server error"});
+        res.status(500).json({ message: "Internal server error" });
     }
 }
 
@@ -45,7 +45,10 @@ export async function loginUser(req: Request, res: Response) {
         }
 
         const token = generateToken(user.id.toString());
-        
+
+        user.lastLogin = new Date();
+        await user.save();
+
         res.cookie('jwt', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",

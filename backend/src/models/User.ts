@@ -12,6 +12,7 @@ export interface IUser extends Document {
   isAdmin: boolean
   preferences: IUserPreferences
   createdAt: Date
+  lastLogin?: Date
   comparePassword(password: string): Promise<boolean>
 }
 
@@ -44,6 +45,10 @@ const userSchema = new Schema<IUser>({
     type: Date,
     default: Date.now,
   },
+  lastLogin: {
+    type: Date,
+    default: null
+  }
 })
 
 userSchema.pre<IUser>("save", async function (next) {

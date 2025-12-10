@@ -4,4 +4,6 @@ export interface AdminUser {
     email: string;
     isAdmin: boolean;
     createdAt: string;
+    lastLogin?: string;
+    albumCount?: number;
 }
