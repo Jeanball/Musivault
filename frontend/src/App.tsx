@@ -13,6 +13,7 @@ import AdminPage from './pages/AdminPage';
 import HomePage from './pages/HomePage';
 import LandingPage from './pages/LandingPage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
+import PublicCollectionPage from './pages/PublicCollectionPage';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateLayout from './components/Layout/PrivateLayout';
 
@@ -31,6 +32,9 @@ const App = () => {
               <Route path='/login' element={<LoginPage />} />
               <Route path='/signup' element={<SignupPage />} />
             </Route>
+
+            {/* Public Collection Route - No Auth Required */}
+            <Route path="/collection/:shareId" element={<PublicCollectionPage />} />
 
             {/* Protected Routes - User Theme */}
             <Route path="/app" element={<PrivateLayout />}>

@@ -5,9 +5,10 @@ import type { LayoutType } from '../../../types/collection';
 interface CollectionHeaderProps {
     layout: LayoutType;
     onLayoutChange: (layout: LayoutType) => void;
+    readOnly?: boolean;
 }
 
-const CollectionHeader: React.FC<CollectionHeaderProps> = ({ layout, onLayoutChange }) => {
+const CollectionHeader: React.FC<CollectionHeaderProps> = ({ layout, onLayoutChange, readOnly }) => {
     return (
         <div className="navbar bg-base-100 rounded-box shadow-xl mb-4">
             <div className="flex-1">
@@ -33,9 +34,15 @@ const CollectionHeader: React.FC<CollectionHeaderProps> = ({ layout, onLayoutCha
                 </div>
             </div>
             <div className="flex-none gap-2">
-                <Link to="/" className="btn btn-outline btn-primary btn-sm">
-                    Add an album
-                </Link>
+                {readOnly ? (
+                    <Link to="/" className="btn btn-outline btn-primary btn-sm">
+                        Go to Musivault
+                    </Link>
+                ) : (
+                    <Link to="/app" className="btn btn-outline btn-primary btn-sm">
+                        Add an album
+                    </Link>
+                )}
             </div>
         </div>
     );

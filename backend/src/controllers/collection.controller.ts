@@ -292,7 +292,7 @@ export async function updateCollectionItem(req: Request, res: Response) {
 
     const updatedItem = await CollectionItem.findOneAndUpdate(
       { _id: itemId, user: req.user._id },
-      { $set: { "format.name": format.name } },
+      { $set: { "format.name": format.name, "format.text": format.name } },
       { new: true }
     );
 

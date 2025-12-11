@@ -29,17 +29,17 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                             </thead>
                             <tbody>
                                 {items.map((item) => (
-                                    <tr 
-                                        key={item._id} 
-                                        onClick={() => onItemClick(item)} 
+                                    <tr
+                                        key={item._id}
+                                        onClick={() => onItemClick(item)}
                                         className="hover cursor-pointer"
                                     >
                                         <td>
                                             <div className="avatar">
                                                 <div className="w-12 h-12 rounded-lg">
-                                                    <img 
-                                                        src={item.album.thumb || item.album.cover_image} 
-                                                        alt={item.album.title} 
+                                                    <img
+                                                        src={item.album.thumb || item.album.cover_image}
+                                                        alt={item.album.title}
                                                     />
                                                 </div>
                                             </div>

@@ -1,8 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose"
 import bcrypt from "bcryptjs"
+import { v4 as uuidv4 } from 'uuid'
 
 export interface IUserPreferences {
   theme: string
+  isPublic: boolean
 }
 
 export interface IUser extends Document {
@@ -11,6 +13,7 @@ export interface IUser extends Document {
   password: string
   isAdmin: boolean
   preferences: IUserPreferences
+  publicShareId: string
   createdAt: Date
   lastLogin?: Date
   comparePassword(password: string): Promise<boolean>
@@ -39,7 +42,17 @@ const userSchema = new Schema<IUser>({
     theme: {
       type: String,
       default: 'dark'
+    },
+    isPublic: {
+      type: Boolean,
+      default: false
     }
+  },
+  publicShareId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows null/undefined while maintaining uniqueness
+    default: () => uuidv4()
   },
   createdAt: {
     type: Date,

@@ -12,6 +12,12 @@ interface VersionInfo {
     environment: string;
 }
 
+interface PreferencesResponse {
+    theme: string;
+    isPublic: boolean;
+    publicShareId: string | null;
+}
+
 const themes = [
     "light", "dark"
 ];
@@ -21,11 +27,21 @@ const SettingsPage: React.FC = () => {
     const { theme, setTheme } = useTheme();
     const [isSaving, setIsSaving] = useState(false);
     const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+    const [isPublic, setIsPublic] = useState(false);
+    const [publicShareId, setPublicShareId] = useState<string | null>(null);
 
     useEffect(() => {
         axios.get<VersionInfo>('/api/version')
             .then(res => setVersionInfo(res.data))
             .catch(err => console.error('Failed to fetch version:', err));
+
+        // Fetch public collection preferences
+        axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+            .then(res => {
+                setIsPublic(res.data.isPublic || false);
+                setPublicShareId(res.data.publicShareId || null);
+            })
+            .catch(err => console.error('Failed to fetch preferences:', err));
     }, []);
 
     const handleThemeChange = async (newTheme: string) => {
@@ -39,6 +55,35 @@ const SettingsPage: React.FC = () => {
             console.error('Failed to save theme to server:', error);
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handlePublicToggle = async () => {
+        const newValue = !isPublic;
+        setIsSaving(true);
+
+        try {
+            const response = await axios.put<{ preferences: PreferencesResponse; publicShareId: string | null }>(
+                '/api/users/preferences',
+                { isPublic: newValue },
+                { withCredentials: true }
+            );
+            setIsPublic(newValue);
+            setPublicShareId(response.data.publicShareId);
+            toastService.success(newValue ? 'Collection is now public!' : 'Collection is now private');
+        } catch (error) {
+            console.error('Failed to update public setting:', error);
+            toastService.error('Failed to update setting');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const copyShareLink = () => {
+        if (publicShareId) {
+            const shareUrl = `${window.location.origin}/collection/${publicShareId}`;
+            navigator.clipboard.writeText(shareUrl);
+            toastService.success('Link copied to clipboard!');
         }
     };
 
@@ -88,6 +133,60 @@ const SettingsPage: React.FC = () => {
                 </div>
             </div>
 
+            {/* Public Collection Section */}
+            <div className="card bg-base-200 shadow-xl mt-6">
+                <div className="card-body">
+                    <h2 className="card-title flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Public Collection
+                        {isSaving && <span className="loading loading-spinner loading-xs"></span>}
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-4">
+                        Allow anyone with the link to view your collection. Your collection is private by default.
+                    </p>
+
+                    <div className="form-control">
+                        <label className="label cursor-pointer justify-start gap-4">
+                            <input
+                                type="checkbox"
+                                className="toggle toggle-primary"
+                                checked={isPublic}
+                                onChange={handlePublicToggle}
+                                disabled={isSaving}
+                            />
+                            <span className="label-text">
+                                {isPublic ? 'Collection is public' : 'Collection is private'}
+                            </span>
+                        </label>
+                    </div>
+
+                    {isPublic && publicShareId && (
+                        <div className="mt-4 p-4 bg-base-300 rounded-lg">
+                            <p className="text-sm font-medium mb-2">Share Link:</p>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={`${window.location.origin}/collection/${publicShareId}`}
+                                    readOnly
+                                    className="input input-bordered input-sm flex-1 font-mono text-xs"
+                                />
+                                <button
+                                    onClick={copyShareLink}
+                                    className="btn btn-sm btn-primary"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
             {/* Password Section */}
             <div className="card bg-base-200 shadow-xl mt-6">
                 <div className="card-body">
@@ -97,6 +196,9 @@ const SettingsPage: React.FC = () => {
                         </svg>
                         Change Password
                     </h2>
+                    <p className="text-sm text-gray-500 mb-4">
+                        Update your password to keep your account secure.
+                    </p>
 
                     <form onSubmit={async (e) => {
                         e.preventDefault();
@@ -123,34 +225,53 @@ const SettingsPage: React.FC = () => {
                             toastService.error(error.response?.data?.message || 'Failed to update password');
                         }
                     }}>
-                        <div className="form-control w-full">
-                            <label className="label">
-                                <span className="label-text">Current Password</span>
-                            </label>
-                            <input type="password" name="currentPassword" placeholder="Current password" className="input input-bordered w-full" required />
-                        </div>
-
-                        <div className="flex gap-4 mt-2">
-                            <div className="form-control w-1/2">
-                                SettingsPage.tsx
-                                Open
-
+                        <div className="space-y-4">
+                            <div className="form-control w-full">
                                 <label className="label">
-                                    <span className="label-text">New Password</span>
+                                    <span className="label-text">Current Password</span>
                                 </label>
-                                <input type="password" name="newPassword" placeholder="New password" className="input input-bordered w-full" required />
+                                <input
+                                    type="password"
+                                    name="currentPassword"
+                                    placeholder="Enter current password"
+                                    className="input input-bordered w-full"
+                                    required
+                                />
                             </div>
 
-                            <div className="form-control w-1/2">
-                                <label className="label">
-                                    <span className="label-text">Confirm New Password</span>
-                                </label>
-                                <input type="password" name="confirmPassword" placeholder="Confirm new password" className="input input-bordered w-full" required />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="form-control w-full">
+                                    <label className="label">
+                                        <span className="label-text">New Password</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="newPassword"
+                                        placeholder="Enter new password"
+                                        className="input input-bordered w-full"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-control w-full">
+                                    <label className="label">
+                                        <span className="label-text">Confirm New Password</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="confirmPassword"
+                                        placeholder="Confirm new password"
+                                        className="input input-bordered w-full"
+                                        required
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="card-actions justify-end mt-4">
-                            <button type="submit" className="btn btn-primary btn-sm">Update Password</button>
+                        <div className="card-actions justify-end mt-6">
+                            <button type="submit" className="btn btn-primary">
+                                Update Password
+                            </button>
                         </div>
                     </form>
                 </div>

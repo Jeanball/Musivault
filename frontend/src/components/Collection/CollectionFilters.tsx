@@ -36,19 +36,21 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     const hasActiveFilters = filters.format !== 'all' || filters.decade !== 'all' || filters.addedPeriod !== 'all';
 
     return (
-        <div className="bg-base-100 rounded-box shadow-lg p-4 mb-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 flex-1">
+        <div className="bg-base-100 rounded-box shadow-lg p-3 md:p-4 mb-6">
+            <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-stretch lg:items-center justify-between">
+                {/* Filters - Always 3 columns, compact on mobile */}
+                <div className="grid grid-cols-3 gap-2 md:gap-4 flex-1">
                     {/* Filter by Format */}
                     <div className="form-control">
-                        <label className="label label-text text-xs">Format</label>
+                        <label className="label py-0.5 md:py-1">
+                            <span className="label-text text-xs">Format</span>
+                        </label>
                         <select
-                            className="select select-bordered select-sm w-full max-w-xs"
+                            className="select select-bordered select-xs md:select-sm w-full"
                             value={filters.format}
                             onChange={(e) => handleFilterChange('format', e.target.value)}
                         >
-                            <option value="all">All formats</option>
+                            <option value="all">All</option>
                             {availableFormats.map(format => (
                                 <option key={format} value={format}>{format}</option>
                             ))}
@@ -57,13 +59,15 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
 
                     {/* Filter by Decade */}
                     <div className="form-control">
-                        <label className="label label-text text-xs">Decade</label>
+                        <label className="label py-0.5 md:py-1">
+                            <span className="label-text text-xs">Decade</span>
+                        </label>
                         <select
-                            className="select select-bordered select-sm w-full max-w-xs"
+                            className="select select-bordered select-xs md:select-sm w-full"
                             value={filters.decade}
                             onChange={(e) => handleFilterChange('decade', e.target.value)}
                         >
-                            <option value="all">All decades</option>
+                            <option value="all">All</option>
                             {availableDecades.sort().map(decade => (
                                 <option key={decade} value={decade}>{decade}</option>
                             ))}
@@ -72,36 +76,38 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
 
                     {/* Filter by Added Period */}
                     <div className="form-control">
-                        <label className="label label-text text-xs">Added</label>
+                        <label className="label py-0.5 md:py-1">
+                            <span className="label-text text-xs">Added</span>
+                        </label>
                         <select
-                            className="select select-bordered select-sm w-full max-w-xs"
+                            className="select select-bordered select-xs md:select-sm w-full"
                             value={filters.addedPeriod}
                             onChange={(e) => handleFilterChange('addedPeriod', e.target.value)}
                         >
-                            <option value="all">All periods</option>
-                            <option value="thisWeek">This week</option>
-                            <option value="thisMonth">This month</option>
-                            <option value="thisYear">This year</option>
-                            <option value="lastYear">Last year</option>
+                            <option value="all">All</option>
+                            <option value="thisWeek">Week</option>
+                            <option value="thisMonth">Month</option>
+                            <option value="thisYear">Year</option>
+                            <option value="lastYear">Last yr</option>
                         </select>
                     </div>
                 </div>
 
                 {/* Results and Reset */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    <div className="text-sm text-gray-500">
-                        {filteredResults} / {totalResults} albums
+                <div className="flex flex-row items-center justify-between lg:justify-end gap-3">
+                    <div className="text-xs md:text-sm text-gray-500">
+                        {filteredResults} / {totalResults}
                     </div>
 
                     {hasActiveFilters && (
                         <button
-                            className="btn btn-ghost btn-sm"
+                            className="btn btn-ghost btn-xs"
                             onClick={resetFilters}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 md:h-4 md:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                            Reset filters
+                            <span className="hidden sm:inline">Reset</span>
                         </button>
                     )}
                 </div>

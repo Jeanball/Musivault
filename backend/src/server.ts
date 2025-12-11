@@ -14,6 +14,7 @@ import usersRoute from "./routes/users.route"
 import discogsRoute from './routes/discogs.route'
 import authRoute from './routes/auth.route'
 import collectionRoute from './routes/collection.route'
+import publicRoute from './routes/public.route'
 dotenv.config()
 
 // Read version from environment variable (Docker) or VERSION file (development)
@@ -108,6 +109,7 @@ app.use('/api/auth', rateLimit({
     max: 100 // limit each IP to 100 requests per windowMs
 }), authRoute);
 app.use('/api/collection', collectionRoute)
+app.use('/api/public', publicRoute)
 
 // Version middleware - adds version header to all responses
 app.use((req, res, next) => {

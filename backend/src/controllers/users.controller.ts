@@ -84,17 +84,20 @@ export async function createAdminUser(req: Request, res: Response) {
 export async function getPreferences(req: Request, res: Response) {
     try {
         if (!req.user) {
-            res.status(401).json({ message: "Non autorisé" });
+            res.status(401).json({ message: "Unauthorized" });
             return;
         }
 
-        const user = await User.findById(req.user._id).select('preferences');
+        const user = await User.findById(req.user._id).select('preferences publicShareId');
         if (!user) {
             res.status(404).json({ message: "User not found" });
             return;
         }
 
-        res.status(200).json(user.preferences);
+        res.status(200).json({
+            ...user.preferences,
+            publicShareId: user.preferences?.isPublic ? user.publicShareId : null
+        });
     } catch (error) {
         console.error("Error in getPreferences controller", error);
         res.status(500).json({ message: "Internal server error" });
@@ -104,11 +107,11 @@ export async function getPreferences(req: Request, res: Response) {
 export async function updatePreferences(req: Request, res: Response) {
     try {
         if (!req.user) {
-            res.status(401).json({ message: "Non autorisé" });
+            res.status(401).json({ message: "Unauthorized" });
             return;
         }
 
-        const { theme } = req.body;
+        const { theme, isPublic } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -116,16 +119,20 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        // Mettre à jour les préférences
+        // Update preferences
         if (theme !== undefined) {
             user.preferences = { ...user.preferences, theme };
+        }
+        if (isPublic !== undefined) {
+            user.preferences = { ...user.preferences, isPublic };
         }
 
         await user.save();
 
         res.status(200).json({
             message: "Preferences updated successfully",
-            preferences: user.preferences
+            preferences: user.preferences,
+            publicShareId: user.preferences.isPublic ? user.publicShareId : null
         });
     } catch (error) {
         console.error("Error in updatePreferences controller", error);

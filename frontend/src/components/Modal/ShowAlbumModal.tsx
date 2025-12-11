@@ -6,8 +6,9 @@ import axios from 'axios';
 interface ShowAlbumModalProps {
     item: CollectionItem | null;
     onClose: () => void;
-    onDelete: (itemId: string) => void;
-    isDeleting: boolean;
+    onDelete?: (itemId: string) => void;
+    isDeleting?: boolean;
+    readOnly?: boolean;
 }
 
 interface Track {
@@ -28,7 +29,7 @@ interface AlbumDetails {
     formats?: Array<{ name: string; descriptions?: string[] }>;
 }
 
-const ShowAlbumModal: React.FC<ShowAlbumModalProps> = ({ item, onClose, onDelete, isDeleting }) => {
+const ShowAlbumModal: React.FC<ShowAlbumModalProps> = ({ item, onClose, onDelete, isDeleting, readOnly }) => {
     const navigate = useNavigate();
     const [albumDetails, setAlbumDetails] = useState<AlbumDetails | null>(null);
     const [loading, setLoading] = useState(false);
@@ -54,7 +55,7 @@ const ShowAlbumModal: React.FC<ShowAlbumModalProps> = ({ item, onClose, onDelete
     if (!item) return null;
 
     const handleDelete = async () => {
-        if (window.confirm('Are you sure you want to remove this album from your collection?')) {
+        if (onDelete && window.confirm('Are you sure you want to remove this album from your collection?')) {
             onDelete(item._id);
         }
     };
@@ -181,25 +182,29 @@ const ShowAlbumModal: React.FC<ShowAlbumModalProps> = ({ item, onClose, onDelete
 
                         {/* Actions */}
                         <div className="flex flex-col gap-2 mt-6">
-                            <button
-                                onClick={() => {
-                                    navigate(`/app/album/${item._id}`);
-                                    onClose();
-                                }}
-                                className="btn btn-primary w-full"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                More Details
-                            </button>
-                            <button
-                                onClick={handleDelete}
-                                className={`btn btn-error w-full ${isDeleting ? 'loading' : ''}`}
-                                disabled={isDeleting}
-                            >
-                                {isDeleting ? 'Deleting...' : 'Remove'}
-                            </button>
+                            {!readOnly && (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            navigate(`/app/album/${item._id}`);
+                                            onClose();
+                                        }}
+                                        className="btn btn-primary w-full"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        More Details
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        className={`btn btn-error w-full ${isDeleting ? 'loading' : ''}`}
+                                        disabled={isDeleting}
+                                    >
+                                        {isDeleting ? 'Deleting...' : 'Remove'}
+                                    </button>
+                                </>
+                            )}
                             <button onClick={onClose} className="btn btn-ghost w-full">
                                 Close
                             </button>
