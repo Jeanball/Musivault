@@ -75,10 +75,18 @@ const RematchModal: React.FC<RematchModalProps> = ({
                 const masterResponse = await axios.get(`${API_BASE_URL}/api/discogs/master/${result.id}/versions`, {
                     withCredentials: true
                 });
-                releaseId = masterResponse.data.main_release || result.id;
+
+                if (!masterResponse.data.main_release) {
+                    throw new Error('No main release found for this master');
+                }
+                releaseId = masterResponse.data.main_release;
             } catch (err) {
                 console.error('Failed to fetch master details:', err);
-                // Fall back to using the master ID directly
+                // Don't fall back to master ID - it will cause a 404
+                toastService.error('Failed to get release info. Please try a different result.');
+                setIsRematching(false);
+                setSelectedId(null);
+                return;
             }
         }
 

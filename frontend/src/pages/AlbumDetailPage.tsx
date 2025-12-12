@@ -115,19 +115,9 @@ const AlbumDetailPage: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto p-4">
             {/* Header Actions */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-start items-center mb-6">
                 <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm">
                     ← Back
-                </button>
-                <button
-                    onClick={handleDelete}
-                    className="btn btn-ghost btn-sm text-error hover:bg-error/10"
-                    title="Remove from collection"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Delete Album
                 </button>
             </div>
 
@@ -229,8 +219,8 @@ const AlbumDetailPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* External Links */}
-                    <div className="flex gap-3">
+                    {/* External Links - Spotify & Discogs together */}
+                    <div className="flex flex-wrap gap-3 mb-4">
                         {spotifyUrl && (
                             <a
                                 href={spotifyUrl}
@@ -254,6 +244,10 @@ const AlbumDetailPage: React.FC = () => {
                                 View on Discogs
                             </a>
                         )}
+                    </div>
+
+                    {/* Management Actions - Rematch & Delete together */}
+                    <div className="flex flex-wrap gap-3">
                         <button
                             onClick={() => setIsRematchOpen(true)}
                             className="btn btn-warning btn-outline"
@@ -263,6 +257,16 @@ const AlbumDetailPage: React.FC = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                             Rematch
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            className="btn btn-error btn-outline"
+                            title="Remove from collection"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
                         </button>
                     </div>
                 </div>
