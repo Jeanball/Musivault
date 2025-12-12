@@ -33,11 +33,16 @@ export interface CollectionStats {
     total: number;
     formatCounts: Record<string, number>;
     decadeCounts: Record<string, number>;
+    styleCounts: Record<string, number>;
     recentAdds: {
         thisWeek: number;
         thisMonth: number;
     };
     topArtist: {
+        name: string;
+        count: number;
+    } | null;
+    topStyle: {
         name: string;
         count: number;
     } | null;

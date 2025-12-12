@@ -7,6 +7,7 @@ interface CollectionFiltersProps {
     availableFormats: string[];
     availableDecades: string[];
     availableStyles: string[];
+    styleCounts: Record<string, number>;
     totalResults: number;
     filteredResults: number;
     onClearAll?: () => void;
@@ -18,6 +19,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     availableFormats,
     availableDecades,
     availableStyles,
+    styleCounts,
     totalResults,
     filteredResults,
     onClearAll
@@ -98,7 +100,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                         >
                             <option value="all">All</option>
                             {availableStyles.map(style => (
-                                <option key={style} value={style}>{style}</option>
+                                <option key={style} value={style}>{style} ({styleCounts[style] || 0})</option>
                             ))}
                         </select>
                     </div>

@@ -24,7 +24,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                     <div className="min-w-0">
                         <h3 className="font-semibold text-base md:text-lg truncate">Collection Stats</h3>
                         <p className="text-xs md:text-sm text-gray-500 truncate">
-                            {stats.total} albums • {Object.keys(stats.formatCounts).length} formats • {Object.keys(stats.decadeCounts).length} decades
+                            {stats.total} albums • {Object.keys(stats.formatCounts).length} formats • {Object.keys(stats.decadeCounts).length} decades • {stats.recentAdds.thisWeek} recent • {Object.keys(stats.styleCounts).length} styles
                         </p>
                     </div>
                 </div>
@@ -44,30 +44,32 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
             </div>
 
             {/* Collapsible content */}
-            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[600px] lg:max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="stats stats-vertical lg:stats-horizontal w-full">
-                    <div className="stat">
-                        <div className="stat-figure text-primary">
+            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 p-4">
+                    {/* Total */}
+                    <div className="bg-base-200 rounded-lg p-4 text-center">
+                        <div className="text-primary mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                             </svg>
                         </div>
-                        <div className="stat-title">Total</div>
-                        <div className="stat-value text-primary">{stats.total}</div>
-                        <div className="stat-desc">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">Total</div>
+                        <div className="text-2xl font-bold text-primary">{stats.total}</div>
+                        <div className="text-xs text-gray-500 mt-1 truncate">
                             {stats.topArtist && `${stats.topArtist.name} (${stats.topArtist.count})`}
                         </div>
                     </div>
 
-                    <div className="stat">
-                        <div className="stat-figure text-secondary">
+                    {/* Formats */}
+                    <div className="bg-base-200 rounded-lg p-4 text-center">
+                        <div className="text-secondary mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
                             </svg>
                         </div>
-                        <div className="stat-title">Formats</div>
-                        <div className="stat-value text-secondary">{Object.keys(stats.formatCounts).length}</div>
-                        <div className="stat-desc">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">Formats</div>
+                        <div className="text-2xl font-bold text-secondary">{Object.keys(stats.formatCounts).length}</div>
+                        <div className="text-xs text-gray-500 mt-1 truncate">
                             {Object.entries(stats.formatCounts)
                                 .sort(([, a], [, b]) => b - a)
                                 .slice(0, 2)
@@ -76,15 +78,16 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                         </div>
                     </div>
 
-                    <div className="stat">
-                        <div className="stat-figure text-accent">
+                    {/* Decades */}
+                    <div className="bg-base-200 rounded-lg p-4 text-center">
+                        <div className="text-accent mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <div className="stat-title">Decades</div>
-                        <div className="stat-value text-accent">{Object.keys(stats.decadeCounts).length}</div>
-                        <div className="stat-desc">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">Decades</div>
+                        <div className="text-2xl font-bold text-accent">{Object.keys(stats.decadeCounts).length}</div>
+                        <div className="text-xs text-gray-500 mt-1 truncate">
                             {Object.entries(stats.decadeCounts)
                                 .sort(([, a], [, b]) => b - a)
                                 .slice(0, 2)
@@ -93,16 +96,31 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                         </div>
                     </div>
 
-                    <div className="stat">
-                        <div className="stat-figure text-success">
+                    {/* Recent Adds */}
+                    <div className="bg-base-200 rounded-lg p-4 text-center">
+                        <div className="text-success mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <div className="stat-title">Recent Adds</div>
-                        <div className="stat-value text-success">{stats.recentAdds.thisWeek}</div>
-                        <div className="stat-desc">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">Recent</div>
+                        <div className="text-2xl font-bold text-success">{stats.recentAdds.thisWeek}</div>
+                        <div className="text-xs text-gray-500 mt-1 truncate">
                             This week • {stats.recentAdds.thisMonth} this month
+                        </div>
+                    </div>
+
+                    {/* Styles */}
+                    <div className="bg-base-200 rounded-lg p-4 text-center">
+                        <div className="text-info mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                        </div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">Styles</div>
+                        <div className="text-2xl font-bold text-info">{Object.keys(stats.styleCounts).length}</div>
+                        <div className="text-xs text-gray-500 mt-1 truncate">
+                            {stats.topStyle && `${stats.topStyle.name} (${stats.topStyle.count})`}
                         </div>
                     </div>
                 </div>

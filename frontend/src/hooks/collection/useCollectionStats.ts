@@ -47,23 +47,30 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
         const availableFormats = Object.keys(formatCounts).sort();
         const availableDecades = Object.keys(decadeCounts).sort();
 
-        // Get unique styles from collection
-        const stylesSet = new Set<string>();
-        for (const item of collection) {
+        // Get style counts from collection
+        const styleCounts = collection.reduce((acc, item) => {
             if (item.album.styles) {
                 for (const style of item.album.styles) {
-                    stylesSet.add(style);
+                    acc[style] = (acc[style] || 0) + 1;
                 }
             }
-        }
-        const availableStyles = Array.from(stylesSet).sort();
+            return acc;
+        }, {} as Record<string, number>);
+
+        const availableStyles = Object.keys(styleCounts).sort();
+
+        // Most represented style
+        const topStyleEntry = Object.entries(styleCounts)
+            .sort(([, a], [, b]) => b - a)[0];
 
         return {
             total,
             formatCounts,
             decadeCounts,
+            styleCounts,
             recentAdds,
             topArtist: topArtist ? { name: topArtist[0], count: topArtist[1] } : null,
+            topStyle: topStyleEntry ? { name: topStyleEntry[0], count: topStyleEntry[1] } : null,
             availableFormats,
             availableDecades,
             availableStyles

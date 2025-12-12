@@ -101,6 +101,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 availableFormats={stats.availableFormats}
                 availableDecades={stats.availableDecades}
                 availableStyles={stats.availableStyles}
+                styleCounts={stats.styleCounts}
                 totalResults={collection.length}
                 filteredResults={filteredCollection.length}
                 onClearAll={hasAnyFilters ? handleClearAll : undefined}
