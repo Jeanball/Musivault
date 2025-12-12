@@ -404,6 +404,11 @@ export async function rematchAlbum(req: Request, res: Response) {
       res.status(429).json({ message: 'Rate limited by Discogs. Please wait a minute and try again.' });
       return;
     }
+    // MongoDB duplicate key error - album already exists in collection
+    if (error.code === 11000) {
+      res.status(409).json({ message: 'This album already exists in your collection' });
+      return;
+    }
     res.status(500).json({ message: 'Internal server error' });
   }
 }
