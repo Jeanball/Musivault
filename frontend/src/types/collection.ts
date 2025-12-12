@@ -8,6 +8,7 @@ export interface Album {
     thumb: string;
     year: string;
     discogsId?: number;
+    styles?: string[];
 }
 
 export interface CollectionItem {
@@ -25,6 +26,7 @@ export interface FilterState {
     format: string;
     decade: string;
     addedPeriod: string;
+    style: string;
 }
 
 export interface CollectionStats {
@@ -41,4 +43,5 @@ export interface CollectionStats {
     } | null;
     availableFormats: string[];
     availableDecades: string[];
+    availableStyles: string[];
 }

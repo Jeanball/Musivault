@@ -7,6 +7,7 @@ export interface IAlbum extends Document {
   year: string;
   thumb: string;
   cover_image: string;
+  styles: string[];
 }
 
 const albumSchema = new Schema<IAlbum>({
@@ -32,6 +33,10 @@ const albumSchema = new Schema<IAlbum>({
   },
   cover_image: {
     type: String,
+  },
+  styles: {
+    type: [String],
+    default: [],
   },
 });
 

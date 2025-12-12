@@ -34,6 +34,7 @@ interface DiscogsReleaseResponse {
         type: string; uri: string
     }[];
     formats: DiscogsFormat[];
+    styles?: string[];
 }
 
 interface DiscogsSearchResult {
@@ -464,6 +465,7 @@ export async function getReleaseDetails(req: Request, res: Response) {
             artist: data.artists?.map(a => a.name).join(', ') || 'Artiste inconnu',
             year: data.year,
             cover_image: data.images?.find(img => img.type === 'primary')?.uri || data.images?.[0]?.uri || '',
+            styles: data.styles || [],
             availableFormats: data.formats?.map(f => ({
                 name: f.name,
                 descriptions: f.descriptions || [],

@@ -1,12 +1,32 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, FilterState } from '../../types/collection';
 
-export const useCollectionFilters = (collection: CollectionItem[], searchTerm: string) => {
-    const [filters, setFilters] = useState<FilterState>({
+const FILTER_STORAGE_KEY = 'musivault_collection_filters';
+
+const getInitialFilters = (): FilterState => {
+    try {
+        const stored = sessionStorage.getItem(FILTER_STORAGE_KEY);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {
+        // Ignore parse errors
+    }
+    return {
         format: 'all',
         decade: 'all',
-        addedPeriod: 'all'
-    });
+        addedPeriod: 'all',
+        style: 'all'
+    };
+};
+
+export const useCollectionFilters = (collection: CollectionItem[], searchTerm: string) => {
+    const [filters, setFilters] = useState<FilterState>(getInitialFilters);
+
+    // Persist filters to sessionStorage
+    useEffect(() => {
+        sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+    }, [filters]);
 
     const applyFilters = (items: CollectionItem[]) => {
         return items.filter(item => {
@@ -30,6 +50,13 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
                     const decadeLabel = `${decade}s`;
                     if (decadeLabel !== filters.decade) return false;
                 } else if (filters.decade !== 'unknown') {
+                    return false;
+                }
+            }
+
+            // Filter by style
+            if (filters.style !== 'all') {
+                if (!item.album.styles || !item.album.styles.includes(filters.style)) {
                     return false;
                 }
             }
@@ -79,9 +106,19 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
         }, {} as Record<string, CollectionItem[]>);
     }, [filteredCollection]);
 
+    const clearFilters = () => {
+        setFilters({
+            format: 'all',
+            decade: 'all',
+            addedPeriod: 'all',
+            style: 'all'
+        });
+    };
+
     return {
         filters,
         setFilters,
+        clearFilters,
         filteredCollection,
         groupedByArtist
     };
