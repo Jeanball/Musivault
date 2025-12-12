@@ -15,7 +15,6 @@ interface AlbumDetails {
     title: string;
     artists: Array<{ name: string }>;
     year: number;
-    genres?: string[];
     styles?: string[];
     tracklist?: Track[];
     cover_image?: string;
@@ -191,33 +190,19 @@ const AlbumDetailPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Genres */}
-                    {albumDetails?.genres && albumDetails.genres.length > 0 && (
-                        <div className="mb-4">
+                    {/* Styles */}
+                    {(item.album.styles?.length ?? 0) > 0 || (albumDetails?.styles?.length ?? 0) > 0 ? (
+                        <div className="mb-6">
                             <h3 className="text-sm font-semibold text-base-content/60 mb-2">GENRES</h3>
                             <div className="flex flex-wrap gap-2">
-                                {albumDetails.genres.map((genre, index) => (
+                                {(item.album.styles?.length ? item.album.styles : albumDetails?.styles || []).map((style, index) => (
                                     <span key={index} className="badge badge-primary badge-lg">
-                                        {genre}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Styles */}
-                    {albumDetails?.styles && albumDetails.styles.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-sm font-semibold text-base-content/60 mb-2">STYLES</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {albumDetails.styles.map((style, index) => (
-                                    <span key={index} className="badge badge-secondary badge-outline badge-lg">
                                         {style}
                                     </span>
                                 ))}
                             </div>
                         </div>
-                    )}
+                    ) : null}
 
                     {/* External Links - Spotify & Discogs together */}
                     <div className="flex flex-wrap gap-3 mb-4">

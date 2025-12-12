@@ -11,7 +11,8 @@ import {
     getImportLogById,
     downloadImportLog,
     updateCollectionItem,
-    rematchAlbum
+    rematchAlbum,
+    getStyles
 } from '../controllers/collection.controller';
 import protectRoute from '../middlewares/protectRoute';
 
@@ -24,6 +25,9 @@ router.post('/import', protectRoute, upload.single('file'), importCollectionCSV)
 router.get('/import/logs', protectRoute, getImportLogs);
 router.get('/import/logs/:logId', protectRoute, getImportLogById);
 router.get('/import/logs/:logId/download', protectRoute, downloadImportLog);
+
+// Style filter endpoint (must be before /:itemId to avoid route conflicts)
+router.get('/styles', protectRoute, getStyles);
 
 // Collection CRUD
 router.post('/', protectRoute, addToCollection);

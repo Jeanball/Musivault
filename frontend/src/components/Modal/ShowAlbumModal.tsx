@@ -21,7 +21,6 @@ interface AlbumDetails {
     title: string;
     artists: Array<{ name: string }>;
     year: number;
-    genres?: string[];
     styles?: string[];
     tracklist?: Track[];
     cover_image?: string;
@@ -116,33 +115,19 @@ const ShowAlbumModal: React.FC<ShowAlbumModalProps> = ({ item, onClose, onDelete
                                     )}
                                 </div>
 
-                                {/* Genres and Styles */}
-                                {(albumDetails?.genres || albumDetails?.styles) && (
+                                {/* Styles */}
+                                {((item.album.styles?.length ?? 0) > 0 || (albumDetails?.styles?.length ?? 0) > 0) && (
                                     <div className="mb-4">
-                                        {albumDetails.genres && albumDetails.genres.length > 0 && (
-                                            <div className="mb-2">
-                                                <span className="text-sm text-base-content/60">Genres: </span>
-                                                <div className="flex flex-wrap gap-2 mt-1">
-                                                    {albumDetails.genres.map((genre, index) => (
-                                                        <span key={index} className="badge badge-primary">
-                                                            {genre}
-                                                        </span>
-                                                    ))}
-                                                </div>
+                                        <div className="mb-2">
+                                            <span className="text-sm text-base-content/60">Styles: </span>
+                                            <div className="flex flex-wrap gap-2 mt-1">
+                                                {(item.album.styles?.length ? item.album.styles : (albumDetails?.styles || [])).map((style, index) => (
+                                                    <span key={index} className="badge badge-primary">
+                                                        {style}
+                                                    </span>
+                                                ))}
                                             </div>
-                                        )}
-                                        {albumDetails.styles && albumDetails.styles.length > 0 && (
-                                            <div>
-                                                <span className="text-sm text-base-content/60">Styles: </span>
-                                                <div className="flex flex-wrap gap-2 mt-1">
-                                                    {albumDetails.styles.map((style, index) => (
-                                                        <span key={index} className="badge badge-secondary badge-outline">
-                                                            {style}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
                                 )}
                             </div>

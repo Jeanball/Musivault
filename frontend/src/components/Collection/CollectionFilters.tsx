@@ -6,8 +6,10 @@ interface CollectionFiltersProps {
     onFiltersChange: (filters: FilterState) => void;
     availableFormats: string[];
     availableDecades: string[];
+    availableStyles: string[];
     totalResults: number;
     filteredResults: number;
+    onClearAll?: () => void;
 }
 
 const CollectionFilters: React.FC<CollectionFiltersProps> = ({
@@ -15,8 +17,10 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     onFiltersChange,
     availableFormats,
     availableDecades,
+    availableStyles,
     totalResults,
-    filteredResults
+    filteredResults,
+    onClearAll
 }) => {
     const handleFilterChange = (key: keyof FilterState, value: string) => {
         onFiltersChange({
@@ -25,21 +29,11 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
         });
     };
 
-    const resetFilters = () => {
-        onFiltersChange({
-            format: 'all',
-            decade: 'all',
-            addedPeriod: 'all'
-        });
-    };
-
-    const hasActiveFilters = filters.format !== 'all' || filters.decade !== 'all' || filters.addedPeriod !== 'all';
-
     return (
         <div className="bg-base-100 rounded-box shadow-lg p-3 md:p-4 mb-6">
             <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-stretch lg:items-center justify-between">
-                {/* Filters - Always 3 columns, compact on mobile */}
-                <div className="grid grid-cols-3 gap-2 md:gap-4 flex-1">
+                {/* Filters - 4 columns on desktop, 2 on mobile */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 flex-1">
                     {/* Filter by Format */}
                     <div className="form-control">
                         <label className="label py-0.5 md:py-1">
@@ -91,30 +85,47 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <option value="lastYear">Last yr</option>
                         </select>
                     </div>
+
+                    {/* Filter by Style */}
+                    <div className="form-control">
+                        <label className="label py-0.5 md:py-1">
+                            <span className="label-text text-xs">Style</span>
+                        </label>
+                        <select
+                            className="select select-bordered select-xs md:select-sm w-full"
+                            value={filters.style}
+                            onChange={(e) => handleFilterChange('style', e.target.value)}
+                        >
+                            <option value="all">All</option>
+                            {availableStyles.map(style => (
+                                <option key={style} value={style}>{style}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
-                {/* Results and Reset */}
+                {/* Results count and Clear All */}
                 <div className="flex flex-row items-center justify-between lg:justify-end gap-3">
                     <div className="text-xs md:text-sm text-gray-500">
                         {filteredResults} / {totalResults}
                     </div>
-
-                    {hasActiveFilters && (
+                    {onClearAll && (
                         <button
                             className="btn btn-ghost btn-xs"
-                            onClick={resetFilters}
+                            onClick={onClearAll}
+                            title="Clear all filters"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 md:h-4 md:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                            <span className="hidden sm:inline">Reset</span>
+                            <span className="hidden sm:inline">Clear All</span>
                         </button>
                     )}
                 </div>
             </div>
 
             {/* Active filters indicators */}
-            {hasActiveFilters && (
+            {(filters.format !== 'all' || filters.decade !== 'all' || filters.addedPeriod !== 'all' || filters.style !== 'all') && (
                 <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-base-300">
                     {filters.format !== 'all' && (
                         <div className="badge badge-primary gap-1">
@@ -146,6 +157,17 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('addedPeriod', 'all')}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
+                    {filters.style !== 'all' && (
+                        <div className="badge badge-info gap-1">
+                            Style: {filters.style}
+                            <button
+                                className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
+                                onClick={() => handleFilterChange('style', 'all')}
                             >
                                 ×
                             </button>

@@ -14,6 +14,7 @@ interface AddToCollectionBody {
   thumb: string;
   cover_image: string;
   format: string;
+  styles?: string[];
 }
 
 // ===== CSV Import =====
@@ -148,7 +149,7 @@ export async function getMyCollection(req: Request, res: Response) {
       return;
     }
 
-    const { sort, limit } = req.query;
+    const { sort, limit, style } = req.query;
     let query = CollectionItem.find({ user: req.user._id })
       .populate<{ album: IAlbum }>('album');
 
@@ -163,7 +164,14 @@ export async function getMyCollection(req: Request, res: Response) {
       }
     }
 
-    const collection = await query.exec();
+    let collection = await query.exec();
+
+    // Filter by style if provided
+    if (style && typeof style === 'string') {
+      collection = collection.filter(item =>
+        item.album && item.album.styles && item.album.styles.includes(style)
+      );
+    }
 
     // Sort by artist if not sorting by latest
     if (sort !== 'latest') {
@@ -219,7 +227,15 @@ export async function addToCollection(req: Request, res: Response) {
     // Find or create album
     let album = await Album.findOne({ discogsId });
     if (!album) {
-      album = new Album({ discogsId, title, artist, year, thumb, cover_image });
+      album = new Album({
+        discogsId,
+        title,
+        artist,
+        year,
+        thumb,
+        cover_image,
+        styles: req.body.styles || []
+      });
       await album.save();
     }
 
@@ -371,6 +387,7 @@ export async function rematchAlbum(req: Request, res: Response) {
       || releaseData.images?.[0]?.uri
       || album.cover_image;
     album.thumb = releaseData.images?.[0]?.uri150 || album.thumb;
+    album.styles = releaseData.styles || album.styles;
 
     await album.save();
 
@@ -383,6 +400,38 @@ export async function rematchAlbum(req: Request, res: Response) {
       res.status(404).json({ message: 'Release not found on Discogs' });
       return;
     }
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+// ===== Style Filter =====
+
+export async function getStyles(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    // Get all collection items for the user
+    const collectionItems = await CollectionItem.find({ user: req.user._id }).populate<{ album: IAlbum }>('album');
+
+    // Extract all unique styles
+    const stylesSet = new Set<string>();
+    for (const item of collectionItems) {
+      if (item.album && item.album.styles) {
+        for (const style of item.album.styles) {
+          stylesSet.add(style);
+        }
+      }
+    }
+
+    // Convert to sorted array
+    const styles = Array.from(stylesSet).sort();
+
+    res.status(200).json(styles);
+  } catch (error) {
+    console.error('Error fetching styles:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

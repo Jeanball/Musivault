@@ -3,9 +3,8 @@
   "version": "1.1.0",
   "main": "src/server.ts",
   "scripts": {
-    "dev": "nodemon src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "migrate:styles": "node dist/scripts/migrate-styles.js"
   },
   "keywords": [],
   "author": "",

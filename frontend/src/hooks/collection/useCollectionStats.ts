@@ -47,6 +47,17 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
         const availableFormats = Object.keys(formatCounts).sort();
         const availableDecades = Object.keys(decadeCounts).sort();
 
+        // Get unique styles from collection
+        const stylesSet = new Set<string>();
+        for (const item of collection) {
+            if (item.album.styles) {
+                for (const style of item.album.styles) {
+                    stylesSet.add(style);
+                }
+            }
+        }
+        const availableStyles = Array.from(stylesSet).sort();
+
         return {
             total,
             formatCounts,
@@ -54,7 +65,8 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
             recentAdds,
             topArtist: topArtist ? { name: topArtist[0], count: topArtist[1] } : null,
             availableFormats,
-            availableDecades
+            availableDecades,
+            availableStyles
         };
     }, [collection]);
 };

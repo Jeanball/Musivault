@@ -1,9 +1,34 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, SortColumn, SortOrder } from '../../types/collection';
 
+const SORT_STORAGE_KEY = 'musivault_collection_sort';
+
+interface SortState {
+    sortBy: SortColumn;
+    sortOrder: SortOrder;
+}
+
+const getInitialSort = (): SortState => {
+    try {
+        const stored = sessionStorage.getItem(SORT_STORAGE_KEY);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {
+        // Ignore parse errors
+    }
+    return { sortBy: 'artist', sortOrder: 'asc' };
+};
+
 export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
-    const [sortBy, setSortBy] = useState<SortColumn>('artist');
-    const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+    const initialSort = getInitialSort();
+    const [sortBy, setSortBy] = useState<SortColumn>(initialSort.sortBy);
+    const [sortOrder, setSortOrder] = useState<SortOrder>(initialSort.sortOrder);
+
+    // Persist sort state to sessionStorage
+    useEffect(() => {
+        sessionStorage.setItem(SORT_STORAGE_KEY, JSON.stringify({ sortBy, sortOrder }));
+    }, [sortBy, sortOrder]);
 
     const handleSort = (column: SortColumn) => {
         if (sortBy === column) {
@@ -59,11 +84,17 @@ export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
         });
     }, [filteredCollection, sortBy, sortOrder]);
 
+    const resetSort = () => {
+        setSortBy('artist');
+        setSortOrder('asc');
+    };
+
     return {
         sortBy,
         sortOrder,
         handleSort,
         getSortIcon,
-        sortedCollection
+        sortedCollection,
+        resetSort
     };
 };
