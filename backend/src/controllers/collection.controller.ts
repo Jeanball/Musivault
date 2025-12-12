@@ -307,3 +307,82 @@ export async function updateCollectionItem(req: Request, res: Response) {
     res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+// ===== Album Rematch =====
+
+export async function rematchAlbum(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { itemId } = req.params;
+    const { newDiscogsId } = req.body;
+
+    if (!newDiscogsId || typeof newDiscogsId !== 'number') {
+      res.status(400).json({ message: 'newDiscogsId is required and must be a number' });
+      return;
+    }
+
+    // Find the collection item
+    const item = await CollectionItem.findOne({
+      _id: itemId,
+      user: req.user._id
+    }).populate('album');
+
+    if (!item) {
+      res.status(404).json({ message: 'Item not found in your collection' });
+      return;
+    }
+
+    // Fetch release details from Discogs
+    const discogsSecret = process.env.DISCOGS_SECRET;
+    if (!discogsSecret) {
+      res.status(500).json({ message: 'Server configuration error' });
+      return;
+    }
+
+    const axios = (await import('axios')).default;
+    const discogsResponse = await axios.get(`https://api.discogs.com/releases/${newDiscogsId}`, {
+      headers: {
+        'Authorization': `Discogs token=${discogsSecret}`,
+        'User-Agent': 'Musivault/1.0'
+      }
+    });
+
+    const releaseData = discogsResponse.data;
+
+    // Clean the title (remove artist prefix)
+    let cleanedTitle = releaseData.title;
+    const separator = ' - ';
+    const separatorIndex = cleanedTitle.indexOf(separator);
+    if (separatorIndex !== -1) {
+      cleanedTitle = cleanedTitle.substring(separatorIndex + separator.length).trim();
+    }
+
+    // Update the album with new Discogs data
+    const album = item.album as any;
+    album.discogsId = newDiscogsId;
+    album.title = cleanedTitle;
+    album.artist = releaseData.artists?.map((a: any) => a.name).join(', ') || album.artist;
+    album.year = releaseData.year?.toString() || album.year;
+    album.cover_image = releaseData.images?.find((img: any) => img.type === 'primary')?.uri
+      || releaseData.images?.[0]?.uri
+      || album.cover_image;
+    album.thumb = releaseData.images?.[0]?.uri150 || album.thumb;
+
+    await album.save();
+
+    // Return the updated item
+    const updatedItem = await CollectionItem.findById(itemId).populate('album');
+    res.status(200).json(updatedItem);
+  } catch (error: any) {
+    console.error('Error rematching album:', error);
+    if (error.response?.status === 404) {
+      res.status(404).json({ message: 'Release not found on Discogs' });
+      return;
+    }
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}

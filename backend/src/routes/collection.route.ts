@@ -10,7 +10,8 @@ import {
     getImportLogs,
     getImportLogById,
     downloadImportLog,
-    updateCollectionItem
+    updateCollectionItem,
+    rematchAlbum
 } from '../controllers/collection.controller';
 import protectRoute from '../middlewares/protectRoute';
 
@@ -29,6 +30,7 @@ router.post('/', protectRoute, addToCollection);
 router.get('/', protectRoute, getMyCollection);
 router.get('/:itemId', protectRoute, getCollectionItemById);
 router.put('/:itemId', protectRoute, updateCollectionItem);
+router.post('/:itemId/rematch', protectRoute, rematchAlbum);
 router.delete('/:itemId', protectRoute, deleteFromCollection);
 
 export default router;

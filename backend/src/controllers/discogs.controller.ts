@@ -2,11 +2,11 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 
 interface DiscogsResult {
-  id: number;
-  thumb: string;
-  cover_image: string;
-  title: string;
-  year: number;
+    id: number;
+    thumb: string;
+    cover_image: string;
+    title: string;
+    year: number;
 }
 
 interface DiscogsSearchResultExtended {
@@ -31,8 +31,8 @@ interface DiscogsReleaseResponse {
     artists: { name: string }[];
     year: string;
     images: {
-      type: string; uri: string 
-}[];
+        type: string; uri: string
+    }[];
     formats: DiscogsFormat[];
 }
 
@@ -63,6 +63,7 @@ interface DiscogsMasterVersionsResult {
 
 interface DiscogsMasterDetailsResponse {
     title: string;
+    main_release?: number;
     images?: { uri: string }[];
     filter_facets?: { id: string; values: { value: string; count: number }[] }[];
 }
@@ -168,9 +169,9 @@ export async function searchMasters(req: Request, res: Response) {
             res.status(400).json({ message: "Le paramètre de recherche 'q' est manquant." });
             return;
         }
-        
+
         const discogsApiUrl = `https://api.discogs.com/database/search`;
-        
+
         const response = await axios.get<{ results: DiscogsSearchResult[] }>(discogsApiUrl, {
             params: {
                 q: q,
@@ -190,7 +191,7 @@ export async function searchMasters(req: Request, res: Response) {
             year: item.year,
             thumb: item.thumb,
         }));
-        
+
         res.status(200).json(cleanedResults);
 
     } catch (error) {
@@ -213,7 +214,7 @@ export async function getMasterVersions(req: Request, res: Response) {
 
         const masterDetailsUrl = `https://api.discogs.com/masters/${masterId}`;
         const masterVersionsUrl = `https://api.discogs.com/masters/${masterId}/versions`;
-        
+
         // L'authentification se fait maintenant via les paramètres de la requête
         const authParams = {
             key: discogsKey,
@@ -222,17 +223,17 @@ export async function getMasterVersions(req: Request, res: Response) {
 
         // On lance les deux appels API en parallèle pour gagner du temps
         const [detailsResponse, versionsResponse] = await Promise.all([
-            axios.get<DiscogsMasterDetailsResponse>(masterDetailsUrl, { 
+            axios.get<DiscogsMasterDetailsResponse>(masterDetailsUrl, {
                 headers: { 'User-Agent': 'Musivault/1.0' },
-                params: authParams 
+                params: authParams
             }),
-            axios.get<DiscogsMasterVersionsResponse>(masterVersionsUrl, { 
+            axios.get<DiscogsMasterVersionsResponse>(masterVersionsUrl, {
                 headers: { 'User-Agent': 'Musivault/1.0' },
                 params: authParams
             })
         ]);
 
-                const versions = versionsResponse.data.versions || [];
+        const versions = versionsResponse.data.versions || [];
 
         // --- NOUVELLE LOGIQUE DE COMPTAGE MANUEL ---
         // On calcule les comptes nous-mêmes en parcourant la liste des versions.
@@ -248,7 +249,8 @@ export async function getMasterVersions(req: Request, res: Response) {
 
         const finalResponse = {
             masterTitle: detailsResponse.data.title.split(' - ')[0],
-            coverImage: detailsResponse.data.images?.[0]?.uri || '', 
+            coverImage: detailsResponse.data.images?.[0]?.uri || '',
+            main_release: detailsResponse.data.main_release,
             formatCounts: formatCounts,
             versions: versionsResponse.data.versions.map(v => ({
                 id: v.id,
@@ -260,7 +262,7 @@ export async function getMasterVersions(req: Request, res: Response) {
                 majorFormat: v.major_formats?.[0] || 'N/A', // Le format principal
             }))
         };
-        
+
         res.status(200).json(finalResponse);
 
     } catch (error) {
@@ -283,9 +285,9 @@ export async function searchDiscogs(req: Request, res: Response) {
             res.status(500).json({ message: "Erreur de configuration du serveur." });
             return;
         }
-        
+
         const discogsApiUrl = `https://api.discogs.com/database/search`;
-        
+
         const response = await axios.get<{ results: DiscogsSearchResult[] }>(discogsApiUrl, {
             params: {
                 q: q,
@@ -304,7 +306,7 @@ export async function searchDiscogs(req: Request, res: Response) {
             thumb: item.thumb,
             type: item.type, // On passe le type au frontend
         }));
-        
+
         res.status(200).json(cleanedResults);
 
     } catch (error) {
@@ -330,7 +332,7 @@ export async function searchArtists(req: Request, res: Response) {
         }
 
         const discogsApiUrl = `https://api.discogs.com/database/search`;
-        
+
         const response = await axios.get<{ results: { id: number; title: string; thumb: string }[] }>(discogsApiUrl, {
             params: {
                 q: q,
@@ -346,7 +348,7 @@ export async function searchArtists(req: Request, res: Response) {
             name: item.title,
             thumb: item.thumb
         }));
-        
+
         res.status(200).json(cleanedResults);
 
     } catch (error) {
@@ -371,7 +373,7 @@ export async function getArtistReleases(req: Request, res: Response) {
         // Récupérer les infos de l'artiste
         const artistUrl = `https://api.discogs.com/artists/${artistId}`;
         const releasesUrl = `https://api.discogs.com/artists/${artistId}/releases`;
-        
+
         const authParams = {
             key: discogsKey,
             secret: discogsSecret
@@ -380,9 +382,9 @@ export async function getArtistReleases(req: Request, res: Response) {
 
         const [artistResponse, releasesResponse] = await Promise.all([
             axios.get<{ name: string; images?: { uri: string }[] }>(artistUrl, { params: authParams, headers }),
-            axios.get<{ releases: { id: number; title: string; year: number; thumb: string; type: string; role: string; artist: string; main_release?: number }[] }>(releasesUrl, { 
+            axios.get<{ releases: { id: number; title: string; year: number; thumb: string; type: string; role: string; artist: string; main_release?: number }[] }>(releasesUrl, {
                 params: { ...authParams, per_page: 100, sort: 'year', sort_order: order },
-                headers 
+                headers
             })
         ]);
 
@@ -444,9 +446,9 @@ export async function getReleaseDetails(req: Request, res: Response) {
             res.status(500).json({ message: "Erreur de configuration du serveur." });
             return;
         }
-        
+
         const discogsApiUrl = `https://api.discogs.com/releases/${releaseId}`;
-        
+
         const response = await axios.get<DiscogsReleaseResponse>(discogsApiUrl, {
             headers: {
                 'Authorization': `Discogs token=${discogsSecret}`,
@@ -466,7 +468,7 @@ export async function getReleaseDetails(req: Request, res: Response) {
                 name: f.name,
                 descriptions: f.descriptions || [],
                 text: f.text || ''
-            })) || [] 
+            })) || []
         };
         res.status(200).json(cleanedData);
 

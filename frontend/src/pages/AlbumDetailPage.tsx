@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
 import { toastService } from '../utils/toast';
 import type { CollectionItem } from '../types/collection';
+import RematchModal from '../components/Modal/RematchModal';
 
 interface Track {
     position: string;
@@ -30,6 +31,7 @@ const AlbumDetailPage: React.FC = () => {
     const [albumDetails, setAlbumDetails] = useState<AlbumDetails | null>(null);
     const [spotifyUrl, setSpotifyUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
+    const [isRematchOpen, setIsRematchOpen] = useState(false);
 
     useEffect(() => {
         if (itemId) {
@@ -252,6 +254,16 @@ const AlbumDetailPage: React.FC = () => {
                                 View on Discogs
                             </a>
                         )}
+                        <button
+                            onClick={() => setIsRematchOpen(true)}
+                            className="btn btn-warning btn-outline"
+                            title="Fix incorrect Discogs match"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Rematch
+                        </button>
                     </div>
                 </div>
             </div>
@@ -302,6 +314,23 @@ const AlbumDetailPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Rematch Modal */}
+            {item && (
+                <RematchModal
+                    isOpen={isRematchOpen}
+                    onClose={() => setIsRematchOpen(false)}
+                    itemId={item._id}
+                    currentArtist={item.album.artist}
+                    currentTitle={item.album.title}
+                    onRematchSuccess={() => {
+                        // Refetch the collection item and album details
+                        if (itemId) {
+                            fetchCollectionItem(itemId);
+                        }
+                    }}
+                />
             )}
         </div>
     );
