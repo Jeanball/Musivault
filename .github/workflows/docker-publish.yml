@@ -1,14 +1,13 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches: ['main']
-    tags:
-      - 'v*'
-  pull_request:
-    branches: ['main']
+  # Only build on release for production deployments
   release:
     types: [published]
+  # Build on PR to validate changes (no push)
+  pull_request:
+    branches: ['main']
+  # Manual trigger for testing
   workflow_dispatch:
     inputs:
       platforms:
