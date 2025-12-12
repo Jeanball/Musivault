@@ -28,6 +28,43 @@
 - 📦 **CSV Import** - Import from Discogs exports
 - 🐳 **Docker Ready** - Easy deployment with Docker Compose
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/collection-dashboard.png" alt="Collection Dashboard" width="800">
+  <br><em>Collection Dashboard - Overview with statistics and insights</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/collection-grid-view.png" alt="Collection Grid View" width="800">
+  <br><em>Collection Grid - Browse your albums with cover art</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/search-add.png" alt="Search and Add" width="800">
+  <br><em>Search - Find albums from the Discogs database</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/select-album-version.png" alt="Select Album Version" width="800">
+  <br><em>Version Selection - Choose the exact pressing you own</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/album-detail.png" alt="Album Detail" width="800">
+  <br><em>Album Detail - View tracklist and album information</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/settings.png" alt="Settings" width="800">
+  <br><em>Settings - Customize your profile and preferences</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/settings-public-collection.png" alt="Public Collection Settings" width="800">
+  <br><em>Public Collection - Share your collection with others</em>
+</p>
+
 ## 🚀 Quick Start
 
 ### Prerequisites
