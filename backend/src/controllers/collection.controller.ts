@@ -400,6 +400,10 @@ export async function rematchAlbum(req: Request, res: Response) {
       res.status(404).json({ message: 'Release not found on Discogs' });
       return;
     }
+    if (error.response?.status === 429) {
+      res.status(429).json({ message: 'Rate limited by Discogs. Please wait a minute and try again.' });
+      return;
+    }
     res.status(500).json({ message: 'Internal server error' });
   }
 }

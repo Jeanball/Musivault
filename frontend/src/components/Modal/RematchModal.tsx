@@ -40,6 +40,9 @@ const RematchModal: React.FC<RematchModalProps> = ({
     }, [isOpen, currentArtist, currentTitle]);
 
     useEffect(() => {
+        // Only search when modal is open and query is long enough
+        if (!isOpen) return;
+
         if (debouncedSearchQuery.length > 2) {
             setIsLoading(true);
             const search = async () => {
@@ -61,7 +64,7 @@ const RematchModal: React.FC<RematchModalProps> = ({
         } else {
             setResults([]);
         }
-    }, [debouncedSearchQuery]);
+    }, [debouncedSearchQuery, isOpen]);
 
     const handleSelectAlbum = async (result: DiscogsResult) => {
         // For masters, we need to get the main release ID
