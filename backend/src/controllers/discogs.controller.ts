@@ -483,3 +483,53 @@ export async function getReleaseDetails(req: Request, res: Response) {
         res.status(500).json({ message: "Échec de la récupération des détails de la publication." });
     }
 }
+
+/**
+ * Search Discogs for releases matching a given barcode (UPC/EAN).
+ */
+export async function searchByBarcode(req: Request, res: Response) {
+    try {
+        const { barcode } = req.query;
+        const discogsKey = process.env.DISCOGS_KEY;
+        const discogsSecret = process.env.DISCOGS_SECRET;
+
+        if (!barcode || typeof barcode !== 'string') {
+            res.status(400).json({ message: "The 'barcode' query parameter is required." });
+            return;
+        }
+        if (!discogsKey || !discogsSecret) {
+            res.status(500).json({ message: "Server configuration error." });
+            return;
+        }
+
+        const discogsApiUrl = `https://api.discogs.com/database/search`;
+
+        const response = await axios.get<{ results: DiscogsSearchResultExtended[] }>(discogsApiUrl, {
+            params: {
+                barcode: barcode,
+                type: 'release',
+                key: discogsKey,
+                secret: discogsSecret
+            },
+            headers: { 'User-Agent': 'Musivault/1.0' }
+        });
+
+        const results = response.data.results || [];
+
+        // Return relevant fields for the frontend
+        const cleanedResults = results.map(item => ({
+            id: item.id,
+            title: item.title,
+            year: item.year,
+            thumb: item.thumb,
+            type: 'release' as const
+        }));
+
+        res.status(200).json(cleanedResults);
+
+    } catch (error) {
+        console.error("Error searching Discogs by barcode:", error);
+        res.status(500).json({ message: "Barcode search failed." });
+    }
+}
+

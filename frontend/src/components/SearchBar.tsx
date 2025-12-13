@@ -3,12 +3,24 @@ import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { toastService } from "../utils/toast";
 import AlbumCard from './AlbumCard';
+import BarcodeScannerModal from './Modal/BarcodeScannerModal';
+import SelectReleaseModal from './Modal/SelectReleaseModal';
 import type { DiscogsResult, ArtistResult } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
+import { Camera } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 type SearchType = 'album' | 'artist';
+
+interface ReleaseDetails {
+    discogsId: number;
+    title: string;
+    artist: string;
+    year: string;
+    cover_image: string;
+    availableFormats?: { name: string; descriptions: string[]; text: string }[];
+}
 
 const SearchBar: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -17,6 +29,12 @@ const SearchBar: React.FC = () => {
     const [artistResults, setArtistResults] = useState<ArtistResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const navigate = useNavigate();
+
+    // Barcode scanner state
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [barcodeResults, setBarcodeResults] = useState<DiscogsResult[]>([]);
+    const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
+    const [isAddingFromBarcode, setIsAddingFromBarcode] = useState(false);
 
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
@@ -69,6 +87,79 @@ const SearchBar: React.FC = () => {
         navigate(`/app/artist/${artist.id}`);
     };
 
+    // Barcode scanning handlers
+    const handleScanSuccess = async (barcode: string) => {
+        setIsScannerOpen(false);
+        setIsAddingFromBarcode(true);
+        toastService.info(`Searching for barcode: ${barcode}`);
+
+        try {
+            const response = await axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/search/barcode`, {
+                params: { barcode },
+                withCredentials: true
+            });
+
+            const results = response.data;
+
+            if (results.length === 0) {
+                toastService.error("No albums found with this barcode.");
+            } else if (results.length === 1) {
+                // Auto-add the single result
+                await addReleaseToCollection(results[0].id);
+            } else {
+                // Multiple results - show selection modal
+                setBarcodeResults(results);
+                setIsSelectModalOpen(true);
+            }
+        } catch (err) {
+            console.error('Barcode search error:', err);
+            toastService.error("Failed to search barcode.");
+        } finally {
+            setIsAddingFromBarcode(false);
+        }
+    };
+
+    const addReleaseToCollection = async (releaseId: number) => {
+        setIsAddingFromBarcode(true);
+        try {
+            // Fetch release details first
+            const { data: releaseDetails } = await axios.get<ReleaseDetails>(
+                `${API_BASE_URL}/api/discogs/release/${releaseId}`,
+                { withCredentials: true }
+            );
+
+            // Use the first available format, or create a default
+            const format = releaseDetails.availableFormats?.[0] || {
+                name: 'Unknown',
+                descriptions: [],
+                text: ''
+            };
+
+            // Add to collection
+            await axios.post(
+                `${API_BASE_URL}/api/collection`,
+                { ...releaseDetails, format },
+                { withCredentials: true }
+            );
+
+            toastService.success(`"${releaseDetails.title}" added to your collection!`);
+        } catch (err: unknown) {
+            console.error('Error adding to collection:', err);
+            if (axios.isAxiosError(err) && err.response?.data?.message) {
+                toastService.error(err.response.data.message);
+            } else {
+                toastService.error("Failed to add album to collection.");
+            }
+        } finally {
+            setIsAddingFromBarcode(false);
+            setIsSelectModalOpen(false);
+        }
+    };
+
+    const handleSelectFromBarcode = (release: DiscogsResult) => {
+        addReleaseToCollection(release.id);
+    };
+
     return (
         <div className="w-full max-w-4xl mx-auto">
             {/* Search filter */}
@@ -87,18 +178,32 @@ const SearchBar: React.FC = () => {
                 </button>
             </div>
 
-            {/* Search bar */}
-            <div className="relative">
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={searchType === 'album' ? "Search for an album..." : "Search for an artist..."}
-                    className="input input-bordered w-full pr-10"
-                />
-                {isLoading && (
-                    <span className="loading loading-spinner loading-sm absolute top-1/2 right-3 -translate-y-1/2"></span>
-                )}
+            {/* Search bar with barcode scanner button */}
+            <div className="relative flex gap-2">
+                <div className="relative flex-1">
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={searchType === 'album' ? "Search for an album..." : "Search for an artist..."}
+                        className="input input-bordered w-full pr-10"
+                    />
+                    {isLoading && (
+                        <span className="loading loading-spinner loading-sm absolute top-1/2 right-3 -translate-y-1/2"></span>
+                    )}
+                </div>
+                <button
+                    className="btn btn-primary btn-square"
+                    onClick={() => setIsScannerOpen(true)}
+                    title="Scan Barcode"
+                    disabled={isAddingFromBarcode}
+                >
+                    {isAddingFromBarcode ? (
+                        <span className="loading loading-spinner loading-sm"></span>
+                    ) : (
+                        <Camera className="w-5 h-5" />
+                    )}
+                </button>
             </div>
 
             {/* Album results */}
@@ -138,8 +243,25 @@ const SearchBar: React.FC = () => {
                     ))}
                 </div>
             )}
+
+            {/* Barcode Scanner Modal */}
+            <BarcodeScannerModal
+                isOpen={isScannerOpen}
+                onClose={() => setIsScannerOpen(false)}
+                onScanSuccess={handleScanSuccess}
+            />
+
+            {/* Select Release Modal (for multiple barcode matches) */}
+            <SelectReleaseModal
+                isOpen={isSelectModalOpen}
+                results={barcodeResults}
+                onClose={() => setIsSelectModalOpen(false)}
+                onSelect={handleSelectFromBarcode}
+                isLoading={isAddingFromBarcode}
+            />
         </div>
     );
 };
 
 export default SearchBar;
+
