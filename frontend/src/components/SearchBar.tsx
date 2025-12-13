@@ -61,7 +61,11 @@ const SearchBar: React.FC = () => {
                     }
                 } catch (err) {
                     console.log(err)
-                    toastService.error("Search failed.");
+                    if (axios.isAxiosError(err) && err.response?.status === 429) {
+                        toastService.error("Discogs rate limit reached. Please wait a moment and try again.");
+                    } else {
+                        toastService.error("Search failed.");
+                    }
                     setAlbumResults([]);
                     setArtistResults([]);
                 } finally {
@@ -113,7 +117,13 @@ const SearchBar: React.FC = () => {
             }
         } catch (err) {
             console.error('Barcode search error:', err);
-            toastService.error("Failed to search barcode.");
+            if (axios.isAxiosError(err) && err.response?.status === 429) {
+                toastService.error("Discogs rate limit reached. Please wait a moment and try again.");
+            } else if (axios.isAxiosError(err) && err.response?.data?.message) {
+                toastService.error(err.response.data.message);
+            } else {
+                toastService.error("Failed to search barcode.");
+            }
         } finally {
             setIsAddingFromBarcode(false);
         }

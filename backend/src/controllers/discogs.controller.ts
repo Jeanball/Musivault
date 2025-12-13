@@ -158,6 +158,10 @@ export async function searchAlbums(req: Request, res: Response) {
 
     } catch (error) {
         console.error("Erreur lors de la recherche d'albums sur Discogs:", error);
+        if (axios.isAxiosError(error) && error.response?.status === 429) {
+            res.status(429).json({ message: "Discogs rate limit reached. Please wait a moment and try again." });
+            return;
+        }
         res.status(500).json({ message: "Échec de la recherche." });
     }
 }
@@ -354,6 +358,10 @@ export async function searchArtists(req: Request, res: Response) {
 
     } catch (error) {
         console.error("Erreur lors de la recherche d'artistes sur Discogs:", error);
+        if (axios.isAxiosError(error) && error.response?.status === 429) {
+            res.status(429).json({ message: "Discogs rate limit reached. Please wait a moment and try again." });
+            return;
+        }
         res.status(500).json({ message: "Échec de la recherche." });
     }
 }
@@ -529,6 +537,16 @@ export async function searchByBarcode(req: Request, res: Response) {
 
     } catch (error) {
         console.error("Error searching Discogs by barcode:", error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 429) {
+                res.status(429).json({ message: "Discogs rate limit reached. Please wait a moment and try again." });
+                return;
+            }
+            if (error.response?.status === 404) {
+                res.status(200).json([]); // No results found
+                return;
+            }
+        }
         res.status(500).json({ message: "Barcode search failed." });
     }
 }
