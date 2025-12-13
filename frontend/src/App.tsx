@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router'
 import { CookiesProvider } from 'react-cookie';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from 'react';
 import CollectionPage from './pages/CollectionPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
@@ -21,6 +22,17 @@ import PrivateLayout from './components/Layout/PrivateLayout';
 import PublicLayout from './components/Layout/PublicLayout';
 
 const App = () => {
+  // Responsive toast position: top on mobile, bottom-right on desktop
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <ThemeProvider>
       <CookiesProvider>
@@ -50,9 +62,9 @@ const App = () => {
           </Routes>
         </div>
 
-        {/* Global Toast Container */}
+        {/* Global Toast Container - Top on mobile, bottom-right on desktop */}
         <ToastContainer
-          position="bottom-right"
+          position={isMobile ? "top-center" : "bottom-right"}
           autoClose={3000}
           hideProgressBar={false}
           newestOnTop

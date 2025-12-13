@@ -1,5 +1,8 @@
 import { toast, type ToastOptions } from 'react-toastify';
 
+// Helper to get responsive position
+const getPosition = () => window.innerWidth < 1024 ? 'top-center' : 'bottom-right';
+
 const baseToastOptions: ToastOptions = {
   theme: 'colored',
   style: {
@@ -10,46 +13,46 @@ const baseToastOptions: ToastOptions = {
   }
 };
 
-const successOptions: ToastOptions = {
+const getSuccessOptions = (): ToastOptions => ({
   ...baseToastOptions,
-  position: 'bottom-right',
+  position: getPosition(),
   style: {
     ...baseToastOptions.style,
     background: 'var(--fallback-p,oklch(var(--p)))',
     color: 'var(--fallback-pc,oklch(var(--pc)))',
     border: '1px solid var(--fallback-p,oklch(var(--p)))',
   }
-};
+});
 
-const errorOptions: ToastOptions = {
+const getErrorOptions = (): ToastOptions => ({
   ...baseToastOptions,
-  position: 'bottom-right',
+  position: getPosition(),
   style: {
     ...baseToastOptions.style,
     background: 'var(--fallback-er,oklch(var(--er)))',
     color: 'var(--fallback-erc,oklch(var(--erc)))',
     border: '1px solid var(--fallback-er,oklch(var(--er)))',
   }
-};
+});
 
-const infoOptions: ToastOptions = {
+const getInfoOptions = (): ToastOptions => ({
   ...baseToastOptions,
-  position: 'top-center',
+  position: getPosition(),
   style: {
     ...baseToastOptions.style,
     background: 'var(--fallback-p,oklch(var(--p)))',
     color: 'var(--fallback-pc,oklch(var(--pc)))',
     border: '1px solid var(--fallback-p,oklch(var(--p)))',
   }
-};
+});
 
 export const toastService = {
-  success: (message: string) => toast.success(message, successOptions),
-  error: (message: string) => toast.error(message, errorOptions),
-  info: (message: string) => toast.info(message, infoOptions),
+  success: (message: string) => toast.success(message, getSuccessOptions()),
+  error: (message: string) => toast.error(message, getErrorOptions()),
+  info: (message: string) => toast.info(message, getInfoOptions()),
   warning: (message: string) => toast.warning(message, {
     ...baseToastOptions,
-    position: 'top-center',
+    position: getPosition(),
     style: {
       ...baseToastOptions.style,
       background: 'var(--fallback-wa,oklch(var(--wa)))',

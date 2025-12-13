@@ -5,13 +5,20 @@ import CollectionItem from '../models/CollectionItem';
 
 export async function getAllUsers(req: Request, res: Response) {
     try {
-        const users = await User.find().sort({ createdAt: -1 }); //Newest first
+        const users = await User.find().select('-password'); // Exclude password
 
         const usersWithStats = await Promise.all(users.map(async (user) => {
             const albumCount = await CollectionItem.countDocuments({ user: user._id });
             return {
-                ...user.toObject(),
-                albumCount
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                isAdmin: user.isAdmin,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin,
+                albumCount,
+                isPublic: user.preferences?.isPublic || false,
+                publicShareId: user.publicShareId
             };
         }));
 
@@ -35,7 +42,7 @@ export async function getUserById(req: Request, res: Response) {
 
 export async function updateUser(req: Request, res: Response) {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, isAdmin } = req.body;
         const user = await User.findById(req.params.id);
 
         if (!user) {
@@ -46,6 +53,7 @@ export async function updateUser(req: Request, res: Response) {
         if (username) user.username = username;
         if (email) user.email = email;
         if (password) user.password = password;
+        if (typeof isAdmin === 'boolean') user.isAdmin = isAdmin;
 
         await user.save();
 

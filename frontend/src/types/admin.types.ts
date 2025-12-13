@@ -6,4 +6,6 @@ export interface AdminUser {
     createdAt: string;
     lastLogin?: string;
     albumCount?: number;
+    isPublic: boolean;
+    publicShareId: string;
 }

@@ -52,7 +52,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
               <li className="menu-title px-4 py-2">Signed in as <span className="text-primary truncate block">{username}</span></li>
               <div className="divider my-0"></div>
               <li><Link to="/app/settings">Settings</Link></li>
-              {isAdmin && <li><Link to="/app/admin">Admin Dashboard</Link></li>}
+              {isAdmin && <li><Link to="/app/admin">Administration</Link></li>}
               <li><a onClick={onLogout} className="text-error hover:bg-error/10">Logout</a></li>
             </ul>
           </div>
@@ -81,7 +81,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
             <li className="menu-title text-center">Hi, {username}</li>
             <div className="divider my-0"></div>
             <li><Link to="/app/settings">Settings</Link></li>
-            {isAdmin && <li><Link to="/app/admin">Admin</Link></li>}
+            {isAdmin && <li><Link to="/app/admin">Administration</Link></li>}
             <li><a onClick={onLogout} className="text-error">Logout</a></li>
           </ul>
         </button>
