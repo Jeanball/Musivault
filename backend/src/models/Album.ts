@@ -1,5 +1,16 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export interface ITrack {
+  position: string;
+  title: string;
+  duration: string;
+}
+
+export interface ILabel {
+  name: string;
+  catno: string;
+}
+
 export interface IAlbum extends Document {
   discogsId: number;
   title: string;
@@ -8,7 +19,20 @@ export interface IAlbum extends Document {
   thumb: string;
   cover_image: string;
   styles: string[];
+  tracklist: ITrack[];
+  labels: ILabel[];
 }
+
+const trackSchema = new Schema<ITrack>({
+  position: { type: String, default: '' },
+  title: { type: String, default: '' },
+  duration: { type: String, default: '' },
+}, { _id: false });
+
+const labelSchema = new Schema<ILabel>({
+  name: { type: String, default: '' },
+  catno: { type: String, default: '' },
+}, { _id: false });
 
 const albumSchema = new Schema<IAlbum>({
   discogsId: {
@@ -36,6 +60,14 @@ const albumSchema = new Schema<IAlbum>({
   },
   styles: {
     type: [String],
+    default: [],
+  },
+  tracklist: {
+    type: [trackSchema],
+    default: [],
+  },
+  labels: {
+    type: [labelSchema],
     default: [],
   },
 });

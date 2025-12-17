@@ -25,6 +25,17 @@ interface DiscogsFormat {
     descriptions?: string[];
 }
 
+interface DiscogsTrack {
+    position: string;
+    title: string;
+    duration: string;
+}
+
+interface DiscogsLabel {
+    name: string;
+    catno?: string;
+}
+
 interface DiscogsReleaseResponse {
     id: number;
     title: string;
@@ -35,6 +46,8 @@ interface DiscogsReleaseResponse {
     }[];
     formats: DiscogsFormat[];
     styles?: string[];
+    tracklist?: DiscogsTrack[];
+    labels?: DiscogsLabel[];
 }
 
 interface DiscogsSearchResult {
@@ -478,6 +491,15 @@ export async function getReleaseDetails(req: Request, res: Response) {
                 name: f.name,
                 descriptions: f.descriptions || [],
                 text: f.text || ''
+            })) || [],
+            tracklist: data.tracklist?.map(t => ({
+                position: t.position,
+                title: t.title,
+                duration: t.duration || ''
+            })) || [],
+            labels: data.labels?.map(l => ({
+                name: l.name,
+                catno: l.catno || ''
             })) || []
         };
         res.status(200).json(cleanedData);
