@@ -1,6 +1,6 @@
 {
   "name": "musivault",
-  "version": "1.7.1",
+  "version": "1.6.1",
   "description": "A beautiful web application to manage and explore your music collection",
   "private": true,
   "devDependencies": {
