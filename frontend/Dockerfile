@@ -34,8 +34,12 @@ LABEL version=$VERSION
 LABEL commit=$COMMIT_SHA
 LABEL build_date=$BUILD_DATE
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy nginx config template for runtime substitution
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # Copy built files from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
@@ -43,5 +47,9 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Expose port 80
 EXPOSE 80
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Environment variables for backend connection (can be overridden)
+ENV BACKEND_HOST=backend
+ENV BACKEND_PORT=5000
+
+# Use entrypoint script to substitute env vars and start nginx
+ENTRYPOINT ["/docker-entrypoint.sh"]

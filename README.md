@@ -100,6 +100,8 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `PORT` | Application port (default: 3000) | ❌ |
 | `MONGO_URI` | MongoDB connection string | ❌ |
 | `ADMIN_EMAIL/USERNAME/PASSWORD` | Initial admin user | ❌ |
+| `BACKEND_HOST` | Backend hostname for nginx proxy (default: musivault-backend) | ❌ |
+| `BACKEND_PORT` | Backend port for nginx proxy (default: 5000) | ❌ |
 
 Generate a session secret: `openssl rand -base64 32`
 
