@@ -56,6 +56,9 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-3000}:80"
+    environment:
+      - BACKEND_HOST=${BACKEND_HOST:-musivault-backend}
+      - BACKEND_PORT=${BACKEND_PORT:-5000}
     depends_on:
       - backend
     networks:
