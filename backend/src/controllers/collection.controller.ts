@@ -21,9 +21,10 @@ interface AddToCollectionBody {
 
 export async function downloadTemplate(req: Request, res: Response) {
   const csvContent = [
-    'Artist,Album,Year (Optional),Format (Vinyl or CD)',
-    'Daft Punk,Discovery,2001,Vinyl',
-    'Radiohead,OK Computer, ,CD'
+    'Artist,Album,Year (Optional),Format (Vinyl or CD),Release ID (Optional),Catalog Number (Optional)',
+    'Daft Punk,Discovery,2001,Vinyl,,',
+    'Radiohead,OK Computer,1997,CD,1252837,CDNODATA 29',
+    'Pink Floyd,The Dark Side Of The Moon,1973,Vinyl,249504,'
   ].join('\n');
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');

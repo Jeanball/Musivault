@@ -6,10 +6,13 @@ export interface IImportLogEntry {
     inputAlbum: string;
     inputYear?: string;
     inputFormat: string;
+    inputReleaseId?: string;
+    inputCatalogNumber?: string;
     matchedArtist?: string;
     matchedAlbum?: string;
     matchedYear?: string;
     discogsId?: number;
+    matchMethod?: 'releaseId' | 'catalogNumber' | 'search';
     status: 'success' | 'failed' | 'skipped';
     reason?: string;
 }
@@ -32,10 +35,13 @@ const importLogEntrySchema = new Schema<IImportLogEntry>({
     inputAlbum: { type: String, required: true },
     inputYear: { type: String },
     inputFormat: { type: String, required: true },
+    inputReleaseId: { type: String },
+    inputCatalogNumber: { type: String },
     matchedArtist: { type: String },
     matchedAlbum: { type: String },
     matchedYear: { type: String },
     discogsId: { type: Number },
+    matchMethod: { type: String, enum: ['releaseId', 'catalogNumber', 'search'] },
     status: { type: String, enum: ['success', 'failed', 'skipped'], required: true },
     reason: { type: String }
 }, { _id: false });
