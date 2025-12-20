@@ -6,17 +6,6 @@ import { csvImportService } from '../services/csv-import.service';
 
 // ===== Types =====
 
-interface TrackInput {
-  position: string;
-  title: string;
-  duration: string;
-}
-
-interface LabelInput {
-  name: string;
-  catno: string;
-}
-
 interface AddToCollectionBody {
   discogsId: number;
   title: string;
@@ -26,8 +15,6 @@ interface AddToCollectionBody {
   cover_image: string;
   format: string;
   styles?: string[];
-  tracklist?: TrackInput[];
-  labels?: LabelInput[];
 }
 
 // ===== CSV Import =====
@@ -236,7 +223,7 @@ export async function addToCollection(req: Request, res: Response) {
       return;
     }
 
-    const { discogsId, title, artist, year, thumb, cover_image, format, styles, tracklist, labels } = req.body as AddToCollectionBody;
+    const { discogsId, title, artist, year, thumb, cover_image, format } = req.body as AddToCollectionBody;
 
     // Find or create album
     let album = await Album.findOne({ discogsId });
@@ -248,9 +235,7 @@ export async function addToCollection(req: Request, res: Response) {
         year,
         thumb,
         cover_image,
-        styles: styles || [],
-        tracklist: tracklist || [],
-        labels: labels || []
+        styles: req.body.styles || []
       });
       await album.save();
     }
@@ -404,15 +389,6 @@ export async function rematchAlbum(req: Request, res: Response) {
       || album.cover_image;
     album.thumb = releaseData.images?.[0]?.uri150 || album.thumb;
     album.styles = releaseData.styles || album.styles;
-    album.tracklist = releaseData.tracklist?.map((t: any) => ({
-      position: t.position || '',
-      title: t.title || '',
-      duration: t.duration || ''
-    })) || [];
-    album.labels = releaseData.labels?.map((l: any) => ({
-      name: l.name || '',
-      catno: l.catno || ''
-    })) || [];
 
     await album.save();
 

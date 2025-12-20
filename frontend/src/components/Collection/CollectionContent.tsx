@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
 import CollectionFilters from '../Collection/CollectionFilters';
 import CollectionStats from '../Collection/CollectionStats';
 import CollectionHeader from '../Collection/Layout/CollectionHeader';
 import CollectionTableView from '../Collection/Views/CollectionTableView';
 import CollectionGridView from '../Collection/Views/CollectionGridView';
 import CollectionListView from '../Collection/Views/CollectionListView';
-import PublicAlbumModal from '../Modal/PublicAlbumModal';
+import ShowAlbumModal from '../Modal/ShowAlbumModal';
 import { useCollectionFilters } from '../../hooks/collection/useCollectionFilters';
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
@@ -26,9 +25,9 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     collection,
     isLoading,
     readOnly = false,
+    onDelete,
+    isDeleting = false
 }) => {
-    const navigate = useNavigate();
-
     // Detect mobile device and set default layout accordingly
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const [layout, setLayout] = useState<LayoutType>(isMobile ? 'grid' : 'table');
@@ -56,13 +55,14 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     };
 
     const handleItemClick = (item: CollectionItem) => {
-        if (readOnly) {
-            // Public collection: show modal
-            setSelectedItem(item);
-        } else {
-            // Private collection: navigate to detail page
-            navigate(`/app/album/${item._id}`);
+        setSelectedItem(item);
+    };
+
+    const handleDeleteAndClose = async (itemId: string) => {
+        if (onDelete) {
+            await onDelete(itemId);
         }
+        setSelectedItem(null);
     };
 
     if (isLoading) {
@@ -138,13 +138,13 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 </>
             )}
 
-            {/* Public Album Modal (only for readOnly mode) */}
-            {readOnly && (
-                <PublicAlbumModal
-                    item={selectedItem}
-                    onClose={() => setSelectedItem(null)}
-                />
-            )}
+            <ShowAlbumModal
+                item={selectedItem}
+                onClose={() => setSelectedItem(null)}
+                onDelete={readOnly ? undefined : handleDeleteAndClose}
+                isDeleting={isDeleting}
+                readOnly={readOnly}
+            />
         </>
     );
 };

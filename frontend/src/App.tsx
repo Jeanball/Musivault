@@ -15,7 +15,6 @@ import HomePage from './pages/HomePage';
 import LandingPage from './pages/LandingPage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import PublicCollectionPage from './pages/PublicCollectionPage';
-import DiscoverPage from './pages/DiscoverPage';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateLayout from './components/Layout/PrivateLayout';
 
@@ -59,7 +58,6 @@ const App = () => {
               <Route path="artist/:artistId" element={<ArtistAlbumsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin" element={<AdminPage />} />
-              <Route path="discover" element={<DiscoverPage />} />
             </Route>
           </Routes>
         </div>
