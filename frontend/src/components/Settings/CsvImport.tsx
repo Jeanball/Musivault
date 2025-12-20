@@ -162,11 +162,11 @@ const CsvImport: React.FC = () => {
                     </svg>
                     Import Collection (CSV)
                 </h2>
-                <p className="text-sm text-gray-500">
-                    CSV format: Artist, Album, Format (Vinyl or CD), Year (Optional), Release ID (Optional), Catalog Number (Optional)
+                <p className="text-sm text-base-content/70">
+                    Columns: Artist, Album, Format, Year, Release ID, Catalog Number
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
-                    💡 <strong>Tip:</strong> Release ID and Catalog Number from Discogs exports improve match accuracy
+                <p className="text-xs text-base-content/50 mt-1">
+                    Use Release ID for exact Discogs matches. All columns except Artist+Album or Release ID are optional.
                 </p>
 
                 <div className="mt-3 flex flex-wrap gap-3 items-center">

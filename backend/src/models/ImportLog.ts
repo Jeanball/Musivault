@@ -31,10 +31,10 @@ export interface IImportLog extends Document {
 
 const importLogEntrySchema = new Schema<IImportLogEntry>({
     rowIndex: { type: Number, required: true },
-    inputArtist: { type: String, required: true },
-    inputAlbum: { type: String, required: true },
+    inputArtist: { type: String, default: '' },
+    inputAlbum: { type: String, default: '' },
     inputYear: { type: String },
-    inputFormat: { type: String, required: true },
+    inputFormat: { type: String, default: '' },
     inputReleaseId: { type: String },
     inputCatalogNumber: { type: String },
     matchedArtist: { type: String },

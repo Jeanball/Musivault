@@ -34,7 +34,7 @@ export interface CsvRow {
     artist: string;
     album: string;
     year?: string;
-    format: 'Vinyl' | 'CD';
+    format?: 'Vinyl' | 'CD';
     releaseId?: string;
     catalogNumber?: string;
 }
@@ -93,18 +93,18 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
         });
 
         // Extract release_id (various header formats)
-        const releaseIdRaw = mapped['release_id'] || mapped['releaseid'] || mapped['discogs_id'] || mapped['discogsid'] || '';
+        const releaseIdRaw = mapped['release_id'] || mapped['releaseid'] || mapped['release id'] || mapped['discogs_id'] || mapped['discogsid'] || '';
         const releaseId = releaseIdRaw.toString().trim() || undefined;
 
         // Extract catalog number (various header formats)
-        const catnoRaw = mapped['catno'] || mapped['catalog_number'] || mapped['catalognumber'] || mapped['cat_no'] || '';
+        const catnoRaw = mapped['catno'] || mapped['catalog_number'] || mapped['catalognumber'] || mapped['catalog number'] || mapped['cat_no'] || '';
         const catalogNumber = catnoRaw.toString().trim() || undefined;
 
         return {
             artist: (mapped['artist'] || '').toString().trim(),
             album: (mapped['album'] || '').toString().trim(),
             year: (mapped['year'] || '').toString().trim() || undefined,
-            format: normalizeType(mapped['format']) || 'Vinyl',
+            format: normalizeType(mapped['format']),
             releaseId,
             catalogNumber
         };
@@ -166,6 +166,9 @@ export async function processImportRow(
         return { success: false, reason: 'No Discogs match found' };
     }
 
+    // Determine format: use CSV value, or Discogs value, or default to Vinyl
+    const format = row.format || found.format || 'Vinyl';
+
     // Find or create album
     let album = await Album.findOne({ discogsId: found.discogsId });
     if (!album) {
@@ -185,7 +188,7 @@ export async function processImportRow(
     const exists = await CollectionItem.findOne({
         user: userId,
         album: album._id,
-        'format.name': row.format
+        'format.name': format
     });
     if (exists) {
         return {
@@ -201,10 +204,10 @@ export async function processImportRow(
     const newItem = new CollectionItem({
         user: userId,
         album: album._id,
-        format: { name: row.format, descriptions: [], text: row.format }
+        format: { name: format, descriptions: [], text: format }
     });
     await newItem.save();
-    console.log(`[Import] Added to collection: ${album.title}`);
+    console.log(`[Import] Added to collection: ${album.title} (${format})`);
 
     return { success: true, matchedData: found, matchMethod };
 }
@@ -268,7 +271,7 @@ async function processImportBackground(
             inputArtist: row.artist,
             inputAlbum: row.album,
             inputYear: row.year,
-            inputFormat: row.format,
+            inputFormat: row.format || '',
             inputReleaseId: row.releaseId,
             inputCatalogNumber: row.catalogNumber,
             status: 'failed'

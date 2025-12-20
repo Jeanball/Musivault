@@ -9,6 +9,7 @@ export interface FoundAlbumInfo {
     year: string;
     thumb: string;
     cover_image: string;
+    format?: 'Vinyl' | 'CD';
 }
 
 // ===== Helpers =====
@@ -299,6 +300,7 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
             year: number;
             thumb: string;
             images?: { uri: string }[];
+            formats?: { name: string; descriptions?: string[] }[];
         }>(`${DISCOGS_BASE_URL}/releases/${releaseId}`, {
             headers: HEADERS,
             params: { key, secret }
@@ -309,7 +311,18 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
         const title = cleanAlbumTitle(data.title) || data.title;
         const coverImage = data.images?.[0]?.uri || data.thumb || '';
 
-        console.log(`[Discogs] Found release: ${artist} - ${title} (ID: ${data.id})`);
+        // Determine format from Discogs formats array
+        let format: 'Vinyl' | 'CD' | undefined;
+        if (data.formats && data.formats.length > 0) {
+            const formatNames = data.formats.map(f => f.name.toLowerCase());
+            if (formatNames.some(f => f.includes('vinyl') || f.includes('lp') || f.includes('12"') || f.includes('7"'))) {
+                format = 'Vinyl';
+            } else if (formatNames.some(f => f.includes('cd'))) {
+                format = 'CD';
+            }
+        }
+
+        console.log(`[Discogs] Found release: ${artist} - ${title} (ID: ${data.id}, Format: ${format || 'unknown'})`);
 
         return {
             discogsId: data.id,
@@ -317,7 +330,8 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
             artist,
             year: data.year?.toString() || '',
             thumb: data.thumb || '',
-            cover_image: coverImage
+            cover_image: coverImage,
+            format
         };
     } catch (err: any) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
