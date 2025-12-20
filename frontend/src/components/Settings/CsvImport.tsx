@@ -24,9 +24,9 @@ const CsvImport: React.FC = () => {
 
     const downloadTemplate = () => {
         const csv = [
-            'Artist,Album,Format (Vinyl or CD),Year (Optional)',
-            'Daft Punk,Discovery,Vinyl,2001',
-            'Radiohead,OK Computer,CD,2001'
+            'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional)',
+            'Daft Punk,Discovery,Vinyl,2001,,',
+            'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29'
         ].join('\n');
         const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
         const link = document.createElement('a');
@@ -162,8 +162,11 @@ const CsvImport: React.FC = () => {
                     </svg>
                     Import Collection (CSV)
                 </h2>
-                <p className="text-sm text-gray-500">
-                    CSV format: Artist, Album, Format (Vinyl or CD), Year (Optional)
+                <p className="text-sm text-base-content/70">
+                    Columns: Artist, Album, Format, Year, Release ID, Catalog Number
+                </p>
+                <p className="text-xs text-base-content/50 mt-1">
+                    Use Release ID for exact Discogs matches. All columns except Artist+Album or Release ID are optional.
                 </p>
 
                 <div className="mt-3 flex flex-wrap gap-3 items-center">

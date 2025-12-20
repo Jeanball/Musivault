@@ -9,6 +9,7 @@ export interface FoundAlbumInfo {
     year: string;
     thumb: string;
     cover_image: string;
+    format?: 'Vinyl' | 'CD';
 }
 
 // ===== Helpers =====
@@ -274,6 +275,167 @@ async function searchReleases(
     }
 }
 
+/**
+ * Fetch a specific release by its Discogs release ID.
+ * This is the most precise lookup method.
+ */
+export async function fetchByReleaseId(releaseId: string | number): Promise<FoundAlbumInfo | null> {
+    const key = process.env.DISCOGS_KEY;
+    const secret = process.env.DISCOGS_SECRET;
+
+    console.log(`[Discogs] Direct lookup for release ID: ${releaseId}`);
+
+    if (!key || !secret) {
+        console.log('[Discogs] ERROR: DISCOGS_KEY or DISCOGS_SECRET not set');
+        return null;
+    }
+
+    try {
+        await delay(RATE_LIMIT_MS);
+
+        const response = await axios.get<{
+            id: number;
+            title: string;
+            artists: { name: string }[];
+            year: number;
+            thumb: string;
+            images?: { uri: string }[];
+            formats?: { name: string; descriptions?: string[] }[];
+        }>(`${DISCOGS_BASE_URL}/releases/${releaseId}`, {
+            headers: HEADERS,
+            params: { key, secret }
+        });
+
+        const data = response.data;
+        const artist = data.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
+        const title = cleanAlbumTitle(data.title) || data.title;
+        const coverImage = data.images?.[0]?.uri || data.thumb || '';
+
+        // Determine format from Discogs formats array
+        let format: 'Vinyl' | 'CD' | undefined;
+        if (data.formats && data.formats.length > 0) {
+            const formatNames = data.formats.map(f => f.name.toLowerCase());
+            if (formatNames.some(f => f.includes('vinyl') || f.includes('lp') || f.includes('12"') || f.includes('7"'))) {
+                format = 'Vinyl';
+            } else if (formatNames.some(f => f.includes('cd'))) {
+                format = 'CD';
+            }
+        }
+
+        console.log(`[Discogs] Found release: ${artist} - ${title} (ID: ${data.id}, Format: ${format || 'unknown'})`);
+
+        return {
+            discogsId: data.id,
+            title,
+            artist,
+            year: data.year?.toString() || '',
+            thumb: data.thumb || '',
+            cover_image: coverImage,
+            format
+        };
+    } catch (err: any) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+            console.log(`[Discogs] Release ID ${releaseId} not found`);
+        } else {
+            console.log('[Discogs] Fetch by release ID error:', err.message);
+        }
+        return null;
+    }
+}
+
+/**
+ * Search Discogs by catalog number.
+ * This is useful when you have the label's catalog number (e.g., "CDNODATA29").
+ */
+export async function searchByCatalogNumber(
+    catalogNumber: string,
+    artist?: string,
+    title?: string
+): Promise<FoundAlbumInfo | null> {
+    const key = process.env.DISCOGS_KEY;
+    const secret = process.env.DISCOGS_SECRET;
+
+    console.log(`[Discogs] Searching by catalog number: ${catalogNumber}`);
+
+    if (!key || !secret) {
+        console.log('[Discogs] ERROR: DISCOGS_KEY or DISCOGS_SECRET not set');
+        return null;
+    }
+
+    try {
+        await delay(RATE_LIMIT_MS);
+
+        // Build search params - catno is a supported Discogs search parameter
+        const params: Record<string, string> = {
+            key,
+            secret,
+            catno: catalogNumber,
+            type: 'release'
+        };
+
+        // Add artist if provided for better filtering
+        if (artist) {
+            params.artist = artist;
+        }
+
+        const response = await axios.get<{ results: any[] }>(`${DISCOGS_BASE_URL}/database/search`, {
+            headers: HEADERS,
+            params
+        });
+
+        const results = response.data.results || [];
+        console.log(`[Discogs] Found ${results.length} results for catalog number ${catalogNumber}`);
+
+        if (!results.length) {
+            return null;
+        }
+
+        // If we have artist/title info, score and pick best match
+        if (artist && title) {
+            const scored = results.map(r => ({
+                result: r,
+                score: scoreResult(r, artist, title)
+            }));
+            scored.sort((a, b) => b.score - a.score);
+
+            const best = scored[0].result;
+            const cleanedTitle = cleanAlbumTitle(best.title);
+            console.log(`[Discogs] Selected: ${best.title} (ID: ${best.id}, Score: ${scored[0].score})`);
+
+            return {
+                discogsId: best.id,
+                title: cleanedTitle,
+                artist,
+                year: best.year?.toString() || '',
+                thumb: best.thumb || '',
+                cover_image: best.cover_image || best.thumb || ''
+            };
+        }
+
+        // Otherwise just take the first result
+        const first = results[0];
+        const cleanedTitle = cleanAlbumTitle(first.title);
+        const titleParts = first.title.split(' - ');
+        const artistName = titleParts.length > 1 ? titleParts[0].replace(/\(\d+\)/g, '').trim() : 'Unknown Artist';
+
+        console.log(`[Discogs] Selected first result: ${first.title} (ID: ${first.id})`);
+
+        return {
+            discogsId: first.id,
+            title: cleanedTitle,
+            artist: artistName,
+            year: first.year?.toString() || '',
+            thumb: first.thumb || '',
+            cover_image: first.cover_image || first.thumb || ''
+        };
+    } catch (err: any) {
+        console.log('[Discogs] Catalog number search error:', err.message);
+        return null;
+    }
+}
+
 export const discogsService = {
-    searchByArtistAlbum
+    searchByArtistAlbum,
+    fetchByReleaseId,
+    searchByCatalogNumber
 };

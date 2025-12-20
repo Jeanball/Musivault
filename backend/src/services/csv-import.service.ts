@@ -34,7 +34,9 @@ export interface CsvRow {
     artist: string;
     album: string;
     year?: string;
-    format: 'Vinyl' | 'CD';
+    format?: 'Vinyl' | 'CD';
+    releaseId?: string;
+    catalogNumber?: string;
 }
 
 export interface ImportResult {
@@ -50,6 +52,7 @@ interface ProcessRowResult {
     skipped?: boolean;
     reason?: string;
     matchedData?: FoundAlbumInfo;
+    matchMethod?: 'releaseId' | 'catalogNumber' | 'search';
 }
 
 // ===== Helpers =====
@@ -89,11 +92,21 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
             mapped[normalizeHeader(k)] = r[k];
         });
 
+        // Extract release_id (various header formats)
+        const releaseIdRaw = mapped['release_id'] || mapped['releaseid'] || mapped['release id'] || mapped['discogs_id'] || mapped['discogsid'] || '';
+        const releaseId = releaseIdRaw.toString().trim() || undefined;
+
+        // Extract catalog number (various header formats)
+        const catnoRaw = mapped['catno'] || mapped['catalog_number'] || mapped['catalognumber'] || mapped['catalog number'] || mapped['cat_no'] || '';
+        const catalogNumber = catnoRaw.toString().trim() || undefined;
+
         return {
             artist: (mapped['artist'] || '').toString().trim(),
             album: (mapped['album'] || '').toString().trim(),
             year: (mapped['year'] || '').toString().trim() || undefined,
-            format: normalizeType(mapped['format']) || 'Vinyl'
+            format: normalizeType(mapped['format']),
+            releaseId,
+            catalogNumber
         };
     });
 }
@@ -101,21 +114,60 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
 /**
  * Process a single import row: search Discogs, create/find album, add to collection
  * Returns detailed result including matched data for logging
+ * 
+ * Search priority:
+ * 1. If releaseId provided -> Direct lookup (most precise)
+ * 2. If catalogNumber provided -> Search by catno
+ * 3. Fallback -> Search by artist/album
  */
 export async function processImportRow(
     row: CsvRow,
     userId: any
 ): Promise<ProcessRowResult> {
-    // Validate row
-    if (!row.artist || !row.album) {
-        return { success: false, reason: 'Missing Artist/Album' };
+    // Validate row - need at least artist/album OR releaseId
+    if (!row.releaseId && (!row.artist || !row.album)) {
+        return { success: false, reason: 'Missing Artist/Album or Release ID' };
     }
 
-    // Search Discogs
-    const found = await discogsService.searchByArtistAlbum(row.artist, row.album, row.year);
+    let found: FoundAlbumInfo | null = null;
+    let matchMethod: 'releaseId' | 'catalogNumber' | 'search' = 'search';
+
+    // Priority 1: Direct release ID lookup
+    if (row.releaseId) {
+        console.log(`[Import] Trying direct release ID lookup: ${row.releaseId}`);
+        found = await discogsService.fetchByReleaseId(row.releaseId);
+        if (found) {
+            matchMethod = 'releaseId';
+            console.log(`[Import] Matched via release ID: ${found.artist} - ${found.title}`);
+        }
+    }
+
+    // Priority 2: Catalog number search
+    if (!found && row.catalogNumber) {
+        console.log(`[Import] Trying catalog number search: ${row.catalogNumber}`);
+        found = await discogsService.searchByCatalogNumber(row.catalogNumber, row.artist, row.album);
+        if (found) {
+            matchMethod = 'catalogNumber';
+            console.log(`[Import] Matched via catalog number: ${found.artist} - ${found.title}`);
+        }
+    }
+
+    // Priority 3: Standard artist/album search
+    if (!found && row.artist && row.album) {
+        console.log(`[Import] Trying artist/album search: ${row.artist} - ${row.album}`);
+        found = await discogsService.searchByArtistAlbum(row.artist, row.album, row.year);
+        if (found) {
+            matchMethod = 'search';
+            console.log(`[Import] Matched via search: ${found.artist} - ${found.title}`);
+        }
+    }
+
     if (!found) {
         return { success: false, reason: 'No Discogs match found' };
     }
+
+    // Determine format: use CSV value, or Discogs value, or default to Vinyl
+    const format = row.format || found.format || 'Vinyl';
 
     // Find or create album
     let album = await Album.findOne({ discogsId: found.discogsId });
@@ -136,14 +188,15 @@ export async function processImportRow(
     const exists = await CollectionItem.findOne({
         user: userId,
         album: album._id,
-        'format.name': row.format
+        'format.name': format
     });
     if (exists) {
         return {
             success: false,
             skipped: true,
             reason: 'Already in collection',
-            matchedData: found
+            matchedData: found,
+            matchMethod
         };
     }
 
@@ -151,12 +204,12 @@ export async function processImportRow(
     const newItem = new CollectionItem({
         user: userId,
         album: album._id,
-        format: { name: row.format, descriptions: [], text: row.format }
+        format: { name: format, descriptions: [], text: format }
     });
     await newItem.save();
-    console.log(`[Import] Added to collection: ${album.title}`);
+    console.log(`[Import] Added to collection: ${album.title} (${format})`);
 
-    return { success: true, matchedData: found };
+    return { success: true, matchedData: found, matchMethod };
 }
 
 /**
@@ -218,7 +271,9 @@ async function processImportBackground(
             inputArtist: row.artist,
             inputAlbum: row.album,
             inputYear: row.year,
-            inputFormat: row.format,
+            inputFormat: row.format || '',
+            inputReleaseId: row.releaseId,
+            inputCatalogNumber: row.catalogNumber,
             status: 'failed'
         };
 
@@ -230,6 +285,10 @@ async function processImportBackground(
                 logEntry.matchedAlbum = result.matchedData.title;
                 logEntry.matchedYear = result.matchedData.year;
                 logEntry.discogsId = result.matchedData.discogsId;
+            }
+
+            if (result.matchMethod) {
+                logEntry.matchMethod = result.matchMethod;
             }
 
             if (result.success) {
