@@ -12,7 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.7.3] - 2025-12-21
 
 ### Changed
-- Documentation: docs: Refine and consolidate v1.7.1 and v1.7.2 release notes into a single, detailed v1.7.2 entry.
+- Documentation: Refine and consolidate v1.7.1 and v1.7.2 release notes into a single, detailed v1.7.2 entry.
+
+### Fixed
+- Update migrate-album-data script to run compiled JavaScript output.
 
 ---
 
