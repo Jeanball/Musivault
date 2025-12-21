@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.1] - 2025-12-21
+
+### Added
+- feat: add album tracklist and label fields, including migration script and UI support
+- feat: Introduce Discover page and API to list users with public collections.
+
+### Fixed
+- fix: add Discover page placeholder, consolidate migration scripts
+
+---
+
 ## [1.6.2] - 2025-12-19
 
 ### Fixed
@@ -188,7 +199,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/Jeanball/Musivault/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/Jeanball/Musivault/compare/v1.6.2...v1.7.0
 [1.6.2]: https://github.com/Jeanball/Musivault/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/Jeanball/Musivault/compare/v1.6.0...v1.6.1
