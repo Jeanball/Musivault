@@ -32,9 +32,21 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
         <div className="navbar-center">
           <ul className="menu menu-horizontal px-1 gap-2">
             <li>
+              <Link to="/app" className={isActive('/app') ? 'active font-bold' : 'font-medium'}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                Search
+              </Link>
+            </li>
+            <li>
               <Link to="/app/collection" className={isCollectionActive ? 'active font-bold' : 'font-medium'}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                My Collection
+                Collection
+              </Link>
+            </li>
+            <li>
+              <Link to="/app/discover" className={isActive('/app/discover') ? 'active font-bold' : 'font-medium'}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                Discover
               </Link>
             </li>
           </ul>
@@ -68,6 +80,10 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
         <Link to="/app/collection" className={`${isCollectionActive ? 'active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
           <span className="btm-nav-label text-xs font-medium">Collection</span>
+        </Link>
+        <Link to="/app/discover" className={`${isActive('/app/discover') ? 'active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+          <span className="btm-nav-label text-xs font-medium">Discover</span>
         </Link>
         <button className={`dropdown dropdown-top dropdown-end ${location.pathname === '/app/settings' ? 'active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'}`}>
           {/* Dropdown triggers on click for mobile usually needs careful handling, simplified for standard daisyui behavior */}

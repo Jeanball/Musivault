@@ -1,28 +1,17 @@
 import SearchBar from "../components/SearchBar";
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router";
-import ShowAlbumModal from "../components/Modal/ShowAlbumModal";
-import { useCollectionData } from "../hooks/collection/useCollectionData";
+import { useNavigate, useOutletContext } from "react-router";
 import type { CollectionItem } from "../types/collection";
 import type { PrivateOutletContext } from "../components/Layout/PrivateLayout";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const { username } = useOutletContext<PrivateOutletContext>();
   const [collection, setCollection] = useState<CollectionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
-  const { isDeleting, handleDeleteItem } = useCollectionData(); // Reuse delete logic
-
-  const handleDeleteAndClose = async (itemId: string) => {
-    await handleDeleteItem(itemId);
-    setSelectedItem(null);
-    // Refresh collection after delete
-    setCollection(prev => prev.filter(item => item._id !== itemId));
-  };
 
   useEffect(() => {
     const fetchCollection = async () => {
@@ -46,6 +35,10 @@ const HomePage: React.FC = () => {
 
   // Get latest 6 for display
   const latestAdditions = collection.slice(0, 6);
+
+  const handleAlbumClick = (item: CollectionItem) => {
+    navigate(`/app/album/${item._id}`);
+  };
 
   return (
     <div className="space-y-8">
@@ -80,7 +73,7 @@ const HomePage: React.FC = () => {
             {latestAdditions.map(item => (
               <div
                 key={item._id}
-                onClick={() => setSelectedItem(item)}
+                onClick={() => handleAlbumClick(item)}
                 className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
               >
                 <figure className="aspect-square relative overflow-hidden">
@@ -103,13 +96,6 @@ const HomePage: React.FC = () => {
           </div>
         )}
       </div>
-
-      <ShowAlbumModal
-        item={selectedItem}
-        onClose={() => setSelectedItem(null)}
-        onDelete={handleDeleteAndClose}
-        isDeleting={isDeleting}
-      />
     </div>
   );
 };

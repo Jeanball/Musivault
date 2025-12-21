@@ -1,5 +1,16 @@
 import type { FormatDetails } from '../components/Modal/AddAlbumVersionModal';
 
+export interface Track {
+    position: string;
+    title: string;
+    duration: string;
+}
+
+export interface Label {
+    name: string;
+    catno: string;
+}
+
 export interface Album {
     _id: string;
     title: string;
@@ -9,6 +20,8 @@ export interface Album {
     year: string;
     discogsId?: number;
     styles?: string[];
+    tracklist?: Track[];
+    labels?: Label[];
 }
 
 export interface CollectionItem {
