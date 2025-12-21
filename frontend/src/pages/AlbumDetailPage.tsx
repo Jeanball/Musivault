@@ -20,6 +20,10 @@ const AlbumDetailPage: React.FC = () => {
     }, [itemId]);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [itemId]);
+
+    useEffect(() => {
         if (item) {
             searchSpotify(item.album.artist, item.album.title);
             setLoading(false);
