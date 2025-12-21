@@ -1,12 +1,12 @@
 {
   "name": "backend",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/server.js",
-    "migrate-album-data": "ts-node src/scripts/migrate-album-data.ts"
+    "migrate-album-data": "node dist/scripts/migrate-album-data.js"
   },
   "keywords": [],
   "author": "",

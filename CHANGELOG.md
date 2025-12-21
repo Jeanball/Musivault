@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.3] - 2025-12-21
+
+### Changed
+- Documentation: docs: Refine and consolidate v1.7.1 and v1.7.2 release notes into a single, detailed v1.7.2 entry.
+
+---
+
 ## [1.7.2] - 2025-12-21
 
 ### Added
@@ -196,7 +203,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.7.2...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.7.3...HEAD
+[1.7.3]: https://github.com/Jeanball/Musivault/compare/v1.7.2...v1.7.3
 [1.7.2]: https://github.com/Jeanball/Musivault/compare/v1.7.0...v1.7.2
 [1.7.0]: https://github.com/Jeanball/Musivault/compare/v1.6.2...v1.7.0
 [1.6.2]: https://github.com/Jeanball/Musivault/compare/v1.6.1...v1.6.2
