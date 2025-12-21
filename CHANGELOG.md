@@ -6,14 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
 ### Added
-- (Add new features here before release)
-
+- Discover page with new features coming soon. Public collections from other users is already available.
+- Add tracklist and record label to album detail page.
+  > **Note:** For existing albums, run `npm run migrate-album-data` once after upgrading.  
+  > Docker: `docker exec -it <container_name> npm run migrate-album-data`
 ### Fixed
-- (Add bug fixes here before release)
-
----
+- Enhance version bump script to update package.json files and automate changelog generation.
+- Merge all migrate scripts into a single [migrate-album-data.ts](cci:7://file:///home/jeanball/Documents/Projects/Musivault/backend/src/scripts/migrate-album-data.ts:0:0-0:0) script.
+- Remove unnecessary modal - album detail page now opens immediately when clicking on an album.
+- Optimize album loading by fetching from local database instead of Discogs API. API is now only called when adding new albums.
+- Add simple album detail modal for public collection view.
 
 ## [1.7.0] - 2025-12-20
 

@@ -6,7 +6,7 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/server.js",
-    "migrate:styles": "node dist/scripts/migrate-styles.js"
+    "migrate-album-data": "ts-node src/scripts/migrate-album-data.ts"
   },
   "keywords": [],
   "author": "",
