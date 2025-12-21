@@ -5,6 +5,7 @@ import Navbar from '../Navbar';
 import Footer from '../Footer';
 import { useTheme } from '../../context/ThemeContext';
 import { toastService, toastMessages } from '../../utils/toast';
+import { CollectionProvider } from '../../context/CollectionContext';
 
 interface VerificationResponse {
     status: boolean;
@@ -87,7 +88,9 @@ const PrivateLayout: React.FC = () => {
             <div className="flex-1 p-4 md:p-8">
                 <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
                 <main>
-                    <Outlet context={{ username, isAdmin } satisfies PrivateOutletContext} />
+                    <CollectionProvider>
+                        <Outlet context={{ username, isAdmin } satisfies PrivateOutletContext} />
+                    </CollectionProvider>
                 </main>
             </div>
             <div className="mb-16 lg:mb-0">
