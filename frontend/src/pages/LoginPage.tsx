@@ -77,7 +77,11 @@ const LoginPage: React.FC = () => {
             <div className="flex-1 hero bg-base-200">
                 <div className="card shrink-0 w-full max-w-md shadow-2xl bg-base-100">
                     <form className="card-body" onSubmit={handleSubmit}>
-                        <h2 className="card-title text-2xl font-bold self-center">Login</h2>
+                        <div className="flex flex-col items-center mb-4">
+                            <img src="/icons/icon-musivault.svg" alt="Musivault" className="w-16 h-16 mb-2" />
+                            <h1 className="text-3xl font-bold">Musivault</h1>
+                        </div>
+                        <h2 className="card-title text-xl font-semibold self-center">Login</h2>
                         <div className="form-control">
                             <label className="label" htmlFor="identifier">
                                 <span className="label-text">Email or Username</span>
