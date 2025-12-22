@@ -13,6 +13,7 @@ import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
 import type { CollectionItem, LayoutType } from '../../types/collection';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
+const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
 
 interface CollectionContentProps {
     collection: CollectionItem[];
@@ -31,11 +32,27 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
 
     // Detect mobile device and set default layout accordingly
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const [layout, setLayout] = useState<LayoutType>(isMobile ? 'grid' : 'table');
+    const getInitialLayout = (): LayoutType => {
+        if (readOnly) return isMobile ? 'grid' : 'table';
+        const stored = sessionStorage.getItem(LAYOUT_STORAGE_KEY);
+        if (stored && ['grid', 'list', 'table'].includes(stored)) {
+            return stored as LayoutType;
+        }
+        return isMobile ? 'grid' : 'table';
+    };
+
+    const [layout, setLayout] = useState<LayoutType>(getInitialLayout);
     const [searchTerm, setSearchTerm] = useState(() =>
         readOnly ? '' : (sessionStorage.getItem(SEARCH_STORAGE_KEY) || '')
     );
     const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
+
+    // Persist layout preference (only for authenticated users)
+    useEffect(() => {
+        if (!readOnly) {
+            sessionStorage.setItem(LAYOUT_STORAGE_KEY, layout);
+        }
+    }, [layout, readOnly]);
 
     // Persist search term (only for authenticated users)
     useEffect(() => {
