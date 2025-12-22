@@ -7,6 +7,14 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
+// Helper function to get time-based greeting
+const getGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { username } = useOutletContext<PrivateOutletContext>();
@@ -47,7 +55,7 @@ const HomePage: React.FC = () => {
         {/* Welcome Card */}
 
         <div className="card-body justify-center">
-          <h2 className="text-center text-3xl font-bold">Welcome back, {username || 'audiophile'}!</h2>
+          <h2 className="text-center text-3xl font-bold">{getGreeting()}, {username || 'audiophile'}!</h2>
           <p className="text-center">Ready to spin some records?</p>
         </div>
 
