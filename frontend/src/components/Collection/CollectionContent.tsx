@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import CollectionFilters from '../Collection/CollectionFilters';
 import CollectionStats from '../Collection/CollectionStats';
-import CollectionHeader from '../Collection/Layout/CollectionHeader';
 import CollectionTableView from '../Collection/Views/CollectionTableView';
 import CollectionGridView from '../Collection/Views/CollectionGridView';
 import CollectionListView from '../Collection/Views/CollectionListView';
@@ -98,18 +97,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
 
     return (
         <>
-            <CollectionHeader layout={layout} onLayoutChange={setLayout} readOnly={readOnly} />
             <CollectionStats stats={stats} />
-
-            <div className="form-control mb-4">
-                <input
-                    type="text"
-                    placeholder="Search an album..."
-                    className="input input-bordered w-full"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
 
             {/* Advanced Filters */}
             <CollectionFilters
@@ -122,7 +110,19 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 totalResults={collection.length}
                 filteredResults={filteredCollection.length}
                 onClearAll={hasAnyFilters ? handleClearAll : undefined}
+                layout={layout}
+                onLayoutChange={setLayout}
             />
+
+            <div className="form-control mb-4">
+                <input
+                    type="text"
+                    placeholder="Search an album..."
+                    className="input input-bordered w-full"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
 
             {/* Main content */}
             {(layout === 'table' ? sortedCollection.length === 0 : Object.keys(groupedByArtist).length === 0) ? (

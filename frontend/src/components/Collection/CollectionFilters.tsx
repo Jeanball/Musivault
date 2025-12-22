@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FilterState } from '../../types/collection';
+import type { FilterState, LayoutType } from '../../types/collection';
 
 interface CollectionFiltersProps {
     filters: FilterState;
@@ -11,6 +11,8 @@ interface CollectionFiltersProps {
     totalResults: number;
     filteredResults: number;
     onClearAll?: () => void;
+    layout?: LayoutType;
+    onLayoutChange?: (layout: LayoutType) => void;
 }
 
 const CollectionFilters: React.FC<CollectionFiltersProps> = ({
@@ -22,7 +24,9 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     styleCounts,
     totalResults,
     filteredResults,
-    onClearAll
+    onClearAll,
+    layout,
+    onLayoutChange
 }) => {
     const handleFilterChange = (key: keyof FilterState, value: string) => {
         onFiltersChange({
@@ -33,96 +37,131 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
 
     return (
         <div className="bg-base-100 rounded-box shadow-lg p-3 md:p-4 mb-6">
-            <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-stretch lg:items-center justify-between">
-                {/* Filters - 4 columns on desktop, 2 on mobile */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 flex-1">
-                    {/* Filter by Format */}
-                    <div className="form-control">
-                        <label className="label py-0.5 md:py-1">
-                            <span className="label-text text-xs">Format</span>
-                        </label>
-                        <select
-                            className="select select-bordered select-xs md:select-sm w-full"
-                            value={filters.format}
-                            onChange={(e) => handleFilterChange('format', e.target.value)}
-                        >
-                            <option value="all">All</option>
-                            {availableFormats.map(format => (
-                                <option key={format} value={format}>{format}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Filter by Decade */}
-                    <div className="form-control">
-                        <label className="label py-0.5 md:py-1">
-                            <span className="label-text text-xs">Decade</span>
-                        </label>
-                        <select
-                            className="select select-bordered select-xs md:select-sm w-full"
-                            value={filters.decade}
-                            onChange={(e) => handleFilterChange('decade', e.target.value)}
-                        >
-                            <option value="all">All</option>
-                            {availableDecades.sort().map(decade => (
-                                <option key={decade} value={decade}>{decade}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Filter by Added Period */}
-                    <div className="form-control">
-                        <label className="label py-0.5 md:py-1">
-                            <span className="label-text text-xs">Added</span>
-                        </label>
-                        <select
-                            className="select select-bordered select-xs md:select-sm w-full"
-                            value={filters.addedPeriod}
-                            onChange={(e) => handleFilterChange('addedPeriod', e.target.value)}
-                        >
-                            <option value="all">All</option>
-                            <option value="thisWeek">Week</option>
-                            <option value="thisMonth">Month</option>
-                            <option value="thisYear">Year</option>
-                            <option value="lastYear">Last yr</option>
-                        </select>
-                    </div>
-
-                    {/* Filter by Style */}
-                    <div className="form-control">
-                        <label className="label py-0.5 md:py-1">
-                            <span className="label-text text-xs">Style</span>
-                        </label>
-                        <select
-                            className="select select-bordered select-xs md:select-sm w-full"
-                            value={filters.style}
-                            onChange={(e) => handleFilterChange('style', e.target.value)}
-                        >
-                            <option value="all">All</option>
-                            {availableStyles.map(style => (
-                                <option key={style} value={style}>{style} ({styleCounts[style] || 0})</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {/* Results count and Clear All */}
-                <div className="flex flex-row items-center justify-between lg:justify-end gap-3">
-                    <div className="text-xs md:text-sm text-gray-500">
-                        {filteredResults} / {totalResults}
-                    </div>
-                    {onClearAll && (
+            {/* Top row: Layout toggle + Results/Clear */}
+            {layout && onLayoutChange && (
+                <div className="flex items-center justify-center relative mb-3 pb-3 border-b border-base-300">
+                    <div className="join">
                         <button
-                            className="btn btn-ghost btn-xs"
-                            onClick={onClearAll}
-                            title="Clear all filters"
+                            className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
+                            onClick={() => onLayoutChange('grid')}
+                            title="Grid view"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                             </svg>
-                            <span className="hidden sm:inline">Clear All</span>
+                            <span className="hidden sm:inline ml-1">Grid</span>
                         </button>
-                    )}
+                        <button
+                            className={`btn join-item btn-sm ${layout === 'list' ? 'btn-primary' : 'btn-ghost'}`}
+                            onClick={() => onLayoutChange('list')}
+                            title="List view"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            <span className="hidden sm:inline ml-1">List</span>
+                        </button>
+                        <button
+                            className={`btn join-item btn-sm ${layout === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+                            onClick={() => onLayoutChange('table')}
+                            title="Table view"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <span className="hidden sm:inline ml-1">Table</span>
+                        </button>
+                    </div>
+
+                    <div className="absolute right-0 flex items-center gap-3">
+                        <span className="text-sm opacity-70">
+                            {filteredResults} / {totalResults}
+                        </span>
+                        {onClearAll && (
+                            <button
+                                className="btn btn-ghost btn-sm"
+                                onClick={onClearAll}
+                                title="Clear all filters"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span className="hidden sm:inline">Clear</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Bottom row: Filter dropdowns */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                {/* Filter by Format */}
+                <div className="form-control">
+                    <label className="label py-0.5 md:py-1">
+                        <span className="label-text text-xs">Format</span>
+                    </label>
+                    <select
+                        className="select select-bordered select-sm w-full"
+                        value={filters.format}
+                        onChange={(e) => handleFilterChange('format', e.target.value)}
+                    >
+                        <option value="all">All Formats</option>
+                        {availableFormats.map(format => (
+                            <option key={format} value={format}>{format}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Filter by Decade */}
+                <div className="form-control">
+                    <label className="label py-0.5 md:py-1">
+                        <span className="label-text text-xs">Decade</span>
+                    </label>
+                    <select
+                        className="select select-bordered select-sm w-full"
+                        value={filters.decade}
+                        onChange={(e) => handleFilterChange('decade', e.target.value)}
+                    >
+                        <option value="all">All Decades</option>
+                        {availableDecades.sort().map(decade => (
+                            <option key={decade} value={decade}>{decade}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Filter by Added Period */}
+                <div className="form-control">
+                    <label className="label py-0.5 md:py-1">
+                        <span className="label-text text-xs">Added</span>
+                    </label>
+                    <select
+                        className="select select-bordered select-sm w-full"
+                        value={filters.addedPeriod}
+                        onChange={(e) => handleFilterChange('addedPeriod', e.target.value)}
+                    >
+                        <option value="all">Any Time</option>
+                        <option value="thisWeek">This Week</option>
+                        <option value="thisMonth">This Month</option>
+                        <option value="thisYear">This Year</option>
+                        <option value="lastYear">Last Year</option>
+                    </select>
+                </div>
+
+                {/* Filter by Style */}
+                <div className="form-control">
+                    <label className="label py-0.5 md:py-1">
+                        <span className="label-text text-xs">Style</span>
+                    </label>
+                    <select
+                        className="select select-bordered select-sm w-full"
+                        value={filters.style}
+                        onChange={(e) => handleFilterChange('style', e.target.value)}
+                    >
+                        <option value="all">All Styles</option>
+                        {availableStyles.map(style => (
+                            <option key={style} value={style}>{style} ({styleCounts[style] || 0})</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
