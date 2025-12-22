@@ -197,6 +197,7 @@ const SearchBar: React.FC = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder={searchType === 'album' ? "Search for an album..." : "Search for an artist..."}
                         className="input input-bordered w-full pr-10"
+                        autoFocus
                     />
                     {isLoading && (
                         <span className="loading loading-spinner loading-sm absolute top-1/2 right-3 -translate-y-1/2"></span>
