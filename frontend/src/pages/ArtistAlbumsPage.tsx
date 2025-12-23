@@ -161,7 +161,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     >
                         <figure className="px-3 pt-3">
                             <img
-                                src={album.thumb || '/placeholder-album.png'}
+                                src={album.thumb || '/placeholder-album.svg'}
                                 alt={album.title}
                                 className="rounded-lg w-full aspect-square object-cover"
                             />

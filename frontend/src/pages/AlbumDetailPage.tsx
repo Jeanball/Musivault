@@ -97,7 +97,7 @@ const AlbumDetailPage: React.FC = () => {
                 {/* Album Cover */}
                 <div className="flex-shrink-0">
                     <img
-                        src={album.cover_image || '/placeholder-album.png'}
+                        src={album.cover_image || '/placeholder-album.svg'}
                         alt={album.title}
                         className="w-full lg:w-96 h-auto rounded-xl shadow-2xl"
                     />
