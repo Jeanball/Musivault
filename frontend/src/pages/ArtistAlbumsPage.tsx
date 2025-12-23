@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { toastService } from '../utils/toast';
+import { stripArtistSuffix } from '../utils/formatters';
 import type { ArtistPageData, ArtistAlbum } from '../types';
 
 type SortField = 'title' | 'year';
@@ -117,7 +118,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     />
                 )}
                 <div className="flex flex-col justify-center text-center md:text-left">
-                    <h1 className="text-3xl md:text-4xl font-bold">{pageData.artist.name}</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold">{stripArtistSuffix(pageData.artist.name)}</h1>
                     <p className="text-gray-400 mt-2">{pageData.albums.length} albums</p>
                     <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm mt-4 w-fit mx-auto md:mx-0">
                         ← Back

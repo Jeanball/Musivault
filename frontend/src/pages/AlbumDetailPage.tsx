@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
 import { toastService } from '../utils/toast';
+import { stripArtistSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection';
 import RematchModal from '../components/Modal/RematchModal';
 
@@ -106,7 +107,7 @@ const AlbumDetailPage: React.FC = () => {
                 {/* Album Information */}
                 <div className="flex-1">
                     <h1 className="text-4xl md:text-5xl font-bold mb-3">{album.title}</h1>
-                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-6">{album.artist}</h2>
+                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-6">{stripArtistSuffix(album.artist)}</h2>
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-6">

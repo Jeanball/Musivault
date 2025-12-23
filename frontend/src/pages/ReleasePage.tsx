@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { toastService } from '../utils/toast';
+import { stripArtistSuffix } from '../utils/formatters';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 
 const ReleasePage: React.FC = () => {
@@ -76,7 +77,7 @@ const ReleasePage: React.FC = () => {
                 {/* Album Info */}
                 <div className="flex-1">
                     <h1 className="text-3xl font-bold">{albumDetails.title}</h1>
-                    <p className="text-xl text-gray-400 mt-2">{albumDetails.artist}</p>
+                    <p className="text-xl text-gray-400 mt-2">{stripArtistSuffix(albumDetails.artist)}</p>
                     <p className="text-gray-500 mt-1">{albumDetails.year}</p>
 
                     {/* Available Formats */}
