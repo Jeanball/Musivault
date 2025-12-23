@@ -8,11 +8,9 @@ import BarcodeScannerModal from './Modal/BarcodeScannerModal';
 import SelectReleaseModal from './Modal/SelectReleaseModal';
 import type { DiscogsResult, ArtistResult } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
-import { Camera } from 'lucide-react';
+import { Camera, X } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-
-type SearchType = 'album' | 'artist';
 
 interface ReleaseDetails {
     discogsId: number;
@@ -25,10 +23,15 @@ interface ReleaseDetails {
 
 const SearchBar: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [searchType, setSearchType] = useState<SearchType>('album');
+    // Unified search: no searchType toggle
     const [albumResults, setAlbumResults] = useState<DiscogsResult[]>([]);
     const [artistResults, setArtistResults] = useState<ArtistResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    // Incremental expansion: number of visible items
+    const [visibleArtistCount, setVisibleArtistCount] = useState(3);
+    const [visibleAlbumCount, setVisibleAlbumCount] = useState(5);
+
     const navigate = useNavigate();
 
     // Barcode scanner state
@@ -42,30 +45,34 @@ const SearchBar: React.FC = () => {
     useEffect(() => {
         if (debouncedSearchQuery.length > 2) {
             setIsLoading(true);
+            // Reset to initial counts on new search
+            setVisibleArtistCount(3);
+            setVisibleAlbumCount(5);
 
             const search = async () => {
                 try {
-                    if (searchType === 'album') {
-                        const response = await axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/search`, {
+                    // Execute both searches in parallel
+                    const [albumsRes, artistsRes] = await Promise.all([
+                        axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/search`, {
                             params: { q: debouncedSearchQuery },
                             withCredentials: true
-                        });
-                        setAlbumResults(Array.isArray(response.data) ? response.data : []);
-                        setArtistResults([]);
-                    } else {
-                        const response = await axios.get<ArtistResult[]>(`${API_BASE_URL}/api/discogs/search/artists`, {
+                        }),
+                        axios.get<ArtistResult[]>(`${API_BASE_URL}/api/discogs/search/artists`, {
                             params: { q: debouncedSearchQuery },
                             withCredentials: true
-                        });
-                        setArtistResults(Array.isArray(response.data) ? response.data : []);
-                        setAlbumResults([]);
-                    }
+                        })
+                    ]);
+
+                    setAlbumResults(Array.isArray(albumsRes.data) ? albumsRes.data : []);
+                    setArtistResults(Array.isArray(artistsRes.data) ? artistsRes.data : []);
+
                 } catch (err) {
                     console.log(err)
                     if (axios.isAxiosError(err) && err.response?.status === 429) {
-                        toastService.error("Discogs rate limit reached. Please wait a moment and try again.");
+                        toastService.error("Too many requests! Please wait about 30 seconds before searching again.");
                     } else {
-                        toastService.error("Search failed.");
+                        // Don't show error toast on every keystroke/search, just log
+                        console.error("Search failed");
                     }
                     setAlbumResults([]);
                     setArtistResults([]);
@@ -78,7 +85,7 @@ const SearchBar: React.FC = () => {
             setAlbumResults([]);
             setArtistResults([]);
         }
-    }, [debouncedSearchQuery, searchType]);
+    }, [debouncedSearchQuery]); // Removed searchType dependency
 
     const handleSelectAlbum = (result: DiscogsResult) => {
         if (result.type === 'master') {
@@ -119,7 +126,7 @@ const SearchBar: React.FC = () => {
         } catch (err) {
             console.error('Barcode search error:', err);
             if (axios.isAxiosError(err) && err.response?.status === 429) {
-                toastService.error("Discogs rate limit reached. Please wait a moment and try again.");
+                toastService.error("Too many requests! Please wait about 30 seconds before scanning again.");
             } else if (axios.isAxiosError(err) && err.response?.data?.message) {
                 toastService.error(err.response.data.message);
             } else {
@@ -171,32 +178,30 @@ const SearchBar: React.FC = () => {
         addReleaseToCollection(release.id);
     };
 
-    return (
-        <div className="w-full max-w-4xl mx-auto">
-            {/* Search filter */}
-            <div className="flex gap-2 mb-4 justify-center">
-                <button
-                    className={`btn btn-sm ${searchType === 'album' ? 'btn-primary' : 'btn-outline'}`}
-                    onClick={() => setSearchType('album')}
-                >
-                    Albums
-                </button>
-                <button
-                    className={`btn btn-sm  ${searchType === 'artist' ? 'btn-primary' : 'btn-outline'} `}
-                    onClick={() => setSearchType('artist')}
-                >
-                    Artists
-                </button>
-            </div>
+    // Reset search handler
+    const handleResetSearch = () => {
+        setSearchQuery('');
+        setAlbumResults([]);
+        setArtistResults([]);
+        setVisibleArtistCount(3);
+        setVisibleAlbumCount(5);
+    };
 
-            {/* Search bar with barcode scanner button */}
-            <div className="relative flex gap-2">
+    // Rendering Helpers
+    const visibleArtists = artistResults.slice(0, visibleArtistCount);
+    const visibleAlbums = albumResults.slice(0, visibleAlbumCount);
+    const hasResults = artistResults.length > 0 || albumResults.length > 0;
+
+    return (
+        <div className="w-full max-w-6xl mx-auto">
+            {/* Search bar with barcode scanner and reset buttons */}
+            <div className="relative flex gap-2 mb-6">
                 <div className="relative flex-1">
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={searchType === 'album' ? "Search for an album..." : "Search for an artist..."}
+                        placeholder="Search for artists or albums..."
                         className="input input-bordered w-full pr-10"
                         autoFocus
                     />
@@ -204,6 +209,16 @@ const SearchBar: React.FC = () => {
                         <span className="loading loading-spinner loading-sm absolute top-1/2 right-3 -translate-y-1/2"></span>
                     )}
                 </div>
+                {/* Reset button - only show when there are results or a query */}
+                {(searchQuery || hasResults) && (
+                    <button
+                        className="btn btn-ghost btn-square"
+                        onClick={handleResetSearch}
+                        title="Reset Search"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                )}
                 <button
                     className="btn btn-primary btn-square"
                     onClick={() => setIsScannerOpen(true)}
@@ -218,43 +233,69 @@ const SearchBar: React.FC = () => {
                 </button>
             </div>
 
-            {/* Album results */}
-            {searchType === 'album' && (
-                <div className="space-y-4 mt-8">
-                    {albumResults.map((result) => (
-                        <AlbumCard
-                            key={result.id}
-                            result={result}
-                            onShowDetails={() => handleSelectAlbum(result)}
-                            isLoadingDetails={false}
-                        />
-                    ))}
-                </div>
-            )}
+            {/* Side-by-side layout: Artists left, Albums right */}
+            <div className="flex flex-col md:flex-row gap-8">
 
-            {/* Artist results */}
-            {searchType === 'artist' && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-                    {artistResults.map((artist) => (
-                        <div
-                            key={artist.id}
-                            className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
-                            onClick={() => handleSelectArtist(artist)}
-                        >
-                            <figure className="px-4 pt-4">
-                                <img
-                                    src={artist.thumb || '/placeholder-artist.png'}
-                                    alt={stripArtistSuffix(artist.name)}
-                                    className="rounded-full w-24 h-24 object-cover mx-auto"
-                                />
-                            </figure>
-                            <div className="card-body items-center text-center p-4">
-                                <h3 className="card-title text-sm">{stripArtistSuffix(artist.name)}</h3>
-                            </div>
+                {/* ARTISTS SECTION - Left side */}
+                {artistResults.length > 0 && (
+                    <div className="md:w-1/3">
+                        <h3 className="text-xl font-bold mb-4 text-gray-200">Artists</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+                            {visibleArtists.map((artist) => (
+                                <div
+                                    key={artist.id}
+                                    className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
+                                    onClick={() => handleSelectArtist(artist)}
+                                >
+                                    <figure className="px-4 pt-4">
+                                        <img
+                                            src={artist.thumb || '/placeholder-artist.png'}
+                                            alt={stripArtistSuffix(artist.name)}
+                                            className="rounded-full w-20 h-20 object-cover mx-auto"
+                                        />
+                                    </figure>
+                                    <div className="card-body items-center text-center p-3">
+                                        <h3 className="card-title text-sm">{stripArtistSuffix(artist.name)}</h3>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            )}
+                        {visibleArtistCount < artistResults.length && (
+                            <button
+                                className="btn btn-ghost btn-sm mt-2 w-full text-gray-400 hover:text-white"
+                                onClick={() => setVisibleArtistCount(prev => prev + 3)}
+                            >
+                                Show 3 more ({artistResults.length - visibleArtistCount} remaining)
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {/* ALBUMS SECTION - Right side */}
+                {albumResults.length > 0 && (
+                    <div className="md:w-2/3">
+                        <h3 className="text-xl font-bold mb-4 text-gray-200">Albums</h3>
+                        <div className="space-y-4">
+                            {visibleAlbums.map((result) => (
+                                <AlbumCard
+                                    key={result.id}
+                                    result={result}
+                                    onShowDetails={() => handleSelectAlbum(result)}
+                                    isLoadingDetails={false}
+                                />
+                            ))}
+                        </div>
+                        {visibleAlbumCount < albumResults.length && (
+                            <button
+                                className="btn btn-ghost btn-sm mt-2 w-full text-gray-400 hover:text-white"
+                                onClick={() => setVisibleAlbumCount(prev => prev + 5)}
+                            >
+                                Show 5 more ({albumResults.length - visibleAlbumCount} remaining)
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
 
             {/* Barcode Scanner Modal */}
             <BarcodeScannerModal
