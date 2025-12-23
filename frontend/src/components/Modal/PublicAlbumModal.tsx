@@ -24,7 +24,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                 {/* Album Cover */}
                 <div className="flex justify-center mb-4">
                     <img
-                        src={album.cover_image || '/placeholder-album.png'}
+                        src={album.cover_image || '/placeholder-album.svg'}
                         alt={album.title}
                         className="w-48 h-48 object-cover rounded-lg shadow-xl"
                     />
