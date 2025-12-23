@@ -244,7 +244,7 @@ export async function addToCollection(req: Request, res: Response) {
       album = new Album({
         discogsId,
         title,
-        artist,
+        artist: artist.replace(/\s\(\d+\)$/, ''),
         year,
         thumb,
         cover_image,
@@ -397,7 +397,7 @@ export async function rematchAlbum(req: Request, res: Response) {
     const album = item.album as any;
     album.discogsId = newDiscogsId;
     album.title = cleanedTitle;
-    album.artist = releaseData.artists?.map((a: any) => a.name).join(', ') || album.artist;
+    album.artist = (releaseData.artists?.map((a: any) => a.name).join(', ') || album.artist).replace(/\s\(\d+\)$/, '');
     album.year = releaseData.year?.toString() || album.year;
     album.cover_image = releaseData.images?.find((img: any) => img.type === 'primary')?.uri
       || releaseData.images?.[0]?.uri

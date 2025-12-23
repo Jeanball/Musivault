@@ -175,7 +175,7 @@ export async function processImportRow(
         album = new Album({
             discogsId: found.discogsId,
             title: found.title,
-            artist: found.artist,
+            artist: found.artist.replace(/\s\(\d+\)$/, ''),
             year: found.year,
             thumb: found.thumb,
             cover_image: found.cover_image,

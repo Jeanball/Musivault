@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { toastService } from "../utils/toast";
+import { stripArtistSuffix } from '../utils/formatters';
 import AlbumCard from './AlbumCard';
 import BarcodeScannerModal from './Modal/BarcodeScannerModal';
 import SelectReleaseModal from './Modal/SelectReleaseModal';
@@ -243,12 +244,12 @@ const SearchBar: React.FC = () => {
                             <figure className="px-4 pt-4">
                                 <img
                                     src={artist.thumb || '/placeholder-artist.png'}
-                                    alt={artist.name}
+                                    alt={stripArtistSuffix(artist.name)}
                                     className="rounded-full w-24 h-24 object-cover mx-auto"
                                 />
                             </figure>
                             <div className="card-body items-center text-center p-4">
-                                <h3 className="card-title text-sm">{artist.name}</h3>
+                                <h3 className="card-title text-sm">{stripArtistSuffix(artist.name)}</h3>
                             </div>
                         </div>
                     ))}
