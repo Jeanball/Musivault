@@ -34,6 +34,10 @@ const VersionsPage: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    useEffect(() => {
         const fetchVersions = async () => {
             if (!masterId) return;
             try {

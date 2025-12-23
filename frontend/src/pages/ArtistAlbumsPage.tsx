@@ -7,13 +7,45 @@ import type { ArtistPageData, ArtistAlbum } from '../types';
 type SortField = 'title' | 'year';
 type SortOrder = 'asc' | 'desc';
 
+interface ArtistPageState {
+    sortField: SortField;
+    sortOrder: SortOrder;
+}
+
+const ARTIST_PAGE_STATE_KEY = 'musivault_artist_page_state';
+
+const getStoredState = (artistId: string): ArtistPageState | null => {
+    try {
+        const stored = sessionStorage.getItem(`${ARTIST_PAGE_STATE_KEY}_${artistId}`);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {
+        // Ignore parse errors
+    }
+    return null;
+};
+
 const ArtistAlbumsPage: React.FC = () => {
     const { artistId } = useParams<{ artistId: string }>();
     const navigate = useNavigate();
     const [pageData, setPageData] = useState<ArtistPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [sortField, setSortField] = useState<SortField>('year');
-    const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+    // Initialize state from sessionStorage if available
+    const storedState = artistId ? getStoredState(artistId) : null;
+    const [sortField, setSortField] = useState<SortField>(storedState?.sortField ?? 'year');
+    const [sortOrder, setSortOrder] = useState<SortOrder>(storedState?.sortOrder ?? 'desc');
+
+    // Save state to sessionStorage whenever it changes
+    useEffect(() => {
+        if (!artistId) return;
+        const state: ArtistPageState = {
+            sortField,
+            sortOrder
+        };
+        sessionStorage.setItem(`${ARTIST_PAGE_STATE_KEY}_${artistId}`, JSON.stringify(state));
+    }, [artistId, sortField, sortOrder]);
 
     useEffect(() => {
         const fetchArtistAlbums = async () => {
