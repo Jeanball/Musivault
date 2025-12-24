@@ -5,6 +5,34 @@ All notable changes to Musivault will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0-beta.1] - 2025-12-24
+
+### Added
+- OIDC/SSO single sign-on support
+- Unified search for albums and artists with side-by-side results
+- "What's New" modal showing release notes on version updates
+- Success modal after adding album with "View Album" / "Continue Searching" options
+- Format details display on album detail page (vinyl color, LP, Album, Limited Edition)
+- Migration script for backfilling format details from Discogs
+- Dynamic greeting on home page based on time of day
+- Artist name cleanup script to remove Discogs numbering suffixes
+- Collection data centralized via React Context
+
+### Changed
+- Admin dashboard: "Last Login" replaced with "Last Added" (album)
+- Album detail page: Record Label moved below artist name
+- Album detail page: Genres and Format Details displayed side by side
+- Removed landing page, defaulting to login route
+- Persist collection layout and artist album sort preferences
+- Auto-focus search bar and improved responsive styling
+
+### Fixed
+- Scroll to top when navigating to album detail page
+- Placeholder image path for Freshly Added section (now uses SVG)
+- VERSION file served correctly by Vite dev server
+
+---
+
 ## [1.7.2] - 2025-12-21
 
 ### Added
