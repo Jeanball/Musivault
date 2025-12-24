@@ -17,13 +17,16 @@ import PublicCollectionPage from './pages/PublicCollectionPage';
 import DiscoverPage from './pages/DiscoverPage';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateLayout from './components/Layout/PrivateLayout';
-
-
 import PublicLayout from './components/Layout/PublicLayout';
+import WhatsNewModal from './components/Modal/WhatsNewModal';
+import { useWhatsNew } from './hooks/useWhatsNew';
 
 const App = () => {
   // Responsive toast position: top on mobile, bottom-right on desktop
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  // What's New release notes
+  const { showModal, entries, dismiss, currentVersion } = useWhatsNew();
 
   useEffect(() => {
     const handleResize = () => {
@@ -62,6 +65,15 @@ const App = () => {
             </Route>
           </Routes>
         </div>
+
+        {/* What's New Modal */}
+        {showModal && (
+          <WhatsNewModal
+            entries={entries}
+            currentVersion={currentVersion}
+            onDismiss={dismiss}
+          />
+        )}
 
         {/* Global Toast Container - Top on mobile, bottom-right on desktop */}
         <ToastContainer
