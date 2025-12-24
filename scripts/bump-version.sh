@@ -185,6 +185,17 @@ else
     echo -e "${YELLOW}⚠️  CHANGELOG.md not found, skipping changelog update${NC}"
 fi
 
+# Copy VERSION and CHANGELOG.md to frontend/public for What's New feature
+echo ""
+echo -e "${BLUE}📋 Copying files for What's New feature...${NC}"
+if [ -d "frontend/public" ]; then
+    cp "$VERSION_FILE" "frontend/public/VERSION"
+    cp "$CHANGELOG_FILE" "frontend/public/CHANGELOG.md"
+    echo -e "${GREEN}✅ Copied VERSION and CHANGELOG.md to frontend/public/${NC}"
+else
+    echo -e "${YELLOW}⚠️  frontend/public not found, skipping copy${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}🎉 Version bumped successfully!${NC}"
 echo -e "   ${YELLOW}$current → $new_version${NC}"
@@ -192,5 +203,5 @@ echo ""
 echo -e "Next steps:"
 echo -e "  1. Review changes: ${YELLOW}git diff${NC}"
 echo -e "  2. Edit CHANGELOG.md if needed (clean up auto-generated entries)"
-echo -e "  3. Commit changes: ${YELLOW}git add VERSION package.json frontend/package.json backend/package.json CHANGELOG.md && git commit -m 'chore: bump version to $new_version'${NC}"
+echo -e "  3. Commit changes: ${YELLOW}git add VERSION package.json frontend/package.json backend/package.json CHANGELOG.md frontend/public/VERSION frontend/public/CHANGELOG.md && git commit -m 'chore: bump version to $new_version'${NC}"
 echo -e "  4. Create release: ${YELLOW}npm run release${NC}"
