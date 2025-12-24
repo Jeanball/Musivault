@@ -23,6 +23,11 @@ interface VersionsPageData {
 
 type FormatFilter = 'all' | 'CD' | 'Vinyl';
 
+interface AddedAlbumInfo {
+    id: string;
+    title: string;
+}
+
 const VersionsPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
     const navigate = useNavigate();
@@ -32,6 +37,7 @@ const VersionsPage: React.FC = () => {
 
     const [selectedAlbum, setSelectedAlbum] = useState<AlbumDetails | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -78,15 +84,29 @@ const VersionsPage: React.FC = () => {
         if (!selectedAlbum) return;
         setIsSubmitting(true);
         try {
-            await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
+            const response = await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
             toastService.success(`"${selectedAlbum.title}" added to your collection!`);
-            console.log(selectedAlbum.title)
+            setAddedAlbum({
+                id: response.data.item._id,
+                title: selectedAlbum.title
+            });
             setSelectedAlbum(null);
         } catch (err: any) {
             toastService.error(err.response?.data?.message || "An error occured.");
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleGoToAlbum = () => {
+        if (addedAlbum) {
+            navigate(`/app/album/${addedAlbum.id}`);
+        }
+    };
+
+    const handleContinueSearching = () => {
+        setAddedAlbum(null);
+        navigate('/app');
     };
 
 
@@ -171,6 +191,36 @@ const VersionsPage: React.FC = () => {
                 onConfirm={handleConfirmAddToCollection}
                 isSubmitting={isSubmitting}
             />
+
+            {/* Success Modal - Choice after adding */}
+            {addedAlbum && (
+                <dialog className="modal modal-open">
+                    <div className="modal-box text-center">
+                        <div className="text-5xl mb-4">🎉</div>
+                        <h3 className="font-bold text-xl mb-2">Album Added!</h3>
+                        <p className="text-base-content/70 mb-6">
+                            "{addedAlbum.title}" has been added to your collection.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleGoToAlbum}
+                            >
+                                View Album
+                            </button>
+                            <button
+                                className="btn btn-outline"
+                                onClick={handleContinueSearching}
+                            >
+                                Continue Searching
+                            </button>
+                        </div>
+                    </div>
+                    <form method="dialog" className="modal-backdrop">
+                        <button onClick={() => setAddedAlbum(null)}>close</button>
+                    </form>
+                </dialog>
+            )}
         </div>
 
     );
