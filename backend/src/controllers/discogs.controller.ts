@@ -253,16 +253,47 @@ export async function getMasterVersions(req: Request, res: Response) {
 
         const versions = versionsResponse.data.versions || [];
 
+        // --- FILTER OUT DIGITAL/FILE FORMATS ---
+        // Only keep physical formats (Vinyl, CD, Cassette, etc.)
+        const filteredOut: { id: number; format: string; majorFormats: string[] }[] = [];
+        const physicalVersions = versions.filter(version => {
+            const formats = version.major_formats || [];
+            // Exclude if it's File format and has no physical format
+            const hasPhysical = formats.some((f: string) =>
+                ['Vinyl', 'CD', 'Cassette', 'Box Set', 'All Media'].includes(f)
+            );
+            const isFileOnly = formats.includes('File') && !hasPhysical;
+            if (isFileOnly) {
+                filteredOut.push({ id: version.id, format: version.format, majorFormats: formats });
+            }
+            return !isFileOnly;
+        });
+
+        // Debug: Log filtered out versions
+        if (filteredOut.length > 0) {
+            console.log(`[Master ${masterId}] Filtered out ${filteredOut.length} digital-only versions:`, filteredOut);
+        }
+
         // --- NOUVELLE LOGIQUE DE COMPTAGE MANUEL ---
         // On calcule les comptes nous-mêmes en parcourant la liste des versions.
-        const formatCounts: { [key: string]: number } = { CD: 0, Vinyl: 0 };
-        versions.forEach(version => {
+        const formatCounts: { [key: string]: number } = { CD: 0, Vinyl: 0, Cassette: 0 };
+        physicalVersions.forEach(version => {
             if (version.major_formats.includes('Vinyl')) {
                 formatCounts.Vinyl++;
             }
             if (version.major_formats.includes('CD')) {
                 formatCounts.CD++;
             }
+            if (version.major_formats.includes('Cassette')) {
+                formatCounts.Cassette++;
+            }
+        });
+
+        // Count versions by country
+        const countryCounts: { [key: string]: number } = {};
+        physicalVersions.forEach(version => {
+            const country = version.country || 'Unknown';
+            countryCounts[country] = (countryCounts[country] || 0) + 1;
         });
 
         const finalResponse = {
@@ -270,7 +301,8 @@ export async function getMasterVersions(req: Request, res: Response) {
             coverImage: detailsResponse.data.images?.[0]?.uri || '',
             main_release: detailsResponse.data.main_release,
             formatCounts: formatCounts,
-            versions: versionsResponse.data.versions.map(v => ({
+            countryCounts: countryCounts,
+            versions: physicalVersions.map(v => ({
                 id: v.id,
                 title: v.title,
                 format: v.format, // Le format détaillé, pour la modale
@@ -404,16 +436,26 @@ export async function getArtistReleases(req: Request, res: Response) {
 
         const [artistResponse, releasesResponse] = await Promise.all([
             axios.get<{ name: string; images?: { uri: string }[] }>(artistUrl, { params: authParams, headers }),
-            axios.get<{ releases: { id: number; title: string; year: number; thumb: string; type: string; role: string; artist: string; main_release?: number }[] }>(releasesUrl, {
+            axios.get<{ releases: { id: number; title: string; year: number; thumb: string; type: string; role: string; artist: string; main_release?: number; format?: string }[] }>(releasesUrl, {
                 params: { ...authParams, per_page: 100, sort: 'year', sort_order: order },
                 headers
             })
         ]);
 
         // Filtrer pour ne garder que les albums (type master ou release avec role "Main")
+        // Also filter out File-only releases (digital downloads)
         const releases = releasesResponse.data.releases || [];
         const albums = releases
-            .filter(r => r.role === 'Main' && (r.type === 'master' || r.type === 'release'))
+            .filter(r => {
+                // Must be Main role and master/release type
+                if (r.role !== 'Main' || (r.type !== 'master' && r.type !== 'release')) {
+                    return false;
+                }
+                // Filter out File-only releases
+                const format = r.format?.toLowerCase() || '';
+                const isFileOnly = format === 'file' || (format.includes('file') && !format.match(/vinyl|cd|cassette|lp|box set/i));
+                return !isFileOnly;
+            })
             .map(r => ({
                 id: r.type === 'master' ? r.id : (r.main_release || r.id),
                 title: r.title,

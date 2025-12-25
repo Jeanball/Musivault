@@ -147,7 +147,7 @@ const AlbumDetailPage: React.FC = () => {
                                 >
                                     <option value="Vinyl">Vinyl</option>
                                     <option value="CD">CD</option>
-                                    <option value="Digital">Digital</option>
+
                                     <option value="Cassette">Cassette</option>
                                 </select>
                             </div>
