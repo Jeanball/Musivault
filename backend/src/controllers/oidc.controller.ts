@@ -83,13 +83,14 @@ export async function handleOIDCCallback(req: Request, res: Response) {
         pendingAuth.delete(state);
 
         // Build the current URL for token exchange
-        const currentUrl = new URL(req.originalUrl, `${req.protocol}://${req.get('host')}`);
+        // Use the configured redirect URI as base, append query params from request
+        // This fixes https/http mismatch when behind reverse proxies like Cloudflare
+        const currentUrl = new URL(redirectUri);
+        const queryParams = new URLSearchParams(req.query as Record<string, string>);
+        currentUrl.search = queryParams.toString();
 
         // Debug logging
         console.log('OIDC Debug:', {
-            protocol: req.protocol,
-            host: req.get('host'),
-            originalUrl: req.originalUrl,
             constructedUrl: currentUrl.href,
             configuredRedirectUri: redirectUri
         });
