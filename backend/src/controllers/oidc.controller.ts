@@ -85,6 +85,15 @@ export async function handleOIDCCallback(req: Request, res: Response) {
         // Build the current URL for token exchange
         const currentUrl = new URL(req.originalUrl, `${req.protocol}://${req.get('host')}`);
 
+        // Debug logging
+        console.log('OIDC Debug:', {
+            protocol: req.protocol,
+            host: req.get('host'),
+            originalUrl: req.originalUrl,
+            constructedUrl: currentUrl.href,
+            configuredRedirectUri: redirectUri
+        });
+
         // Exchange code for tokens
         const tokens = await client.authorizationCodeGrant(config, currentUrl, {
             pkceCodeVerifier: codeVerifier,
