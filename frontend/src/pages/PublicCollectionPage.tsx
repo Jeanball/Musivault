@@ -61,13 +61,20 @@ const PublicCollectionPage: React.FC = () => {
         <div className="min-h-screen bg-base-100 p-2 md:p-4" data-theme="dark">
             {/* Public Collection Header */}
             {!isLoading && (
-                <div className="mb-6 text-center">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                        {username}'s Collection
-                    </h1>
-                    <p className="text-base-content/60">
-                        Powered by <Link to="/" className="link link-primary">Musivault</Link>
-                    </p>
+                <div className="mb-6 relative">
+                    <Link to="/" className="btn btn-ghost btn-circle absolute left-0 top-0 md:left-4 md:top-2" title="Back to Home">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </Link>
+                    <div className="text-center pt-2">
+                        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                            {username}'s Collection
+                        </h1>
+                        <p className="text-base-content/60">
+                            Powered by <Link to="/" className="link link-primary">Musivault</Link>
+                        </p>
+                    </div>
                 </div>
             )}
 

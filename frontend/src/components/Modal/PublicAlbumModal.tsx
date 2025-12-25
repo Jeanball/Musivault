@@ -34,9 +34,23 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                 <div className="text-center mb-6">
                     <h2 className="text-2xl font-bold">{album.title}</h2>
                     <p className="text-lg text-base-content/70">{album.artist}</p>
-                    <p className="text-sm text-base-content/50 mt-1">
-                        {album.year || '—'} • {item.format.name}
-                    </p>
+                    <div className="mt-4 flex flex-col items-center gap-3">
+                        <div className="flex flex-wrap justify-center gap-2">
+                            <div className="badge badge-lg">{album.year || '—'}</div>
+                            <div className="badge badge-lg badge-primary">{item.format.name}</div>
+                        </div>
+
+                        {(item.format.text || (item.format.descriptions && item.format.descriptions.length > 0)) && (
+                            <div className="flex flex-wrap gap-2 justify-center">
+                                {item.format.text && item.format.text !== item.format.name && (
+                                    <div className="badge badge-neutral">{item.format.text}</div>
+                                )}
+                                {item.format.descriptions?.map((desc, i) => (
+                                    <div key={i} className="badge badge-outline opacity-80">{desc}</div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* External Links */}
