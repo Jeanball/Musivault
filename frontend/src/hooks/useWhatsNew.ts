@@ -12,20 +12,34 @@ export interface ChangelogEntry {
 }
 
 /**
- * Compare two semver versions
+ * Compare two semver versions (supports prereleases like 1.8.0-beta.1)
  * Returns: -1 if a < b, 0 if equal, 1 if a > b
+ * Prereleases are considered older than their release (1.8.0-beta.1 < 1.8.0)
  */
 function compareVersions(a: string, b: string): number {
-    const partsA = a.split('.').map(Number);
-    const partsB = b.split('.').map(Number);
+    // Split version and prerelease
+    const [versionA, preA] = a.split('-');
+    const [versionB, preB] = b.split('-');
 
+    const partsA = versionA.split('.').map(Number);
+    const partsB = versionB.split('.').map(Number);
+
+    // Compare major.minor.patch
     for (let i = 0; i < 3; i++) {
         const numA = partsA[i] || 0;
         const numB = partsB[i] || 0;
         if (numA < numB) return -1;
         if (numA > numB) return 1;
     }
-    return 0;
+
+    // If versions are equal, compare prereleases
+    // No prerelease > prerelease (1.8.0 > 1.8.0-beta.1)
+    if (!preA && preB) return 1;
+    if (preA && !preB) return -1;
+    if (!preA && !preB) return 0;
+
+    // Compare prerelease strings lexically
+    return preA!.localeCompare(preB!);
 }
 
 /**
@@ -34,8 +48,8 @@ function compareVersions(a: string, b: string): number {
 function parseChangelog(content: string): ChangelogEntry[] {
     const entries: ChangelogEntry[] = [];
 
-    // Match version blocks: ## [X.Y.Z] - YYYY-MM-DD
-    const versionRegex = /## \[(\d+\.\d+\.\d+)\](?: - (\d{4}-\d{2}-\d{2}))?/g;
+    // Match version blocks: ## [X.Y.Z] or ## [X.Y.Z-prerelease] - YYYY-MM-DD
+    const versionRegex = /## \[(\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?)\](?: - (\d{4}-\d{2}-\d{2}))?/g;
     const sections = content.split(versionRegex);
 
     // sections array: [preamble, version1, date1, content1, version2, date2, content2, ...]
