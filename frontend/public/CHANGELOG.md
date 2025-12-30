@@ -5,6 +5,19 @@ All notable changes to Musivault will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0-beta.3] - 2025-12-30
+
+### Added
+- feat: Exclude digital-only releases/versions, add cassette and country filtering, and remove digital format options.
+- feat: enhance album detail display with badges and add a back button to the public collection header.
+- feat: replace static home link with dynamic back navigation using `useNavigate`
+- feat: add track artist data to models, Discogs import, UI display, and collection search by track name
+
+### Changed
+- refactor: improve public collection header layout by replacing absolute positioning with flexbox and adding a spacer.
+
+---
+
 ## [1.8.0-beta.2] - 2025-12-24
 
 ### Added
