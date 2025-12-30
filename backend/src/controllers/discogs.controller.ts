@@ -15,7 +15,7 @@ interface DiscogsSearchResultExtended {
     year: string;
     thumb: string;
     type: 'master' | 'release';
-    master_id?: number; // Présent sur les releases qui ont un master
+    master_id?: number; // Present on releases that have a master
 }
 
 interface DiscogsFormat {
@@ -29,6 +29,7 @@ interface DiscogsTrack {
     position: string;
     title: string;
     duration: string;
+    artists?: { name: string }[];
 }
 
 interface DiscogsLabel {
@@ -64,10 +65,10 @@ interface DiscogsSearchResultExtended {
     year: string;
     thumb: string;
     type: 'master' | 'release';
-    master_id?: number; // Présent sur les releases qui ont un master
+    master_id?: number; // Present on releases that have a master
 }
 interface DiscogsMasterVersionsResult {
-    id: number; // C'est le release_id
+    id: number; // This is the release_id
     title: string;
     format: string;
     label: string;
@@ -85,11 +86,11 @@ interface DiscogsMasterDetailsResponse {
 interface DiscogsVersion {
     id: number;
     title: string;
-    format: string; // On garde le format détaillé pour plus tard
+    format: string; // Detailed format for later use
     label: string;
     country: string;
-    released: string; // L'année de sortie
-    major_formats: string[]; // Le format principal (ex: "Vinyl")
+    released: string; // Release year
+    major_formats: string[]; // Main format (e.g., "Vinyl")
 }
 
 interface DiscogsMasterVersionsResponse {
@@ -112,11 +113,11 @@ export async function searchAlbums(req: Request, res: Response) {
         const discogsSecret = process.env.DISCOGS_SECRET;
 
         if (!q) {
-            res.status(400).json({ message: "Le paramètre de recherche 'q' est manquant." });
+            res.status(400).json({ message: "Missing search parameter 'q'." });
             return;
         }
         if (!discogsKey || !discogsSecret) {
-            res.status(500).json({ message: "Erreur de configuration du serveur." });
+            res.status(500).json({ message: "Server configuration error." });
             return;
         }
 
@@ -128,7 +129,7 @@ export async function searchAlbums(req: Request, res: Response) {
         };
         const headers = { 'User-Agent': 'Musivault/1.0' };
 
-        // 1. Lancer les deux recherches en parallèle
+        // 1. Run both searches in parallel
         const [mastersResponse, releasesResponse] = await Promise.all([
             axios.get<{ results: DiscogsSearchResultExtended[] }>(discogsApiUrl, {
                 params: { ...authParams, type: 'master' },
@@ -143,13 +144,13 @@ export async function searchAlbums(req: Request, res: Response) {
         const masters = mastersResponse.data.results || [];
         const releases = releasesResponse.data.results || [];
 
-        // 2. Créer un Set des master IDs trouvés
+        // 2. Create a Set of found master IDs
         const masterIds = new Set(masters.map(m => m.id));
 
-        // 3. Filtrer les releases orphelines (sans master ou master pas dans nos résultats)
+        // 3. Filter orphan releases (without master or master not in our results)
         const orphanReleases = releases.filter(r => !r.master_id || !masterIds.has(r.master_id));
 
-        // 4. Combiner : masters d'abord, puis releases orphelines
+        // 4. Combine: masters first, then orphan releases
         const combined = [
             ...masters.map(item => ({
                 id: item.id,
@@ -170,21 +171,21 @@ export async function searchAlbums(req: Request, res: Response) {
         res.status(200).json(combined);
 
     } catch (error) {
-        console.error("Erreur lors de la recherche d'albums sur Discogs:", error);
+        console.error("Error searching albums on Discogs:", error);
         if (axios.isAxiosError(error) && error.response?.status === 429) {
             res.status(429).json({ message: "Too many requests! Please wait about 30 seconds before trying again." });
             return;
         }
-        res.status(500).json({ message: "Échec de la recherche." });
+        res.status(500).json({ message: "Search failed." });
     }
 }
 
 export async function searchMasters(req: Request, res: Response) {
     try {
-        const { q } = req.query; // Le terme de recherche vient des paramètres de la requête
+        const { q } = req.query; // Search term comes from query parameters
 
         if (!q) {
-            res.status(400).json({ message: "Le paramètre de recherche 'q' est manquant." });
+            res.status(400).json({ message: "Missing search parameter 'q'." });
             return;
         }
 
@@ -202,7 +203,7 @@ export async function searchMasters(req: Request, res: Response) {
             }
         });
 
-        // On nettoie les résultats pour ne renvoyer que l'essentiel
+        // Clean results to return only essential data
         const cleanedResults = response.data.results.map(item => ({
             id: item.id,
             title: item.title,
@@ -213,33 +214,33 @@ export async function searchMasters(req: Request, res: Response) {
         res.status(200).json(cleanedResults);
 
     } catch (error) {
-        console.error("Erreur lors de la recherche de masters sur Discogs:", error);
-        res.status(500).json({ message: "Échec de la recherche." });
+        console.error("Error searching masters on Discogs:", error);
+        res.status(500).json({ message: "Search failed." });
     }
 }
 
 export async function getMasterVersions(req: Request, res: Response) {
     try {
         const { masterId } = req.params;
-        // On récupère la clé et le secret depuis les variables d'environnement
+        // Get key and secret from environment variables
         const discogsKey = process.env.DISCOGS_KEY;
         const discogsSecret = process.env.DISCOGS_SECRET;
 
         if (!discogsKey || !discogsSecret) {
-            res.status(500).json({ message: "Erreur de configuration du serveur : clé ou secret Discogs manquant." });
+            res.status(500).json({ message: "Server configuration error: missing Discogs key or secret." });
             return;
         }
 
         const masterDetailsUrl = `https://api.discogs.com/masters/${masterId}`;
         const masterVersionsUrl = `https://api.discogs.com/masters/${masterId}/versions`;
 
-        // L'authentification se fait maintenant via les paramètres de la requête
+        // Authentication via query parameters
         const authParams = {
             key: discogsKey,
             secret: discogsSecret
         };
 
-        // On lance les deux appels API en parallèle pour gagner du temps
+        // Run both API calls in parallel to save time
         const [detailsResponse, versionsResponse] = await Promise.all([
             axios.get<DiscogsMasterDetailsResponse>(masterDetailsUrl, {
                 headers: { 'User-Agent': 'Musivault/1.0' },
@@ -274,8 +275,8 @@ export async function getMasterVersions(req: Request, res: Response) {
             console.log(`[Master ${masterId}] Filtered out ${filteredOut.length} digital-only versions:`, filteredOut);
         }
 
-        // --- NOUVELLE LOGIQUE DE COMPTAGE MANUEL ---
-        // On calcule les comptes nous-mêmes en parcourant la liste des versions.
+        // --- MANUAL COUNTING LOGIC ---
+        // Calculate counts ourselves by iterating through the versions list.
         const formatCounts: { [key: string]: number } = { CD: 0, Vinyl: 0, Cassette: 0 };
         physicalVersions.forEach(version => {
             if (version.major_formats.includes('Vinyl')) {
@@ -305,19 +306,19 @@ export async function getMasterVersions(req: Request, res: Response) {
             versions: physicalVersions.map(v => ({
                 id: v.id,
                 title: v.title,
-                format: v.format, // Le format détaillé, pour la modale
+                format: v.format, // Detailed format for the modal
                 label: v.label,
                 country: v.country,
-                released: v.released, // L'année de sortie
-                majorFormat: v.major_formats?.[0] || 'N/A', // Le format principal
+                released: v.released, // Release year
+                majorFormat: v.major_formats?.[0] || 'N/A', // Main format
             }))
         };
 
         res.status(200).json(finalResponse);
 
     } catch (error) {
-        console.error(`Erreur lors de la récupération des données pour le master ${req.params.masterId}:`, error);
-        res.status(500).json({ message: "Échec de la récupération des données." });
+        console.error(`Error fetching data for master ${req.params.masterId}:`, error);
+        res.status(500).json({ message: "Failed to fetch data." });
     }
 }
 
@@ -328,11 +329,11 @@ export async function searchDiscogs(req: Request, res: Response) {
         const discogsSecret = process.env.DISCOGS_SECRET;
 
         if (!q) {
-            res.status(400).json({ message: "Le paramètre de recherche 'q' est manquant." });
+            res.status(400).json({ message: "Missing search parameter 'q'." });
             return;
         }
         if (!discogsKey || !discogsSecret) {
-            res.status(500).json({ message: "Erreur de configuration du serveur." });
+            res.status(500).json({ message: "Server configuration error." });
             return;
         }
 
@@ -348,24 +349,24 @@ export async function searchDiscogs(req: Request, res: Response) {
 
         });
 
-        // On nettoie les résultats et on s'assure d'inclure le type
+        // Clean results and ensure type is included
         const cleanedResults = response.data.results.map(item => ({
             id: item.id,
             title: item.title,
             year: item.year,
             thumb: item.thumb,
-            type: item.type, // On passe le type au frontend
+            type: item.type, // Pass type to frontend
         }));
 
         res.status(200).json(cleanedResults);
 
     } catch (error) {
-        console.error("Erreur lors de la recherche sur Discogs:", error);
-        res.status(500).json({ message: "Échec de la recherche." });
+        console.error("Error searching Discogs:", error);
+        res.status(500).json({ message: "Search failed." });
     }
 }
 
-// Recherche d'artistes
+// Search for artists
 export async function searchArtists(req: Request, res: Response) {
     try {
         const { q } = req.query;
@@ -373,11 +374,11 @@ export async function searchArtists(req: Request, res: Response) {
         const discogsSecret = process.env.DISCOGS_SECRET;
 
         if (!q) {
-            res.status(400).json({ message: "Le paramètre de recherche 'q' est manquant." });
+            res.status(400).json({ message: "Missing search parameter 'q'." });
             return;
         }
         if (!discogsKey || !discogsSecret) {
-            res.status(500).json({ message: "Erreur de configuration du serveur." });
+            res.status(500).json({ message: "Server configuration error." });
             return;
         }
 
@@ -402,16 +403,16 @@ export async function searchArtists(req: Request, res: Response) {
         res.status(200).json(cleanedResults);
 
     } catch (error) {
-        console.error("Erreur lors de la recherche d'artistes sur Discogs:", error);
+        console.error("Error searching artists on Discogs:", error);
         if (axios.isAxiosError(error) && error.response?.status === 429) {
             res.status(429).json({ message: "Too many requests! Please wait about 30 seconds before trying again." });
             return;
         }
-        res.status(500).json({ message: "Échec de la recherche." });
+        res.status(500).json({ message: "Search failed." });
     }
 }
 
-// Récupérer les albums (releases) d'un artiste
+// Get albums (releases) for an artist
 export async function getArtistReleases(req: Request, res: Response) {
     try {
         const { artistId } = req.params;
@@ -420,11 +421,11 @@ export async function getArtistReleases(req: Request, res: Response) {
         const discogsSecret = process.env.DISCOGS_SECRET;
 
         if (!discogsKey || !discogsSecret) {
-            res.status(500).json({ message: "Erreur de configuration du serveur." });
+            res.status(500).json({ message: "Server configuration error." });
             return;
         }
 
-        // Récupérer les infos de l'artiste
+        // Get artist info
         const artistUrl = `https://api.discogs.com/artists/${artistId}`;
         const releasesUrl = `https://api.discogs.com/artists/${artistId}/releases`;
 
@@ -442,7 +443,7 @@ export async function getArtistReleases(req: Request, res: Response) {
             })
         ]);
 
-        // Filtrer pour ne garder que les albums (type master ou release avec role "Main")
+        // Filter to keep only albums (type master or release with role "Main")
         // Also filter out File-only releases (digital downloads)
         const releases = releasesResponse.data.releases || [];
         const albums = releases
@@ -464,7 +465,7 @@ export async function getArtistReleases(req: Request, res: Response) {
                 type: r.type as 'master' | 'release'
             }));
 
-        // Dédoublonner par titre (garder le premier, généralement le master)
+        // Deduplicate by title (keep first, usually the master)
         const seen = new Set<string>();
         const uniqueAlbums = albums.filter(album => {
             const key = album.title.toLowerCase();
@@ -473,13 +474,13 @@ export async function getArtistReleases(req: Request, res: Response) {
             return true;
         });
 
-        // Trier selon les paramètres
+        // Sort according to parameters
         const sortedAlbums = [...uniqueAlbums].sort((a, b) => {
             if (sort === 'title') {
                 const comparison = a.title.localeCompare(b.title);
                 return order === 'asc' ? comparison : -comparison;
             } else {
-                // Par année
+                // By year
                 const comparison = a.year - b.year;
                 return order === 'asc' ? comparison : -comparison;
             }
@@ -495,8 +496,8 @@ export async function getArtistReleases(req: Request, res: Response) {
         });
 
     } catch (error) {
-        console.error(`Erreur lors de la récupération des albums de l'artiste ${req.params.artistId}:`, error);
-        res.status(500).json({ message: "Échec de la récupération des albums." });
+        console.error(`Error fetching albums for artist ${req.params.artistId}:`, error);
+        res.status(500).json({ message: "Failed to fetch albums." });
     }
 }
 
@@ -506,8 +507,8 @@ export async function getReleaseDetails(req: Request, res: Response) {
         const discogsSecret = process.env.DISCOGS_SECRET;
 
         if (!discogsSecret) {
-            console.error("DISCOGS_SECRET n'est pas défini dans les variables d'environnement.");
-            res.status(500).json({ message: "Erreur de configuration du serveur." });
+            console.error("DISCOGS_SECRET is not defined in environment variables.");
+            res.status(500).json({ message: "Server configuration error." });
             return;
         }
 
@@ -525,7 +526,7 @@ export async function getReleaseDetails(req: Request, res: Response) {
         const cleanedData = {
             discogsId: data.id,
             title: data.title,
-            artist: data.artists?.map(a => a.name).join(', ') || 'Artiste inconnu',
+            artist: data.artists?.map(a => a.name).join(', ') || 'Unknown artist',
             year: data.year,
             cover_image: data.images?.find(img => img.type === 'primary')?.uri || data.images?.[0]?.uri || '',
             styles: data.styles || [],
@@ -537,7 +538,8 @@ export async function getReleaseDetails(req: Request, res: Response) {
             tracklist: data.tracklist?.map(t => ({
                 position: t.position,
                 title: t.title,
-                duration: t.duration || ''
+                duration: t.duration || '',
+                artist: t.artists?.map(a => a.name).join(', ') || ''
             })) || [],
             labels: data.labels?.map(l => ({
                 name: l.name,
@@ -547,12 +549,12 @@ export async function getReleaseDetails(req: Request, res: Response) {
         res.status(200).json(cleanedData);
 
     } catch (error) {
-        console.error("Erreur lors de la récupération des détails de la publication sur Discogs:", error);
+        console.error("Error fetching release details from Discogs:", error);
         if (axios.isAxiosError(error) && error.response?.status === 404) {
-            res.status(404).json({ message: "Publication non trouvée sur Discogs." });
+            res.status(404).json({ message: "Release not found on Discogs." });
             return;
         }
-        res.status(500).json({ message: "Échec de la récupération des détails de la publication." });
+        res.status(500).json({ message: "Failed to fetch release details." });
     }
 }
 

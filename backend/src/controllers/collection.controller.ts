@@ -10,6 +10,7 @@ interface TrackInput {
   position: string;
   title: string;
   duration: string;
+  artist?: string;
 }
 
 interface LabelInput {
@@ -407,7 +408,8 @@ export async function rematchAlbum(req: Request, res: Response) {
     album.tracklist = releaseData.tracklist?.map((t: any) => ({
       position: t.position || '',
       title: t.title || '',
-      duration: t.duration || ''
+      duration: t.duration || '',
+      artist: t.artists?.map((a: any) => a.name).join(', ') || ''
     })) || [];
     album.labels = releaseData.labels?.map((l: any) => ({
       name: l.name || '',

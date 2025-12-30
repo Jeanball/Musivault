@@ -53,7 +53,7 @@ interface DiscogsRelease {
     year?: number;
     images?: { type: string; uri: string }[];
     styles?: string[];
-    tracklist?: { position: string; title: string; duration: string }[];
+    tracklist?: { position: string; title: string; duration: string; artists?: { name: string }[] }[];
     labels?: { name: string; catno: string }[];
     formats?: DiscogsFormat[];
 }
@@ -184,15 +184,18 @@ async function migrateAlbumData() {
                     console.log(`  ✅ styles: ${data.styles.join(', ')}`);
                 }
 
-                // Update tracklist if missing
-                if (missing.tracklist && data.tracklist && data.tracklist.length > 0) {
+                // Update tracklist if missing OR if it exists but lacks artist data
+                const tracklistNeedsArtist = album.tracklist && album.tracklist.length > 0 &&
+                    album.tracklist.some((t: any) => !t.artist || t.artist === '');
+                if ((missing.tracklist || tracklistNeedsArtist) && data.tracklist && data.tracklist.length > 0) {
                     album.tracklist = data.tracklist.map(t => ({
                         position: t.position || '',
                         title: t.title || '',
-                        duration: t.duration || ''
+                        duration: t.duration || '',
+                        artist: t.artists?.map(a => a.name).join(', ') || ''
                     }));
                     updated = true;
-                    console.log(`  ✅ tracklist: ${data.tracklist.length} tracks`);
+                    console.log(`  ✅ tracklist: ${data.tracklist.length} tracks (with artists)`);
                 }
 
                 // Update labels if missing

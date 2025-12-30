@@ -4,6 +4,7 @@ export interface ITrack {
   position: string;
   title: string;
   duration: string;
+  artist?: string;
 }
 
 export interface ILabel {
@@ -27,6 +28,7 @@ const trackSchema = new Schema<ITrack>({
   position: { type: String, default: '' },
   title: { type: String, default: '' },
   duration: { type: String, default: '' },
+  artist: { type: String, default: '' },
 }, { _id: false });
 
 const labelSchema = new Schema<ILabel>({

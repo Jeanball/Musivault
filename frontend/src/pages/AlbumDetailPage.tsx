@@ -247,7 +247,12 @@ const AlbumDetailPage: React.FC = () => {
                                     {tracklist.map((track, index) => (
                                         <tr key={index} className="hover">
                                             <td className="font-mono text-base">{track.position}</td>
-                                            <td className="font-medium">{track.title}</td>
+                                            <td>
+                                                <div className="font-medium">{track.title}</div>
+                                                {track.artist && (
+                                                    <div className="text-sm text-base-content/60">{track.artist}</div>
+                                                )}
+                                            </td>
                                             <td className="text-right font-mono">{track.duration || '—'}</td>
                                         </tr>
                                     ))}

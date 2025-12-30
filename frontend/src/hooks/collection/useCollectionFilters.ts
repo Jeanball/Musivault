@@ -32,8 +32,13 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
         return items.filter(item => {
             // Filter by text search
             const term = searchTerm.toLowerCase();
-            const matchesSearch = item.album.title.toLowerCase().includes(term) ||
-                item.album.artist.toLowerCase().includes(term);
+            const matchesTitle = item.album.title.toLowerCase().includes(term);
+            const matchesArtist = item.album.artist.toLowerCase().includes(term);
+            const matchesTrack = item.album.tracklist?.some(track =>
+                track.title.toLowerCase().includes(term) ||
+                (track.artist && track.artist.toLowerCase().includes(term))
+            ) || false;
+            const matchesSearch = matchesTitle || matchesArtist || matchesTrack;
 
             if (!matchesSearch) return false;
 
