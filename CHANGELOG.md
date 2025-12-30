@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: enhance album detail display with badges and add a back button to the public collection header.
 - feat: replace static home link with dynamic back navigation using `useNavigate`
 - feat: add track artist data to models, Discogs import, UI display, and collection search by track name
+- feat: Introduce a toggleable 'Tracks' view in the collection alongside the existing 'Albums' view, utilizing a new track aggregation hook.
 
 ### Changed
 - refactor: improve public collection header layout by replacing absolute positioning with flexbox and adding a spacer.
