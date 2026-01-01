@@ -5,21 +5,7 @@ All notable changes to Musivault will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.8.0-beta.3] - 2025-12-30
-
-### Added
-- feat: Exclude digital-only releases/versions, add cassette and country filtering, and remove digital format options.
-- feat: enhance album detail display with badges and add a back button to the public collection header.
-- feat: replace static home link with dynamic back navigation using `useNavigate`
-- feat: add track artist data to models, Discogs import, UI display, and collection search by track name
-- feat: Introduce a toggleable 'Tracks' view in the collection alongside the existing 'Albums' view, utilizing a new track aggregation hook.
-
-### Changed
-- refactor: improve public collection header layout by replacing absolute positioning with flexbox and adding a spacer.
-
----
-
-## [1.8.0-beta.2] - 2025-12-24
+## [1.8.0] - 2025-12-31
 
 ### Added
 - OIDC/SSO single sign-on support
@@ -31,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic greeting on home page based on time of day
 - Artist name cleanup script to remove Discogs numbering suffixes
 - Collection data centralized via React Context
+- Exclude digital-only releases/versions, add cassette and country filtering
+- Remove digital format options from collection
+- Enhanced album detail display with badges
+- Back button to the public collection header
+- Track artist data to models, Discogs import, and UI display
+- Collection search by track name
+- Toggleable 'Tracks' view in collection alongside 'Albums' view with track aggregation
 
 ### Changed
 - Admin dashboard: "Last Login" replaced with "Last Added" (album)
@@ -39,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed landing page, defaulting to login route
 - Persist collection layout and artist album sort preferences
 - Auto-focus search bar and improved responsive styling
+- Replace static home link with dynamic back navigation
+- Improved public collection header layout with flexbox
 
 ### Fixed
 - Scroll to top when navigating to album detail page
@@ -46,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VERSION file served correctly by Vite dev server
 
 ---
+
 
 ## [1.7.2] - 2025-12-21
 
@@ -240,7 +236,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.7.2...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/Jeanball/Musivault/compare/v1.7.2...v1.8.0
 [1.7.2]: https://github.com/Jeanball/Musivault/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/Jeanball/Musivault/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/Jeanball/Musivault/compare/v1.6.2...v1.7.0
