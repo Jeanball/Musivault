@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
 import { toastService } from '../utils/toast';
+import { stripArtistSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection';
 import RematchModal from '../components/Modal/RematchModal';
 
@@ -17,6 +18,10 @@ const AlbumDetailPage: React.FC = () => {
         if (itemId) {
             fetchCollectionItem(itemId);
         }
+    }, [itemId]);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
     }, [itemId]);
 
     useEffect(() => {
@@ -93,7 +98,7 @@ const AlbumDetailPage: React.FC = () => {
                 {/* Album Cover */}
                 <div className="flex-shrink-0">
                     <img
-                        src={album.cover_image || '/placeholder-album.png'}
+                        src={album.cover_image || '/placeholder-album.svg'}
                         alt={album.title}
                         className="w-full lg:w-96 h-auto rounded-xl shadow-2xl"
                     />
@@ -102,10 +107,16 @@ const AlbumDetailPage: React.FC = () => {
                 {/* Album Information */}
                 <div className="flex-1">
                     <h1 className="text-4xl md:text-5xl font-bold mb-3">{album.title}</h1>
-                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-6">{album.artist}</h2>
+                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-2">{stripArtistSuffix(album.artist)}</h2>
+                    {labels.length > 0 && (
+                        <p className="text-base text-base-content/60 mb-6">
+                            <span>Label: </span>
+                            <span className="text-base-content">{labels[0].name}</span>
+                        </p>
+                    )}
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                         <div className="stat bg-base-200 rounded-lg p-4">
                             <div className="stat-title">Year</div>
                             <div className="stat-value text-2xl">{album.year || '—'}</div>
@@ -114,7 +125,7 @@ const AlbumDetailPage: React.FC = () => {
                             <div className="stat-title">Format</div>
                             <div className="stat-value text-2xl">
                                 <select
-                                    className="select select-ghost w-full max-w-xs text-2xl font-bold p-0 h-auto min-h-0 focus:bg-transparent"
+                                    className="select select-bordered select-sm bg-base-200 text-base-content font-bold"
                                     value={item.format.name}
                                     onChange={async (e) => {
                                         const newFormat = e.target.value;
@@ -136,7 +147,7 @@ const AlbumDetailPage: React.FC = () => {
                                 >
                                     <option value="Vinyl">Vinyl</option>
                                     <option value="CD">CD</option>
-                                    <option value="Digital">Digital</option>
+
                                     <option value="Cassette">Cassette</option>
                                 </select>
                             </div>
@@ -149,27 +160,34 @@ const AlbumDetailPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Label */}
-                    {labels.length > 0 && (
-                        <div className="mb-4">
-                            <span className="text-sm text-base-content/60">Record Label: </span>
-                            <span className="font-semibold text-lg">{labels[0].name}</span>
-                        </div>
-                    )}
-
-                    {/* Styles */}
-                    {(album.styles?.length ?? 0) > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-sm font-semibold text-base-content/60 mb-2">GENRES</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {album.styles!.map((style, index) => (
-                                    <span key={index} className="badge badge-primary badge-lg">
-                                        {style}
-                                    </span>
-                                ))}
+                    {/* Genres & Format Details - Side by Side */}
+                    <div className="flex flex-wrap gap-8 mb-6">
+                        {(album.styles?.length ?? 0) > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold text-base-content/60 mb-2">GENRES</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {album.styles!.map((style, index) => (
+                                        <span key={index} className="badge badge-primary badge-lg">
+                                            {style}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                        {(item.format.text || (item.format.descriptions && item.format.descriptions.length > 0)) && (
+                            <div>
+                                <h3 className="text-sm font-semibold text-base-content/60 mb-2">FORMAT DETAILS</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {item.format.text && (
+                                        <span className="badge badge-accent badge-lg">{item.format.text}</span>
+                                    )}
+                                    {item.format.descriptions?.map((desc, index) => (
+                                        <span key={index} className="badge badge-lg">{desc}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     {/* External Links */}
                     <div className="flex flex-wrap gap-3 mb-4">
@@ -229,26 +247,17 @@ const AlbumDetailPage: React.FC = () => {
                                     {tracklist.map((track, index) => (
                                         <tr key={index} className="hover">
                                             <td className="font-mono text-base">{track.position}</td>
-                                            <td className="font-medium">{track.title}</td>
+                                            <td>
+                                                <div className="font-medium">{track.title}</div>
+                                                {track.artist && (
+                                                    <div className="text-sm text-base-content/60">{track.artist}</div>
+                                                )}
+                                            </td>
                                             <td className="text-right font-mono">{track.duration || '—'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Format Details */}
-            {item.format.descriptions && item.format.descriptions.length > 0 && (
-                <div className="card bg-base-200 shadow-xl">
-                    <div className="card-body">
-                        <h2 className="card-title text-xl">Format Details</h2>
-                        <div className="flex flex-wrap gap-2">
-                            {item.format.descriptions.map((desc, index) => (
-                                <span key={index} className="badge badge-lg">{desc}</span>
-                            ))}
                         </div>
                     </div>
                 </div>

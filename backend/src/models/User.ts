@@ -10,12 +10,14 @@ export interface IUserPreferences {
 export interface IUser extends Document {
   username: string
   email: string
-  password: string
+  password?: string
   isAdmin: boolean
   preferences: IUserPreferences
   publicShareId: string
   createdAt: Date
   lastLogin?: Date
+  authProvider: 'local' | 'oidc'
+  authId?: string
   comparePassword(password: string): Promise<boolean>
 }
 
@@ -32,7 +34,9 @@ const userSchema = new Schema<IUser>({
   },
   password: {
     type: String,
-    required: true,
+    required: function (this: IUser) {
+      return this.authProvider === 'local'
+    },
   },
   isAdmin: {
     type: Boolean,
@@ -51,7 +55,7 @@ const userSchema = new Schema<IUser>({
   publicShareId: {
     type: String,
     unique: true,
-    sparse: true, // Allows null/undefined while maintaining uniqueness
+    sparse: true,
     default: () => uuidv4()
   },
   createdAt: {
@@ -61,22 +65,30 @@ const userSchema = new Schema<IUser>({
   lastLogin: {
     type: Date,
     default: null
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'oidc'],
+    default: 'local'
+  },
+  authId: {
+    type: String,
+    sparse: true,
+    unique: true
   }
 })
 
 userSchema.pre<IUser>("save", async function (next) {
-
-  if (!this.isModified("password")) {
+  // Skip password hashing for OIDC users or if password not modified
+  if (!this.isModified("password") || !this.password) {
     return next()
   }
 
   try {
-
     const salt = await bcrypt.genSalt(10)
     this.password = await bcrypt.hash(this.password, salt)
     next()
   } catch (error) {
-
     if (error instanceof Error) {
       next(error);
     } else {
@@ -86,6 +98,9 @@ userSchema.pre<IUser>("save", async function (next) {
 })
 
 userSchema.methods.comparePassword = function (candidatePassword: string): Promise<boolean> {
+  if (!this.password) {
+    return Promise.resolve(false)
+  }
   return bcrypt.compare(candidatePassword, this.password)
 }
 

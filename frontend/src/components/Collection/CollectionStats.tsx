@@ -12,25 +12,11 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
         <div className="bg-base-100 rounded-box shadow-lg mb-4">
             {/* Header with toggle button */}
             <div
-                className="flex flex-wrap items-center justify-between p-3 md:p-4 cursor-pointer hover:bg-base-200 rounded-t-box gap-2"
+                className="flex flex-col items-center justify-center p-3 md:p-4 cursor-pointer hover:bg-base-200 rounded-t-box gap-2"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-                    <div className="stat-figure text-primary flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-5 h-5 md:w-6 md:h-6 stroke-current">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                        </svg>
-                    </div>
-                    <div className="min-w-0">
-                        <h3 className="font-semibold text-base md:text-lg truncate">Collection Stats</h3>
-                        <p className="text-xs md:text-sm text-gray-500 truncate">
-                            {stats.total} albums • {Object.keys(stats.formatCounts).length} formats • {Object.keys(stats.decadeCounts).length} decades • {stats.recentAdds.thisWeek} recent • {Object.keys(stats.styleCounts).length} styles
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="badge badge-primary badge-sm md:badge-md">{stats.total}</div>
+                <div className="flex items-center gap-2 md:gap-3">
+                    <h3 className="font-semibold text-base md:text-lg">Collection Stats</h3>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className={`h-4 w-4 md:h-5 md:w-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
@@ -41,6 +27,9 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
+                <p className="text-xs md:text-sm text-gray-500 text-center">
+                    💿 {stats.total} • 🎚️ {Object.keys(stats.formatCounts).length} • 📅 {Object.keys(stats.decadeCounts).length} • ⏰ {stats.recentAdds.thisWeek} • 🏷️ {Object.keys(stats.styleCounts).length}
+                </p>
             </div>
 
             {/* Collapsible content */}

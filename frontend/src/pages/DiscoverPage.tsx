@@ -15,6 +15,10 @@ const DiscoverPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    useEffect(() => {
         const fetchPublicUsers = async () => {
             try {
                 const response = await axios.get('/api/public/users');
@@ -98,14 +102,14 @@ const DiscoverPage: React.FC = () => {
 
             {/* Section 2: Upcoming Releases - Coming Soon */}
             <section>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-4">
                     <h2 className="text-2xl font-bold">🎵 Upcoming Releases</h2>
-                    <span className="badge badge-primary badge-outline">Coming Soon</span>
+                    <span className="badge badge-primary badge-outline whitespace-nowrap">Coming Soon</span>
                 </div>
-                <div className="bg-base-200 rounded-xl p-8 text-center border-2 border-dashed border-base-300">
+                <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
                     <div className="text-5xl mb-4">📅</div>
                     <h3 className="text-lg font-semibold mb-2">New music from your favorite artists</h3>
-                    <p className="text-base-content/60 max-w-md mx-auto">
+                    <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
                         Get notified about upcoming album releases from artists in your collection.
                         We're working on integrating release calendars to keep you updated!
                     </p>
@@ -114,14 +118,14 @@ const DiscoverPage: React.FC = () => {
 
             {/* Section 3: Shows Near You - Coming Soon */}
             <section>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-4">
                     <h2 className="text-2xl font-bold">🎤 Shows Near You</h2>
-                    <span className="badge badge-primary badge-outline">Coming Soon</span>
+                    <span className="badge badge-primary badge-outline whitespace-nowrap">Coming Soon</span>
                 </div>
-                <div className="bg-base-200 rounded-xl p-8 text-center border-2 border-dashed border-base-300">
+                <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
                     <div className="text-5xl mb-4">🎫</div>
                     <h3 className="text-lg font-semibold mb-2">Live concerts in your area</h3>
-                    <p className="text-base-content/60 max-w-md mx-auto">
+                    <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
                         Discover live shows and concerts from artists you love.
                         We're integrating with Bandsintown to bring you personalized event recommendations!
                     </p>

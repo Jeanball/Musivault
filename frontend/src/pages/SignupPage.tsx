@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import { toastService, toastMessages } from "../utils/toast";
@@ -21,8 +21,15 @@ const API_BASE_URL = import.meta.env.API_URL || '';
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
     const [inputValue, setInputValue] = useState<SignupFormState>({ email: "", password: "", username: "" });
+    const [oidcEnabled, setOidcEnabled] = useState(false);
     const { email, password, username } = inputValue;
 
+    useEffect(() => {
+        // Check if OIDC is enabled
+        axios.get<{ enabled: boolean }>(`${API_BASE_URL}/api/auth/oidc/status`)
+            .then(res => setOidcEnabled(res.data.enabled))
+            .catch(() => setOidcEnabled(false));
+    }, []);
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -64,11 +71,19 @@ const SignupPage: React.FC = () => {
         });
     };
 
+    const handleSSOSignup = () => {
+        window.location.href = `${API_BASE_URL}/api/auth/oidc/login`;
+    };
+
     return (
         <div className="hero min-h-screen bg-base-200">
             <div className="card shrink-0 w-full max-w-md shadow-2xl bg-base-100">
                 <form className="card-body" onSubmit={handleSubmit}>
-                    <h2 className="card-title text-2xl font-bold self-center">Create an account</h2>
+                    <div className="flex flex-col items-center mb-4">
+                        <img src="/icons/icon-musivault.svg" alt="Musivault" className="w-16 h-16 mb-2" />
+                        <h1 className="text-3xl font-bold">Musivault</h1>
+                    </div>
+                    <h2 className="card-title text-xl font-semibold self-center">Create an account</h2>
                     <div className="form-control">
                         <label className="label" htmlFor="email">
                             <span className="label-text">Email</span>
@@ -117,6 +132,23 @@ const SignupPage: React.FC = () => {
                     <div className="form-control mt-6">
                         <button type="submit" className="btn btn-primary">Sign Up</button>
                     </div>
+
+                    {oidcEnabled && (
+                        <>
+                            <div className="divider">OR</div>
+                            <button
+                                type="button"
+                                onClick={handleSSOSignup}
+                                className="btn btn-outline btn-secondary"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                </svg>
+                                Sign up with SSO
+                            </button>
+                        </>
+                    )}
+
                     <div className="text-center mt-4">
                         <span className="text-sm">
                             Already have an account?{" "}

@@ -18,10 +18,16 @@ interface VersionsPageData {
     masterTitle: string;
     coverImage: string;
     formatCounts: { [key: string]: number };
+    countryCounts: { [key: string]: number };
     versions: MasterVersion[];
 }
 
-type FormatFilter = 'all' | 'CD' | 'Vinyl';
+type FormatFilter = 'all' | 'CD' | 'Vinyl' | 'Cassette';
+
+interface AddedAlbumInfo {
+    id: string;
+    title: string;
+}
 
 const VersionsPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
@@ -29,9 +35,15 @@ const VersionsPage: React.FC = () => {
     const [pageData, setPageData] = useState<VersionsPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [filter, setFilter] = useState<FormatFilter>('all');
+    const [countryFilter, setCountryFilter] = useState<string>('all');
 
     const [selectedAlbum, setSelectedAlbum] = useState<AlbumDetails | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     useEffect(() => {
         const fetchVersions = async () => {
@@ -54,11 +66,16 @@ const VersionsPage: React.FC = () => {
 
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
-        if (filter === 'all') return pageData.versions;
-        return pageData.versions.filter(version =>
-            version.majorFormat.toLowerCase().includes(filter.toLowerCase())
-        );
-    }, [pageData, filter]);
+        return pageData.versions.filter(version => {
+            // Filter by format
+            const matchesFormat = filter === 'all' ||
+                version.majorFormat.toLowerCase().includes(filter.toLowerCase());
+            // Filter by country
+            const matchesCountry = countryFilter === 'all' ||
+                version.country === countryFilter;
+            return matchesFormat && matchesCountry;
+        });
+    }, [pageData, filter, countryFilter]);
 
     const handleShowDetails = async (releaseId: number) => {
         try {
@@ -74,15 +91,29 @@ const VersionsPage: React.FC = () => {
         if (!selectedAlbum) return;
         setIsSubmitting(true);
         try {
-            await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
+            const response = await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
             toastService.success(`"${selectedAlbum.title}" added to your collection!`);
-            console.log(selectedAlbum.title)
+            setAddedAlbum({
+                id: response.data.item._id,
+                title: selectedAlbum.title
+            });
             setSelectedAlbum(null);
         } catch (err: any) {
             toastService.error(err.response?.data?.message || "An error occured.");
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleGoToAlbum = () => {
+        if (addedAlbum) {
+            navigate(`/app/album/${addedAlbum.id}`);
+        }
+    };
+
+    const handleContinueSearching = () => {
+        setAddedAlbum(null);
+        navigate('/app');
     };
 
 
@@ -107,9 +138,9 @@ const VersionsPage: React.FC = () => {
                 </div>
 
                 <div className="flex-1">
-                    <div className="flex flex-wrap gap-4 justify-between items-center mb-4">
-                        <div className="flex items-center gap-2">
-                            <p className="text-sm">Filter by:</p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-medium mr-1">Filter by:</p>
                             <button onClick={() => setFilter('all')} className={`btn btn-xs ${filter === 'all' ? 'btn-active btn-neutral' : ''}`}>All</button>
                             {pageData.formatCounts.CD > 0 && (
                                 <button onClick={() => setFilter('CD')} className={`btn btn-xs ${filter === 'CD' ? 'btn-active btn-neutral' : ''}`}>
@@ -121,41 +152,87 @@ const VersionsPage: React.FC = () => {
                                     Vinyl <div className="badge badge-primary ml-2">{pageData.formatCounts.Vinyl}</div>
                                 </button>
                             )}
+                            {pageData.formatCounts.Cassette > 0 && (
+                                <button onClick={() => setFilter('Cassette')} className={`btn btn-xs ${filter === 'Cassette' ? 'btn-active btn-neutral' : ''}`}>
+                                    Cassette <div className="badge badge-primary ml-2">{pageData.formatCounts.Cassette}</div>
+                                </button>
+                            )}
+
+                            {/* Country filter dropdown */}
+                            {Object.keys(pageData.countryCounts || {}).length > 1 && (
+                                <select
+                                    className="select select-sm select-bordered w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2"
+                                    value={countryFilter}
+                                    onChange={(e) => setCountryFilter(e.target.value)}
+                                >
+                                    <option value="all">All Countries</option>
+                                    {Object.entries(pageData.countryCounts || {})
+                                        .sort(([, a], [, b]) => b - a)
+                                        .map(([country, count]) => (
+                                            <option key={country} value={country}>
+                                                {country} ({count})
+                                            </option>
+                                        ))
+                                    }
+                                </select>
+                            )}
                         </div>
                         <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline">← Back</button>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {filteredVersions.map((version) => (
-                            <div key={version.id} className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="card-body p-3">
-                                    <h3 className="card-title text-xs flex justify-between items-start">
-                                        <span>{version.released || 'N/A'}</span>
-                                        <span className="badge badge-neutral badge-xs">{version.country || '?'}</span>
-                                    </h3>
+                    {filteredVersions.length === 0 ? (
+                        pageData.versions.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className="text-4xl mb-4">📁</div>
+                                <h3 className="text-lg font-semibold mb-2">No Physical Versions Available</h3>
+                                <p className="text-gray-400">This release only exists in digital format (streaming/download).</p>
+                                <button onClick={() => navigate(-1)} className="btn btn-primary btn-sm mt-4">← Go Back</button>
+                            </div>
+                        ) : (
+                            <div className="text-center py-12">
+                                <div className="text-4xl mb-4">🔍</div>
+                                <h3 className="text-lg font-semibold mb-2">No Versions Match Your Filters</h3>
+                                <p className="text-gray-400">Try adjusting your format or country filter.</p>
+                                <button
+                                    onClick={() => { setFilter('all'); setCountryFilter('all'); }}
+                                    className="btn btn-outline btn-sm mt-4"
+                                >
+                                    Reset Filters
+                                </button>
+                            </div>
+                        )
+                    ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {filteredVersions.map((version) => (
+                                <div key={version.id} className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="card-body p-3 flex flex-col h-full">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="font-bold text-lg">{version.released || 'N/A'}</span>
+                                        </div>
 
-                                    <div className="my-1 space-y-0.5">
-                                        <div className="font-bold text-sm truncate" title={version.majorFormat}>{version.majorFormat}</div>
-                                        <div className="text-xs text-gray-500 truncate" title={version.label}>
-                                            {version.label}
+                                        <div className="space-y-1 flex-1">
+                                            <div className="font-medium text-sm truncate" title={version.majorFormat}>{version.majorFormat}</div>
+                                            <div className="text-xs text-gray-500 truncate mb-2" title={version.label}>
+                                                {version.label}
+                                            </div>
+
+                                            <div className="text-xs bg-base-100 rounded px-2 py-1.5 flex items-start gap-1.5 w-full" title={version.country}>
+                                                <span className="opacity-70 mt-0.5 flex-shrink-0">🌍</span>
+                                                <span className="font-medium whitespace-normal leading-tight">{version.country || 'Unknown'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="card-actions mt-3">
+                                            <button
+                                                className="btn btn-primary btn-xs w-full"
+                                                onClick={() => handleShowDetails(version.id)}
+                                            >
+                                                Select
+                                            </button>
                                         </div>
                                     </div>
-
-                                    <div className="card-actions mt-2">
-                                        <button
-                                            className="btn btn-primary btn-xs w-full"
-                                            onClick={() => handleShowDetails(version.id)}
-                                        >
-                                            Select
-                                        </button>
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                    {filteredVersions.length === 0 && (
-                        <div className="text-center py-10 opacity-50">
-                            No versions found matching your filter.
+                            ))}
                         </div>
                     )}
                 </div>
@@ -167,6 +244,36 @@ const VersionsPage: React.FC = () => {
                 onConfirm={handleConfirmAddToCollection}
                 isSubmitting={isSubmitting}
             />
+
+            {/* Success Modal - Choice after adding */}
+            {addedAlbum && (
+                <dialog className="modal modal-open">
+                    <div className="modal-box text-center">
+                        <div className="text-5xl mb-4">🎉</div>
+                        <h3 className="font-bold text-xl mb-2">Album Added!</h3>
+                        <p className="text-base-content/70 mb-6">
+                            "{addedAlbum.title}" has been added to your collection.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleGoToAlbum}
+                            >
+                                View Album
+                            </button>
+                            <button
+                                className="btn btn-outline"
+                                onClick={handleContinueSearching}
+                            >
+                                Continue Searching
+                            </button>
+                        </div>
+                    </div>
+                    <form method="dialog" className="modal-backdrop">
+                        <button onClick={() => setAddedAlbum(null)}>close</button>
+                    </form>
+                </dialog>
+            )}
         </div>
 
     );

@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon",
@@ -27,6 +27,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.0",
     "multer": "^2.0.2",
+    "openid-client": "^6.8.1",
     "uuid": "^13.0.0",
     "winston": "^3.18.3"
   },

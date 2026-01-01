@@ -2,18 +2,51 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { toastService } from '../utils/toast';
+import { stripArtistSuffix } from '../utils/formatters';
 import type { ArtistPageData, ArtistAlbum } from '../types';
 
 type SortField = 'title' | 'year';
 type SortOrder = 'asc' | 'desc';
+
+interface ArtistPageState {
+    sortField: SortField;
+    sortOrder: SortOrder;
+}
+
+const ARTIST_PAGE_STATE_KEY = 'musivault_artist_page_state';
+
+const getStoredState = (artistId: string): ArtistPageState | null => {
+    try {
+        const stored = sessionStorage.getItem(`${ARTIST_PAGE_STATE_KEY}_${artistId}`);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {
+        // Ignore parse errors
+    }
+    return null;
+};
 
 const ArtistAlbumsPage: React.FC = () => {
     const { artistId } = useParams<{ artistId: string }>();
     const navigate = useNavigate();
     const [pageData, setPageData] = useState<ArtistPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [sortField, setSortField] = useState<SortField>('year');
-    const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+    // Initialize state from sessionStorage if available
+    const storedState = artistId ? getStoredState(artistId) : null;
+    const [sortField, setSortField] = useState<SortField>(storedState?.sortField ?? 'year');
+    const [sortOrder, setSortOrder] = useState<SortOrder>(storedState?.sortOrder ?? 'desc');
+
+    // Save state to sessionStorage whenever it changes
+    useEffect(() => {
+        if (!artistId) return;
+        const state: ArtistPageState = {
+            sortField,
+            sortOrder
+        };
+        sessionStorage.setItem(`${ARTIST_PAGE_STATE_KEY}_${artistId}`, JSON.stringify(state));
+    }, [artistId, sortField, sortOrder]);
 
     useEffect(() => {
         const fetchArtistAlbums = async () => {
@@ -85,7 +118,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     />
                 )}
                 <div className="flex flex-col justify-center text-center md:text-left">
-                    <h1 className="text-3xl md:text-4xl font-bold">{pageData.artist.name}</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold">{stripArtistSuffix(pageData.artist.name)}</h1>
                     <p className="text-gray-400 mt-2">{pageData.albums.length} albums</p>
                     <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm mt-4 w-fit mx-auto md:mx-0">
                         ← Back
@@ -129,7 +162,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     >
                         <figure className="px-3 pt-3">
                             <img
-                                src={album.thumb || '/placeholder-album.png'}
+                                src={album.thumb || '/placeholder-album.svg'}
                                 alt={album.title}
                                 className="rounded-lg w-full aspect-square object-cover"
                             />

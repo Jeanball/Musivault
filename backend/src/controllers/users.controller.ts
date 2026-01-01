@@ -9,13 +9,19 @@ export async function getAllUsers(req: Request, res: Response) {
 
         const usersWithStats = await Promise.all(users.map(async (user) => {
             const albumCount = await CollectionItem.countDocuments({ user: user._id });
+
+            // Get the most recent album added
+            const lastItem = await CollectionItem.findOne({ user: user._id })
+                .sort({ addedAt: -1 })
+                .select('addedAt');
+
             return {
                 _id: user._id,
                 username: user.username,
                 email: user.email,
                 isAdmin: user.isAdmin,
                 createdAt: user.createdAt,
-                lastLogin: user.lastLogin,
+                lastAlbumAdded: lastItem?.addedAt || null,
                 albumCount,
                 isPublic: user.preferences?.isPublic || false,
                 publicShareId: user.publicShareId

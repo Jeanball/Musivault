@@ -4,6 +4,7 @@ export interface Track {
     position: string;
     title: string;
     duration: string;
+    artist?: string;
 }
 
 export interface Label {

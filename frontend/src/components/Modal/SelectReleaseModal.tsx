@@ -1,6 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import type { DiscogsResult } from '../../types';
+import { parseTitle } from '../../utils/formatters';
 
 interface SelectReleaseModalProps {
     isOpen: boolean;
@@ -9,16 +10,6 @@ interface SelectReleaseModalProps {
     onSelect: (release: DiscogsResult) => void;
     isLoading?: boolean;
 }
-
-const parseTitle = (fullTitle: string): { artist: string; album: string } => {
-    const parts = fullTitle.split(' - ');
-    if (parts.length > 1) {
-        const album = parts.pop()?.trim() || fullTitle;
-        const artist = parts.join(' - ').trim();
-        return { artist, album };
-    }
-    return { artist: "Unknown Artist", album: fullTitle };
-};
 
 const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
     isOpen,
@@ -55,7 +46,7 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
                                 className="flex items-center p-3 bg-base-200 rounded-lg hover:bg-base-300 cursor-pointer transition-colors"
                             >
                                 <img
-                                    src={result.thumb || '/placeholder-album.png'}
+                                    src={result.thumb || '/placeholder-album.svg'}
                                     alt={album}
                                     className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
                                 />

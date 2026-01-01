@@ -8,6 +8,10 @@
  * - cover_image
  * - year
  * 
+ * It also updates CollectionItem format details:
+ * - format.text (vinyl color variant like "Sea Glass Transparent")
+ * - format.descriptions (LP, Album, Limited Edition, etc.)
+ * 
  * Usage: npx ts-node src/scripts/migrate-album-data.ts
  */
 
@@ -16,6 +20,7 @@ import mongoose from 'mongoose';
 import axios from 'axios';
 import path from 'path';
 import Album from '../models/Album';
+import CollectionItem from '../models/CollectionItem';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env') });
@@ -34,6 +39,13 @@ const RATE_LIMIT_DELAY_MS = 2500;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 60000; // Wait 1 minute on rate limit
 
+interface DiscogsFormat {
+    name: string;
+    qty?: string;
+    text?: string;
+    descriptions?: string[];
+}
+
 interface DiscogsRelease {
     id: number;
     title: string;
@@ -41,8 +53,9 @@ interface DiscogsRelease {
     year?: number;
     images?: { type: string; uri: string }[];
     styles?: string[];
-    tracklist?: { position: string; title: string; duration: string }[];
+    tracklist?: { position: string; title: string; duration: string; artists?: { name: string }[] }[];
     labels?: { name: string; catno: string }[];
+    formats?: DiscogsFormat[];
 }
 
 async function connectDB() {
@@ -118,6 +131,9 @@ async function migrateAlbumData() {
     await connectDB();
 
     try {
+        // ==================== PHASE 1: ALBUM DATA ====================
+        console.log('\n========== PHASE 1: Album Data Migration ==========\n');
+
         // Find all albums with a discogsId
         const albums = await Album.find({
             discogsId: { $exists: true, $ne: null }
@@ -141,7 +157,6 @@ async function migrateAlbumData() {
         let updatedCount = 0;
         let skippedCount = 0;
         let errorCount = 0;
-        let processedForUpdate = 0;
 
         for (let i = 0; i < albums.length; i++) {
             const album = albums[i];
@@ -154,7 +169,6 @@ async function migrateAlbumData() {
                 continue;
             }
 
-            processedForUpdate++;
             const missingStr = formatMissingFields(missing);
             console.log(`${progress} Processing: ${album.title} (ID: ${album.discogsId})`);
             console.log(`  Missing: ${missingStr}`);
@@ -170,15 +184,18 @@ async function migrateAlbumData() {
                     console.log(`  ✅ styles: ${data.styles.join(', ')}`);
                 }
 
-                // Update tracklist if missing
-                if (missing.tracklist && data.tracklist && data.tracklist.length > 0) {
+                // Update tracklist if missing OR if it exists but lacks artist data
+                const tracklistNeedsArtist = album.tracklist && album.tracklist.length > 0 &&
+                    album.tracklist.some((t: any) => !t.artist || t.artist === '');
+                if ((missing.tracklist || tracklistNeedsArtist) && data.tracklist && data.tracklist.length > 0) {
                     album.tracklist = data.tracklist.map(t => ({
                         position: t.position || '',
                         title: t.title || '',
-                        duration: t.duration || ''
+                        duration: t.duration || '',
+                        artist: t.artists?.map(a => a.name).join(', ') || ''
                     }));
                     updated = true;
-                    console.log(`  ✅ tracklist: ${data.tracklist.length} tracks`);
+                    console.log(`  ✅ tracklist: ${data.tracklist.length} tracks (with artists)`);
                 }
 
                 // Update labels if missing
@@ -232,13 +249,89 @@ async function migrateAlbumData() {
             }
         }
 
-        console.log('\n========== Migration Summary ==========');
+        console.log('\n========== Album Migration Summary ==========');
         console.log(`Total Albums: ${albums.length}`);
         console.log(`Needed Updates: ${needsUpdateCount}`);
         console.log(`Updated: ${updatedCount}`);
         console.log(`Skipped (Complete): ${skippedCount}`);
         console.log(`Errors: ${errorCount}`);
-        console.log('========================================');
+        console.log('=============================================\n');
+
+        // ==================== PHASE 2: FORMAT DETAILS ====================
+        console.log('\n========== PHASE 2: Collection Format Details ==========\n');
+
+        // Find all collection items with missing format details
+        const collectionItems = await CollectionItem.find({}).populate('album');
+
+        // Filter items that need format updates (missing text or descriptions)
+        const itemsNeedingUpdate = collectionItems.filter(item => {
+            const hasText = item.format?.text && item.format.text.trim() !== '';
+            const hasDescriptions = item.format?.descriptions && item.format.descriptions.length > 0;
+            return !hasText && !hasDescriptions;
+        });
+
+        console.log(`Found ${collectionItems.length} collection items total.`);
+        console.log(`Items needing format updates: ${itemsNeedingUpdate.length}`);
+        console.log(`Estimated time: ${Math.ceil((itemsNeedingUpdate.length * RATE_LIMIT_DELAY_MS) / 60000)} minutes\n`);
+
+        let formatUpdatedCount = 0;
+        let formatSkippedCount = 0;
+        let formatErrorCount = 0;
+
+        for (let i = 0; i < itemsNeedingUpdate.length; i++) {
+            const item = itemsNeedingUpdate[i];
+            const album = item.album as any;
+            const progress = `[${i + 1}/${itemsNeedingUpdate.length}]`;
+
+            if (!album?.discogsId) {
+                console.log(`${progress} Skipping: No discogsId for album`);
+                formatSkippedCount++;
+                continue;
+            }
+
+            console.log(`${progress} Processing: ${album.title} (ID: ${album.discogsId})`);
+
+            try {
+                const data = await fetchWithRetry(album.discogsId);
+
+                if (data.formats && data.formats.length > 0) {
+                    // Find the best matching format based on the item's format.name
+                    const matchingFormat = data.formats.find(f =>
+                        f.name.toLowerCase() === item.format.name.toLowerCase()
+                    ) || data.formats[0];
+
+                    if (matchingFormat) {
+                        item.format.text = matchingFormat.text || '';
+                        item.format.descriptions = matchingFormat.descriptions || [];
+                        await item.save();
+                        formatUpdatedCount++;
+
+                        const textInfo = matchingFormat.text ? `"${matchingFormat.text}"` : 'none';
+                        const descInfo = matchingFormat.descriptions?.join(', ') || 'none';
+                        console.log(`  ✅ Updated: text=${textInfo}, descriptions=${descInfo}`);
+                    } else {
+                        console.log(`  ⚠️ No format data found on Discogs`);
+                    }
+                } else {
+                    console.log(`  ⚠️ No formats in release data`);
+                }
+
+                await sleep(RATE_LIMIT_DELAY_MS);
+
+            } catch (error: any) {
+                console.error(`  ❌ Failed: ${error.message}`);
+                formatErrorCount++;
+                await sleep(RATE_LIMIT_DELAY_MS);
+            }
+        }
+
+        console.log('\n========== Format Details Summary ==========');
+        console.log(`Total Collection Items: ${collectionItems.length}`);
+        console.log(`Needed Updates: ${itemsNeedingUpdate.length}`);
+        console.log(`Updated: ${formatUpdatedCount}`);
+        console.log(`Skipped: ${formatSkippedCount}`);
+        console.log(`Errors: ${formatErrorCount}`);
+        console.log('============================================');
 
     } catch (error) {
         console.error('Migration failed:', error);
@@ -250,3 +343,4 @@ async function migrateAlbumData() {
 }
 
 migrateAlbumData();
+

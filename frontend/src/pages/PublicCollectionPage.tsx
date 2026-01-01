@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import CollectionContent from '../components/Collection/CollectionContent';
 import Footer from '../components/Footer';
@@ -13,6 +13,7 @@ interface PublicCollectionResponse {
 
 const PublicCollectionPage: React.FC = () => {
     const { shareId } = useParams<{ shareId: string }>();
+    const navigate = useNavigate();
     const [collection, setCollection] = useState<CollectionItem[]>([]);
     const [username, setUsername] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
@@ -61,13 +62,28 @@ const PublicCollectionPage: React.FC = () => {
         <div className="min-h-screen bg-base-100 p-2 md:p-4" data-theme="dark">
             {/* Public Collection Header */}
             {!isLoading && (
-                <div className="mb-6 text-center">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                        {username}'s Collection
-                    </h1>
-                    <p className="text-base-content/60">
-                        Powered by <Link to="/" className="link link-primary">Musivault</Link>
-                    </p>
+                <div className="mb-6">
+                    <div className="flex items-start gap-2 mb-4">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="btn btn-ghost btn-circle flex-shrink-0"
+                            title="Go Back"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </button>
+                        <div className="text-center flex-1">
+                            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                                {username}'s Collection
+                            </h1>
+                            <p className="text-base-content/60">
+                                Powered by <Link to="/" className="link link-primary">Musivault</Link>
+                            </p>
+                        </div>
+                        {/* Spacer for visual balance */}
+                        <div className="w-12 flex-shrink-0"></div>
+                    </div>
                 </div>
             )}
 

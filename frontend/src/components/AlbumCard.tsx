@@ -1,4 +1,5 @@
 import React from 'react';
+import { parseTitle } from '../utils/formatters';
 
 export interface DiscogsResult {
   id: number;
@@ -13,16 +14,6 @@ interface AlbumCardProps {
   isLoadingDetails: boolean;
 }
 
-const parseTitle = (fullTitle: string): { artist: string; album: string } => {
-    const parts = fullTitle.split(' - ');
-    if (parts.length > 1) {
-        const album = parts.pop()?.trim() || fullTitle;
-        const artist = parts.join(' - ').trim();
-        return { artist, album };
-    }
-    return { artist: "Artiste inconnu", album: fullTitle };
-};
-
 const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingDetails }) => {
   const { artist, album } = parseTitle(result.title);
 
@@ -31,17 +22,17 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingD
       onClick={() => onShowDetails(result.id)}
       className="relative flex items-center p-4 bg-base-200 rounded-lg shadow-md transition-all duration-200 hover:shadow-xl hover:bg-base-300 cursor-pointer"
     >
-      <img 
-        src={result.thumb} 
+      <img
+        src={result.thumb}
         alt={`${artist} - ${album}`}
-        className="w-20 h-20 object-cover mr-4 rounded flex-shrink-0" 
+        className="w-20 h-20 object-cover mr-4 rounded flex-shrink-0"
       />
       <div className="flex-grow min-w-0">
         <h3 className="text-lg font-bold text-gray-100 truncate" title={album}>
-            {album}
+          {album}
         </h3>
         <p className="text-md text-gray-400 truncate" title={artist}>
-            {artist}
+          {artist}
         </p>
         <p className="text-sm text-gray-500 mt-1">
           Year: {result.year || 'N/A'}

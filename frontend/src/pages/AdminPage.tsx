@@ -338,7 +338,7 @@ const AdminPage: React.FC = () => {
                                     <th>Role</th>
                                     <th>Albums</th>
                                     <th>Collection</th>
-                                    <th>Last Login</th>
+                                    <th>Last Added</th>
                                     <th>Created</th>
                                     <th>Actions</th>
                                 </tr>
@@ -412,7 +412,7 @@ const AdminPage: React.FC = () => {
                                             )}
                                         </td>
                                         <td>
-                                            {user.lastLogin ? formatDate(user.lastLogin) : <span className="text-gray-400 italic">Never</span>}
+                                            {user.lastAlbumAdded ? formatDate(user.lastAlbumAdded) : <span className="text-gray-400 italic">None</span>}
                                         </td>
                                         <td>{formatDate(user.createdAt)}</td>
                                         <td>
@@ -543,9 +543,9 @@ const AdminPage: React.FC = () => {
                                                 <span className="font-medium">{user.albumCount || 0}</span>
                                             </div>
                                             <div>
-                                                <span className="opacity-70">Last login: </span>
+                                                <span className="opacity-70">Last added: </span>
                                                 <span className="font-medium">
-                                                    {user.lastLogin ? formatDateShort(user.lastLogin) : 'Never'}
+                                                    {user.lastAlbumAdded ? formatDateShort(user.lastAlbumAdded) : 'None'}
                                                 </span>
                                             </div>
                                         </div>

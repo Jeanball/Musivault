@@ -10,6 +10,7 @@ interface TrackInput {
   position: string;
   title: string;
   duration: string;
+  artist?: string;
 }
 
 interface LabelInput {
@@ -244,7 +245,7 @@ export async function addToCollection(req: Request, res: Response) {
       album = new Album({
         discogsId,
         title,
-        artist,
+        artist: artist.replace(/\s\(\d+\)$/, ''),
         year,
         thumb,
         cover_image,
@@ -397,7 +398,7 @@ export async function rematchAlbum(req: Request, res: Response) {
     const album = item.album as any;
     album.discogsId = newDiscogsId;
     album.title = cleanedTitle;
-    album.artist = releaseData.artists?.map((a: any) => a.name).join(', ') || album.artist;
+    album.artist = (releaseData.artists?.map((a: any) => a.name).join(', ') || album.artist).replace(/\s\(\d+\)$/, '');
     album.year = releaseData.year?.toString() || album.year;
     album.cover_image = releaseData.images?.find((img: any) => img.type === 'primary')?.uri
       || releaseData.images?.[0]?.uri
@@ -407,7 +408,8 @@ export async function rematchAlbum(req: Request, res: Response) {
     album.tracklist = releaseData.tracklist?.map((t: any) => ({
       position: t.position || '',
       title: t.title || '',
-      duration: t.duration || ''
+      duration: t.duration || '',
+      artist: t.artists?.map((a: any) => a.name).join(', ') || ''
     })) || [];
     album.labels = releaseData.labels?.map((l: any) => ({
       name: l.name || '',
@@ -426,7 +428,7 @@ export async function rematchAlbum(req: Request, res: Response) {
       return;
     }
     if (error.response?.status === 429) {
-      res.status(429).json({ message: 'Rate limited by Discogs. Please wait a minute and try again.' });
+      res.status(429).json({ message: 'Too many requests! Please wait about 30 seconds before trying again.' });
       return;
     }
     // MongoDB duplicate key error - album already exists in collection
