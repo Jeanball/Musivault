@@ -20,7 +20,7 @@ services:
 
   # Backend API
   backend:
-    image: ghcr.io/jeanball/musivault/backend:latest
+    image: ghcr.io/jeanball/musivault/backend:${IMAGE_TAG:-latest}
     container_name: musivault-backend
     restart: unless-stopped
     environment:
@@ -57,7 +57,7 @@ services:
 
   # Frontend (Nginx)
   frontend:
-    image: ghcr.io/jeanball/musivault/frontend:latest
+    image: ghcr.io/jeanball/musivault/frontend:${IMAGE_TAG:-latest}
     container_name: musivault-frontend
     restart: unless-stopped
     ports:
