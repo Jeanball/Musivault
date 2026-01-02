@@ -7,6 +7,7 @@ import CsvImport from '../components/Settings/CsvImport';
 
 interface VersionInfo {
     version: string;
+    channel?: string;
     buildDate: string;
     commitSha: string;
     environment: string;
@@ -296,7 +297,12 @@ const SettingsPage: React.FC = () => {
                         <div className="stats stats-vertical shadow">
                             <div className="stat">
                                 <div className="stat-title">Version</div>
-                                <div className="stat-value text-primary text-2xl">v{versionInfo.version}</div>
+                                <div className="stat-value text-primary text-2xl">
+                                    v{versionInfo.version}
+                                    {versionInfo.channel && !['latest', 'stable', ''].includes(versionInfo.channel) && (
+                                        <span className="text-warning text-base ml-2">({versionInfo.channel})</span>
+                                    )}
+                                </div>
                                 <div className="stat-desc">Current release</div>
                             </div>
 
