@@ -6,7 +6,9 @@ type Theme = string;
 interface ThemeContextType {
     theme: Theme;
     setTheme: (theme: Theme) => void;
-    syncThemeFromServer: () => Promise<void>;
+    wideScreenMode: boolean;
+    setWideScreenMode: (enabled: boolean) => void;
+    syncPreferencesFromServer: () => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -15,6 +17,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     const [theme, setTheme] = useState<Theme>(
         localStorage.getItem('theme') || 'dark'
     );
+    const [wideScreenMode, setWideScreenMode] = useState<boolean>(
+        localStorage.getItem('wideScreenMode') === 'true' // Default to false
+    );
 
     // Apply theme to DOM and localStorage
     useEffect(() => {
@@ -22,22 +27,30 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    // Function to sync theme from server (called after login)
-    const syncThemeFromServer = async () => {
+    // Apply wideScreenMode to localStorage
+    useEffect(() => {
+        localStorage.setItem('wideScreenMode', String(wideScreenMode));
+    }, [wideScreenMode]);
+
+    // Function to sync preferences from server (called after login)
+    const syncPreferencesFromServer = async () => {
         try {
             const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
             if (data.theme && data.theme !== theme) {
                 setTheme(data.theme);
             }
+            if (data.wideScreenMode !== undefined && data.wideScreenMode !== wideScreenMode) {
+                setWideScreenMode(data.wideScreenMode);
+            }
         } catch {
-            // Silent if not logged in or error - keep local theme
+            // Silent if not logged in or error - keep local preferences
         }
     };
 
 
 
     return (
-        <ThemeContext.Provider value={{ theme, setTheme, syncThemeFromServer }}>
+        <ThemeContext.Provider value={{ theme, setTheme, wideScreenMode, setWideScreenMode, syncPreferencesFromServer }}>
             {children}
         </ThemeContext.Provider>
     );

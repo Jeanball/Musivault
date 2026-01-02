@@ -125,7 +125,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic } = req.body;
+        const { theme, isPublic, wideScreenMode } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -139,6 +139,9 @@ export async function updatePreferences(req: Request, res: Response) {
         }
         if (isPublic !== undefined) {
             user.preferences = { ...user.preferences, isPublic };
+        }
+        if (wideScreenMode !== undefined) {
+            user.preferences = { ...user.preferences, wideScreenMode };
         }
 
         await user.save();

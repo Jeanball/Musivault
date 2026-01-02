@@ -25,7 +25,7 @@ interface LocationState {
 const PrivateLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { syncThemeFromServer } = useTheme();
+    const { syncPreferencesFromServer, wideScreenMode } = useTheme();
     const [username, setUsername] = useState<string>("");
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -40,8 +40,8 @@ const PrivateLayout: React.FC = () => {
                 if (data.status) {
                     setUsername(data.user);
                     setIsAdmin(data.isAdmin);
-                    // Sync theme from server once user is verified
-                    await syncThemeFromServer();
+                    // Sync preferences from server once user is verified
+                    await syncPreferencesFromServer();
 
                     // Show login success toast AFTER theme sync (only once)
                     const state = location.state as LocationState;
@@ -64,7 +64,7 @@ const PrivateLayout: React.FC = () => {
             }
         };
         verifyUser();
-    }, [navigate, syncThemeFromServer, location.state]);
+    }, [navigate, syncPreferencesFromServer, location.state]);
 
     const handleLogout = async () => {
         try {
@@ -85,7 +85,7 @@ const PrivateLayout: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <div className="flex-1 p-4 md:p-8">
+            <div className={`flex-1 p-4 md:p-8 ${wideScreenMode ? 'max-w-[1000px] mx-auto w-full' : ''}`}>
                 <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
                 <main>
                     <CollectionProvider>
