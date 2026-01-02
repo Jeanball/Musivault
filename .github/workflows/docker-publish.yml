@@ -106,7 +106,7 @@ jobs:
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          platforms: ${{ inputs.platforms || 'linux/amd64' }}
 
       - name: Image digest
         run: echo ${{ steps.meta.outputs.digest }}
