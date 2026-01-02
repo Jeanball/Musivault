@@ -1,12 +1,15 @@
 name: Build and Push Docker Images
 
 on:
+  # Build on push to develop branch (nightly/unstable builds)
+  push:
+    branches: ['develop']
   # Only build on release for production deployments
   release:
     types: [published]
   # Build on PR to validate changes (no push)
   pull_request:
-    branches: ['main']
+    branches: ['main', 'develop']
   # Manual trigger for testing
   workflow_dispatch:
     inputs:
@@ -43,6 +46,18 @@ jobs:
         id: version
         run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
 
+      - name: Determine version type
+        id: version_type
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ "$VERSION" =~ -(beta|alpha|rc)\. ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "prerelease_type=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "prerelease_type=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -60,13 +75,23 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.image }}
           tags: |
+            # Branch-based tags
             type=ref,event=branch
             type=ref,event=pr
+            # Develop branch gets 'develop' and 'nightly' tags
+            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=nightly,enable=${{ github.ref == 'refs/heads/develop' }}
+            # Version tags for releases
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix=sha-,enable={{is_default_branch}}
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ steps.version.outputs.version }},enable=${{ github.ref_type == 'tag' }}
+            # SHA for traceability
+            type=sha,prefix=sha-
+            # 'latest' tag only for stable releases (not prereleases)
+            type=raw,value=latest,enable=${{ github.event_name == 'release' && steps.version_type.outputs.is_prerelease == 'false' }}
+            # 'beta' tag for prerelease versions
+            type=raw,value=beta,enable=${{ github.event_name == 'release' && steps.version_type.outputs.is_prerelease == 'true' }}
+            # Explicit version tag from VERSION file
+            type=raw,value=${{ steps.version.outputs.version }},enable=${{ github.event_name == 'release' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -85,3 +110,14 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.meta.outputs.digest }}
+
+      - name: Summary
+        run: |
+          echo "## 🐳 Docker Image Built" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.image }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
