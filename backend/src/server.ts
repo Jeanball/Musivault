@@ -44,6 +44,7 @@ const VERSION = getVersion();
 const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString();
 const COMMIT_SHA = process.env.COMMIT_SHA || 'dev';
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const IMAGE_TAG = process.env.IMAGE_TAG || 'dev'; // Release channel: nightly, beta, latest, or dev
 
 const app = express()
 
@@ -121,6 +122,7 @@ app.use((req, res, next) => {
 app.get('/api/version', (req, res) => {
     res.status(200).json({
         version: VERSION,
+        channel: IMAGE_TAG,
         buildDate: BUILD_DATE,
         commitSha: COMMIT_SHA,
         environment: NODE_ENV

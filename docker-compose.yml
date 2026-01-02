@@ -41,6 +41,7 @@ services:
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET:-}
       - OIDC_REDIRECT_URI=${OIDC_REDIRECT_URI:-}
       - FRONTEND_URL=${FRONTEND_URL:-}
+      - IMAGE_TAG=${IMAGE_TAG:-latest}
     depends_on:
       mongodb:
         condition: service_healthy
