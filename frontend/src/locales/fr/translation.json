@@ -1,0 +1,17 @@
+{
+    "app": {
+        "title": "Musivault",
+        "loading": "Chargement...",
+        "error": "Une erreur est survenue"
+    },
+    "nav": {
+        "dashboard": "Tableau de bord",
+        "collection": "Collection",
+        "releases": "Sorties",
+        "settings": "Paramètres"
+    },
+    "auth": {
+        "login": "Connexion",
+        "logout": "Déconnexion"
+    }
+}

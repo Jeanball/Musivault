@@ -1,0 +1,17 @@
+{
+    "app": {
+        "title": "Musivault",
+        "loading": "Laden...",
+        "error": "Etwas ist schief gelaufen"
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "collection": "Sammlung",
+        "releases": "Veröffentlichungen",
+        "settings": "Einstellungen"
+    },
+    "auth": {
+        "login": "Anmelden",
+        "logout": "Abmelden"
+    }
+}
