@@ -5,13 +5,33 @@
         "error": "Etwas ist schief gelaufen"
     },
     "nav": {
-        "dashboard": "Dashboard",
+        "search": "Suche",
         "collection": "Sammlung",
-        "releases": "Veröffentlichungen",
-        "settings": "Einstellungen"
+        "discover": "Entdecken",
+        "settings": "Einstellungen",
+        "administration": "Verwaltung",
+        "logout": "Abmelden",
+        "signedInAs": "Angemeldet als",
+        "hi": "Hallo",
+        "account": "Konto"
     },
     "auth": {
         "login": "Anmelden",
         "logout": "Abmelden"
+    },
+    "home": {
+        "greetingMorning": "Guten Morgen",
+        "greetingAfternoon": "Guten Tag",
+        "greetingEvening": "Guten Abend",
+        "defaultUser": "Musikliebhaber",
+        "subtitle": "Bereit, ein paar Platten aufzulegen?",
+        "quickSearch": "Schnellsuche",
+        "freshlyAdded": "Kürzlich hinzugefügt",
+        "viewAll": "Alle anzeigen",
+        "emptyVault": "Dein Tresor ist leer.",
+        "emptyVaultHint": "Beginne mit einer Suche oben!"
+    },
+    "settings": {
+        "languageSaved": "Sprache gespeichert!"
     }
 }

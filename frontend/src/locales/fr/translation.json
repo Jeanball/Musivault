@@ -5,13 +5,33 @@
         "error": "Une erreur est survenue"
     },
     "nav": {
-        "dashboard": "Tableau de bord",
+        "search": "Recherche",
         "collection": "Collection",
-        "releases": "Sorties",
-        "settings": "Paramètres"
+        "discover": "Découvrir",
+        "settings": "Paramètres",
+        "administration": "Administration",
+        "logout": "Déconnexion",
+        "signedInAs": "Connecté en tant que",
+        "hi": "Bonjour",
+        "account": "Compte"
     },
     "auth": {
         "login": "Connexion",
         "logout": "Déconnexion"
+    },
+    "home": {
+        "greetingMorning": "Bonjour",
+        "greetingAfternoon": "Bon après-midi",
+        "greetingEvening": "Bonsoir",
+        "defaultUser": "mélomane",
+        "subtitle": "Prêt à faire tourner des vinyles ?",
+        "quickSearch": "Recherche rapide",
+        "freshlyAdded": "Ajouts récents",
+        "viewAll": "Tout voir",
+        "emptyVault": "Votre coffre est vide.",
+        "emptyVaultHint": "Commencez par chercher ci-dessus !"
+    },
+    "settings": {
+        "languageSaved": "Langue enregistrée !"
     }
 }

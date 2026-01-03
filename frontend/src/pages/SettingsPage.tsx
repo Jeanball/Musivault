@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { useTheme } from '../context/ThemeContext';
 import CsvImport from '../components/Settings/CsvImport';
@@ -25,11 +26,32 @@ const themes = [
 
 const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation();
     const { theme, setTheme, wideScreenMode, setWideScreenMode } = useTheme();
     const [isSaving, setIsSaving] = useState(false);
     const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
     const [isPublic, setIsPublic] = useState(false);
     const [publicShareId, setPublicShareId] = useState<string | null>(null);
+
+    const languages = [
+        { code: 'en', label: 'English' },
+        { code: 'fr', label: 'Français' },
+        { code: 'de', label: 'Deutsch' },
+    ];
+
+    const handleLanguageChange = async (lng: string) => {
+        i18n.changeLanguage(lng);
+        localStorage.setItem('i18nextLng', lng);
+        setIsSaving(true);
+        try {
+            await axios.put('/api/users/preferences', { language: lng }, { withCredentials: true });
+            toastService.success(t('settings.languageSaved', 'Language saved!'));
+        } catch (error) {
+            console.error('Failed to save language to server:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     useEffect(() => {
         axios.get<VersionInfo>('/api/version')
@@ -139,6 +161,42 @@ const SettingsPage: React.FC = () => {
                             >
                                 {themeOption}
                                 {theme === themeOption && (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Language Section */}
+            <div className="card bg-base-200 shadow-xl mt-6">
+                <div className="card-body">
+                    <h2 className="card-title flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                        </svg>
+                        Language
+                        {isSaving && <span className="loading loading-spinner loading-xs"></span>}
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-4">
+                        Select your preferred language for the interface.
+                    </p>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {languages.map((lang) => (
+                            <button
+                                key={lang.code}
+                                onClick={() => handleLanguageChange(lang.code)}
+                                className={`btn btn-sm ${i18n.language === lang.code
+                                    ? 'btn-primary'
+                                    : 'btn-outline'
+                                    }`}
+                            >
+                                {lang.label}
+                                {i18n.language === lang.code && (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                                     </svg>

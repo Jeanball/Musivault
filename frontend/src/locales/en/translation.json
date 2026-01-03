@@ -5,13 +5,33 @@
         "error": "Something went wrong"
     },
     "nav": {
-        "dashboard": "Dashboard",
+        "search": "Search",
         "collection": "Collection",
-        "releases": "Releases",
-        "settings": "Settings"
+        "discover": "Discover",
+        "settings": "Settings",
+        "administration": "Administration",
+        "logout": "Logout",
+        "signedInAs": "Signed in as",
+        "hi": "Hi",
+        "account": "Account"
     },
     "auth": {
         "login": "Login",
         "logout": "Logout"
+    },
+    "home": {
+        "greetingMorning": "Good morning",
+        "greetingAfternoon": "Good afternoon",
+        "greetingEvening": "Good evening",
+        "defaultUser": "audiophile",
+        "subtitle": "Ready to spin some records?",
+        "quickSearch": "Quick Search",
+        "freshlyAdded": "Freshly Added",
+        "viewAll": "View All",
+        "emptyVault": "Your vault is empty.",
+        "emptyVaultHint": "Start by searching above!"
+    },
+    "settings": {
+        "languageSaved": "Language saved!"
     }
 }
