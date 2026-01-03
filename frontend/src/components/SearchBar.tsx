@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { toastService } from "../utils/toast";
 import { stripArtistSuffix } from '../utils/formatters';
 import AlbumCard from './AlbumCard';
@@ -22,6 +23,7 @@ interface ReleaseDetails {
 }
 
 const SearchBar: React.FC = () => {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState<string>('');
     // Unified search: no searchType toggle
     const [albumResults, setAlbumResults] = useState<DiscogsResult[]>([]);
@@ -69,7 +71,7 @@ const SearchBar: React.FC = () => {
                 } catch (err) {
                     console.log(err)
                     if (axios.isAxiosError(err) && err.response?.status === 429) {
-                        toastService.error("Too many requests! Please wait about 30 seconds before searching again.");
+                        toastService.error(t('search.tooManyRequests'));
                     } else {
                         // Don't show error toast on every keystroke/search, just log
                         console.error("Search failed");
@@ -103,7 +105,7 @@ const SearchBar: React.FC = () => {
     const handleScanSuccess = async (barcode: string) => {
         setIsScannerOpen(false);
         setIsAddingFromBarcode(true);
-        toastService.info(`Searching for barcode: ${barcode}`);
+        toastService.info(t('search.searchingBarcode', { barcode }));
 
         try {
             const response = await axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/search/barcode`, {
@@ -114,7 +116,7 @@ const SearchBar: React.FC = () => {
             const results = response.data;
 
             if (results.length === 0) {
-                toastService.error("No albums found with this barcode.");
+                toastService.error(t('search.noBarcodeResults'));
             } else if (results.length === 1) {
                 // Auto-add the single result
                 await addReleaseToCollection(results[0].id);
@@ -126,11 +128,11 @@ const SearchBar: React.FC = () => {
         } catch (err) {
             console.error('Barcode search error:', err);
             if (axios.isAxiosError(err) && err.response?.status === 429) {
-                toastService.error("Too many requests! Please wait about 30 seconds before scanning again.");
+                toastService.error(t('search.tooManyRequests'));
             } else if (axios.isAxiosError(err) && err.response?.data?.message) {
                 toastService.error(err.response.data.message);
             } else {
-                toastService.error("Failed to search barcode.");
+                toastService.error(t('search.failedSearch'));
             }
         } finally {
             setIsAddingFromBarcode(false);
@@ -160,13 +162,13 @@ const SearchBar: React.FC = () => {
                 { withCredentials: true }
             );
 
-            toastService.success(`"${releaseDetails.title}" added to your collection!`);
+            toastService.success(t('search.addedToCollection', { title: releaseDetails.title }));
         } catch (err: unknown) {
             console.error('Error adding to collection:', err);
             if (axios.isAxiosError(err) && err.response?.data?.message) {
                 toastService.error(err.response.data.message);
             } else {
-                toastService.error("Failed to add album to collection.");
+                toastService.error(t('search.failedAddToCollection'));
             }
         } finally {
             setIsAddingFromBarcode(false);
@@ -201,7 +203,7 @@ const SearchBar: React.FC = () => {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search for artists or albums..."
+                        placeholder={t('search.placeholder')}
                         className="input input-bordered w-full pr-10"
                         autoFocus
                     />
@@ -214,7 +216,7 @@ const SearchBar: React.FC = () => {
                     <button
                         className="btn btn-ghost btn-square"
                         onClick={handleResetSearch}
-                        title="Reset Search"
+                        title={t('search.resetSearch')}
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -222,7 +224,7 @@ const SearchBar: React.FC = () => {
                 <button
                     className="btn btn-primary btn-square"
                     onClick={() => setIsScannerOpen(true)}
-                    title="Scan Barcode"
+                    title={t('search.scanBarcode')}
                     disabled={isAddingFromBarcode}
                 >
                     {isAddingFromBarcode ? (
@@ -239,7 +241,7 @@ const SearchBar: React.FC = () => {
                 {/* ARTISTS SECTION - Left side */}
                 {artistResults.length > 0 && (
                     <div className="md:w-1/3">
-                        <h3 className="text-xl font-bold mb-4 text-gray-200">Artists</h3>
+                        <h3 className="text-xl font-bold mb-4 text-gray-200">{t('search.artists')}</h3>
                         <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
                             {visibleArtists.map((artist) => (
                                 <div
@@ -265,7 +267,7 @@ const SearchBar: React.FC = () => {
                                 className="btn btn-ghost btn-sm mt-2 w-full text-gray-400 hover:text-white"
                                 onClick={() => setVisibleArtistCount(prev => prev + 3)}
                             >
-                                Show 3 more ({artistResults.length - visibleArtistCount} remaining)
+                                {t('search.showMore', { count: 3, remaining: artistResults.length - visibleArtistCount })}
                             </button>
                         )}
                     </div>
@@ -274,7 +276,7 @@ const SearchBar: React.FC = () => {
                 {/* ALBUMS SECTION - Right side */}
                 {albumResults.length > 0 && (
                     <div className="md:w-2/3">
-                        <h3 className="text-xl font-bold mb-4 text-gray-200">Albums</h3>
+                        <h3 className="text-xl font-bold mb-4 text-gray-200">{t('common.albums')}</h3>
                         <div className="space-y-4">
                             {visibleAlbums.map((result) => (
                                 <AlbumCard
@@ -290,7 +292,7 @@ const SearchBar: React.FC = () => {
                                 className="btn btn-ghost btn-sm mt-2 w-full text-gray-400 hover:text-white"
                                 onClick={() => setVisibleAlbumCount(prev => prev + 5)}
                             >
-                                Show 5 more ({albumResults.length - visibleAlbumCount} remaining)
+                                {t('search.showMore', { count: 5, remaining: albumResults.length - visibleAlbumCount })}
                             </button>
                         )}
                     </div>

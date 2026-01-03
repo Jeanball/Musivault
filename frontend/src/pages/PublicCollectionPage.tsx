@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import CollectionContent from '../components/Collection/CollectionContent';
 import Footer from '../components/Footer';
 import type { CollectionItem } from '../types/collection';
@@ -14,6 +15,7 @@ interface PublicCollectionResponse {
 const PublicCollectionPage: React.FC = () => {
     const { shareId } = useParams<{ shareId: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [collection, setCollection] = useState<CollectionItem[]>([]);
     const [username, setUsername] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
@@ -29,9 +31,9 @@ const PublicCollectionPage: React.FC = () => {
                 setUsername(response.data.username);
             } catch (err: any) {
                 if (err.response?.status === 404) {
-                    setError('Collection not found or is private');
+                    setError(t('publicCollection.notFound'));
                 } else {
-                    setError('Failed to load collection');
+                    setError(t('publicCollection.failedLoad'));
                 }
             } finally {
                 setIsLoading(false);
@@ -48,10 +50,10 @@ const PublicCollectionPage: React.FC = () => {
                     <h1 className="text-4xl font-bold mb-4">🔒</h1>
                     <h2 className="text-2xl font-bold mb-2">{error}</h2>
                     <p className="text-base-content/70 mb-6">
-                        This collection may be private or the link may be invalid.
+                        {t('publicCollection.mayBePrivate')}
                     </p>
                     <Link to="/" className="btn btn-primary">
-                        Go to Homepage
+                        {t('publicCollection.goToHomepage')}
                     </Link>
                 </div>
             </div>
@@ -77,9 +79,6 @@ const PublicCollectionPage: React.FC = () => {
                             <h1 className="text-3xl md:text-4xl font-bold mb-2">
                                 {username}'s Collection
                             </h1>
-                            <p className="text-base-content/60">
-                                Powered by <Link to="/" className="link link-primary">Musivault</Link>
-                            </p>
                         </div>
                         {/* Spacer for visual balance */}
                         <div className="w-12 flex-shrink-0"></div>

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
@@ -14,6 +15,7 @@ interface AddedAlbumInfo {
 const ReleasePage: React.FC = () => {
     const { releaseId } = useParams<{ releaseId: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [albumDetails, setAlbumDetails] = useState<AlbumDetails | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -30,7 +32,7 @@ const ReleasePage: React.FC = () => {
                 setAlbumDetails(data);
             } catch (error) {
                 console.log("Error loading release details:", error);
-                toastService.error("Error loading release details.");
+                toastService.error(t('release.errorLoading'));
                 navigate('/app');
             } finally {
                 setIsLoading(false);
@@ -44,14 +46,14 @@ const ReleasePage: React.FC = () => {
         setIsSubmitting(true);
         try {
             const response = await axios.post('/api/collection', { ...albumDetails, format }, { withCredentials: true });
-            toastService.success(`"${albumDetails.title}" added to your collection!`);
+            toastService.success(t('common.addedSuccess', { title: albumDetails.title }));
             setAddedAlbum({
                 id: response.data.item._id,
                 title: albumDetails.title
             });
             setShowModal(false);
         } catch (err: any) {
-            toastService.error(err.response?.data?.message || "An error occurred.");
+            toastService.error(err.response?.data?.message || t('common.error'));
         } finally {
             setIsSubmitting(false);
         }
@@ -77,7 +79,7 @@ const ReleasePage: React.FC = () => {
     }
 
     if (!albumDetails) {
-        return <div className="text-center p-8">No data for this release.</div>;
+        return <div className="text-center p-8">{t('release.noData')}</div>;
     }
 
     return (
@@ -104,7 +106,7 @@ const ReleasePage: React.FC = () => {
                     {/* Available Formats */}
                     {albumDetails.availableFormats && albumDetails.availableFormats.length > 0 && (
                         <div className="mt-4">
-                            <h3 className="text-sm font-semibold text-gray-400 mb-2">Formats:</h3>
+                            <h3 className="text-sm font-semibold text-gray-400 mb-2">{t('common.formats')}:</h3>
                             <div className="flex flex-wrap gap-2">
                                 {albumDetails.availableFormats.map((format, index) => (
                                     <span key={index} className="badge badge-outline">
@@ -122,10 +124,10 @@ const ReleasePage: React.FC = () => {
                             className="btn btn-primary"
                             onClick={() => setShowModal(true)}
                         >
-                            Add to Collection
+                            {t('addAlbum.addToCollection')}
                         </button>
                         <button onClick={() => navigate(-1)} className="btn btn-outline">
-                            ← Back
+                            {t('common.back')}
                         </button>
                     </div>
                 </div>
@@ -144,22 +146,22 @@ const ReleasePage: React.FC = () => {
                 <dialog className="modal modal-open">
                     <div className="modal-box text-center">
                         <div className="text-5xl mb-4">🎉</div>
-                        <h3 className="font-bold text-xl mb-2">Album Added!</h3>
+                        <h3 className="font-bold text-xl mb-2">{t('common.albumAdded')}</h3>
                         <p className="text-base-content/70 mb-6">
-                            "{addedAlbum.title}" has been added to your collection.
+                            {t('common.addedToCollection', { title: addedAlbum.title })}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <button
                                 className="btn btn-primary"
                                 onClick={handleGoToAlbum}
                             >
-                                View Album
+                                {t('common.viewAlbum')}
                             </button>
                             <button
                                 className="btn btn-outline"
                                 onClick={handleContinueSearching}
                             >
-                                Continue Searching
+                                {t('common.continueSearching')}
                             </button>
                         </div>
                     </div>

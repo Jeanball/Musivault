@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from '../../../types/collection';
 
 interface CollectionListViewProps {
@@ -10,6 +11,8 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
     groupedItems,
     onItemClick
 }) => {
+    const { t } = useTranslation();
+
     return (
         <div className="space-y-10">
             {Object.entries(groupedItems).map(([artist, items]) => (
@@ -21,10 +24,10 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                         <table className="table w-full">
                             <thead>
                                 <tr>
-                                    <th>Cover</th>
-                                    <th>Album</th>
-                                    <th>Format</th>
-                                    <th>Released</th>
+                                    <th>{t('album.cover')}</th>
+                                    <th>{t('common.album')}</th>
+                                    <th>{t('common.format')}</th>
+                                    <th>{t('common.year')}</th>
                                 </tr>
                             </thead>
                             <tbody>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ChangelogEntry } from '../../hooks/useWhatsNew';
 import { Sparkles, Plus, RefreshCw, Wrench, Trash2 } from 'lucide-react';
 
@@ -23,6 +24,7 @@ const sectionColors: Record<string, string> = {
 };
 
 const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, onDismiss }) => {
+    const { t } = useTranslation();
     return (
         <dialog className="modal modal-open">
             <div className="modal-box max-w-2xl max-h-[80vh]">
@@ -32,8 +34,8 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, 
                         <Sparkles className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-xl">What's New in Musivault</h3>
-                        <p className="text-sm text-gray-400">Version {currentVersion}</p>
+                        <h3 className="font-bold text-xl">{t('whatsNew.title')}</h3>
+                        <p className="text-sm text-gray-400">{t('whatsNew.version', { version: currentVersion })}</p>
                     </div>
                 </div>
 
@@ -68,7 +70,7 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, 
                 {/* Footer */}
                 <div className="modal-action mt-6">
                     <button className="btn btn-primary" onClick={onDismiss}>
-                        Got it!
+                        {t('whatsNew.gotIt')}
                     </button>
                 </div>
             </div>

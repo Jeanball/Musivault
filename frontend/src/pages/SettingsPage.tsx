@@ -37,6 +37,9 @@ const SettingsPage: React.FC = () => {
         { code: 'en', label: 'English' },
         { code: 'fr', label: 'Français' },
         { code: 'de', label: 'Deutsch' },
+        { code: 'es', label: 'Español' },
+        { code: 'pt', label: 'Português' },
+        { code: 'zh', label: '中文 (Simplified)' },
     ];
 
     const handleLanguageChange = async (lng: string) => {
@@ -73,7 +76,7 @@ const SettingsPage: React.FC = () => {
 
         try {
             await axios.put('/api/users/preferences', { theme: newTheme }, { withCredentials: true });
-            toastService.success('Theme saved!');
+            toastService.success(t('settings.themeSaved'));
         } catch (error) {
             console.error('Failed to save theme to server:', error);
         } finally {
@@ -88,7 +91,7 @@ const SettingsPage: React.FC = () => {
 
         try {
             await axios.put('/api/users/preferences', { wideScreenMode: newValue }, { withCredentials: true });
-            toastService.success(newValue ? 'Wide screen mode enabled!' : 'Wide screen mode disabled');
+            toastService.success(newValue ? t('settings.wideScreenModeEnabled') : t('settings.wideScreenModeDisabled'));
         } catch (error) {
             console.error('Failed to save wide screen mode to server:', error);
         } finally {
@@ -108,10 +111,10 @@ const SettingsPage: React.FC = () => {
             );
             setIsPublic(newValue);
             setPublicShareId(response.data.publicShareId);
-            toastService.success(newValue ? 'Collection is now public!' : 'Collection is now private');
+            toastService.success(newValue ? t('settings.collectionNowPublic') : t('settings.collectionNowPrivate'));
         } catch (error) {
             console.error('Failed to update public setting:', error);
-            toastService.error('Failed to update setting');
+            toastService.error(t('settings.failedUpdateSetting'));
         } finally {
             setIsSaving(false);
         }
@@ -121,7 +124,7 @@ const SettingsPage: React.FC = () => {
         if (publicShareId) {
             const shareUrl = `${window.location.origin}/collection/${publicShareId}`;
             navigator.clipboard.writeText(shareUrl);
-            toastService.success('Link copied to clipboard!');
+            toastService.success(t('settings.linkCopied'));
         }
     };
 
@@ -130,9 +133,9 @@ const SettingsPage: React.FC = () => {
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
                 <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm">
-                    ← Back
+                    {t('common.back')}
                 </button>
-                <h1 className="text-2xl font-bold">Settings</h1>
+                <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
             </div>
 
             {/* Theme Section */}
@@ -142,11 +145,11 @@ const SettingsPage: React.FC = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                         </svg>
-                        Theme
+                        {t('settings.theme')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
                     <p className="text-sm text-gray-500 mb-4">
-                        Choose your preferred color theme. Your choice will be saved to your account.
+                        {t('settings.themeDescription')}
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -159,7 +162,7 @@ const SettingsPage: React.FC = () => {
                                     : 'btn-outline'
                                     }`}
                             >
-                                {themeOption}
+                                {t(`settings.themes.${themeOption}`)}
                                 {theme === themeOption && (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -178,32 +181,25 @@ const SettingsPage: React.FC = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                         </svg>
-                        Language
+                        {t('settings.language')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
                     <p className="text-sm text-gray-500 mb-4">
-                        Select your preferred language for the interface.
+                        {t('settings.languageDescription')}
                     </p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <select
+                        className="select select-bordered w-full max-w-xs"
+                        value={i18n.language}
+                        onChange={(e) => handleLanguageChange(e.target.value)}
+                        disabled={isSaving}
+                    >
                         {languages.map((lang) => (
-                            <button
-                                key={lang.code}
-                                onClick={() => handleLanguageChange(lang.code)}
-                                className={`btn btn-sm ${i18n.language === lang.code
-                                    ? 'btn-primary'
-                                    : 'btn-outline'
-                                    }`}
-                            >
+                            <option key={lang.code} value={lang.code}>
                                 {lang.label}
-                                {i18n.language === lang.code && (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                )}
-                            </button>
+                            </option>
                         ))}
-                    </div>
+                    </select>
                 </div>
             </div>
 
@@ -214,11 +210,11 @@ const SettingsPage: React.FC = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        Display
+                        {t('settings.display')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
                     <p className="text-sm text-gray-500 mb-4">
-                        Customize how the interface is displayed.
+                        {t('settings.displayDescription')}
                     </p>
 
                     <div className="form-control">
@@ -231,11 +227,11 @@ const SettingsPage: React.FC = () => {
                                 disabled={isSaving}
                             />
                             <div>
-                                <span className="label-text font-medium">Wide Screen Mode</span>
+                                <span className="label-text font-medium">{t('settings.wideScreenMode')}</span>
                                 <p className="text-xs text-gray-500 mt-1">
                                     {wideScreenMode
-                                        ? 'Content is centered with a maximum width for easier reading'
-                                        : 'Content expands to fill the entire screen width'}
+                                        ? t('settings.wideScreenEnabled')
+                                        : t('settings.wideScreenDisabled')}
                                 </p>
                             </div>
                         </label>
@@ -250,11 +246,11 @@ const SettingsPage: React.FC = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Public Collection
+                        {t('settings.publicCollection')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
                     <p className="text-sm text-gray-500 mb-4">
-                        Allow anyone with the link to view your collection. Your collection is private by default.
+                        {t('settings.publicCollectionDescription')}
                     </p>
 
                     <div className="form-control">
@@ -267,14 +263,14 @@ const SettingsPage: React.FC = () => {
                                 disabled={isSaving}
                             />
                             <span className="label-text">
-                                {isPublic ? 'Collection is public' : 'Collection is private'}
+                                {isPublic ? t('settings.collectionPublic') : t('settings.collectionPrivate')}
                             </span>
                         </label>
                     </div>
 
                     {isPublic && publicShareId && (
                         <div className="mt-4 p-4 bg-base-300 rounded-lg">
-                            <p className="text-sm font-medium mb-2">Share Link:</p>
+                            <p className="text-sm font-medium mb-2">{t('settings.shareLink')}</p>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
@@ -289,7 +285,7 @@ const SettingsPage: React.FC = () => {
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                                     </svg>
-                                    Copy
+                                    {t('settings.copy')}
                                 </button>
                             </div>
                         </div>
@@ -304,10 +300,10 @@ const SettingsPage: React.FC = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
-                        Change Password
+                        {t('settings.changePassword')}
                     </h2>
                     <p className="text-sm text-gray-500 mb-4">
-                        Update your password to keep your account secure.
+                        {t('settings.changePasswordDescription')}
                     </p>
 
                     <form onSubmit={async (e) => {
@@ -318,18 +314,18 @@ const SettingsPage: React.FC = () => {
                         const confirmPassword = (form.elements.namedItem('confirmPassword') as HTMLInputElement).value;
 
                         if (newPassword !== confirmPassword) {
-                            toastService.error("New passwords do not match");
+                            toastService.error(t('settings.passwordsDoNotMatch'));
                             return;
                         }
 
                         if (newPassword.length < 6) {
-                            toastService.error("Password must be at least 6 characters");
+                            toastService.error(t('settings.passwordTooShort'));
                             return;
                         }
 
                         try {
                             await axios.put('/api/users/password', { currentPassword, newPassword }, { withCredentials: true });
-                            toastService.success('Password updated successfully');
+                            toastService.success(t('settings.passwordUpdated'));
                             form.reset();
                         } catch (error: any) {
                             toastService.error(error.response?.data?.message || 'Failed to update password');
@@ -338,12 +334,12 @@ const SettingsPage: React.FC = () => {
                         <div className="space-y-4">
                             <div className="form-control w-full">
                                 <label className="label">
-                                    <span className="label-text">Current Password</span>
+                                    <span className="label-text">{t('settings.currentPassword')}</span>
                                 </label>
                                 <input
                                     type="password"
                                     name="currentPassword"
-                                    placeholder="Enter current password"
+                                    placeholder={t('settings.enterCurrentPassword')}
                                     className="input input-bordered w-full"
                                     required
                                 />
@@ -352,12 +348,12 @@ const SettingsPage: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="form-control w-full">
                                     <label className="label">
-                                        <span className="label-text">New Password</span>
+                                        <span className="label-text">{t('settings.newPassword')}</span>
                                     </label>
                                     <input
                                         type="password"
                                         name="newPassword"
-                                        placeholder="Enter new password"
+                                        placeholder={t('settings.enterNewPassword')}
                                         className="input input-bordered w-full"
                                         required
                                     />
@@ -365,12 +361,12 @@ const SettingsPage: React.FC = () => {
 
                                 <div className="form-control w-full">
                                     <label className="label">
-                                        <span className="label-text">Confirm New Password</span>
+                                        <span className="label-text">{t('settings.confirmNewPassword')}</span>
                                     </label>
                                     <input
                                         type="password"
                                         name="confirmPassword"
-                                        placeholder="Confirm new password"
+                                        placeholder={t('settings.confirmPassword')}
                                         className="input input-bordered w-full"
                                         required
                                     />
@@ -380,7 +376,7 @@ const SettingsPage: React.FC = () => {
 
                         <div className="card-actions justify-end mt-6">
                             <button type="submit" className="btn btn-primary">
-                                Update Password
+                                {t('settings.updatePassword')}
                             </button>
                         </div>
                     </form>
@@ -400,50 +396,50 @@ const SettingsPage: React.FC = () => {
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            About Musivault
+                            {t('settings.about')}
                         </h2>
 
                         <div className="stats stats-vertical shadow">
                             <div className="stat">
-                                <div className="stat-title">Version</div>
+                                <div className="stat-title">{t('settings.version')}</div>
                                 <div className="stat-value text-primary text-2xl">
                                     v{versionInfo.version}
                                     {versionInfo.channel && !['latest', 'stable', ''].includes(versionInfo.channel) && (
                                         <span className="text-warning text-base ml-2">({versionInfo.channel})</span>
                                     )}
                                 </div>
-                                <div className="stat-desc">Current release</div>
+                                <div className="stat-desc">{t('settings.currentRelease')}</div>
                             </div>
 
                             <div className="stat">
-                                <div className="stat-title">Environment</div>
+                                <div className="stat-title">{t('settings.environment')}</div>
                                 <div className="stat-value text-xl capitalize">{versionInfo.environment}</div>
-                                <div className="stat-desc">Running mode</div>
+                                <div className="stat-desc">{t('settings.runningMode')}</div>
                             </div>
 
                             <div className="stat">
-                                <div className="stat-title">Build Date</div>
+                                <div className="stat-title">{t('settings.buildDate')}</div>
                                 <div className="stat-value text-sm">
-                                    {new Date(versionInfo.buildDate).toLocaleDateString('en-US', {
+                                    {new Date(versionInfo.buildDate).toLocaleDateString(i18n.language, {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric'
                                     })}
                                 </div>
                                 <div className="stat-desc">
-                                    {new Date(versionInfo.buildDate).toLocaleTimeString()}
+                                    {new Date(versionInfo.buildDate).toLocaleTimeString(i18n.language)}
                                 </div>
                             </div>
 
                             <div className="stat">
-                                <div className="stat-title">Commit</div>
+                                <div className="stat-title">{t('settings.commit')}</div>
                                 <div className="stat-value text-sm font-mono">{versionInfo.commitSha.substring(0, 7)}</div>
-                                <div className="stat-desc">Git SHA</div>
+                                <div className="stat-desc">{t('settings.gitSha')}</div>
                             </div>
                         </div>
 
                         <div className="text-xs opacity-70 mt-4 text-center">
-                            <p>Made with ❤️ by <a href="https://github.com/jeanball" target="_blank" rel="noopener noreferrer">Jeanball</a></p>
+                            <p>{t('settings.madeWith')} <a href="https://github.com/jeanball" target="_blank" rel="noopener noreferrer">Jeanball</a></p>
                         </div>
                     </div>
                 </div>

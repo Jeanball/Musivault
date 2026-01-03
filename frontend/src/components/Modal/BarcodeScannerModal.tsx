@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import { useTranslation } from 'react-i18next';
 import { X, Camera, SwitchCamera } from 'lucide-react';
 
 interface BarcodeScannerModalProps {
@@ -9,6 +10,7 @@ interface BarcodeScannerModalProps {
 }
 
 const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ isOpen, onClose, onScanSuccess }) => {
+    const { t } = useTranslation();
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,12 +27,12 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ isOpen, onClo
                         const backCameraIndex = devices.findIndex(d => d.label.toLowerCase().includes('back'));
                         setSelectedCameraIndex(backCameraIndex !== -1 ? backCameraIndex : 0);
                     } else {
-                        setError('No cameras found on this device.');
+                        setError(t('barcodeScanner.noCameras'));
                     }
                 })
                 .catch((err) => {
                     console.error('Error getting cameras:', err);
-                    setError('Could not access cameras. Please ensure you have granted permission.');
+                    setError(t('barcodeScanner.cameraError'));
                 });
         }
 
@@ -76,7 +78,7 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ isOpen, onClo
             setIsScanning(true);
         } catch (err) {
             console.error('Error starting scanner:', err);
-            setError('Failed to start scanner. Please check camera permissions.');
+            setError(t('barcodeScanner.scannerError'));
             setIsScanning(false);
         }
     };
@@ -115,14 +117,14 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ isOpen, onClo
                 <div className="flex items-center justify-between p-4 bg-base-200">
                     <div className="flex items-center gap-2">
                         <Camera className="w-5 h-5" />
-                        <h3 className="font-bold text-lg">Scan Barcode</h3>
+                        <h3 className="font-bold text-lg">{t('barcodeScanner.title')}</h3>
                     </div>
                     <div className="flex items-center gap-2">
                         {cameras.length > 1 && (
                             <button
                                 className="btn btn-ghost btn-sm btn-circle"
                                 onClick={handleSwitchCamera}
-                                title="Switch Camera"
+                                title={t('barcodeScanner.switchCamera')}
                             >
                                 <SwitchCamera className="w-5 h-5" />
                             </button>
@@ -152,7 +154,7 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ isOpen, onClo
 
                 {/* Instructions */}
                 <div className="p-4 text-center text-sm text-gray-400">
-                    Point your camera at the album's barcode.
+                    {t('barcodeScanner.instructions')}
                 </div>
             </div>
             <form method="dialog" className="modal-backdrop">

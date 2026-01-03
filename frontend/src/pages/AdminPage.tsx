@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import type { AdminUser } from '../types/admin.types';
 import { toastService } from '../utils/toast';
 
 const AdminPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation();
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -46,7 +48,7 @@ const AdminPage: React.FC = () => {
                 setUsers(allUsers);
             } catch (error) {
                 console.error('Error fetching users:', error);
-                toastService.error('Access denied or server error');
+                toastService.error(t('admin.accessDenied'));
                 navigate('/app');
             } finally {
                 setIsLoading(false);
@@ -73,28 +75,28 @@ const AdminPage: React.FC = () => {
     // Delete user
     const handleDeleteUser = async (userId: string, username: string) => {
         if (userId === currentUserId) {
-            toastService.error('You cannot delete yourself');
+            toastService.error(t('admin.cannotDeleteSelf'));
             return;
         }
 
-        if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+        if (!confirm(t('admin.confirmDeleteUser', { username }))) {
             return;
         }
 
         try {
             await axios.delete(`/api/users/${userId}`, { withCredentials: true });
             setUsers(users.filter((u) => u._id !== userId));
-            toastService.success(`User "${username}" deleted`);
+            toastService.success(t('admin.userDeleted', { username }));
         } catch (error) {
             console.error('Error deleting user:', error);
-            toastService.error('Error during deletion');
+            toastService.error(t('admin.errorDeleting'));
         }
     };
 
     // Toggle admin status
     const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean, username: string) => {
         if (userId === currentUserId) {
-            toastService.error('You cannot modify your own admin status');
+            toastService.error(t('admin.cannotModifySelf'));
             return;
         }
 
@@ -112,21 +114,21 @@ const AdminPage: React.FC = () => {
             );
 
             toastService.success(
-                `${username} is now ${!currentIsAdmin ? 'admin' : 'standard user'}`
+                !currentIsAdmin ? t('admin.nowAdmin', { username }) : t('admin.nowUser', { username })
             );
         } catch (error) {
             console.error('Error updating user:', error);
-            toastService.error('Error during update');
+            toastService.error(t('admin.errorUpdating'));
         }
     };
 
     // Reset user password
     const handleResetPassword = async (userId: string, username: string) => {
-        const newPassword = prompt(`Enter new password for ${username}:`);
+        const newPassword = prompt(t('admin.enterNewPassword', { username }));
         if (!newPassword) return;
 
         if (newPassword.length < 6) {
-            toastService.error('Password must be at least 6 characters');
+            toastService.error(t('settings.passwordTooShort'));
             return;
         }
 
@@ -136,10 +138,10 @@ const AdminPage: React.FC = () => {
                 { password: newPassword },
                 { withCredentials: true }
             );
-            toastService.success(`Password updated for ${username}`);
+            toastService.success(t('admin.passwordUpdatedFor', { username }));
         } catch (error) {
             console.error('Error updating password:', error);
-            toastService.error('Failed to update password');
+            toastService.error(t('admin.failedUpdatePassword'));
         }
     };
 
@@ -147,9 +149,9 @@ const AdminPage: React.FC = () => {
     const handleCopyPublicLink = (publicShareId: string, username: string) => {
         const url = `${window.location.origin}/collection/${publicShareId}`;
         navigator.clipboard.writeText(url).then(() => {
-            toastService.success(`Public link copied for ${username}`);
+            toastService.success(t('admin.publicLinkCopied', { username }));
         }).catch(() => {
-            toastService.error('Failed to copy link');
+            toastService.error(t('admin.failedCopyLink'));
         });
     };
 
@@ -161,7 +163,7 @@ const AdminPage: React.FC = () => {
 
     // Format date
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleString('en-US', {
+        return new Date(dateString).toLocaleString(i18n.language, {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -172,7 +174,7 @@ const AdminPage: React.FC = () => {
 
     // Format date short (for mobile)
     const formatDateShort = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString(i18n.language, {
             month: 'short',
             day: 'numeric',
             year: '2-digit'
@@ -209,7 +211,7 @@ const AdminPage: React.FC = () => {
                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                     />
                 </svg>
-                <h1 className="text-3xl font-bold">Administration</h1>
+                <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
             </div>
 
             {/* Stats */}
@@ -231,7 +233,7 @@ const AdminPage: React.FC = () => {
                             />
                         </svg>
                     </div>
-                    <div className="stat-title text-xs sm:text-sm">Total Users</div>
+                    <div className="stat-title text-xs sm:text-sm">{t('admin.totalUsers')}</div>
                     <div className="stat-value text-primary text-2xl sm:text-3xl">{totalUsers}</div>
                 </div>
 
@@ -252,7 +254,7 @@ const AdminPage: React.FC = () => {
                             />
                         </svg>
                     </div>
-                    <div className="stat-title text-xs sm:text-sm">Admins</div>
+                    <div className="stat-title text-xs sm:text-sm">{t('admin.admins')}</div>
                     <div className="stat-value text-secondary text-2xl sm:text-3xl">{totalAdmins}</div>
                 </div>
 
@@ -273,7 +275,7 @@ const AdminPage: React.FC = () => {
                             />
                         </svg>
                     </div>
-                    <div className="stat-title text-xs sm:text-sm">Total Albums</div>
+                    <div className="stat-title text-xs sm:text-sm">{t('admin.totalAlbums')}</div>
                     <div className="stat-value text-accent text-2xl sm:text-3xl">{totalAlbums}</div>
                 </div>
 
@@ -294,7 +296,7 @@ const AdminPage: React.FC = () => {
                             />
                         </svg>
                     </div>
-                    <div className="stat-title text-xs sm:text-sm">Public Collections</div>
+                    <div className="stat-title text-xs sm:text-sm">{t('admin.publicCollections')}</div>
                     <div className="stat-value text-info text-2xl sm:text-3xl">{publicCollections}</div>
                 </div>
             </div>
@@ -303,13 +305,13 @@ const AdminPage: React.FC = () => {
             <div className="card bg-base-200 shadow-xl">
                 <div className="card-body p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                        <h2 className="card-title">User Management</h2>
+                        <h2 className="card-title">{t('admin.userManagement')}</h2>
                         {/* Search */}
                         <div className="form-control w-full sm:w-64">
                             <div className="input-group">
                                 <input
                                     type="text"
-                                    placeholder="Search users..."
+                                    placeholder={t('admin.searchUsers')}
                                     className="input input-bordered input-sm w-full"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -333,14 +335,14 @@ const AdminPage: React.FC = () => {
                         <table className="table table-zebra">
                             <thead>
                                 <tr>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Albums</th>
-                                    <th>Collection</th>
-                                    <th>Last Added</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
+                                    <th>{t('auth.username')}</th>
+                                    <th>{t('auth.email')}</th>
+                                    <th>{t('admin.role')}</th>
+                                    <th>{t('admin.albumCount')}</th>
+                                    <th>{t('admin.collectionStatus')}</th>
+                                    <th>{t('admin.lastAdded')}</th>
+                                    <th>{t('admin.created')}</th>
+                                    <th>{t('admin.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -357,7 +359,7 @@ const AdminPage: React.FC = () => {
                                                 </div>
                                                 <span className="font-medium">{user.username}</span>
                                                 {user._id === currentUserId && (
-                                                    <span className="badge badge-primary badge-sm">You</span>
+                                                    <span className="badge badge-primary badge-sm">{t('admin.you')}</span>
                                                 )}
                                             </div>
                                         </td>
@@ -379,10 +381,10 @@ const AdminPage: React.FC = () => {
                                                             d="M5 13l4 4L19 7"
                                                         />
                                                     </svg>
-                                                    Admin
+                                                    {t('admin.admin')}
                                                 </span>
                                             ) : (
-                                                <span className="badge badge-ghost">User</span>
+                                                <span className="badge badge-ghost">{t('admin.user')}</span>
                                             )}
                                         </td>
                                         <td>
@@ -395,12 +397,12 @@ const AdminPage: React.FC = () => {
                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Public
+                                                        {t('admin.public')}
                                                     </span>
                                                     <button
                                                         className="btn btn-xs btn-ghost"
                                                         onClick={() => handleCopyPublicLink(user.publicShareId, user.username)}
-                                                        title="Copy public link"
+                                                        title={t('admin.copyPublicLink')}
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -408,11 +410,11 @@ const AdminPage: React.FC = () => {
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <span className="badge badge-ghost badge-sm">Private</span>
+                                                <span className="badge badge-ghost badge-sm">{t('admin.private')}</span>
                                             )}
                                         </td>
                                         <td>
-                                            {user.lastAlbumAdded ? formatDate(user.lastAlbumAdded) : <span className="text-gray-400 italic">None</span>}
+                                            {user.lastAlbumAdded ? formatDate(user.lastAlbumAdded) : <span className="text-gray-400 italic">{t('admin.none')}</span>}
                                         </td>
                                         <td>{formatDate(user.createdAt)}</td>
                                         <td>
@@ -420,7 +422,7 @@ const AdminPage: React.FC = () => {
                                                 <button
                                                     className="btn btn-xs btn-ghost"
                                                     onClick={() => handleResetPassword(user._id, user.username)}
-                                                    title="Change Password"
+                                                    title={t('settings.changePassword')}
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
@@ -430,7 +432,7 @@ const AdminPage: React.FC = () => {
                                                     className="btn btn-xs btn-ghost"
                                                     onClick={() => handleToggleAdmin(user._id, user.isAdmin, user.username)}
                                                     disabled={user._id === currentUserId}
-                                                    title={user.isAdmin ? 'Remove admin' : 'Make admin'}
+                                                    title={user.isAdmin ? t('admin.removeAdmin') : t('admin.makeAdmin')}
                                                 >
                                                     {user.isAdmin ? (
                                                         <svg
@@ -468,7 +470,7 @@ const AdminPage: React.FC = () => {
                                                     className="btn btn-xs btn-ghost text-error"
                                                     onClick={() => handleDeleteUser(user._id, user.username)}
                                                     disabled={user._id === currentUserId}
-                                                    title="Delete user"
+                                                    title={t('admin.deleteUser')}
                                                 >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
@@ -515,7 +517,7 @@ const AdminPage: React.FC = () => {
                                                 <div className="font-bold flex items-center gap-1">
                                                     {user.username}
                                                     {user._id === currentUserId && (
-                                                        <span className="badge badge-primary badge-xs">You</span>
+                                                        <span className="badge badge-primary badge-xs">{t('admin.you')}</span>
                                                     )}
                                                 </div>
                                                 <div className="text-sm opacity-70">{user.email}</div>
@@ -523,14 +525,14 @@ const AdminPage: React.FC = () => {
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             {user.isAdmin ? (
-                                                <span className="badge badge-success badge-sm">Admin</span>
+                                                <span className="badge badge-success badge-sm">{t('admin.admin')}</span>
                                             ) : (
-                                                <span className="badge badge-ghost badge-sm">User</span>
+                                                <span className="badge badge-ghost badge-sm">{t('admin.user')}</span>
                                             )}
                                             {user.isPublic ? (
-                                                <span className="badge badge-info badge-sm">Public</span>
+                                                <span className="badge badge-info badge-sm">{t('admin.public')}</span>
                                             ) : (
-                                                <span className="badge badge-ghost badge-sm">Private</span>
+                                                <span className="badge badge-ghost badge-sm">{t('admin.private')}</span>
                                             )}
                                         </div>
                                     </div>
@@ -539,13 +541,13 @@ const AdminPage: React.FC = () => {
                                     <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-base-300">
                                         <div className="flex gap-4">
                                             <div>
-                                                <span className="opacity-70">Albums: </span>
+                                                <span className="opacity-70">{t('admin.albumCount')}: </span>
                                                 <span className="font-medium">{user.albumCount || 0}</span>
                                             </div>
                                             <div>
-                                                <span className="opacity-70">Last added: </span>
+                                                <span className="opacity-70">{t('admin.lastAdded')}: </span>
                                                 <span className="font-medium">
-                                                    {user.lastAlbumAdded ? formatDateShort(user.lastAlbumAdded) : 'None'}
+                                                    {user.lastAlbumAdded ? formatDateShort(user.lastAlbumAdded) : t('admin.none')}
                                                 </span>
                                             </div>
                                         </div>
@@ -554,14 +556,14 @@ const AdminPage: React.FC = () => {
                                     {/* Actions row */}
                                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-base-300">
                                         <div className="text-xs opacity-50">
-                                            Joined {formatDateShort(user.createdAt)}
+                                            {t('admin.joined')} {formatDateShort(user.createdAt)}
                                         </div>
                                         <div className="flex gap-1">
                                             {user.isPublic && (
                                                 <button
                                                     className="btn btn-xs btn-ghost"
                                                     onClick={() => handleCopyPublicLink(user.publicShareId, user.username)}
-                                                    title="Copy public link"
+                                                    title={t('admin.copyPublicLink')}
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -571,7 +573,7 @@ const AdminPage: React.FC = () => {
                                             <button
                                                 className="btn btn-xs btn-ghost"
                                                 onClick={() => handleResetPassword(user._id, user.username)}
-                                                title="Change Password"
+                                                title={t('settings.changePassword')}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
@@ -581,7 +583,7 @@ const AdminPage: React.FC = () => {
                                                 className="btn btn-xs btn-ghost"
                                                 onClick={() => handleToggleAdmin(user._id, user.isAdmin, user.username)}
                                                 disabled={user._id === currentUserId}
-                                                title={user.isAdmin ? 'Remove admin' : 'Make admin'}
+                                                title={user.isAdmin ? t('admin.removeAdmin') : t('admin.makeAdmin')}
                                             >
                                                 {user.isAdmin ? (
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -597,7 +599,7 @@ const AdminPage: React.FC = () => {
                                                 className="btn btn-xs btn-ghost text-error"
                                                 onClick={() => handleDeleteUser(user._id, user.username)}
                                                 disabled={user._id === currentUserId}
-                                                title="Delete user"
+                                                title={t('admin.deleteUser')}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -613,7 +615,7 @@ const AdminPage: React.FC = () => {
                     {/* Empty state */}
                     {filteredUsers.length === 0 && (
                         <div className="text-center py-8 opacity-50">
-                            {searchQuery ? 'No users match your search' : 'No users found'}
+                            {searchQuery ? t('admin.noUsersMatch') : t('admin.noUsersFound')}
                         </div>
                     )}
                 </div>
