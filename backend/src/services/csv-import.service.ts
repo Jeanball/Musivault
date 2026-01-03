@@ -6,7 +6,8 @@ import Album from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
 import ImportLog, { IImportLogEntry } from '../models/ImportLog';
 import User from '../models/User';
-import { discogsService, FoundAlbumInfo } from './discogs.service';
+import { discogsService } from './discogs.service';
+import { FoundAlbumInfo } from '../types/discogs.types';
 
 // Ensure logs directory exists
 // Use /app/logs/imports in Docker, or fallback to relative path for local dev

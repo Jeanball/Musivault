@@ -6,6 +6,11 @@ import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 
+interface AddedAlbumInfo {
+    id: string;
+    title: string;
+}
+
 const ReleasePage: React.FC = () => {
     const { releaseId } = useParams<{ releaseId: string }>();
     const navigate = useNavigate();
@@ -13,6 +18,7 @@ const ReleasePage: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [showModal, setShowModal] = useState<boolean>(false);
+    const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
     useEffect(() => {
         const fetchReleaseDetails = async () => {
@@ -37,14 +43,29 @@ const ReleasePage: React.FC = () => {
         if (!albumDetails) return;
         setIsSubmitting(true);
         try {
-            await axios.post('/api/collection', { ...albumDetails, format }, { withCredentials: true });
+            const response = await axios.post('/api/collection', { ...albumDetails, format }, { withCredentials: true });
             toastService.success(`"${albumDetails.title}" added to your collection!`);
+            setAddedAlbum({
+                id: response.data.item._id,
+                title: albumDetails.title
+            });
             setShowModal(false);
         } catch (err: any) {
             toastService.error(err.response?.data?.message || "An error occurred.");
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleGoToAlbum = () => {
+        if (addedAlbum) {
+            navigate(`/app/album/${addedAlbum.id}`);
+        }
+    };
+
+    const handleContinueSearching = () => {
+        setAddedAlbum(null);
+        navigate('/app');
     };
 
     if (isLoading) {
@@ -117,6 +138,36 @@ const ReleasePage: React.FC = () => {
                 onConfirm={handleConfirmAddToCollection}
                 isSubmitting={isSubmitting}
             />
+
+            {/* Success Modal - Choice after adding */}
+            {addedAlbum && (
+                <dialog className="modal modal-open">
+                    <div className="modal-box text-center">
+                        <div className="text-5xl mb-4">🎉</div>
+                        <h3 className="font-bold text-xl mb-2">Album Added!</h3>
+                        <p className="text-base-content/70 mb-6">
+                            "{addedAlbum.title}" has been added to your collection.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleGoToAlbum}
+                            >
+                                View Album
+                            </button>
+                            <button
+                                className="btn btn-outline"
+                                onClick={handleContinueSearching}
+                            >
+                                Continue Searching
+                            </button>
+                        </div>
+                    </div>
+                    <form method="dialog" className="modal-backdrop">
+                        <button onClick={() => setAddedAlbum(null)}>close</button>
+                    </form>
+                </dialog>
+            )}
         </div>
     );
 };
