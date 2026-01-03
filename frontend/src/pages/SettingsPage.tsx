@@ -18,6 +18,7 @@ interface PreferencesResponse {
     theme: string;
     isPublic: boolean;
     publicShareId: string | null;
+    language: string;
 }
 
 const themes = [
@@ -43,12 +44,13 @@ const SettingsPage: React.FC = () => {
     ];
 
     const handleLanguageChange = async (lng: string) => {
-        i18n.changeLanguage(lng);
+        await i18n.changeLanguage(lng);
         localStorage.setItem('i18nextLng', lng);
         setIsSaving(true);
         try {
             await axios.put('/api/users/preferences', { language: lng }, { withCredentials: true });
-            toastService.success(t('settings.languageSaved', 'Language saved!'));
+            const tNew = i18n.getFixedT(lng);
+            toastService.success(tNew('settings.languageSaved', 'Language saved!'));
         } catch (error) {
             console.error('Failed to save language to server:', error);
         } finally {
@@ -66,6 +68,9 @@ const SettingsPage: React.FC = () => {
             .then(res => {
                 setIsPublic(res.data.isPublic || false);
                 setPublicShareId(res.data.publicShareId || null);
+                if (res.data.language && res.data.language !== i18n.language) {
+                    i18n.changeLanguage(res.data.language);
+                }
             })
             .catch(err => console.error('Failed to fetch preferences:', err));
     }, []);
@@ -190,7 +195,7 @@ const SettingsPage: React.FC = () => {
 
                     <select
                         className="select select-bordered w-full max-w-xs"
-                        value={i18n.language}
+                        value={languages.some(l => l.code === i18n.language) ? i18n.language : i18n.language.substring(0, 2)}
                         onChange={(e) => handleLanguageChange(e.target.value)}
                         disabled={isSaving}
                     >

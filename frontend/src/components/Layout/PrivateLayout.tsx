@@ -26,7 +26,7 @@ interface LocationState {
 const PrivateLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { syncPreferencesFromServer, wideScreenMode } = useTheme();
     const [username, setUsername] = useState<string>("");
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -44,6 +44,16 @@ const PrivateLayout: React.FC = () => {
                     setIsAdmin(data.isAdmin);
                     // Sync preferences from server once user is verified
                     await syncPreferencesFromServer();
+
+                    // Explicitly sync language preference
+                    try {
+                        const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
+                        if (data.language && data.language !== i18n.language) {
+                            i18n.changeLanguage(data.language);
+                        }
+                    } catch (error) {
+                        console.error('Failed to sync language', error);
+                    }
 
                     // Show login success toast AFTER theme sync (only once)
                     const state = location.state as LocationState;
