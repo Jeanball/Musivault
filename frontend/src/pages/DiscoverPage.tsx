@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { Users, Music, Mic } from 'lucide-react';
 
 interface PublicUser {
     username: string;
@@ -48,7 +49,10 @@ const DiscoverPage: React.FC = () => {
 
             {/* Section 1: Public Collections */}
             <section>
-                <h2 className="text-2xl font-bold mb-4">{t('discover.publicCollections')}</h2>
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <Users size={24} />
+                    {t('discover.publicCollections')}
+                </h2>
 
                 {isLoading ? (
                     <div className="flex justify-center items-center h-32">
@@ -105,7 +109,10 @@ const DiscoverPage: React.FC = () => {
             {/* Section 2: Upcoming Releases - Coming Soon */}
             <section>
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <h2 className="text-2xl font-bold">{t('discover.upcomingReleases')}</h2>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <Music size={24} />
+                        {t('discover.upcomingReleases')}
+                    </h2>
                     <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
                 </div>
                 <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
@@ -120,7 +127,10 @@ const DiscoverPage: React.FC = () => {
             {/* Section 3: Shows Near You - Coming Soon */}
             <section>
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <h2 className="text-2xl font-bold">{t('discover.showsNearYou')}</h2>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <Mic size={24} />
+                        {t('discover.showsNearYou')}
+                    </h2>
                     <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
                 </div>
                 <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">

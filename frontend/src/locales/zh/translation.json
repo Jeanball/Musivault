@@ -7,7 +7,7 @@
         "add": "添加",
         "edit": "编辑",
         "delete": "删除",
-        "back": "← 返回",
+        "back": "返回",
         "loading": "加载中...",
         "or": "或",
         "na": "N/A",
@@ -21,11 +21,10 @@
         "tracks": "曲目",
         "error": "发生错误。",
         "success": "成功",
-        "goBack": "← 返回",
+        "goBack": "返回",
         "viewAlbum": "查看专辑",
         "continueSearching": "继续搜索",
         "albumAdded": "专辑已添加！",
-        "addedToCollection": "“{{title}}”已添加到您的收藏。",
         "addedSuccess": "“{{title}}”已成功添加到收藏！",
         "poweredBy": "本站由",
         "unknownArtist": "未知艺术家"
@@ -133,7 +132,7 @@
         "buildDate": "构建日期",
         "commit": "提交",
         "gitSha": "Git SHA",
-        "madeWith": "由 ❤️ 制作"
+        "madeWith": "由 制作"
     },
     "csvImport": {
         "title": "导入收藏 (CSV)",
@@ -236,15 +235,15 @@
     "discover": {
         "title": "发现",
         "subtitle": "探索来自社区及其他的音乐。",
-        "publicCollections": "👥 公开收藏",
+        "publicCollections": "公开收藏",
         "noPublicCollections": "暂无公开收藏",
         "beTheFirst": "成为第一个！在设置中启用公开分享。",
         "goToSettings": "前往设置",
-        "upcomingReleases": "🎵 即将发行",
+        "upcomingReleases": "即将发行",
         "comingSoon": "敬请期待",
         "newMusicFromArtists": "来自您喜爱艺术家的新音乐",
         "upcomingReleasesDescription": "获取您收藏中艺术家即将发行的专辑通知。我们正在整合发行日历！",
-        "showsNearYou": "🎤 附近的演出",
+        "showsNearYou": "附近的演出",
         "liveConcerts": "您所在地区的现场音乐会",
         "showsDescription": "发现您喜爱艺术家的现场演出。我们正在整合 Bandsintown 以提供个性化推荐！",
         "failedLoadCollections": "加载公开收藏失败。"
@@ -349,8 +348,8 @@
     "artist": {
         "noData": "此艺术家无数据。",
         "sortBy": "排序方式：",
-        "ascending": "↑ 升序",
-        "descending": "↓ 降序",
+        "ascending": "升序",
+        "descending": "降序",
         "unknownYear": "未知年份",
         "noAlbums": "未找到此艺术家的专辑。",
         "errorLoading": "加载艺术家专辑出错。"

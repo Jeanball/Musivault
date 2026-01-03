@@ -7,7 +7,7 @@
         "add": "Hinzufügen",
         "edit": "Bearbeiten",
         "delete": "Löschen",
-        "back": "← Züruck",
+        "back": "Züruck",
         "loading": "Lädt...",
         "or": "ODER",
         "na": "N/V",
@@ -21,11 +21,10 @@
         "tracks": "Titel",
         "error": "Ein Fehler ist aufgetreten.",
         "success": "Erfolg",
-        "goBack": "← Züruck",
+        "goBack": "Züruck",
         "viewAlbum": "Album ansehen",
         "continueSearching": "Weiter suchen",
         "albumAdded": "Album hinzugefügt!",
-        "addedToCollection": "\"{{title}}\" wurde zu Ihrer Sammlung hinzugefügt.",
         "addedSuccess": "\"{{title}}\" zu Ihrer Sammlung hinzugefügt!",
         "poweredBy": "Bereitgestellt von",
         "unknownArtist": "Unbekannter Künstler"
@@ -133,7 +132,7 @@
         "buildDate": "Erstellungsdatum",
         "commit": "Commit",
         "gitSha": "Git SHA",
-        "madeWith": "Gemacht mit ❤️ von"
+        "madeWith": "Gemacht mit von"
     },
     "csvImport": {
         "title": "Sammlung importieren (CSV)",
@@ -236,15 +235,15 @@
     "discover": {
         "title": "Entdecken",
         "subtitle": "Entdecken Sie Musik aus Ihrer Community und darüber hinaus.",
-        "publicCollections": "👥 Öffentliche Sammlungen",
+        "publicCollections": "Öffentliche Sammlungen",
         "noPublicCollections": "Noch keine öffentlichen Sammlungen",
         "beTheFirst": "Seien Sie der Erste! Aktivieren Sie das öffentliche Teilen in Ihren Einstellungen.",
         "goToSettings": "Zu den Einstellungen",
-        "upcomingReleases": "🎵 Kommende Veröffentlichungen",
+        "upcomingReleases": "Kommende Veröffentlichungen",
         "comingSoon": "Demnächst",
         "newMusicFromArtists": "Neue Musik von Ihren Lieblingskünstlern",
         "upcomingReleasesDescription": "Erhalten Sie Benachrichtigungen über kommende Albumveröffentlichungen von Künstlern in Ihrer Sammlung. Wir arbeiten an der Integration von Veröffentlichungskalendern, um Sie auf dem Laufenden zu halten!",
-        "showsNearYou": "🎤 Konzerte in Ihrer Nähe",
+        "showsNearYou": "Konzerte in Ihrer Nähe",
         "liveConcerts": "Live-Konzerte in Ihrer Umgebung",
         "showsDescription": "Entdecken Sie Live-Shows und Konzerte von Künstlern, die Sie lieben. Wir integrieren Bandsintown, um Ihnen personalisierte Veranstaltungsempfehlungen zu geben!",
         "failedLoadCollections": "Öffentliche Sammlungen konnten nicht geladen werden."
@@ -349,8 +348,8 @@
     "artist": {
         "noData": "Keine Daten für diesen Künstler.",
         "sortBy": "Sortieren nach:",
-        "ascending": "↑ Aufsteigend",
-        "descending": "↓ Absteigend",
+        "ascending": "Aufsteigend",
+        "descending": "Absteigend",
         "unknownYear": "Unbekanntes Jahr",
         "noAlbums": "Keine Alben für diesen Künstler gefunden.",
         "errorLoading": "Fehler beim Laden der Künstleralben."

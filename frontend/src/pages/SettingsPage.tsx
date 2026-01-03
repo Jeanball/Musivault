@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -137,8 +138,8 @@ const SettingsPage: React.FC = () => {
         <div className="max-w-2xl mx-auto">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
-                <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm">
-                    {t('common.back')}
+                <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">
+                    <ArrowLeft size={16} /> {t('common.back')}
                 </button>
                 <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
             </div>
@@ -444,7 +445,9 @@ const SettingsPage: React.FC = () => {
                         </div>
 
                         <div className="text-xs opacity-70 mt-4 text-center">
-                            <p>{t('settings.madeWith')} <a href="https://github.com/jeanball" target="_blank" rel="noopener noreferrer">Jeanball</a></p>
+                            <div className="text-xs opacity-70 mt-4 text-center flex justify-center items-center gap-1">
+                                {t('settings.madeWith')} <Heart size={12} className="text-error" fill="currentColor" /> {t('settings.by')} <a href="https://github.com/jeanball" target="_blank" rel="noopener noreferrer" className="link link-hover">Jeanball</a>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -179,7 +180,9 @@ const VersionsPage: React.FC = () => {
                                 </select>
                             )}
                         </div>
-                        <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline">{t('common.back')}</button>
+                        <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline gap-2">
+                            <ArrowLeft size={16} /> {t('common.back')}
+                        </button>
                     </div>
 
                     {filteredVersions.length === 0 ? (

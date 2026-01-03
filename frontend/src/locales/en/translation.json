@@ -7,7 +7,7 @@
         "add": "Add",
         "edit": "Edit",
         "delete": "Delete",
-        "back": "← Back",
+        "back": "Back",
         "loading": "Loading...",
         "or": "OR",
         "na": "N/A",
@@ -21,11 +21,10 @@
         "tracks": "Tracks",
         "error": "An error occurred.",
         "success": "Success",
-        "goBack": "← Go Back",
+        "goBack": "Go Back",
         "viewAlbum": "View Album",
         "continueSearching": "Continue Searching",
         "albumAdded": "Album Added!",
-        "addedToCollection": "\"{{title}}\" has been added to your collection.",
         "addedSuccess": "\"{{title}}\" added to your collection!",
         "poweredBy": "Powered by",
         "unknownArtist": "Unknown Artist"
@@ -133,7 +132,7 @@
         "buildDate": "Build Date",
         "commit": "Commit",
         "gitSha": "Git SHA",
-        "madeWith": "Made with ❤️ by"
+        "madeWith": "Made with by"
     },
     "csvImport": {
         "title": "Import Collection (CSV)",
@@ -236,15 +235,15 @@
     "discover": {
         "title": "Discover",
         "subtitle": "Explore music from your community and beyond.",
-        "publicCollections": "👥 Public Collections",
+        "publicCollections": "Public Collections",
         "noPublicCollections": "No public collections yet",
         "beTheFirst": "Be the first! Enable public sharing in your Settings.",
         "goToSettings": "Go to Settings",
-        "upcomingReleases": "🎵 Upcoming Releases",
+        "upcomingReleases": "Upcoming Releases",
         "comingSoon": "Coming Soon",
         "newMusicFromArtists": "New music from your favorite artists",
         "upcomingReleasesDescription": "Get notified about upcoming album releases from artists in your collection. We're working on integrating release calendars to keep you updated!",
-        "showsNearYou": "🎤 Shows Near You",
+        "showsNearYou": "Shows Near You",
         "liveConcerts": "Live concerts in your area",
         "showsDescription": "Discover live shows and concerts from artists you love. We're integrating with Bandsintown to bring you personalized event recommendations!",
         "failedLoadCollections": "Failed to load public collections."
@@ -349,8 +348,8 @@
     "artist": {
         "noData": "No data for this artist.",
         "sortBy": "Sort by:",
-        "ascending": "↑ Ascending",
-        "descending": "↓ Descending",
+        "ascending": "Ascending",
+        "descending": "Descending",
         "unknownYear": "Unknown year",
         "noAlbums": "No albums found for this artist.",
         "errorLoading": "Error loading artist albums."

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -122,8 +123,8 @@ const ArtistAlbumsPage: React.FC = () => {
                 <div className="flex flex-col justify-center text-center md:text-left">
                     <h1 className="text-3xl md:text-4xl font-bold">{stripArtistSuffix(pageData.artist.name)}</h1>
                     <p className="text-gray-400 mt-2">{pageData.albums.length} {t('common.albums')}</p>
-                    <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm mt-4 w-fit mx-auto md:mx-0">
-                        {t('common.back')}
+                    <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm mt-4 w-fit mx-auto md:mx-0 gap-2">
+                        <ArrowLeft size={16} /> {t('common.back')}
                     </button>
                 </div>
             </div>
@@ -147,9 +148,10 @@ const ArtistAlbumsPage: React.FC = () => {
                 </div>
                 <div className="divider divider-horizontal mx-0"></div>
                 <button
-                    className="btn btn-sm btn-ghost"
+                    className="btn btn-sm btn-ghost gap-2"
                     onClick={toggleSortOrder}
                 >
+                    {sortOrder === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
                     {sortOrder === 'asc' ? t('artist.ascending') : t('artist.descending')}
                 </button>
             </div>

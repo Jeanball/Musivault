@@ -7,7 +7,7 @@
         "add": "Añadir",
         "edit": "Editar",
         "delete": "Eliminar",
-        "back": "← Volver",
+        "back": "Volver",
         "loading": "Cargando...",
         "or": "O",
         "na": "N/D",
@@ -21,11 +21,10 @@
         "tracks": "Pistas",
         "error": "Ocurrió un error.",
         "success": "Éxito",
-        "goBack": "← Volver",
+        "goBack": "Volver",
         "viewAlbum": "Ver álbum",
         "continueSearching": "Seguir buscando",
         "albumAdded": "¡Álbum añadido!",
-        "addedToCollection": "\"{{title}}\" se ha añadido a tu colección.",
         "addedSuccess": "¡\"{{title}}\" añadido a tu colección!",
         "poweredBy": "Desarrollado por",
         "unknownArtist": "Artista Desconocido"
@@ -133,7 +132,7 @@
         "buildDate": "Fecha de compilación",
         "commit": "Commit",
         "gitSha": "Git SHA",
-        "madeWith": "Hecho con ❤️ por"
+        "madeWith": "Hecho con por"
     },
     "csvImport": {
         "title": "Importar Colección (CSV)",
@@ -236,15 +235,15 @@
     "discover": {
         "title": "Descubrir",
         "subtitle": "Explora música de tu comunidad y más allá.",
-        "publicCollections": "👥 Colecciones Públicas",
+        "publicCollections": "Colecciones Públicas",
         "noPublicCollections": "Aún no hay colecciones públicas",
         "beTheFirst": "¡Sé el primero! Activa el compartir público en tus Ajustes.",
         "goToSettings": "Ir a Ajustes",
-        "upcomingReleases": "🎵 Próximos Lanzamientos",
+        "upcomingReleases": "Próximos Lanzamientos",
         "comingSoon": "Próximamente",
         "newMusicFromArtists": "Nueva música de tus artistas favoritos",
         "upcomingReleasesDescription": "Recibe notificaciones sobre próximos lanzamientos de artistas en tu colección. ¡Trabajamos en integrar calendarios de lanzamientos!",
-        "showsNearYou": "🎤 Conciertos Cerca de Ti",
+        "showsNearYou": "Conciertos Cerca de Ti",
         "liveConcerts": "Conciertos en vivo en tu área",
         "showsDescription": "Descubre shows en vivo de artistas que amas. ¡Integramos Bandsintown para darte recomendaciones personalizadas!",
         "failedLoadCollections": "Fallo al cargar colecciones públicas."
@@ -349,8 +348,8 @@
     "artist": {
         "noData": "Sin datos para este artista.",
         "sortBy": "Ordenar por:",
-        "ascending": "↑ Ascendente",
-        "descending": "↓ Descendente",
+        "ascending": "Ascendente",
+        "descending": "Descendente",
         "unknownYear": "Año desconocido",
         "noAlbums": "No se encontraron álbumes para este artista.",
         "errorLoading": "Error cargando álbumes del artista."

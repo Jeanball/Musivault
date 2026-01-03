@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -126,8 +127,8 @@ const ReleasePage: React.FC = () => {
                         >
                             {t('addAlbum.addToCollection')}
                         </button>
-                        <button onClick={() => navigate(-1)} className="btn btn-outline">
-                            {t('common.back')}
+                        <button onClick={() => navigate(-1)} className="btn btn-outline gap-2">
+                            <ArrowLeft size={16} /> {t('common.back')}
                         </button>
                     </div>
                 </div>
@@ -148,7 +149,7 @@ const ReleasePage: React.FC = () => {
                         <div className="text-5xl mb-4">🎉</div>
                         <h3 className="font-bold text-xl mb-2">{t('common.albumAdded')}</h3>
                         <p className="text-base-content/70 mb-6">
-                            {t('common.addedToCollection', { title: addedAlbum.title })}
+                            {t('common.addedSuccess', { title: addedAlbum.title })}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <button
