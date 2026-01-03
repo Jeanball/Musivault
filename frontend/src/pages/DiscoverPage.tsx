@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Users, Music, Mic } from 'lucide-react';
+import { Users, Music, Mic, Lock, Calendar, Ticket, ChevronRight, AlertCircle } from 'lucide-react';
 
 interface PublicUser {
     username: string;
@@ -60,12 +60,14 @@ const DiscoverPage: React.FC = () => {
                     </div>
                 ) : error ? (
                     <div className="alert alert-error">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <AlertCircle className="shrink-0 h-6 w-6" />
                         <span>{error}</span>
                     </div>
                 ) : users.length === 0 ? (
                     <div className="bg-base-200 rounded-xl p-8 text-center border-2 border-dashed border-base-300">
-                        <div className="text-5xl mb-4">🔒</div>
+                        <div className="flex justify-center mb-4">
+                            <Lock size={48} />
+                        </div>
                         <h3 className="text-lg font-semibold mb-2">{t('discover.noPublicCollections')}</h3>
                         <p className="text-base-content/60 mb-4">
                             {t('discover.beTheFirst')}
@@ -95,9 +97,7 @@ const DiscoverPage: React.FC = () => {
                                                 {user.albumCount} {user.albumCount === 1 ? t('common.album') : t('common.albums')}
                                             </p>
                                         </div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                        </svg>
+                                        <ChevronRight className="h-5 w-5 text-base-content/40" />
                                     </div>
                                 </div>
                             </Link>
@@ -116,7 +116,9 @@ const DiscoverPage: React.FC = () => {
                     <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
                 </div>
                 <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
-                    <div className="text-5xl mb-4">📅</div>
+                    <div className="flex justify-center mb-4">
+                        <Calendar size={48} />
+                    </div>
                     <h3 className="text-lg font-semibold mb-2">{t('discover.newMusicFromArtists')}</h3>
                     <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
                         {t('discover.upcomingReleasesDescription')}
@@ -134,7 +136,9 @@ const DiscoverPage: React.FC = () => {
                     <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
                 </div>
                 <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
-                    <div className="text-5xl mb-4">🎫</div>
+                    <div className="flex justify-center mb-4">
+                        <Ticket size={48} />
+                    </div>
                     <h3 className="text-lg font-semibold mb-2">{t('discover.liveConcerts')}</h3>
                     <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
                         {t('discover.showsDescription')}

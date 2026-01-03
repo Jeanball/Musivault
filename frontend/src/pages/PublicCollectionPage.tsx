@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { Lock, ArrowLeft } from 'lucide-react';
 import CollectionContent from '../components/Collection/CollectionContent';
 import Footer from '../components/Footer';
 import type { CollectionItem } from '../types/collection';
@@ -47,7 +48,9 @@ const PublicCollectionPage: React.FC = () => {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-base-100 p-8" data-theme="dark">
                 <div className="text-center">
-                    <h1 className="text-4xl font-bold mb-4">🔒</h1>
+                    <div className="flex justify-center mb-4">
+                        <Lock size={48} />
+                    </div>
                     <h2 className="text-2xl font-bold mb-2">{error}</h2>
                     <p className="text-base-content/70 mb-6">
                         {t('publicCollection.mayBePrivate')}
@@ -71,9 +74,7 @@ const PublicCollectionPage: React.FC = () => {
                             className="btn btn-ghost btn-circle flex-shrink-0"
                             title="Go Back"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
+                            <ArrowLeft className="h-6 w-6" />
                         </button>
                         <div className="text-center flex-1">
                             <h1 className="text-3xl md:text-4xl font-bold mb-2">

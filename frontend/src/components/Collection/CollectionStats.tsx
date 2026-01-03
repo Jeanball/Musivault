@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Disc, Layers, Calendar, Clock, Tag, ChevronDown } from 'lucide-react';
 import type { CollectionStats as CollectionStatsType } from '../../types/collection';
 
 interface CollectionStatsProps {
@@ -19,19 +20,18 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
             >
                 <div className="flex items-center gap-2 md:gap-3">
                     <h3 className="font-semibold text-base md:text-lg">{t('stats.title')}</h3>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-4 w-4 md:h-5 md:w-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <ChevronDown
+                        size={20}
+                        className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                    />
                 </div>
-                <p className="text-xs md:text-sm text-gray-500 text-center">
-                    💿 {stats.total} • 🎚️ {Object.keys(stats.formatCounts).length} • 📅 {Object.keys(stats.decadeCounts).length} • ⏰ {stats.recentAdds.thisWeek} • 🏷️ {Object.keys(stats.styleCounts).length}
-                </p>
+                <div className="flex flex-wrapjustify-center gap-x-3 gap-y-1 text-xs md:text-sm text-gray-500">
+                    <span className="flex items-center gap-1"><Disc size={14} /> {stats.total}</span>
+                    <span className="flex items-center gap-1"><Layers size={14} /> {Object.keys(stats.formatCounts).length}</span>
+                    <span className="flex items-center gap-1"><Calendar size={14} /> {Object.keys(stats.decadeCounts).length}</span>
+                    <span className="flex items-center gap-1"><Clock size={14} /> {stats.recentAdds.thisWeek}</span>
+                    <span className="flex items-center gap-1"><Tag size={14} /> {Object.keys(stats.styleCounts).length}</span>
+                </div>
             </div>
 
             {/* Collapsible content */}
@@ -39,10 +39,8 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 p-4">
                     {/* Total */}
                     <div className="bg-base-200 rounded-lg p-4 text-center">
-                        <div className="text-primary mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                            </svg>
+                        <div className="text-primary mb-2 flex justify-center">
+                            <Disc size={32} />
                         </div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.total')}</div>
                         <div className="text-2xl font-bold text-primary">{stats.total}</div>
@@ -53,10 +51,8 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
 
                     {/* Formats */}
                     <div className="bg-base-200 rounded-lg p-4 text-center">
-                        <div className="text-secondary mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-                            </svg>
+                        <div className="text-secondary mb-2 flex justify-center">
+                            <Layers size={32} />
                         </div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">{t('common.formats')}</div>
                         <div className="text-2xl font-bold text-secondary">{Object.keys(stats.formatCounts).length}</div>
@@ -71,10 +67,8 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
 
                     {/* Decades */}
                     <div className="bg-base-200 rounded-lg p-4 text-center">
-                        <div className="text-accent mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                        <div className="text-accent mb-2 flex justify-center">
+                            <Calendar size={32} />
                         </div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.decades')}</div>
                         <div className="text-2xl font-bold text-accent">{Object.keys(stats.decadeCounts).length}</div>
@@ -89,10 +83,8 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
 
                     {/* Recent Adds */}
                     <div className="bg-base-200 rounded-lg p-4 text-center">
-                        <div className="text-success mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                        <div className="text-success mb-2 flex justify-center">
+                            <Clock size={32} />
                         </div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.recent')}</div>
                         <div className="text-2xl font-bold text-success">{stats.recentAdds.thisWeek}</div>
@@ -103,10 +95,8 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
 
                     {/* Styles */}
                     <div className="bg-base-200 rounded-lg p-4 text-center">
-                        <div className="text-info mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                            </svg>
+                        <div className="text-info mb-2 flex justify-center">
+                            <Tag size={32} />
                         </div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.styles')}</div>
                         <div className="text-2xl font-bold text-info">{Object.keys(stats.styleCounts).length}</div>
