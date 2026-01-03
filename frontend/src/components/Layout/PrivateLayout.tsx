@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
 import { useTheme } from '../../context/ThemeContext';
-import { toastService, toastMessages } from '../../utils/toast';
+import { toastService } from '../../utils/toast';
 import { CollectionProvider } from '../../context/CollectionContext';
 
 interface VerificationResponse {
@@ -25,6 +26,7 @@ interface LocationState {
 const PrivateLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { t, i18n } = useTranslation();
     const { syncPreferencesFromServer, wideScreenMode } = useTheme();
     const [username, setUsername] = useState<string>("");
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -43,11 +45,21 @@ const PrivateLayout: React.FC = () => {
                     // Sync preferences from server once user is verified
                     await syncPreferencesFromServer();
 
+                    // Explicitly sync language preference
+                    try {
+                        const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
+                        if (data.language && data.language !== i18n.language) {
+                            i18n.changeLanguage(data.language);
+                        }
+                    } catch (error) {
+                        console.error('Failed to sync language', error);
+                    }
+
                     // Show login success toast AFTER theme sync (only once)
                     const state = location.state as LocationState;
                     if (state?.showLoginSuccess && !hasShownLoginToast.current) {
                         hasShownLoginToast.current = true;
-                        toastService.success(toastMessages.auth.loginSuccess);
+                        toastService.success(t('auth.loginSuccess', 'Connection successful!'));
                         // Clear the state to prevent showing toast on refresh
                         window.history.replaceState({}, document.title);
                     }

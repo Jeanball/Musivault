@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CollectionStats as CollectionStatsType } from '../../types/collection';
 
 interface CollectionStatsProps {
@@ -6,6 +7,7 @@ interface CollectionStatsProps {
 }
 
 const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
+    const { t } = useTranslation();
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
@@ -16,7 +18,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-2 md:gap-3">
-                    <h3 className="font-semibold text-base md:text-lg">Collection Stats</h3>
+                    <h3 className="font-semibold text-base md:text-lg">{t('stats.title')}</h3>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className={`h-4 w-4 md:h-5 md:w-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
@@ -42,7 +44,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                             </svg>
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">Total</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.total')}</div>
                         <div className="text-2xl font-bold text-primary">{stats.total}</div>
                         <div className="text-xs text-gray-500 mt-1 truncate">
                             {stats.topArtist && `${stats.topArtist.name} (${stats.topArtist.count})`}
@@ -56,7 +58,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
                             </svg>
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">Formats</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('common.formats')}</div>
                         <div className="text-2xl font-bold text-secondary">{Object.keys(stats.formatCounts).length}</div>
                         <div className="text-xs text-gray-500 mt-1 truncate">
                             {Object.entries(stats.formatCounts)
@@ -74,7 +76,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">Decades</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.decades')}</div>
                         <div className="text-2xl font-bold text-accent">{Object.keys(stats.decadeCounts).length}</div>
                         <div className="text-xs text-gray-500 mt-1 truncate">
                             {Object.entries(stats.decadeCounts)
@@ -92,10 +94,10 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">Recent</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.recent')}</div>
                         <div className="text-2xl font-bold text-success">{stats.recentAdds.thisWeek}</div>
                         <div className="text-xs text-gray-500 mt-1 truncate">
-                            This week • {stats.recentAdds.thisMonth} this month
+                            {t('stats.thisWeek')} • {stats.recentAdds.thisMonth} {t('stats.thisMonth')}
                         </div>
                     </div>
 
@@ -106,7 +108,7 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({ stats }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">Styles</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.styles')}</div>
                         <div className="text-2xl font-bold text-info">{Object.keys(stats.styleCounts).length}</div>
                         <div className="text-xs text-gray-500 mt-1 truncate">
                             {stats.topStyle && `${stats.topStyle.name} (${stats.topStyle.count})`}

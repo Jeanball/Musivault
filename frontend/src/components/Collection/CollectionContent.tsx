@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import CollectionFilters from '../Collection/CollectionFilters';
 import CollectionStats from '../Collection/CollectionStats';
 import CollectionTableView from '../Collection/Views/CollectionTableView';
@@ -32,6 +33,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     readOnly = false,
 }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     // Detect mobile device and set default layout accordingly
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -126,7 +128,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
-                            Albums
+                            {t('common.albums')}
                         </button>
                         <button
                             className={`tab ${viewMode === 'tracks' ? 'tab-active' : ''}`}
@@ -135,7 +137,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                             </svg>
-                            Tracks
+                            {t('common.tracks')}
                         </button>
                     </div>
                 </div>
@@ -164,7 +166,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                     <div className="form-control mb-4">
                         <input
                             type="text"
-                            placeholder="Search an album..."
+                            placeholder={t('collection.searchAlbum')}
                             className="input input-bordered w-full"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -174,8 +176,8 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                     {/* Main content */}
                     {(layout === 'table' ? sortedCollection.length === 0 : Object.keys(groupedByArtist).length === 0) ? (
                         <div className="text-center py-20">
-                            <h2 className="text-2xl font-semibold">No result found.</h2>
-                            <p className="mt-2 text-gray-400">Please try again</p>
+                            <h2 className="text-2xl font-semibold">{t('collection.noResults')}</h2>
+                            <p className="mt-2 text-gray-400">{t('collection.tryAgain')}</p>
                         </div>
                     ) : (
                         <>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import type { ArtistPageData, ArtistAlbum } from '../types';
@@ -30,6 +31,7 @@ const getStoredState = (artistId: string): ArtistPageState | null => {
 const ArtistAlbumsPage: React.FC = () => {
     const { artistId } = useParams<{ artistId: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [pageData, setPageData] = useState<ArtistPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -59,7 +61,7 @@ const ArtistAlbumsPage: React.FC = () => {
                 setPageData(data);
             } catch (error) {
                 console.log("Error loading artist albums:", error);
-                toastService.error("Error loading artist albums.");
+                toastService.error(t('artist.errorLoading'));
                 navigate('/app');
             } finally {
                 setIsLoading(false);
@@ -103,7 +105,7 @@ const ArtistAlbumsPage: React.FC = () => {
     }
 
     if (!pageData) {
-        return <div className="text-center p-8">No data for this artist.</div>;
+        return <div className="text-center p-8">{t('artist.noData')}</div>;
     }
 
     return (
@@ -119,28 +121,28 @@ const ArtistAlbumsPage: React.FC = () => {
                 )}
                 <div className="flex flex-col justify-center text-center md:text-left">
                     <h1 className="text-3xl md:text-4xl font-bold">{stripArtistSuffix(pageData.artist.name)}</h1>
-                    <p className="text-gray-400 mt-2">{pageData.albums.length} albums</p>
+                    <p className="text-gray-400 mt-2">{pageData.albums.length} {t('common.albums')}</p>
                     <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm mt-4 w-fit mx-auto md:mx-0">
-                        ← Back
+                        {t('common.back')}
                     </button>
                 </div>
             </div>
 
             {/* Sort controls */}
             <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-base-200 rounded-lg">
-                <span className="text-sm font-medium">Sort by:</span>
+                <span className="text-sm font-medium">{t('artist.sortBy')}</span>
                 <div className="flex gap-2">
                     <button
                         className={`btn btn-sm ${sortField === 'title' ? 'btn-primary' : 'btn-outline'}`}
                         onClick={() => setSortField('title')}
                     >
-                        Title
+                        {t('common.title')}
                     </button>
                     <button
                         className={`btn btn-sm ${sortField === 'year' ? 'btn-primary' : 'btn-outline'}`}
                         onClick={() => setSortField('year')}
                     >
-                        Year
+                        {t('common.year')}
                     </button>
                 </div>
                 <div className="divider divider-horizontal mx-0"></div>
@@ -148,7 +150,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     className="btn btn-sm btn-ghost"
                     onClick={toggleSortOrder}
                 >
-                    {sortOrder === 'asc' ? '↑ Ascending' : '↓ Descending'}
+                    {sortOrder === 'asc' ? t('artist.ascending') : t('artist.descending')}
                 </button>
             </div>
 
@@ -170,7 +172,7 @@ const ArtistAlbumsPage: React.FC = () => {
                         <div className="card-body p-3">
                             <h3 className="card-title text-sm line-clamp-2">{album.title}</h3>
                             <p className="text-xs text-gray-400">
-                                {album.year > 0 ? album.year : 'Unknown year'}
+                                {album.year > 0 ? album.year : t('artist.unknownYear')}
                             </p>
                         </div>
                     </div>
@@ -179,7 +181,7 @@ const ArtistAlbumsPage: React.FC = () => {
 
             {sortedAlbums.length === 0 && (
                 <div className="text-center py-12 text-gray-400">
-                    No albums found for this artist.
+                    {t('artist.noAlbums')}
                 </div>
             )}
         </div>

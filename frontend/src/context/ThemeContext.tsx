@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import axios from 'axios';
 
 type Theme = string;
@@ -33,7 +33,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     }, [wideScreenMode]);
 
     // Function to sync preferences from server (called after login)
-    const syncPreferencesFromServer = async () => {
+    const syncPreferencesFromServer = useCallback(async () => {
         try {
             const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
             if (data.theme && data.theme !== theme) {
@@ -45,7 +45,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         } catch {
             // Silent if not logged in or error - keep local preferences
         }
-    };
+    }, [theme, wideScreenMode]);
 
 
 

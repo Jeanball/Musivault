@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface FormatDetails {
     name: string;
@@ -24,6 +25,7 @@ interface AlbumDetailModalProps {
 }
 
 const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onConfirm, isSubmitting }) => {
+    const { t } = useTranslation();
     const [selectedFormat, setSelectedFormat] = useState<FormatDetails | null>(null);
 
     if (!album) {
@@ -49,7 +51,7 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
                         <p className="text-sm text-gray-500">{album.year}</p>
                     </div>
                 </div>
-                <div className="divider my-6">Choose your format</div>
+                <div className="divider my-6">{t('addAlbum.chooseFormat')}</div>
                 <div className="flex flex-col items-center gap-4">
                     {formats.map((format, index) => (
                         <button
@@ -67,13 +69,13 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
                     ))}
                 </div>
                 <div className="modal-action mt-8">
-                    <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+                    <button className="btn btn-ghost" onClick={onClose}>{t('common.cancel')}</button>
                     <button
                         className="btn btn-primary"
                         onClick={handleConfirmClick}
                         disabled={!selectedFormat || isSubmitting}
                     >
-                        {isSubmitting ? <span className="loading loading-spinner"></span> : "Add"}
+                        {isSubmitting ? <span className="loading loading-spinner"></span> : t('common.add')}
                     </button>
                 </div>
             </div>

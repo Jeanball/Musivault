@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useTrackAggregation, type AggregatedTrack } from '../../../hooks/collection/useTrackAggregation';
 import type { CollectionItem } from '../../../types/collection';
 
@@ -9,6 +10,7 @@ interface TracksViewProps {
 
 const TracksView: React.FC<TracksViewProps> = ({ collection }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const aggregatedTracks = useTrackAggregation(collection);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedTrackId, setExpandedTrackId] = useState<string | null>(null);
@@ -37,7 +39,7 @@ const TracksView: React.FC<TracksViewProps> = ({ collection }) => {
             <div className="form-control">
                 <input
                     type="text"
-                    placeholder="Search a track..."
+                    placeholder={t('tracks.searchTrack')}
                     className="input input-bordered w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -46,15 +48,15 @@ const TracksView: React.FC<TracksViewProps> = ({ collection }) => {
 
             {/* Tracks Count */}
             <div className="text-sm text-base-content/60">
-                {filteredTracks.length} unique track{filteredTracks.length !== 1 ? 's' : ''}
-                {searchTerm && ` matching "${searchTerm}"`}
+                {filteredTracks.length} {filteredTracks.length !== 1 ? t('tracks.uniqueTracks_plural', { count: filteredTracks.length }) : t('tracks.uniqueTracks', { count: filteredTracks.length })}
+                {searchTerm && ` ${t('tracks.matching', { term: searchTerm })}`}
             </div>
 
             {/* Tracks List */}
             {filteredTracks.length === 0 ? (
                 <div className="text-center py-20">
-                    <h2 className="text-2xl font-semibold">No tracks found.</h2>
-                    <p className="mt-2 text-gray-400">Try a different search term</p>
+                    <h2 className="text-2xl font-semibold">{t('tracks.noTracksFound')}</h2>
+                    <p className="mt-2 text-gray-400">{t('tracks.tryDifferent')}</p>
                 </div>
             ) : (
                 <div className="space-y-2">
@@ -72,14 +74,14 @@ const TracksView: React.FC<TracksViewProps> = ({ collection }) => {
                                 </div>
                                 {track.albumCount > 1 && (
                                     <span className="badge badge-primary badge-sm shrink-0">
-                                        {track.albumCount} albums
+                                        {track.albumCount} {t('common.albums')}
                                     </span>
                                 )}
                             </div>
                             <div className="collapse-content">
                                 <div className="pt-2 space-y-2">
                                     <div className="text-sm text-base-content/60 mb-2">
-                                        Appears on {track.albumCount} album{track.albumCount !== 1 ? 's' : ''}:
+                                        {track.albumCount !== 1 ? t('tracks.appearsOn_plural', { count: track.albumCount }) : t('tracks.appearsOn', { count: track.albumCount })}
                                     </div>
                                     {track.albums.map((album) => (
                                         <div

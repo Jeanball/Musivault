@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import AlbumCard from '../AlbumCard';
 import type { DiscogsResult } from '../../types';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -24,6 +25,7 @@ const RematchModal: React.FC<RematchModalProps> = ({
     currentTitle,
     onRematchSuccess
 }) => {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState<string>(`${currentArtist} ${currentTitle}`);
     const [results, setResults] = useState<DiscogsResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -54,7 +56,7 @@ const RematchModal: React.FC<RematchModalProps> = ({
                     setResults(Array.isArray(response.data) ? response.data : []);
                 } catch (err) {
                     console.error('Search failed:', err);
-                    toastService.error('Search failed');
+                    toastService.error(t('rematch.searchFailed'));
                     setResults([]);
                 } finally {
                     setIsLoading(false);
@@ -86,7 +88,7 @@ const RematchModal: React.FC<RematchModalProps> = ({
             } catch (err) {
                 console.error('Failed to fetch master details:', err);
                 // Don't fall back to master ID - it will cause a 404
-                toastService.error('Failed to get release info. Please try a different result.');
+                toastService.error(t('rematch.noMainRelease'));
                 setIsRematching(false);
                 setSelectedId(null);
                 return;
@@ -102,12 +104,12 @@ const RematchModal: React.FC<RematchModalProps> = ({
                 { newDiscogsId: releaseId },
                 { withCredentials: true }
             );
-            toastService.success('Album rematched successfully!');
+            toastService.success(t('rematch.success'));
             onRematchSuccess();
             onClose();
         } catch (err: any) {
             console.error('Rematch failed:', err);
-            toastService.error(err.response?.data?.message || 'Failed to rematch album');
+            toastService.error(err.response?.data?.message || t('rematch.failed'));
         } finally {
             setIsRematching(false);
             setSelectedId(null);
@@ -121,7 +123,7 @@ const RematchModal: React.FC<RematchModalProps> = ({
             <div className="modal-box max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold">Rematch Album</h3>
+                    <h3 className="text-xl font-bold">{t('rematch.title')}</h3>
                     <button
                         onClick={onClose}
                         className="btn btn-sm btn-circle btn-ghost"
@@ -137,7 +139,7 @@ const RematchModal: React.FC<RematchModalProps> = ({
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search for the correct album..."
+                        placeholder={t('rematch.searchPlaceholder')}
                         className="input input-bordered w-full pr-10"
                         disabled={isRematching}
                     />
@@ -148,7 +150,7 @@ const RematchModal: React.FC<RematchModalProps> = ({
 
                 {/* Info */}
                 <p className="text-sm text-base-content/60 mb-4">
-                    Click on an album to select it as the new match
+                    {t('rematch.instructions')}
                 </p>
 
                 {/* Results */}
@@ -173,13 +175,13 @@ const RematchModal: React.FC<RematchModalProps> = ({
 
                     {!isLoading && results.length === 0 && debouncedSearchQuery.length > 2 && (
                         <div className="text-center py-8 text-base-content/60">
-                            No results found
+                            {t('rematch.noResults')}
                         </div>
                     )}
 
                     {!isLoading && debouncedSearchQuery.length <= 2 && (
                         <div className="text-center py-8 text-base-content/60">
-                            Type at least 3 characters to search
+                            {t('rematch.minChars')}
                         </div>
                     )}
                 </div>
@@ -187,7 +189,7 @@ const RematchModal: React.FC<RematchModalProps> = ({
                 {/* Footer */}
                 <div className="modal-action mt-4">
                     <button onClick={onClose} className="btn btn-ghost" disabled={isRematching}>
-                        Cancel
+                        {t('common.cancel')}
                     </button>
                 </div>
             </div>

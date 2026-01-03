@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { parseTitle } from '../utils/formatters';
 
 export interface DiscogsResult {
@@ -15,6 +16,7 @@ interface AlbumCardProps {
 }
 
 const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingDetails }) => {
+  const { t } = useTranslation();
   const { artist, album } = parseTitle(result.title);
 
   return (
@@ -31,11 +33,11 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingD
         <h3 className="text-lg font-bold text-gray-100 truncate" title={album}>
           {album}
         </h3>
-        <p className="text-md text-gray-400 truncate" title={artist}>
-          {artist}
+        <p className="text-md text-gray-400 truncate" title={artist || t('common.unknownArtist')}>
+          {artist || t('common.unknownArtist')}
         </p>
         <p className="text-sm text-gray-500 mt-1">
-          Year: {result.year || 'N/A'}
+          {t('common.year')}: {result.year || t('common.na')}
         </p>
       </div>
 

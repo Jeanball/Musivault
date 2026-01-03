@@ -6,6 +6,7 @@ export interface IUserPreferences {
   theme: string
   isPublic: boolean
   wideScreenMode: boolean
+  language: string
 }
 
 export interface IUser extends Document {
@@ -55,6 +56,10 @@ const userSchema = new Schema<IUser>({
     wideScreenMode: {
       type: Boolean,
       default: false
+    },
+    language: {
+      type: String,
+      default: 'en'
     }
   },
   publicShareId: {
