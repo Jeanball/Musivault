@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useTrackAggregation, type AggregatedTrack } from '../../../hooks/collection/useTrackAggregation';
-import type { CollectionItem } from '../../../types/collection';
+import type { CollectionItem } from '../../../types/collection.types';
 
 interface TracksViewProps {
     collection: CollectionItem[];

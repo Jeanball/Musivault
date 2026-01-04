@@ -13,6 +13,17 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router', 'react-cookie'],
+          'ui-vendor': ['lucide-react', 'react-toastify', 'html5-qrcode'],
+          'i18n-vendor': ['i18next', 'react-i18next', 'i18next-browser-languagedetector']
+        }
+      }
+    }
   }
 })
 
