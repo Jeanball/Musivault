@@ -36,7 +36,7 @@ interface PreferencesResponse {
     enableConditionGrading: boolean;
 }
 
-const VersionsPage: React.FC = () => {
+const MasterPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -345,5 +345,5 @@ const VersionsPage: React.FC = () => {
     );
 };
 
-export default VersionsPage;
+export default MasterPage;
 
