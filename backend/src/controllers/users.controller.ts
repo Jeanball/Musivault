@@ -201,3 +201,60 @@ export async function updatePassword(req: Request, res: Response) {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export async function updateProfile(req: Request, res: Response) {
+    try {
+        if (!req.user) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+
+        const { username, email, displayName } = req.body;
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        // Check if username is being changed and if it's already taken
+        if (username && username !== user.username) {
+            const existingUser = await User.findOne({ username, _id: { $ne: user._id } });
+            if (existingUser) {
+                res.status(400).json({ message: "Username is already taken" });
+                return;
+            }
+            user.username = username;
+        }
+
+        // Check if email is being changed and if it's already taken
+        if (email && email !== user.email) {
+            const existingUser = await User.findOne({ email: email.toLowerCase(), _id: { $ne: user._id } });
+            if (existingUser) {
+                res.status(400).json({ message: "Email is already in use" });
+                return;
+            }
+            user.email = email.toLowerCase();
+        }
+
+        // Update display name (can be empty)
+        if (displayName !== undefined) {
+            user.displayName = displayName;
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: {
+                username: user.username,
+                email: user.email,
+                displayName: user.displayName
+            }
+        });
+
+    } catch (error) {
+        console.error("Error in updateProfile controller", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}

@@ -12,6 +12,7 @@ export interface IUserPreferences {
 export interface IUser extends Document {
   username: string
   email: string
+  displayName?: string
   password?: string
   isAdmin: boolean
   preferences: IUserPreferences
@@ -33,6 +34,10 @@ const userSchema = new Schema<IUser>({
     required: true,
     unique: true,
     lowercase: true,
+  },
+  displayName: {
+    type: String,
+    default: '',
   },
   password: {
     type: String,

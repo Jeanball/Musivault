@@ -86,7 +86,9 @@
     "settings": {
         "title": "Settings",
         "languageSaved": "Language saved!",
+        "preferences": "Preferences",
         "themeSaved": "Theme saved!",
+        "appearance": "Appearance",
         "theme": "Theme",
         "themeDescription": "Choose your preferred color theme. Your choice will be saved to your account.",
         "themes": {
@@ -124,6 +126,19 @@
         "passwordTooShort": "Password must be at least 6 characters",
         "passwordUpdated": "Password updated successfully",
         "failedUpdateSetting": "Failed to update setting",
+        "profile": "Profile",
+        "profileDescription": "Manage your account information and credentials.",
+        "displayName": "Display Name",
+        "displayNamePlaceholder": "Enter a display name",
+        "displayNameHint": "This name will be shown instead of your username. Leave empty to use your username.",
+        "username": "Username",
+        "usernamePlaceholder": "Enter your username",
+        "email": "Email Address",
+        "emailPlaceholder": "Enter your email address",
+        "saveProfile": "Save Profile",
+        "profileUpdated": "Profile updated successfully",
+        "profileUpdateFailed": "Failed to update profile",
+        "import": "Import",
         "about": "About Musivault",
         "version": "Version",
         "currentRelease": "Current release",
@@ -132,7 +147,8 @@
         "buildDate": "Build Date",
         "commit": "Commit",
         "gitSha": "Git SHA",
-        "madeWith": "Made with by"
+        "madeWith": "Made with",
+        "by": "by"
     },
     "csvImport": {
         "title": "Import Collection (CSV)",

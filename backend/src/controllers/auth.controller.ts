@@ -101,7 +101,14 @@ export async function userVerification(req: Request, res: Response) {
         const user = await User.findById(decoded.id).select("-password");
 
         if (user) {
-            res.json({ status: true, user: user.username, isAdmin: user.isAdmin });
+            res.json({
+                status: true,
+                user: user.username,
+                userId: user._id,
+                email: user.email,
+                displayName: user.displayName || '',
+                isAdmin: user.isAdmin
+            });
             return;
         } else {
             res.json({ status: false, message: "User not found" });
