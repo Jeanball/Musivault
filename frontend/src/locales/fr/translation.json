@@ -193,7 +193,8 @@
         "allStyles": "Tous les styles",
         "period": "Période",
         "goToMusivault": "Aller sur Musivault",
-        "addAlbum": "Ajouter un album"
+        "addAlbum": "Ajouter un album",
+        "feelingLucky": "Aléatoire"
     },
     "publicCollection": {
         "collectionOf": "Collection de {{username}}",

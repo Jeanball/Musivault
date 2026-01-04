@@ -41,41 +41,43 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
         <div className="bg-base-100 rounded-box shadow-lg p-3 md:p-4 mb-6">
             {/* Top row: Layout toggle + Results/Clear */}
             {layout && onLayoutChange && (
-                <div className="flex items-center justify-center relative mb-3 pb-3 border-b border-base-300">
-                    <div className="join">
-                        <button
-                            className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => onLayoutChange('grid')}
-                            title="Grid view"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                            </svg>
-                            <span className="hidden sm:inline ml-1">{t('collection.grid')}</span>
-                        </button>
-                        <button
-                            className={`btn join-item btn-sm ${layout === 'list' ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => onLayoutChange('list')}
-                            title="List view"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                            </svg>
-                            <span className="hidden sm:inline ml-1">{t('collection.list')}</span>
-                        </button>
-                        <button
-                            className={`btn join-item btn-sm ${layout === 'table' ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => onLayoutChange('table')}
-                            title="Table view"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            <span className="hidden sm:inline ml-1">{t('collection.table')}</span>
-                        </button>
+                <div className="flex flex-col sm:flex-row items-center justify-between relative mb-3 pb-3 border-b border-base-300 gap-2">
+                    <div className="flex items-center gap-2">
+                        <div className="join">
+                            <button
+                                className={`btn join-item btn-sm ${layout === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
+                                onClick={() => onLayoutChange('grid')}
+                                title="Grid view"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                </svg>
+                                <span className="hidden sm:inline ml-1">{t('collection.grid')}</span>
+                            </button>
+                            <button
+                                className={`btn join-item btn-sm ${layout === 'list' ? 'btn-primary' : 'btn-ghost'}`}
+                                onClick={() => onLayoutChange('list')}
+                                title="List view"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                </svg>
+                                <span className="hidden sm:inline ml-1">{t('collection.list')}</span>
+                            </button>
+                            <button
+                                className={`btn join-item btn-sm ${layout === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+                                onClick={() => onLayoutChange('table')}
+                                title="Table view"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                <span className="hidden sm:inline ml-1">{t('collection.table')}</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="absolute right-0 flex items-center gap-3">
+                    <div className="flex items-center gap-3">
                         <span className="text-sm opacity-70">
                             {filteredResults} / {totalResults}
                         </span>

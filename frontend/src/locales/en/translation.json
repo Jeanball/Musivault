@@ -193,7 +193,8 @@
         "allStyles": "All Styles",
         "period": "Period",
         "goToMusivault": "Go to Musivault",
-        "addAlbum": "Add an album"
+        "addAlbum": "Add an album",
+        "feelingLucky": "I'm Feeling Lucky"
     },
     "publicCollection": {
         "collectionOf": "{{username}}'s Collection",

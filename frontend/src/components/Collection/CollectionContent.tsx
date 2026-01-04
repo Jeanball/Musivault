@@ -12,6 +12,7 @@ import { useCollectionFilters } from '../../hooks/collection/useCollectionFilter
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
 import type { CollectionItem, LayoutType } from '../../types/collection.types';
+import { Dice5 } from 'lucide-react';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
 const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
@@ -163,14 +164,31 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                         onLayoutChange={setLayout}
                     />
 
-                    <div className="form-control mb-4">
-                        <input
-                            type="text"
-                            placeholder={t('collection.searchAlbum')}
-                            className="input input-bordered w-full"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                    <div className="flex gap-2 mb-4">
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                placeholder={t('collection.searchAlbum')}
+                                className="input input-bordered w-full"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        <div className="tooltip" data-tip={t('collection.feelingLucky')}>
+                            <button
+                                className="btn btn-square"
+                                onClick={() => {
+                                    if (sortedCollection.length === 0) return;
+                                    const randomIndex = Math.floor(Math.random() * sortedCollection.length);
+                                    const randomAlbum = sortedCollection[randomIndex];
+                                    handleItemClick(randomAlbum);
+                                }}
+                                disabled={sortedCollection.length === 0}
+                                aria-label="Feeling Lucky"
+                            >
+                                <Dice5 className="h-6 w-6" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Main content */}

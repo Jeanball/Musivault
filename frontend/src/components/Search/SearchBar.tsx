@@ -194,6 +194,9 @@ const SearchBar: React.FC = () => {
     const visibleAlbums = albumResults.slice(0, visibleAlbumCount);
     const hasResults = artistResults.length > 0 || albumResults.length > 0;
 
+    // Check if we are on mobile to disable autoFocus
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     return (
         <div className="w-full max-w-6xl mx-auto">
             {/* Search bar with barcode scanner and reset buttons */}
@@ -205,7 +208,7 @@ const SearchBar: React.FC = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder={t('search.placeholder')}
                         className="input input-bordered w-full pr-10"
-                        autoFocus
+                        autoFocus={!isMobile}
                     />
                     {isLoading && (
                         <span className="loading loading-spinner loading-sm absolute top-1/2 right-3 -translate-y-1/2"></span>
