@@ -6,11 +6,16 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
-import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
+import AlbumDetailModal, { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import ConditionModal from '../components/Modal/ConditionModal';
 
 interface AddedAlbumInfo {
     id: string;
     title: string;
+}
+
+interface PreferencesResponse {
+    enableConditionGrading: boolean;
 }
 
 const ReleasePage: React.FC = () => {
@@ -23,14 +28,22 @@ const ReleasePage: React.FC = () => {
     const [showModal, setShowModal] = useState<boolean>(false);
     const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
+    // Condition grading state
+    const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
+    const [showConditionModal, setShowConditionModal] = useState<boolean>(false);
+    const [pendingFormat, setPendingFormat] = useState<FormatDetails | null>(null);
+
     useEffect(() => {
-        const fetchReleaseDetails = async () => {
+        const fetchData = async () => {
             if (!releaseId) return;
             try {
-                const { data } = await axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, {
-                    withCredentials: true
-                });
-                setAlbumDetails(data);
+                // Fetch release details and user preferences in parallel
+                const [releaseRes, prefsRes] = await Promise.all([
+                    axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, { withCredentials: true }),
+                    axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+                ]);
+                setAlbumDetails(releaseRes.data);
+                setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
             } catch (error) {
                 console.log("Error loading release details:", error);
                 toastService.error(t('release.errorLoading'));
@@ -39,20 +52,56 @@ const ReleasePage: React.FC = () => {
                 setIsLoading(false);
             }
         };
-        fetchReleaseDetails();
-    }, [releaseId, navigate]);
+        fetchData();
+    }, [releaseId, navigate, t]);
 
-    const handleConfirmAddToCollection = async (format: any) => {
+    const handleFormatSelected = (format: FormatDetails) => {
+        setShowModal(false);
+
+        if (conditionGradingEnabled) {
+            // Show condition modal before adding
+            setPendingFormat(format);
+            setShowConditionModal(true);
+        } else {
+            // Add directly without conditions
+            addToCollection(format, null, null);
+        }
+    };
+
+    const handleConditionConfirm = (mediaCondition: string | null, sleeveCondition: string | null) => {
+        setShowConditionModal(false);
+        if (pendingFormat) {
+            addToCollection(pendingFormat, mediaCondition, sleeveCondition);
+        }
+    };
+
+    const handleConditionSkip = () => {
+        setShowConditionModal(false);
+        if (pendingFormat) {
+            addToCollection(pendingFormat, null, null);
+        }
+    };
+
+    const addToCollection = async (
+        format: FormatDetails,
+        mediaCondition: string | null,
+        sleeveCondition: string | null
+    ) => {
         if (!albumDetails) return;
         setIsSubmitting(true);
         try {
-            const response = await axios.post('/api/collection', { ...albumDetails, format }, { withCredentials: true });
+            const response = await axios.post('/api/collection', {
+                ...albumDetails,
+                format,
+                mediaCondition,
+                sleeveCondition
+            }, { withCredentials: true });
             toastService.success(t('common.addedSuccess', { title: albumDetails.title }));
             setAddedAlbum({
                 id: response.data.item._id,
                 title: albumDetails.title
             });
-            setShowModal(false);
+            setPendingFormat(null);
         } catch (err: any) {
             toastService.error(err.response?.data?.message || t('common.error'));
         } finally {
@@ -124,8 +173,9 @@ const ReleasePage: React.FC = () => {
                         <button
                             className="btn btn-primary"
                             onClick={() => setShowModal(true)}
+                            disabled={isSubmitting}
                         >
-                            {t('addAlbum.addToCollection')}
+                            {isSubmitting ? <span className="loading loading-spinner"></span> : t('addAlbum.addToCollection')}
                         </button>
                         <button onClick={() => navigate(-1)} className="btn btn-outline gap-2">
                             <ArrowLeft size={16} /> {t('common.back')}
@@ -134,12 +184,20 @@ const ReleasePage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Modal for adding to collection */}
+            {/* Modal for format selection */}
             <AlbumDetailModal
                 album={showModal ? albumDetails : null}
                 onClose={() => setShowModal(false)}
-                onConfirm={handleConfirmAddToCollection}
+                onConfirm={handleFormatSelected}
                 isSubmitting={isSubmitting}
+            />
+
+            {/* Condition Modal */}
+            <ConditionModal
+                isOpen={showConditionModal}
+                albumTitle={albumDetails.title}
+                onSkip={handleConditionSkip}
+                onConfirm={handleConditionConfirm}
             />
 
             {/* Success Modal - Choice after adding */}
@@ -176,3 +234,4 @@ const ReleasePage: React.FC = () => {
 };
 
 export default ReleasePage;
+

@@ -379,5 +379,30 @@
         "error": "Error",
         "info": "Info",
         "warning": "Warning"
+    },
+    "condition": {
+        "title": "Condition Grading",
+        "description": "Enable condition grading to track the physical condition of your vinyl and sleeves.",
+        "enabledToast": "Condition grading enabled!",
+        "disabledToast": "Condition grading disabled",
+        "media": "Media Condition",
+        "sleeve": "Sleeve Condition",
+        "skip": "Skip",
+        "setCondition": "Set Condition",
+        "updated": "Condition updated!",
+        "grades": {
+            "mint": "Mint (M)",
+            "nearMint": "Near Mint (NM)",
+            "veryGoodPlus": "Very Good Plus (VG+)",
+            "veryGood": "Very Good (VG)",
+            "goodPlus": "Good Plus (G+)",
+            "good": "Good (G)",
+            "fair": "Fair (F)",
+            "poor": "Poor (P)",
+            "notGraded": "Not Graded",
+            "generic": "Generic",
+            "noCover": "No Cover",
+            "none": "Not Set"
+        }
     }
 }

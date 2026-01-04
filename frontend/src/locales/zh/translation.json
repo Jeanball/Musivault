@@ -363,5 +363,30 @@
         "error": "错误",
         "info": "信息",
         "warning": "警告"
+    },
+    "condition": {
+        "title": "品相分级",
+        "description": "启用品相分级，追踪您的唱片和封套的物理状态。",
+        "enabledToast": "品相分级已启用！",
+        "disabledToast": "品相分级已禁用",
+        "media": "唱片品相",
+        "sleeve": "封套品相",
+        "skip": "跳过",
+        "setCondition": "设置品相",
+        "updated": "品相已更新！",
+        "grades": {
+            "mint": "全新 (M)",
+            "nearMint": "近全新 (NM)",
+            "veryGoodPlus": "优良+ (VG+)",
+            "veryGood": "优良 (VG)",
+            "goodPlus": "良好+ (G+)",
+            "good": "良好 (G)",
+            "fair": "一般 (F)",
+            "poor": "较差 (P)",
+            "notGraded": "未分级",
+            "generic": "普通",
+            "noCover": "无封套",
+            "none": "未设置"
+        }
     }
 }

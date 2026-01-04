@@ -363,5 +363,30 @@
         "error": "Error",
         "info": "Info",
         "warning": "Aviso"
+    },
+    "condition": {
+        "title": "Clasificación de Estado",
+        "description": "Activa la clasificación de estado para registrar el estado físico de tus vinilos y fundas.",
+        "enabledToast": "¡Clasificación de estado activada!",
+        "disabledToast": "Clasificación de estado desactivada",
+        "media": "Estado del Medio",
+        "sleeve": "Estado de la Funda",
+        "skip": "Omitir",
+        "setCondition": "Establecer Estado",
+        "updated": "¡Estado actualizado!",
+        "grades": {
+            "mint": "Nuevo (M)",
+            "nearMint": "Casi Nuevo (NM)",
+            "veryGoodPlus": "Muy Bueno+ (VG+)",
+            "veryGood": "Muy Bueno (VG)",
+            "goodPlus": "Bueno+ (G+)",
+            "good": "Bueno (G)",
+            "fair": "Regular (F)",
+            "poor": "Malo (P)",
+            "notGraded": "Sin Clasificar",
+            "generic": "Genérica",
+            "noCover": "Sin Funda",
+            "none": "No Establecido"
+        }
     }
 }

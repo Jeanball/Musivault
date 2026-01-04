@@ -363,5 +363,30 @@
         "error": "Erro",
         "info": "Info",
         "warning": "Aviso"
+    },
+    "condition": {
+        "title": "Classificação de Estado",
+        "description": "Ative a classificação de estado para acompanhar o estado físico dos seus vinis e capas.",
+        "enabledToast": "Classificação de estado ativada!",
+        "disabledToast": "Classificação de estado desativada",
+        "media": "Estado da Mídia",
+        "sleeve": "Estado da Capa",
+        "skip": "Pular",
+        "setCondition": "Definir Estado",
+        "updated": "Estado atualizado!",
+        "grades": {
+            "mint": "Novo (M)",
+            "nearMint": "Quase Novo (NM)",
+            "veryGoodPlus": "Muito Bom+ (VG+)",
+            "veryGood": "Muito Bom (VG)",
+            "goodPlus": "Bom+ (G+)",
+            "good": "Bom (G)",
+            "fair": "Regular (F)",
+            "poor": "Ruim (P)",
+            "notGraded": "Não Classificado",
+            "generic": "Genérica",
+            "noCover": "Sem Capa",
+            "none": "Não Definido"
+        }
     }
 }

@@ -5,7 +5,8 @@ import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
+import AlbumDetailModal, { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import ConditionModal from '../components/Modal/ConditionModal';
 
 interface MasterVersion {
     id: number;
@@ -31,6 +32,10 @@ interface AddedAlbumInfo {
     title: string;
 }
 
+interface PreferencesResponse {
+    enableConditionGrading: boolean;
+}
+
 const VersionsPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
     const navigate = useNavigate();
@@ -44,18 +49,26 @@ const VersionsPage: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
+    // Condition grading state
+    const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
+    const [showConditionModal, setShowConditionModal] = useState<boolean>(false);
+    const [pendingFormat, setPendingFormat] = useState<FormatDetails | null>(null);
+    const [pendingAlbum, setPendingAlbum] = useState<AlbumDetails | null>(null);
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
     useEffect(() => {
-        const fetchVersions = async () => {
+        const fetchData = async () => {
             if (!masterId) return;
             try {
-                const { data } = await axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, {
-                    withCredentials: true
-                });
-                setPageData(data);
+                const [versionsRes, prefsRes] = await Promise.all([
+                    axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, { withCredentials: true }),
+                    axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+                ]);
+                setPageData(versionsRes.data);
+                setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
             } catch (error) {
                 console.log("Error charging versions on this album: ", error)
                 toastService.error(t('versions.errorLoadingVersions'));
@@ -64,8 +77,8 @@ const VersionsPage: React.FC = () => {
                 setIsLoading(false);
             }
         };
-        fetchVersions();
-    }, [masterId, navigate]);
+        fetchData();
+    }, [masterId, navigate, t]);
 
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
@@ -90,17 +103,57 @@ const VersionsPage: React.FC = () => {
         }
     };
 
-    const handleConfirmAddToCollection = async (format: any) => {
+    const handleFormatSelected = (format: FormatDetails) => {
         if (!selectedAlbum) return;
+
+        if (conditionGradingEnabled) {
+            // Show condition modal before adding
+            setPendingFormat(format);
+            setPendingAlbum(selectedAlbum);
+            setSelectedAlbum(null);
+            setShowConditionModal(true);
+        } else {
+            // Add directly without conditions
+            addToCollection(selectedAlbum, format, null, null);
+            setSelectedAlbum(null);
+        }
+    };
+
+    const handleConditionConfirm = (mediaCondition: string | null, sleeveCondition: string | null) => {
+        setShowConditionModal(false);
+        if (pendingFormat && pendingAlbum) {
+            addToCollection(pendingAlbum, pendingFormat, mediaCondition, sleeveCondition);
+        }
+    };
+
+    const handleConditionSkip = () => {
+        setShowConditionModal(false);
+        if (pendingFormat && pendingAlbum) {
+            addToCollection(pendingAlbum, pendingFormat, null, null);
+        }
+    };
+
+    const addToCollection = async (
+        album: AlbumDetails,
+        format: FormatDetails,
+        mediaCondition: string | null,
+        sleeveCondition: string | null
+    ) => {
         setIsSubmitting(true);
         try {
-            const response = await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
-            toastService.success(t('search.addedToCollection', { title: selectedAlbum.title }));
+            const response = await axios.post('/api/collection', {
+                ...album,
+                format,
+                mediaCondition,
+                sleeveCondition
+            }, { withCredentials: true });
+            toastService.success(t('common.addedSuccess', { title: album.title }));
             setAddedAlbum({
                 id: response.data.item._id,
-                title: selectedAlbum.title
+                title: album.title
             });
-            setSelectedAlbum(null);
+            setPendingFormat(null);
+            setPendingAlbum(null);
         } catch (err: any) {
             toastService.error(err.response?.data?.message || t('app.error'));
         } finally {
@@ -246,8 +299,16 @@ const VersionsPage: React.FC = () => {
             <AlbumDetailModal
                 album={selectedAlbum}
                 onClose={() => setSelectedAlbum(null)}
-                onConfirm={handleConfirmAddToCollection}
+                onConfirm={handleFormatSelected}
                 isSubmitting={isSubmitting}
+            />
+
+            {/* Condition Modal */}
+            <ConditionModal
+                isOpen={showConditionModal}
+                albumTitle={pendingAlbum?.title || ''}
+                onSkip={handleConditionSkip}
+                onConfirm={handleConditionConfirm}
             />
 
             {/* Success Modal - Choice after adding */}
@@ -255,22 +316,22 @@ const VersionsPage: React.FC = () => {
                 <dialog className="modal modal-open">
                     <div className="modal-box text-center">
                         <div className="text-5xl mb-4">🎉</div>
-                        <h3 className="font-bold text-xl mb-2">{t('versions.albumAdded')}</h3>
+                        <h3 className="font-bold text-xl mb-2">{t('common.albumAdded')}</h3>
                         <p className="text-base-content/70 mb-6">
-                            {t('versions.addedToCollection', { title: addedAlbum.title })}
+                            {t('common.addedSuccess', { title: addedAlbum.title })}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <button
                                 className="btn btn-primary"
                                 onClick={handleGoToAlbum}
                             >
-                                {t('versions.viewAlbum')}
+                                {t('common.viewAlbum')}
                             </button>
                             <button
                                 className="btn btn-outline"
                                 onClick={handleContinueSearching}
                             >
-                                {t('versions.continueSearching')}
+                                {t('common.continueSearching')}
                             </button>
                         </div>
                     </div>
@@ -285,3 +346,4 @@ const VersionsPage: React.FC = () => {
 };
 
 export default VersionsPage;
+

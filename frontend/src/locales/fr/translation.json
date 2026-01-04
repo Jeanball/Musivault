@@ -379,5 +379,30 @@
         "error": "Erreur",
         "info": "Info",
         "warning": "Attention"
+    },
+    "condition": {
+        "title": "Cotation de l'état",
+        "description": "Activez la cotation pour suivre l'état physique de vos vinyles et pochettes.",
+        "enabledToast": "Cotation de l'état activée !",
+        "disabledToast": "Cotation de l'état désactivée",
+        "media": "État du média",
+        "sleeve": "État de la pochette",
+        "skip": "Passer",
+        "setCondition": "Définir l'état",
+        "updated": "État mis à jour !",
+        "grades": {
+            "mint": "Neuf (M)",
+            "nearMint": "Quasi neuf (NM)",
+            "veryGoodPlus": "Très bon+ (VG+)",
+            "veryGood": "Très bon (VG)",
+            "goodPlus": "Bon+ (G+)",
+            "good": "Bon (G)",
+            "fair": "Passable (F)",
+            "poor": "Mauvais (P)",
+            "notGraded": "Non évalué",
+            "generic": "Générique",
+            "noCover": "Sans pochette",
+            "none": "Non défini"
+        }
     }
 }

@@ -363,5 +363,30 @@
         "error": "Fehler",
         "info": "Info",
         "warning": "Warnung"
+    },
+    "condition": {
+        "title": "Zustandsbewertung",
+        "description": "Aktivieren Sie die Zustandsbewertung, um den physischen Zustand Ihrer Schallplatten und Hüllen zu verfolgen.",
+        "enabledToast": "Zustandsbewertung aktiviert!",
+        "disabledToast": "Zustandsbewertung deaktiviert",
+        "media": "Medienzustand",
+        "sleeve": "Hüllenzustand",
+        "skip": "Überspringen",
+        "setCondition": "Zustand festlegen",
+        "updated": "Zustand aktualisiert!",
+        "grades": {
+            "mint": "Neuwertig (M)",
+            "nearMint": "Fast neuwertig (NM)",
+            "veryGoodPlus": "Sehr gut+ (VG+)",
+            "veryGood": "Sehr gut (VG)",
+            "goodPlus": "Gut+ (G+)",
+            "good": "Gut (G)",
+            "fair": "Befriedigend (F)",
+            "poor": "Schlecht (P)",
+            "notGraded": "Nicht bewertet",
+            "generic": "Generisch",
+            "noCover": "Ohne Cover",
+            "none": "Nicht festgelegt"
+        }
     }
 }

@@ -7,6 +7,7 @@ export interface IUserPreferences {
   isPublic: boolean
   wideScreenMode: boolean
   language: string
+  enableConditionGrading: boolean
 }
 
 export interface IUser extends Document {
@@ -65,6 +66,10 @@ const userSchema = new Schema<IUser>({
     language: {
       type: String,
       default: 'en'
+    },
+    enableConditionGrading: {
+      type: Boolean,
+      default: false
     }
   },
   publicShareId: {

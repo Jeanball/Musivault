@@ -29,6 +29,8 @@ interface AddToCollectionBody {
   styles?: string[];
   tracklist?: TrackInput[];
   labels?: LabelInput[];
+  mediaCondition?: string;
+  sleeveCondition?: string;
 }
 
 // ===== CSV Import =====
@@ -237,7 +239,7 @@ export async function addToCollection(req: Request, res: Response) {
       return;
     }
 
-    const { discogsId, title, artist, year, thumb, cover_image, format, styles, tracklist, labels } = req.body as AddToCollectionBody;
+    const { discogsId, title, artist, year, thumb, cover_image, format, styles, tracklist, labels, mediaCondition, sleeveCondition } = req.body as AddToCollectionBody;
 
     // Find or create album
     let album = await Album.findOne({ discogsId });
@@ -273,6 +275,8 @@ export async function addToCollection(req: Request, res: Response) {
       user: req.user._id,
       album: album._id,
       format: format,
+      mediaCondition: mediaCondition || null,
+      sleeveCondition: sleeveCondition || null,
     });
     await newItem.save();
 
@@ -316,16 +320,33 @@ export async function updateCollectionItem(req: Request, res: Response) {
     }
 
     const { itemId } = req.params;
-    const { format } = req.body;
+    const { format, mediaCondition, sleeveCondition } = req.body;
 
-    if (!format || !format.name) {
-      res.status(400).json({ message: "Format name is required" });
+    // Build update object dynamically
+    const updateFields: Record<string, unknown> = {};
+
+    if (format?.name) {
+      updateFields["format.name"] = format.name;
+      updateFields["format.text"] = format.name;
+    }
+
+    if (mediaCondition !== undefined) {
+      updateFields["mediaCondition"] = mediaCondition;
+    }
+
+    if (sleeveCondition !== undefined) {
+      updateFields["sleeveCondition"] = sleeveCondition;
+    }
+
+    // Require at least one field to update
+    if (Object.keys(updateFields).length === 0) {
+      res.status(400).json({ message: "No valid fields to update" });
       return;
     }
 
     const updatedItem = await CollectionItem.findOneAndUpdate(
       { _id: itemId, user: req.user._id },
-      { $set: { "format.name": format.name, "format.text": format.name } },
+      { $set: updateFields },
       { new: true }
     );
 

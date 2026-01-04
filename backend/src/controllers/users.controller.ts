@@ -125,7 +125,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic, wideScreenMode, language } = req.body;
+        const { theme, isPublic, wideScreenMode, language, enableConditionGrading } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -145,6 +145,9 @@ export async function updatePreferences(req: Request, res: Response) {
         }
         if (language !== undefined) {
             user.preferences = { ...user.preferences, language };
+        }
+        if (enableConditionGrading !== undefined) {
+            user.preferences = { ...user.preferences, enableConditionGrading };
         }
 
         await user.save();

@@ -7,6 +7,11 @@ import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
 import RematchModal from '../components/Modal/RematchModal';
+import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
+
+interface PreferencesResponse {
+    enableConditionGrading: boolean;
+}
 
 const AlbumDetailPage: React.FC = () => {
     const { itemId } = useParams<{ itemId: string }>();
@@ -16,10 +21,11 @@ const AlbumDetailPage: React.FC = () => {
     const [spotifyUrl, setSpotifyUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [isRematchOpen, setIsRematchOpen] = useState(false);
+    const [conditionGradingEnabled, setConditionGradingEnabled] = useState(false);
 
     useEffect(() => {
         if (itemId) {
-            fetchCollectionItem(itemId);
+            fetchData(itemId);
         }
     }, [itemId]);
 
@@ -34,13 +40,31 @@ const AlbumDetailPage: React.FC = () => {
         }
     }, [item]);
 
-    const fetchCollectionItem = async (id: string) => {
+    const fetchData = async (id: string) => {
         try {
-            const response = await axios.get(`/api/collection/${id}`, { withCredentials: true });
-            setItem(response.data);
+            const [itemRes, prefsRes] = await Promise.all([
+                axios.get(`/api/collection/${id}`, { withCredentials: true }),
+                axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+            ]);
+            setItem(itemRes.data);
+            setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
         } catch (error) {
             console.error('Failed to fetch collection item:', error);
             setLoading(false);
+        }
+    };
+
+    const updateCondition = async (field: 'mediaCondition' | 'sleeveCondition', value: string | null) => {
+        if (!item) return;
+        try {
+            await axios.put(`/api/collection/${item._id}`, {
+                [field]: value
+            }, { withCredentials: true });
+            setItem(prev => prev ? { ...prev, [field]: value } : null);
+            toastService.success(t('condition.updated'));
+        } catch (error) {
+            console.error('Failed to update condition:', error);
+            toastService.error(t('settings.failedUpdateSetting'));
         }
     };
 
@@ -161,6 +185,45 @@ const AlbumDetailPage: React.FC = () => {
                                 {new Date(item.addedAt).toLocaleDateString()}
                             </div>
                         </div>
+                        {/* Condition selectors - only show when feature is enabled */}
+                        {conditionGradingEnabled && (
+                            <>
+                                <div className="stat bg-base-200 rounded-lg p-4 overflow-hidden">
+                                    <div className="stat-title">{t('condition.media')}</div>
+                                    <div className="stat-value text-2xl">
+                                        <select
+                                            className="select select-bordered select-sm bg-base-200 text-base-content font-bold w-full max-w-[130px]"
+                                            value={item.mediaCondition || ''}
+                                            onChange={(e) => updateCondition('mediaCondition', e.target.value || null)}
+                                        >
+                                            <option value="">{t('condition.grades.none')}</option>
+                                            {MEDIA_CONDITIONS.map((cond) => (
+                                                <option key={cond.value} value={cond.value}>
+                                                    {t(cond.labelKey)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="stat bg-base-200 rounded-lg p-4 overflow-hidden">
+                                    <div className="stat-title">{t('condition.sleeve')}</div>
+                                    <div className="stat-value text-2xl">
+                                        <select
+                                            className="select select-bordered select-sm bg-base-200 text-base-content font-bold w-full max-w-[130px]"
+                                            value={item.sleeveCondition || ''}
+                                            onChange={(e) => updateCondition('sleeveCondition', e.target.value || null)}
+                                        >
+                                            <option value="">{t('condition.grades.none')}</option>
+                                            {SLEEVE_CONDITIONS.map((cond) => (
+                                                <option key={cond.value} value={cond.value}>
+                                                    {t(cond.labelKey)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Genres & Format Details - Side by Side */}
@@ -275,7 +338,7 @@ const AlbumDetailPage: React.FC = () => {
                     currentArtist={item.album.artist}
                     currentTitle={item.album.title}
                     onRematchSuccess={() => {
-                        if (itemId) fetchCollectionItem(itemId);
+                        if (itemId) fetchData(itemId);
                     }}
                 />
             )}
