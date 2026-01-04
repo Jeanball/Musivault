@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import axios from "axios";
 import { useTranslation } from 'react-i18next';
-import Footer from "../components/Footer";
+import Footer from "../components/Navigation/Footer";
 import { toastService } from "../utils/toast";
 
 // Interface for the form state

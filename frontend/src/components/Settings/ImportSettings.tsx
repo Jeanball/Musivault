@@ -11,7 +11,7 @@ interface ImportResult {
     failures: { index: number; artist: string; album: string; reason: string }[];
 }
 
-const CsvImport: React.FC = () => {
+const ImportSettings: React.FC = () => {
     const { t } = useTranslation();
     const [isImporting, setIsImporting] = useState(false);
     const [importResult, setImportResult] = useState<ImportResult | null>(null);
@@ -258,4 +258,4 @@ const CsvImport: React.FC = () => {
     );
 };
 
-export default CsvImport;
+export default ImportSettings;

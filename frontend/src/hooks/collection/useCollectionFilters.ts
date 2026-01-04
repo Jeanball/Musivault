@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import type { CollectionItem, FilterState } from '../../types/collection';
+import type { CollectionItem, FilterState } from '../../types/collection.types';
 
 const FILTER_STORAGE_KEY = 'musivault_collection_filters';
 

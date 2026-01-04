@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
-import type { CollectionItem } from '../types/collection';
+import type { CollectionItem } from '../types/collection.types';
 import RematchModal from '../components/Modal/RematchModal';
 
 const AlbumDetailPage: React.FC = () => {

@@ -14,7 +14,7 @@ import {
     rematchAlbum,
     getStyles
 } from '../controllers/collection.controller';
-import protectRoute from '../middlewares/protectRoute';
+import protectRoute from '../middlewares/protectRoute.middleware';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });

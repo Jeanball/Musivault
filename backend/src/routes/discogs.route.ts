@@ -1,6 +1,6 @@
 import express from 'express';
 import { getMasterVersions, getReleaseDetails, searchAlbums, searchArtists, getArtistReleases, searchByBarcode } from '../controllers/discogs.controller'
-import protectRoute from '../middlewares/protectRoute';
+import protectRoute from '../middlewares/protectRoute.middleware';
 
 const router = express.Router();
 

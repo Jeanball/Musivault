@@ -7,8 +7,8 @@ import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import path from 'path';
 
-import { connectDB } from "./config/db"
-import { seedAdminUser } from "./config/seed"
+import { connectDB } from "./config/database.config"
+import { seedAdminUser } from "./scripts/seed"
 
 import usersRoute from "./routes/users.route"
 import discogsRoute from './routes/discogs.route'

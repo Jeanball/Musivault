@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import type { Express } from 'express';
 import Album, { IAlbum } from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
-import { csvImportService } from '../services/csv-import.service';
+import { csvImportService } from '../services/import.service';
 
 // ===== Types =====
 

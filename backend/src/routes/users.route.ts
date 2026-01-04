@@ -1,7 +1,7 @@
 import express from 'express';
 import { deleteUser, getAllUsers, updateUser, getUserById, createAdminUser, getPreferences, updatePreferences, updatePassword } from '../controllers/users.controller';
-import protectRoute from '../middlewares/protectRoute';
-import requireAdmin from '../middlewares/requireAdmin';
+import protectRoute from '../middlewares/protectRoute.middleware';
+import requireAdmin from '../middlewares/requireAdmin.middleware';
 
 const router = express.Router()
 

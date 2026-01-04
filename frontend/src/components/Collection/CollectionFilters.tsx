@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { FilterState, LayoutType } from '../../types/collection';
+import type { FilterState, LayoutType } from '../../types/collection.types';
 
 interface CollectionFiltersProps {
     filters: FilterState;

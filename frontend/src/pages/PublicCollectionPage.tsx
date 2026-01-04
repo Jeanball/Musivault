@@ -4,8 +4,8 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Lock, ArrowLeft } from 'lucide-react';
 import CollectionContent from '../components/Collection/CollectionContent';
-import Footer from '../components/Footer';
-import type { CollectionItem } from '../types/collection';
+import Footer from '../components/Navigation/Footer';
+import type { CollectionItem } from '../types/collection.types';
 
 interface PublicCollectionResponse {
     username: string;

@@ -11,7 +11,7 @@ import PublicAlbumModal from '../Modal/PublicAlbumModal';
 import { useCollectionFilters } from '../../hooks/collection/useCollectionFilters';
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
-import type { CollectionItem, LayoutType } from '../../types/collection';
+import type { CollectionItem, LayoutType } from '../../types/collection.types';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
 const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';

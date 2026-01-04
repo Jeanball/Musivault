@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, type ReactNode, 
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import type { CollectionItem } from '../types/collection';
+import type { CollectionItem } from '../types/collection.types';
 
 interface CollectionContextType {
     collection: CollectionItem[];

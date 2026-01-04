@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import * as client from 'openid-client';
 import { getOIDCConfig, getOIDCRedirectUri, isOIDCEnabled } from '../config/oidc.config';
 import User from '../models/User';
-import { generateToken } from '../utils/SecretToken';
+import { generateToken } from '../utils/token.utils';
 
 // Validate and get frontend URL to prevent open redirect
 function getSafeFrontendUrl(): string {

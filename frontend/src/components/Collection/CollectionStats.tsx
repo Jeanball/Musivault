@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Disc, Layers, Calendar, Clock, Tag, ChevronDown } from 'lucide-react';
-import type { CollectionStats as CollectionStatsType } from '../../types/collection';
+import type { CollectionStats as CollectionStatsType } from '../../types/collection.types';
 
 interface CollectionStatsProps {
     stats: CollectionStatsType;

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CollectionItem, CollectionStats } from '../../types/collection';
+import type { CollectionItem, CollectionStats } from '../../types/collection.types';
 
 export const useCollectionStats = (collection: CollectionItem[]): CollectionStats => {
     return useMemo(() => {

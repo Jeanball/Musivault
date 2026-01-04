@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import type { LayoutType } from '../../../types/collection';
+import type { LayoutType } from '../../../types/collection.types';
 
 interface CollectionHeaderProps {
     layout: LayoutType;

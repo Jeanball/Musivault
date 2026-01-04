@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CollectionItem } from '../../types/collection';
+import type { CollectionItem } from '../../types/collection.types';
 
 export interface AlbumReference {
     collectionItemId: string;

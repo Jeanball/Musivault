@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import AlbumCard from '../AlbumCard';
+import AlbumCard from '../Collection/AlbumCard';
 import type { DiscogsResult } from '../../types';
 import { useDebounce } from '../../hooks/useDebounce';
 import { toastService } from '../../utils/toast';

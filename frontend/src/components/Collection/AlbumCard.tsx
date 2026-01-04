@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { parseTitle } from '../utils/formatters';
+import { parseTitle } from '../../utils/formatters';
 
 export interface DiscogsResult {
   id: number;

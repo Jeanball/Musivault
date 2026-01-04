@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CollectionItem } from '../../types/collection';
+import type { CollectionItem } from '../../types/collection.types';
 
 interface PublicAlbumModalProps {
     item: CollectionItem | null;
