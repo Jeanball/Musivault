@@ -11,9 +11,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { username } = useOutletContext<PrivateOutletContext>();
+  const { username, displayName } = useOutletContext<PrivateOutletContext>();
   const [collection, setCollection] = useState<CollectionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const nameToDisplay = displayName || username;
 
   // Helper function to get time-based greeting
   const getGreeting = (): string => {
@@ -57,7 +58,7 @@ const HomePage: React.FC = () => {
         {/* Welcome Card */}
 
         <div className="card-body justify-center">
-          <h2 className="text-center text-3xl font-bold">{getGreeting()}, {username || t('home.defaultUser', 'audiophile')}!</h2>
+          <h2 className="text-center text-3xl font-bold">{getGreeting()}, {nameToDisplay || t('home.defaultUser', 'audiophile')}!</h2>
           <p className="text-center">{t('home.subtitle', 'Ready to spin some records?')}</p>
         </div>
 

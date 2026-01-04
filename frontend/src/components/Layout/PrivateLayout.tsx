@@ -11,12 +11,19 @@ import { CollectionProvider } from '../../context/CollectionContext';
 interface VerificationResponse {
     status: boolean;
     user: string;
+    userId: string;
+    email: string;
+    displayName: string;
     isAdmin: boolean;
 }
 
 export interface PrivateOutletContext {
     username: string;
+    email: string;
+    displayName: string;
+    userId: string;
     isAdmin: boolean;
+    refreshUser: () => Promise<void>;
 }
 
 interface LocationState {
@@ -29,52 +36,59 @@ const PrivateLayout: React.FC = () => {
     const { t, i18n } = useTranslation();
     const { syncPreferencesFromServer, wideScreenMode } = useTheme();
     const [username, setUsername] = useState<string>("");
+    const [email, setEmail] = useState<string>("");
+    const [displayName, setDisplayName] = useState<string>("");
+    const [userId, setUserId] = useState<string>("");
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const hasShownLoginToast = useRef(false);
 
-    useEffect(() => {
-        const verifyUser = async () => {
-            try {
-                const { data } = await axios.post<VerificationResponse>(
-                    "/api/auth/verify", {}, { withCredentials: true }
-                );
-                if (data.status) {
-                    setUsername(data.user);
-                    setIsAdmin(data.isAdmin);
-                    // Sync preferences from server once user is verified
-                    await syncPreferencesFromServer();
+    const verifyUser = async () => {
+        try {
+            const { data } = await axios.post<VerificationResponse>(
+                "/api/auth/verify", {}, { withCredentials: true }
+            );
+            if (data.status) {
+                setUsername(data.user);
+                setEmail(data.email);
+                setDisplayName(data.displayName || '');
+                setUserId(data.userId);
+                setIsAdmin(data.isAdmin);
+                // Sync preferences from server once user is verified
+                await syncPreferencesFromServer();
 
-                    // Explicitly sync language preference
-                    try {
-                        const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
-                        if (data.language && data.language !== i18n.language) {
-                            i18n.changeLanguage(data.language);
-                        }
-                    } catch (error) {
-                        console.error('Failed to sync language', error);
+                // Explicitly sync language preference
+                try {
+                    const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
+                    if (data.language && data.language !== i18n.language) {
+                        i18n.changeLanguage(data.language);
                     }
-
-                    // Show login success toast AFTER theme sync (only once)
-                    const state = location.state as LocationState;
-                    if (state?.showLoginSuccess && !hasShownLoginToast.current) {
-                        hasShownLoginToast.current = true;
-                        toastService.success(t('auth.loginSuccess', 'Connection successful!'));
-                        // Clear the state to prevent showing toast on refresh
-                        window.history.replaceState({}, document.title);
-                    }
-
-                    setIsLoading(false);
-                } else {
-                    navigate("/login");
+                } catch (error) {
+                    console.error('Failed to sync language', error);
                 }
-            } catch (error) {
-                console.log(error)
-                navigate("/login");
-            } finally {
+
+                // Show login success toast AFTER theme sync (only once)
+                const state = location.state as LocationState;
+                if (state?.showLoginSuccess && !hasShownLoginToast.current) {
+                    hasShownLoginToast.current = true;
+                    toastService.success(t('auth.loginSuccess', 'Connection successful!'));
+                    // Clear the state to prevent showing toast on refresh
+                    window.history.replaceState({}, document.title);
+                }
+
                 setIsLoading(false);
+            } else {
+                navigate("/login");
             }
-        };
+        } catch (error) {
+            console.log(error)
+            navigate("/login");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         verifyUser();
     }, [navigate, syncPreferencesFromServer, location.state]);
 
@@ -101,7 +115,7 @@ const PrivateLayout: React.FC = () => {
                 <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
                 <main>
                     <CollectionProvider>
-                        <Outlet context={{ username, isAdmin } satisfies PrivateOutletContext} />
+                        <Outlet context={{ username, email, displayName, userId, isAdmin, refreshUser: verifyUser } satisfies PrivateOutletContext} />
                     </CollectionProvider>
                 </main>
             </div>

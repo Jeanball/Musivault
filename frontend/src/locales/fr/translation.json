@@ -86,7 +86,9 @@
     "settings": {
         "title": "Paramètres",
         "languageSaved": "Langue enregistrée !",
+        "preferences": "Préférences",
         "themeSaved": "Thème enregistré !",
+        "appearance": "Apparence",
         "theme": "Thème",
         "themeDescription": "Choisissez votre thème de couleur préféré. Votre choix sera sauvegardé sur votre compte.",
         "themes": {
@@ -124,6 +126,19 @@
         "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
         "passwordUpdated": "Mot de passe mis à jour avec succès",
         "failedUpdateSetting": "Échec de la mise à jour du paramètre",
+        "profile": "Profil",
+        "profileDescription": "Gérez les informations de votre compte et vos identifiants.",
+        "displayName": "Nom d'affichage",
+        "displayNamePlaceholder": "Entrez un nom d'affichage",
+        "displayNameHint": "Ce nom sera affiché à la place de votre nom d'utilisateur. Laissez vide pour utiliser votre nom d'utilisateur.",
+        "username": "Nom d'utilisateur",
+        "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+        "email": "Adresse courriel",
+        "emailPlaceholder": "Entrez votre adresse courriel",
+        "saveProfile": "Sauvegarder le profil",
+        "profileUpdated": "Profil mis à jour avec succès",
+        "profileUpdateFailed": "Échec de la mise à jour du profil",
+        "import": "Importer",
         "about": "À propos de Musivault",
         "version": "Version",
         "currentRelease": "Version actuelle",
@@ -132,7 +147,8 @@
         "buildDate": "Date de build",
         "commit": "Commit",
         "gitSha": "Git SHA",
-        "madeWith": "Fait avec par"
+        "madeWith": "Fait avec",
+        "by": "par"
     },
     "csvImport": {
         "title": "Importer une collection (CSV)",
