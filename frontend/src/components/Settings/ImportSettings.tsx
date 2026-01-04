@@ -26,9 +26,9 @@ const ImportSettings: React.FC = () => {
 
     const downloadTemplate = () => {
         const csv = [
-            'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional)',
-            'Daft Punk,Discovery,Vinyl,2001,,',
-            'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29'
+            'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional),Media Condition (Optional),Sleeve Condition (Optional)',
+            'Daft Punk,Discovery,Vinyl,2001,,,,',
+            'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29,NM,VG+'
         ].join('\n');
         const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
         const link = document.createElement('a');

@@ -38,6 +38,8 @@ export interface CsvRow {
     format?: 'Vinyl' | 'CD';
     releaseId?: string;
     catalogNumber?: string;
+    mediaCondition?: string;
+    sleeveCondition?: string;
 }
 
 export interface ImportResult {
@@ -101,13 +103,22 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
         const catnoRaw = mapped['catno'] || mapped['catalog_number'] || mapped['catalognumber'] || mapped['catalog number'] || mapped['cat_no'] || '';
         const catalogNumber = catnoRaw.toString().trim() || undefined;
 
+        // Extract condition fields
+        const mediaConditionRaw = mapped['media_condition'] || mapped['mediacondition'] || mapped['media condition'] || mapped['media'] || '';
+        const mediaCondition = mediaConditionRaw.toString().trim() || undefined;
+
+        const sleeveConditionRaw = mapped['sleeve_condition'] || mapped['sleevecondition'] || mapped['sleeve condition'] || mapped['sleeve'] || '';
+        const sleeveCondition = sleeveConditionRaw.toString().trim() || undefined;
+
         return {
             artist: (mapped['artist'] || '').toString().trim(),
             album: (mapped['album'] || '').toString().trim(),
             year: (mapped['year'] || '').toString().trim() || undefined,
             format: normalizeType(mapped['format']),
             releaseId,
-            catalogNumber
+            catalogNumber,
+            mediaCondition,
+            sleeveCondition
         };
     });
 }
@@ -205,7 +216,9 @@ export async function processImportRow(
     const newItem = new CollectionItem({
         user: userId,
         album: album._id,
-        format: { name: format, descriptions: [], text: format }
+        format: { name: format, descriptions: [], text: format },
+        mediaCondition: row.mediaCondition || null,
+        sleeveCondition: row.sleeveCondition || null
     });
     await newItem.save();
     console.log(`[Import] Added to collection: ${album.title} (${format})`);
