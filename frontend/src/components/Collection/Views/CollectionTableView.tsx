@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CollectionItem, SortColumn } from '../../../types/collection';
+import type { CollectionItem, SortColumn } from '../../../types/collection.types';
 
 interface CollectionTableViewProps {
     items: CollectionItem[];
