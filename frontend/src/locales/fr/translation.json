@@ -246,7 +246,16 @@
         "failedAddToCollection": "Échec de l'ajout de l'album à la collection.",
         "failedSearch": "Échec de la recherche par code-barres.",
         "tooManyRequests": "Trop de requêtes ! Veuillez attendre environ 30 secondes avant de chercher à nouveau.",
-        "showMore": "Afficher {{count}} de plus ({{remaining}} restants)"
+        "showMore": "Afficher {{count}} de plus ({{remaining}} restants)",
+        "modeAlbumArtist": "Album et artiste",
+        "modeIdLookup": "Recherche par ID",
+        "lookupTypeDiscogsId": "ID Discogs",
+        "lookupTypeCatno": "Numéro de catalogue",
+        "placeholderDiscogsId": "Entrez l'ID Discogs (ex: 4679783)...",
+        "placeholderCatno": "Entrez le numéro de catalogue (ex: CAD 0006)...",
+        "find": "Trouver",
+        "results": "Résultats",
+        "noLookupResult": "Aucune sortie trouvée pour cette référence."
     },
     "discover": {
         "title": "Découvrir",

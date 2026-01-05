@@ -116,3 +116,25 @@ export async function getMasterVersions(req: Request, res: Response) {
         handleDiscogsError(error, res, `fetching versions for master ${masterId}`);
     }
 }
+
+/**
+ * Lookup by reference (Discogs ID or Catalog Number)
+ * GET /api/discogs/lookup?ref=<value>&type=discogsId|catno
+ */
+export async function lookupByReference(req: Request, res: Response) {
+    const { ref, type } = req.query;
+
+    if (!ref || typeof ref !== 'string') {
+        res.status(400).json({ message: "The 'ref' query parameter is required." });
+        return;
+    }
+
+    const lookupType = type === 'catno' ? 'catno' : 'discogsId';
+
+    try {
+        const results = await discogsService.lookupByReference(ref, lookupType);
+        res.status(200).json(results);
+    } catch (error) {
+        handleDiscogsError(error, res, 'looking up Discogs reference');
+    }
+}

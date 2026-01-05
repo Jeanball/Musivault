@@ -230,7 +230,16 @@
         "failedAddToCollection": "Album konnte nicht zur Sammlung hinzugefügt werden.",
         "failedSearch": "Barcode-Suche fehlgeschlagen.",
         "tooManyRequests": "Zu viele Anfragen! Bitte warten Sie etwa 30 Sekunden, bevor Sie erneut suchen.",
-        "showMore": "Zeige {{count}} mehr ({{remaining}} verbleibend)"
+        "showMore": "Zeige {{count}} mehr ({{remaining}} verbleibend)",
+        "modeAlbumArtist": "Album & Künstler",
+        "modeIdLookup": "ID-Suche",
+        "lookupTypeDiscogsId": "Discogs-ID",
+        "lookupTypeCatno": "Katalognummer",
+        "placeholderDiscogsId": "Discogs-Release-ID eingeben (z.B. 4679783)...",
+        "placeholderCatno": "Katalognummer eingeben (z.B. CAD 0006)...",
+        "find": "Suchen",
+        "results": "Ergebnisse",
+        "noLookupResult": "Keine Veröffentlichung für diese Referenz gefunden."
     },
     "discover": {
         "title": "Entdecken",

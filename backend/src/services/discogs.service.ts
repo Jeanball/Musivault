@@ -114,6 +114,68 @@ export async function searchByBarcode(barcode: string): Promise<CleanedSearchRes
     }));
 }
 
+/**
+ * Lookup by reference (Discogs ID or Catalog Number)
+ * @param reference - The reference value to search
+ * @param type - 'discogsId' for release ID lookup, 'catno' for catalog number search
+ */
+export async function lookupByReference(
+    reference: string,
+    type: 'discogsId' | 'catno' = 'discogsId'
+): Promise<CleanedSearchResult[]> {
+    const trimmed = reference.trim();
+
+    if (type === 'discogsId') {
+        // Lookup by Discogs Release ID
+        const result = await fetchByReleaseId(trimmed);
+        if (result) {
+            return [{
+                id: result.discogsId,
+                title: `${result.artist} - ${result.title}`,
+                year: result.year || '',
+                thumb: result.thumb,
+                type: 'release' as const
+            }];
+        }
+        return [];
+    } else {
+        // Search by Catalog Number - may return multiple results
+        const auth = getAuthParams();
+
+        if (!hasCredentials()) {
+            return [];
+        }
+
+        try {
+            await delay(RATE_LIMIT_MS);
+
+            const response = await axios.get<{ results: DiscogsSearchResultExtended[] }>(
+                `${DISCOGS_BASE_URL}/database/search`,
+                {
+                    headers: DISCOGS_HEADERS,
+                    params: {
+                        key: auth.key,
+                        secret: auth.secret,
+                        catno: trimmed,
+                        type: 'release'
+                    }
+                }
+            );
+
+            return (response.data.results || []).map(item => ({
+                id: item.id,
+                title: item.title,
+                year: item.year,
+                thumb: item.thumb,
+                type: 'release' as const
+            }));
+        } catch (err: any) {
+            console.log('[Discogs] Catalog number lookup error:', err.message);
+            return [];
+        }
+    }
+}
+
 // ===== Detail Functions (for Controller) =====
 
 /**

@@ -246,7 +246,16 @@
         "failedAddToCollection": "Failed to add album to collection.",
         "failedSearch": "Failed to search barcode.",
         "tooManyRequests": "Too many requests! Please wait about 30 seconds before searching again.",
-        "showMore": "Show {{count}} more ({{remaining}} remaining)"
+        "showMore": "Show {{count}} more ({{remaining}} remaining)",
+        "modeAlbumArtist": "Album & Artist",
+        "modeIdLookup": "ID Lookup",
+        "lookupTypeDiscogsId": "Discogs ID",
+        "lookupTypeCatno": "Catalog Number",
+        "placeholderDiscogsId": "Enter Discogs Release ID (e.g., 4679783)...",
+        "placeholderCatno": "Enter Catalog Number (e.g., CAD 0006)...",
+        "find": "Find",
+        "results": "Results",
+        "noLookupResult": "No release found matching this reference."
     },
     "discover": {
         "title": "Discover",
