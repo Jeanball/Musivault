@@ -11,10 +11,9 @@ import { FoundAlbumInfo } from '../types/discogs.types';
 
 // Ensure logs directory exists
 // Use /app/logs/imports in Docker, or fallback to relative path for local dev
-const DOCKER_LOGS_ROOT = '/logs';
-const LOGS_DIR = fs.existsSync(DOCKER_LOGS_ROOT)
-    ? path.join(DOCKER_LOGS_ROOT, 'imports')
-    : path.join(__dirname, '../../logs/imports');
+// Use relative path which resolves to /app/logs in Docker (mounted volume)
+// and project_root/logs in development
+const LOGS_DIR = path.join(__dirname, '../../logs/imports');
 
 // Create directory if it doesn't exist (with error handling)
 try {

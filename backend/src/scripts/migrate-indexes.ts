@@ -5,17 +5,11 @@
  * Run with: npx ts-node src/scripts/fix-discogs-index.ts
  */
 
-import mongoose, { Schema, model } from 'mongoose';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import Album from '../models/Album';
 
 dotenv.config();
-
-// Define a minimal Album schema/model for collection access
-const albumSchema = new Schema({
-    discogsId: { type: Number, unique: true, sparse: true }
-}, { collection: 'albums' }); // Ensure it targets the 'albums' collection
-
-const Album = model('Album', albumSchema);
 
 async function connectDB() {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/musivault_db';
