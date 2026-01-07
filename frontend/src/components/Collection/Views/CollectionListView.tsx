@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from '../../../types/collection.types';
+import { getImageUrl } from '../../../utils/imageUrl';
 
 interface CollectionListViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -41,7 +42,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                             <div className="avatar">
                                                 <div className="w-12 h-12 rounded-lg">
                                                     <img
-                                                        src={item.album.thumb || item.album.cover_image}
+                                                        src={getImageUrl(item.album.thumb || item.album.cover_image)}
                                                         alt={item.album.title}
                                                     />
                                                 </div>

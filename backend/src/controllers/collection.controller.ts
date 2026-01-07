@@ -492,3 +492,72 @@ export async function getStyles(req: Request, res: Response) {
     res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+// ===== Manual Album Entry =====
+
+interface ManualAlbumBody {
+  title: string;
+  artist: string;
+  year?: string;
+  format: string;
+}
+
+export async function addManualAlbum(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { title, artist, year, format } = req.body as ManualAlbumBody;
+
+    // Validate required fields
+    if (!title || !artist || !format) {
+      res.status(400).json({ message: 'Title, artist, and format are required' });
+      return;
+    }
+
+    // Handle cover image if uploaded
+    let coverImagePath = '';
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (file) {
+      // The file path is relative to the uploads directory
+      coverImagePath = `/uploads/covers/${file.filename}`;
+    }
+
+    // Create manual album
+    const album = new Album({
+      isManual: true,
+      title: title.trim(),
+      artist: artist.trim(),
+      year: year?.trim() || '',
+      thumb: coverImagePath,
+      cover_image: coverImagePath,
+      styles: [],
+      tracklist: [],
+      labels: []
+    });
+    await album.save();
+
+    // Create collection item
+    const newItem = new CollectionItem({
+      user: req.user._id,
+      album: album._id,
+      format: {
+        name: format,
+        descriptions: [],
+        text: format
+      }
+    });
+    await newItem.save();
+
+    res.status(201).json({
+      message: 'Manual album added to your collection!',
+      item: newItem,
+      album: album
+    });
+  } catch (error) {
+    console.error('Error adding manual album:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}

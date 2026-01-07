@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import type { ArtistPageData, ArtistAlbum } from '../types';
+import { getImageUrl } from '../utils/imageUrl';
 
 type SortField = 'title' | 'year';
 type SortOrder = 'asc' | 'desc';
@@ -115,7 +116,7 @@ const ArtistAlbumsPage: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-6 mb-8">
                 {pageData.artist.image && (
                     <img
-                        src={pageData.artist.image}
+                        src={getImageUrl(pageData.artist.image)}
                         alt={pageData.artist.name}
                         className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover shadow-xl mx-auto md:mx-0"
                     />
@@ -166,7 +167,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     >
                         <figure className="px-3 pt-3">
                             <img
-                                src={album.thumb || '/placeholder-album.svg'}
+                                src={getImageUrl(album.thumb || '/placeholder-album.svg')}
                                 alt={album.title}
                                 className="rounded-lg w-full aspect-square object-cover"
                             />

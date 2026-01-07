@@ -112,6 +112,9 @@ app.use('/api/auth', rateLimit({
 app.use('/api/collection', collectionRoute)
 app.use('/api/public', publicRoute)
 
+// Serve uploaded files (cover images for manual albums)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Version middleware - adds version header to all responses
 app.use((req, res, next) => {
     res.setHeader('X-App-Version', VERSION);

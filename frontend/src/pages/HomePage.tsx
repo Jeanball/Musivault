@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from "../types/collection.types";
 import type { PrivateOutletContext } from "../components/Layout/PrivateLayout";
 import axios from "axios";
+import { getImageUrl } from "../utils/imageUrl";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -88,7 +89,7 @@ const HomePage: React.FC = () => {
                 className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
               >
                 <figure className="aspect-square relative overflow-hidden">
-                  <img src={item.album.cover_image || "/placeholder-album.svg"} alt={item.album.title} className="object-cover w-full h-full" />
+                  <img src={getImageUrl(item.album.cover_image || "/placeholder-album.svg")} alt={item.album.title} className="object-cover w-full h-full" />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span className="badge badge-primary">{item.format.name}</span>
                   </div>

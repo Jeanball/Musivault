@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
@@ -8,6 +7,7 @@ import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import AlbumDetailModal, { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
 import ConditionModal from '../components/Modal/ConditionModal';
+import { getImageUrl } from '../utils/imageUrl';
 
 interface AddedAlbumInfo {
     id: string;
@@ -140,7 +140,7 @@ const ReleasePage: React.FC = () => {
                 <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
                     {albumDetails.cover_image && (
                         <img
-                            src={albumDetails.cover_image}
+                            src={getImageUrl(albumDetails.cover_image)}
                             alt={`Cover of ${albumDetails.title}`}
                             className="w-full h-auto object-cover rounded-lg shadow-2xl"
                         />

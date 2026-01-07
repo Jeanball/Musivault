@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export interface FormatDetails {
     name: string;
@@ -44,7 +45,7 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
         <dialog id="album_detail_modal" className="modal" open={!!album}>
             <div className="modal-box w-11/12 max-w-2xl">
                 <div className="flex flex-col sm:flex-row gap-6">
-                    <img src={album.cover_image} alt={`Pochette de ${album.title}`} className="w-48 h-48 object-cover rounded-lg shadow-lg mx-auto sm:mx-0" />
+                    <img src={getImageUrl(album.cover_image)} alt={`Pochette de ${album.title}`} className="w-48 h-48 object-cover rounded-lg shadow-lg mx-auto sm:mx-0" />
                     <div className="flex-1">
                         <h3 className="text-2xl font-bold">{album.title}</h3>
                         <p className="text-lg text-gray-400 mt-1">{album.artist}</p>

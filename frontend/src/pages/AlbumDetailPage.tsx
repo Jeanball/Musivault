@@ -8,6 +8,7 @@ import { stripArtistSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
 import RematchModal from '../components/Modal/RematchModal';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
+import { getImageUrl } from '../utils/imageUrl';
 
 interface PreferencesResponse {
     enableConditionGrading: boolean;
@@ -125,7 +126,7 @@ const AlbumDetailPage: React.FC = () => {
                 {/* Album Cover */}
                 <div className="flex-shrink-0">
                     <img
-                        src={album.cover_image || '/placeholder-album.svg'}
+                        src={getImageUrl(album.cover_image || '/placeholder-album.svg')}
                         alt={album.title}
                         className="w-full lg:w-96 h-auto rounded-xl shadow-2xl"
                     />

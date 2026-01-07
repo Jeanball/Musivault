@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useTrackAggregation, type AggregatedTrack } from '../../../hooks/collection/useTrackAggregation';
 import type { CollectionItem } from '../../../types/collection.types';
+import { getImageUrl } from '../../../utils/imageUrl';
 
 interface TracksViewProps {
     collection: CollectionItem[];
@@ -90,7 +91,7 @@ const TracksView: React.FC<TracksViewProps> = ({ collection }) => {
                                             className="flex items-center gap-3 p-2 rounded-lg bg-base-300 hover:bg-primary/10 cursor-pointer transition-colors"
                                         >
                                             <img
-                                                src={album.thumb || album.cover_image || '/placeholder-album.png'}
+                                                src={getImageUrl(album.thumb || album.cover_image || '/placeholder-album.png')}
                                                 alt={album.title}
                                                 className="w-12 h-12 rounded object-cover"
                                                 onError={(e) => {

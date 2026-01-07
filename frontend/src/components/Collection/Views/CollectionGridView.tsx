@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CollectionItem } from '../../../types/collection.types';
+import { getImageUrl } from '../../../utils/imageUrl';
 
 interface CollectionGridViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -26,7 +27,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                             >
                                 <figure>
                                     <img
-                                        src={item.album.cover_image || item.album.thumb}
+                                        src={getImageUrl(item.album.cover_image || item.album.thumb)}
                                         alt={item.album.title}
                                         className="aspect-square object-cover"
                                     />

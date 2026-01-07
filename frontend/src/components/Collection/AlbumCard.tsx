@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { parseTitle } from '../../utils/formatters';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export interface DiscogsResult {
   id: number;
@@ -25,7 +26,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingD
       className="relative flex items-center p-4 bg-base-200 rounded-lg shadow-md transition-all duration-200 hover:shadow-xl hover:bg-base-300 cursor-pointer"
     >
       <img
-        src={result.thumb}
+        src={getImageUrl(result.thumb)}
         alt={`${artist} - ${album}`}
         className="w-20 h-20 object-cover mr-4 rounded flex-shrink-0"
       />

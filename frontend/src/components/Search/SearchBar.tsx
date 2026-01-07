@@ -7,9 +7,11 @@ import { stripArtistSuffix } from '../../utils/formatters';
 import AlbumCard from '../Collection/AlbumCard';
 import BarcodeScannerModal from '../Modal/BarcodeScannerModal';
 import SelectReleaseModal from '../Modal/SelectReleaseModal';
+import ManualAlbumForm from './ManualAlbumForm';
 import type { DiscogsResult, ArtistResult } from '../../types';
 import { useDebounce } from '../../hooks/useDebounce';
 import { Camera, X, Search } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -22,7 +24,7 @@ interface ReleaseDetails {
     availableFormats?: { name: string; descriptions: string[]; text: string }[];
 }
 
-type SearchMode = 'albumArtist' | 'idLookup';
+type SearchMode = 'albumArtist' | 'idLookup' | 'manual';
 
 const SearchBar: React.FC = () => {
     const { t } = useTranslation();
@@ -256,6 +258,12 @@ const SearchBar: React.FC = () => {
                     >
                         {t('search.modeIdLookup')}
                     </button>
+                    <button
+                        className={`tab ${searchMode === 'manual' ? 'tab-active' : ''}`}
+                        onClick={() => setSearchMode('manual')}
+                    >
+                        {t('search.modeManual')}
+                    </button>
                 </div>
             </div>
 
@@ -316,7 +324,7 @@ const SearchBar: React.FC = () => {
                                         >
                                             <figure className="px-4 pt-4">
                                                 <img
-                                                    src={artist.thumb || '/placeholder-artist.png'}
+                                                    src={getImageUrl(artist.thumb || '/placeholder-artist.png')}
                                                     alt={stripArtistSuffix(artist.name)}
                                                     className="rounded-full w-20 h-20 object-cover mx-auto"
                                                 />
@@ -452,6 +460,11 @@ const SearchBar: React.FC = () => {
                         </div>
                     )}
                 </>
+            )}
+
+            {/* Manual Entry Mode */}
+            {searchMode === 'manual' && (
+                <ManualAlbumForm />
             )}
 
             {/* Barcode Scanner Modal */}

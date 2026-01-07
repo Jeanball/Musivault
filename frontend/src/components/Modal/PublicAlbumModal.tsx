@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from '../../types/collection.types';
+import { getImageUrl } from '../../utils/imageUrl';
 
 interface PublicAlbumModalProps {
     item: CollectionItem | null;
@@ -26,7 +27,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                 {/* Album Cover */}
                 <div className="flex justify-center mb-4">
                     <img
-                        src={album.cover_image || '/placeholder-album.svg'}
+                        src={getImageUrl(album.cover_image || '/placeholder-album.svg')}
                         alt={album.title}
                         className="w-48 h-48 object-cover rounded-lg shadow-xl"
                     />

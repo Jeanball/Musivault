@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { DiscogsResult } from '../../types';
 import { parseTitle } from '../../utils/formatters';
+import { getImageUrl } from '../../utils/imageUrl';
 
 interface SelectReleaseModalProps {
     isOpen: boolean;
@@ -49,7 +50,7 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
                                 className="flex items-center p-3 bg-base-200 rounded-lg hover:bg-base-300 cursor-pointer transition-colors"
                             >
                                 <img
-                                    src={result.thumb || '/placeholder-album.svg'}
+                                    src={getImageUrl(result.thumb || '/placeholder-album.svg')}
                                     alt={album}
                                     className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
                                 />
