@@ -45,6 +45,7 @@ services:
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET:-}
       - OIDC_REDIRECT_URI=${OIDC_REDIRECT_URI:-}
       - FRONTEND_URL=${FRONTEND_URL:-}
+      - ENABLE_BACKGROUND_MIGRATION=${ENABLE_BACKGROUND_MIGRATION:-false}
     depends_on:
       mongodb:
         condition: service_healthy
