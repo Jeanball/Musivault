@@ -47,8 +47,8 @@ services:
       mongodb:
         condition: service_healthy
     volumes:
-      - import_logs:/app/logs
-      - uploads_data:/app/uploads
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
     networks:
       - musivault-network
     healthcheck:
@@ -79,8 +79,4 @@ networks:
 
 volumes:
   mongodb_data:
-    driver: local
-  import_logs:
-    driver: local
-  uploads_data:
     driver: local
