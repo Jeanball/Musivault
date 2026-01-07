@@ -174,7 +174,7 @@ async function migrateAlbumData() {
             console.log(`  Missing: ${missingStr}`);
 
             try {
-                const data = await fetchWithRetry(album.discogsId);
+                const data = await fetchWithRetry(album.discogsId!);
                 let updated = false;
 
                 // Update styles if missing
