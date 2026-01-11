@@ -108,6 +108,12 @@ app.use(express.json());
 app.use(cookieParser())
 app.use(helmet());
 
+// Version middleware
+app.use((req, res, next) => {
+    res.setHeader('X-App-Version', VERSION);
+    next();
+});
+
 // ============================================================================
 // ROUTES
 // ============================================================================
@@ -124,11 +130,6 @@ app.use('/api/public', publicRoute)
 // Serve uploaded files (cover images for manual albums)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Version middleware
-app.use((req, res, next) => {
-    res.setHeader('X-App-Version', VERSION);
-    next();
-});
 
 // Version endpoint
 app.get('/api/version', (req, res) => {

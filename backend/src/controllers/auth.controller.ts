@@ -20,7 +20,7 @@ export async function signupUser(req: Request, res: Response, next: NextFunction
         });
         await newUser.save();
         res.status(201).json({ message: "User created successfully.", success: true, newUser })
-        next();
+
     } catch (error) {
         console.error("Error in createUser controller", error)
         res.status(500).json({ message: "Internal server error" });
