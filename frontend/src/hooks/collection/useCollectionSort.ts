@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import type { CollectionItem, SortColumn, SortOrder } from '../../types/collection';
+import type { CollectionItem, SortColumn, SortOrder } from '../../types/collection.types';
 
 const SORT_STORAGE_KEY = 'musivault_collection_sort';
 

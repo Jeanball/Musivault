@@ -3,22 +3,33 @@ import axios from 'axios';
 
 interface VersionInfo {
     version: string;
+    channel?: string;
 }
 
 const Footer = () => {
     const [version, setVersion] = useState<string>('');
+    const [channel, setChannel] = useState<string>('');
 
     useEffect(() => {
         axios.get<VersionInfo>('/api/version')
-            .then(res => setVersion(res.data.version))
+            .then(res => {
+                setVersion(res.data.version);
+                setChannel(res.data.channel || '');
+            })
             .catch(() => setVersion(''));
     }, []);
 
+    // Only show channel badge for non-stable releases
+    const showChannelBadge = channel && !['latest', 'stable', ''].includes(channel);
+
     return (
         <footer className="footer px-4 py-2 bg-neutral text-neutral-content flex flex-row justify-between items-center">
-            <p className="text-xs">
-                © {new Date().getFullYear()} Jeanball
-                {version && <span className="opacity-60 ml-2">v{version}</span>}
+            <p className="text-xs inline-flex items-center flex-wrap gap-1">
+                <span>© {new Date().getFullYear()} Jeanball</span>
+                {version && <span className="opacity-60">v{version}</span>}
+                {showChannelBadge && (
+                    <span className="opacity-60">({channel})</span>
+                )}
             </p>
             <div className="flex gap-2">
                 <a href="https://musivault.dev" target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-xs">

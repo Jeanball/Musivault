@@ -1,5 +1,6 @@
 import React from 'react';
-import type { CollectionItem, SortColumn } from '../../../types/collection';
+import { useTranslation } from 'react-i18next';
+import type { CollectionItem, SortColumn } from '../../../types/collection.types';
 
 interface CollectionTableViewProps {
     items: CollectionItem[];
@@ -14,41 +15,42 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
     onSort,
     getSortIcon
 }) => {
+    const { t } = useTranslation();
     return (
         <div className="overflow-x-auto">
             <table className="table w-full">
                 <thead>
                     <tr>
-                        <th>Cover</th>
+                        <th>{t('album.cover')}</th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('artist')}
                         >
-                            Artist {getSortIcon('artist')}
+                            {t('common.artist')} {getSortIcon('artist')}
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('album')}
                         >
-                            Album {getSortIcon('album')}
+                            {t('common.album')} {getSortIcon('album')}
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('format')}
                         >
-                            Format {getSortIcon('format')}
+                            {t('common.format')} {getSortIcon('format')}
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('year')}
                         >
-                            Year {getSortIcon('year')}
+                            {t('common.year')} {getSortIcon('year')}
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('addedAt')}
                         >
-                            Added {getSortIcon('addedAt')}
+                            {t('collection.added')} {getSortIcon('addedAt')}
                         </th>
                     </tr>
                 </thead>
@@ -81,7 +83,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                     <div className="text-xs opacity-70 mt-1">{item.format.text}</div>
                                 )}
                             </td>
-                            <td>{item.album.year || 'N/A'}</td>
+                            <td>{item.album.year || t('common.na')}</td>
                             <td>{new Date(item.addedAt).toLocaleDateString('en-US')}</td>
                         </tr>
                     ))}

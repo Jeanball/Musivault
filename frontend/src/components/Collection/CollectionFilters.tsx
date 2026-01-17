@@ -1,5 +1,6 @@
 import React from 'react';
-import type { FilterState, LayoutType } from '../../types/collection';
+import { useTranslation } from 'react-i18next';
+import type { FilterState, LayoutType } from '../../types/collection.types';
 
 interface CollectionFiltersProps {
     filters: FilterState;
@@ -28,6 +29,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     layout,
     onLayoutChange
 }) => {
+    const { t } = useTranslation();
     const handleFilterChange = (key: keyof FilterState, value: string) => {
         onFiltersChange({
             ...filters,
@@ -49,7 +51,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                             </svg>
-                            <span className="hidden sm:inline ml-1">Grid</span>
+                            <span className="hidden sm:inline ml-1">{t('collection.grid')}</span>
                         </button>
                         <button
                             className={`btn join-item btn-sm ${layout === 'list' ? 'btn-primary' : 'btn-ghost'}`}
@@ -59,7 +61,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
-                            <span className="hidden sm:inline ml-1">List</span>
+                            <span className="hidden sm:inline ml-1">{t('collection.list')}</span>
                         </button>
                         <button
                             className={`btn join-item btn-sm ${layout === 'table' ? 'btn-primary' : 'btn-ghost'}`}
@@ -69,7 +71,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
-                            <span className="hidden sm:inline ml-1">Table</span>
+                            <span className="hidden sm:inline ml-1">{t('collection.table')}</span>
                         </button>
                     </div>
 
@@ -86,7 +88,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                <span className="hidden sm:inline">Clear</span>
+                                <span className="hidden sm:inline">{t('collection.clear')}</span>
                             </button>
                         )}
                     </div>
@@ -98,14 +100,14 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 {/* Filter by Format */}
                 <div className="form-control">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">Format</span>
+                        <span className="label-text text-xs">{t('common.format')}</span>
                     </label>
                     <select
                         className="select select-bordered select-sm w-full"
                         value={filters.format}
                         onChange={(e) => handleFilterChange('format', e.target.value)}
                     >
-                        <option value="all">All Formats</option>
+                        <option value="all">{t('collection.allFormats')}</option>
                         {availableFormats.map(format => (
                             <option key={format} value={format}>{format}</option>
                         ))}
@@ -115,14 +117,14 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 {/* Filter by Decade */}
                 <div className="form-control">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">Decade</span>
+                        <span className="label-text text-xs">{t('collection.decade')}</span>
                     </label>
                     <select
                         className="select select-bordered select-sm w-full"
                         value={filters.decade}
                         onChange={(e) => handleFilterChange('decade', e.target.value)}
                     >
-                        <option value="all">All Decades</option>
+                        <option value="all">{t('collection.allDecades')}</option>
                         {availableDecades.sort().map(decade => (
                             <option key={decade} value={decade}>{decade}</option>
                         ))}
@@ -132,32 +134,32 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 {/* Filter by Added Period */}
                 <div className="form-control">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">Added</span>
+                        <span className="label-text text-xs">{t('collection.added')}</span>
                     </label>
                     <select
                         className="select select-bordered select-sm w-full"
                         value={filters.addedPeriod}
                         onChange={(e) => handleFilterChange('addedPeriod', e.target.value)}
                     >
-                        <option value="all">Any Time</option>
-                        <option value="thisWeek">This Week</option>
-                        <option value="thisMonth">This Month</option>
-                        <option value="thisYear">This Year</option>
-                        <option value="lastYear">Last Year</option>
+                        <option value="all">{t('collection.anyTime')}</option>
+                        <option value="thisWeek">{t('collection.thisWeek')}</option>
+                        <option value="thisMonth">{t('collection.thisMonth')}</option>
+                        <option value="thisYear">{t('collection.thisYear')}</option>
+                        <option value="lastYear">{t('collection.lastYear')}</option>
                     </select>
                 </div>
 
                 {/* Filter by Style */}
                 <div className="form-control">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">Style</span>
+                        <span className="label-text text-xs">{t('collection.style')}</span>
                     </label>
                     <select
                         className="select select-bordered select-sm w-full"
                         value={filters.style}
                         onChange={(e) => handleFilterChange('style', e.target.value)}
                     >
-                        <option value="all">All Styles</option>
+                        <option value="all">{t('collection.allStyles')}</option>
                         {availableStyles.map(style => (
                             <option key={style} value={style}>{style} ({styleCounts[style] || 0})</option>
                         ))}
@@ -170,7 +172,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-base-300">
                     {filters.format !== 'all' && (
                         <div className="badge badge-primary gap-1">
-                            Format: {filters.format}
+                            {t('common.format')}: {filters.format}
                             <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('format', 'all')}
@@ -181,7 +183,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                     )}
                     {filters.decade !== 'all' && (
                         <div className="badge badge-secondary gap-1">
-                            Decade: {filters.decade}
+                            {t('collection.decade')}: {filters.decade}
                             <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('decade', 'all')}
@@ -192,9 +194,9 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                     )}
                     {filters.addedPeriod !== 'all' && (
                         <div className="badge badge-accent gap-1">
-                            Period: {filters.addedPeriod === 'thisWeek' ? 'This week' :
-                                filters.addedPeriod === 'thisMonth' ? 'This month' :
-                                    filters.addedPeriod === 'thisYear' ? 'This year' : 'Last year'}
+                            {t('collection.period')}: {filters.addedPeriod === 'thisWeek' ? t('collection.thisWeek') :
+                                filters.addedPeriod === 'thisMonth' ? t('collection.thisMonth') :
+                                    filters.addedPeriod === 'thisYear' ? t('collection.thisYear') : t('collection.lastYear')}
                             <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('addedPeriod', 'all')}
@@ -205,7 +207,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                     )}
                     {filters.style !== 'all' && (
                         <div className="badge badge-info gap-1">
-                            Style: {filters.style}
+                            {t('collection.style')}: {filters.style}
                             <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('style', 'all')}

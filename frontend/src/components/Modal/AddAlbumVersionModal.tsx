@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export interface FormatDetails {
     name: string;
@@ -24,6 +26,7 @@ interface AlbumDetailModalProps {
 }
 
 const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onConfirm, isSubmitting }) => {
+    const { t } = useTranslation();
     const [selectedFormat, setSelectedFormat] = useState<FormatDetails | null>(null);
 
     if (!album) {
@@ -42,14 +45,14 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
         <dialog id="album_detail_modal" className="modal" open={!!album}>
             <div className="modal-box w-11/12 max-w-2xl">
                 <div className="flex flex-col sm:flex-row gap-6">
-                    <img src={album.cover_image} alt={`Pochette de ${album.title}`} className="w-48 h-48 object-cover rounded-lg shadow-lg mx-auto sm:mx-0" />
+                    <img src={getImageUrl(album.cover_image)} alt={`Pochette de ${album.title}`} className="w-48 h-48 object-cover rounded-lg shadow-lg mx-auto sm:mx-0" />
                     <div className="flex-1">
                         <h3 className="text-2xl font-bold">{album.title}</h3>
                         <p className="text-lg text-gray-400 mt-1">{album.artist}</p>
                         <p className="text-sm text-gray-500">{album.year}</p>
                     </div>
                 </div>
-                <div className="divider my-6">Choose your format</div>
+                <div className="divider my-6">{t('addAlbum.chooseFormat')}</div>
                 <div className="flex flex-col items-center gap-4">
                     {formats.map((format, index) => (
                         <button
@@ -67,13 +70,13 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
                     ))}
                 </div>
                 <div className="modal-action mt-8">
-                    <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+                    <button className="btn btn-ghost" onClick={onClose}>{t('common.cancel')}</button>
                     <button
                         className="btn btn-primary"
                         onClick={handleConfirmClick}
                         disabled={!selectedFormat || isSubmitting}
                     >
-                        {isSubmitting ? <span className="loading loading-spinner"></span> : "Add"}
+                        {isSubmitting ? <span className="loading loading-spinner"></span> : t('common.add')}
                     </button>
                 </div>
             </div>

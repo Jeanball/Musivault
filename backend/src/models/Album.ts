@@ -13,7 +13,8 @@ export interface ILabel {
 }
 
 export interface IAlbum extends Document {
-  discogsId: number;
+  discogsId?: number;
+  isManual: boolean;
   title: string;
   artist: string;
   year: string;
@@ -39,9 +40,13 @@ const labelSchema = new Schema<ILabel>({
 const albumSchema = new Schema<IAlbum>({
   discogsId: {
     type: Number,
-    required: true,
     unique: true,
+    sparse: true, // Allows null/undefined values while maintaining uniqueness for non-null
     index: true,
+  },
+  isManual: {
+    type: Boolean,
+    default: false,
   },
   title: {
     type: String,

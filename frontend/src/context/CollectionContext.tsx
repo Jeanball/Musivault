@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react';
 import axios from 'axios';
-import { toastService, toastMessages } from '../utils/toast';
-import type { CollectionItem } from '../types/collection';
+import { useTranslation } from 'react-i18next';
+import { toastService } from '../utils/toast';
+import type { CollectionItem } from '../types/collection.types';
 
 interface CollectionContextType {
     collection: CollectionItem[];
@@ -14,6 +15,7 @@ interface CollectionContextType {
 const CollectionContext = createContext<CollectionContextType | undefined>(undefined);
 
 export const CollectionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { t } = useTranslation();
     const [collection, setCollection] = useState<CollectionItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -43,10 +45,10 @@ export const CollectionProvider: React.FC<{ children: ReactNode }> = ({ children
         try {
             await axios.delete(`/api/collection/${itemId}`, { withCredentials: true });
             setCollection(currentCollection => currentCollection.filter(item => item._id !== itemId));
-            toastService.success(toastMessages.collection.deleteSuccess);
+            toastService.success(t('album.removed'));
         } catch (error) {
             console.log(error);
-            toastService.error(toastMessages.collection.deleteError);
+            toastService.error(t('album.failedRemove'));
         } finally {
             setIsDeleting(false);
         }

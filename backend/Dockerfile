@@ -45,18 +45,24 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
+# Install su-exec
+RUN apk add --no-cache su-exec
+
+
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
+# Copy entrypoint script
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh && \
+    addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Create logs directory inside /app (will be owned by root, then chown everything)
-RUN mkdir -p /app/logs/imports && \
-    chown -R nodejs:nodejs /app
+# Create logs directory inside /app (will be owned by root, then fixed by entrypoint)
+RUN mkdir -p /app/logs/imports
 
-USER nodejs
+# ENTRYPOINT will start as root to fix perms, then drop to user
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Expose port
 EXPOSE 5000

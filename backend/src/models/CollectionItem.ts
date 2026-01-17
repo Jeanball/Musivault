@@ -8,6 +8,8 @@ export interface ICollectionItem extends Document {
     descriptions: string[];
     text: string;
   };
+  mediaCondition?: string;
+  sleeveCondition?: string;
   addedAt: Date;
 }
 
@@ -26,6 +28,14 @@ const collectionItemSchema = new Schema<ICollectionItem>({
     name: { type: String, required: true },
     descriptions: { type: [String], default: [] },
     text: { type: String, default: '' },
+  },
+  mediaCondition: {
+    type: String,
+    default: null,
+  },
+  sleeveCondition: {
+    type: String,
+    default: null,
   },
   addedAt: {
     type: Date,

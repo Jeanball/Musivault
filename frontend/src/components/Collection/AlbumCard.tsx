@@ -1,5 +1,7 @@
 import React from 'react';
-import { parseTitle } from '../utils/formatters';
+import { useTranslation } from 'react-i18next';
+import { parseTitle } from '../../utils/formatters';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export interface DiscogsResult {
   id: number;
@@ -15,6 +17,7 @@ interface AlbumCardProps {
 }
 
 const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingDetails }) => {
+  const { t } = useTranslation();
   const { artist, album } = parseTitle(result.title);
 
   return (
@@ -23,7 +26,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingD
       className="relative flex items-center p-4 bg-base-200 rounded-lg shadow-md transition-all duration-200 hover:shadow-xl hover:bg-base-300 cursor-pointer"
     >
       <img
-        src={result.thumb}
+        src={getImageUrl(result.thumb)}
         alt={`${artist} - ${album}`}
         className="w-20 h-20 object-cover mr-4 rounded flex-shrink-0"
       />
@@ -31,11 +34,11 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingD
         <h3 className="text-lg font-bold text-gray-100 truncate" title={album}>
           {album}
         </h3>
-        <p className="text-md text-gray-400 truncate" title={artist}>
-          {artist}
+        <p className="text-md text-gray-400 truncate" title={artist || t('common.unknownArtist')}>
+          {artist || t('common.unknownArtist')}
         </p>
         <p className="text-sm text-gray-500 mt-1">
-          Year: {result.year || 'N/A'}
+          {t('common.year')}: {result.year || t('common.na')}
         </p>
       </div>
 

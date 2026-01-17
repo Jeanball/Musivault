@@ -14,5 +14,5 @@ export const parseTitle = (fullTitle: string): { artist: string; album: string }
         const artist = stripArtistSuffix(parts.join(' - ').trim());
         return { artist, album };
     }
-    return { artist: "Unknown Artist", album: fullTitle };
+    return { artist: "", album: fullTitle };
 };

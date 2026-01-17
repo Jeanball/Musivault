@@ -5,11 +5,15 @@ import { v4 as uuidv4 } from 'uuid'
 export interface IUserPreferences {
   theme: string
   isPublic: boolean
+  wideScreenMode: boolean
+  language: string
+  enableConditionGrading: boolean
 }
 
 export interface IUser extends Document {
   username: string
   email: string
+  displayName?: string
   password?: string
   isAdmin: boolean
   preferences: IUserPreferences
@@ -32,6 +36,10 @@ const userSchema = new Schema<IUser>({
     unique: true,
     lowercase: true,
   },
+  displayName: {
+    type: String,
+    default: '',
+  },
   password: {
     type: String,
     required: function (this: IUser) {
@@ -48,6 +56,18 @@ const userSchema = new Schema<IUser>({
       default: 'dark'
     },
     isPublic: {
+      type: Boolean,
+      default: false
+    },
+    wideScreenMode: {
+      type: Boolean,
+      default: false
+    },
+    language: {
+      type: String,
+      default: 'en'
+    },
+    enableConditionGrading: {
       type: Boolean,
       default: false
     }

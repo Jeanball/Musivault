@@ -44,12 +44,15 @@ services:
       - OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-}
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET:-}
       - OIDC_REDIRECT_URI=${OIDC_REDIRECT_URI:-}
+      - OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-SSO}
       - FRONTEND_URL=${FRONTEND_URL:-}
+      - ENABLE_BACKGROUND_MIGRATION=${ENABLE_BACKGROUND_MIGRATION:-false}
     depends_on:
       mongodb:
         condition: service_healthy
     volumes:
-      - import_logs:/logs
+      - import_logs:/app/logs
+      - uploads_data:/app/uploads
     networks:
       - musivault-network
     healthcheck:
@@ -84,4 +87,6 @@ volumes:
   mongodb_data:
     driver: local
   import_logs:
+    driver: local
+  uploads_data:
     driver: local

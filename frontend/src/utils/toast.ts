@@ -61,28 +61,3 @@ export const toastService = {
     }
   })
 };
-
-// Predefined messages for common actions
-export const toastMessages = {
-  auth: {
-    loginSuccess: 'Connection successful!',
-    loginError: 'Invalid credentials',
-    signupSuccess: 'Account created successfully!',
-    signupError: 'Registration failed',
-    logoutSuccess: 'Logged out successfully'
-  },
-  collection: {
-    addSuccess: 'Album added to your collection!',
-    addError: 'Failed to add album',
-    deleteSuccess: 'Album deleted from your collection!',
-    deleteError: 'Failed to delete album',
-    importSuccess: 'Collection imported successfully!',
-    importError: 'Failed to import collection'
-  },
-  general: {
-    saveSuccess: 'Changes saved successfully!',
-    saveError: 'Failed to save changes',
-    networkError: 'Network error. Please try again.',
-    unexpectedError: 'An unexpected error occurred'
-  }
-};

@@ -1,5 +1,7 @@
 import React from 'react';
-import type { CollectionItem } from '../../../types/collection';
+import { useTranslation } from 'react-i18next';
+import type { CollectionItem } from '../../../types/collection.types';
+import { getImageUrl } from '../../../utils/imageUrl';
 
 interface CollectionListViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -10,6 +12,8 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
     groupedItems,
     onItemClick
 }) => {
+    const { t } = useTranslation();
+
     return (
         <div className="space-y-10">
             {Object.entries(groupedItems).map(([artist, items]) => (
@@ -21,10 +25,10 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                         <table className="table w-full">
                             <thead>
                                 <tr>
-                                    <th>Cover</th>
-                                    <th>Album</th>
-                                    <th>Format</th>
-                                    <th>Released</th>
+                                    <th>{t('album.cover')}</th>
+                                    <th>{t('common.album')}</th>
+                                    <th>{t('common.format')}</th>
+                                    <th>{t('common.year')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -38,7 +42,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                             <div className="avatar">
                                                 <div className="w-12 h-12 rounded-lg">
                                                     <img
-                                                        src={item.album.thumb || item.album.cover_image}
+                                                        src={getImageUrl(item.album.thumb || item.album.cover_image)}
                                                         alt={item.album.title}
                                                     />
                                                 </div>

@@ -20,7 +20,7 @@ services:
 
   # Backend API
   backend:
-    image: ghcr.io/jeanball/musivault/backend:latest
+    image: ghcr.io/jeanball/musivault/backend:${IMAGE_TAG:-latest}
     container_name: musivault-backend
     restart: unless-stopped
     environment:
@@ -40,12 +40,16 @@ services:
       - OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-}
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET:-}
       - OIDC_REDIRECT_URI=${OIDC_REDIRECT_URI:-}
+      - OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-SSO}
       - FRONTEND_URL=${FRONTEND_URL:-}
+      - IMAGE_TAG=${IMAGE_TAG:-latest}
+      - ENABLE_BACKGROUND_MIGRATION=${ENABLE_BACKGROUND_MIGRATION:-false}
     depends_on:
       mongodb:
         condition: service_healthy
     volumes:
-      - import_logs:/app/logs
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
     networks:
       - musivault-network
     healthcheck:
@@ -57,7 +61,7 @@ services:
 
   # Frontend (Nginx)
   frontend:
-    image: ghcr.io/jeanball/musivault/frontend:latest
+    image: ghcr.io/jeanball/musivault/frontend:${IMAGE_TAG:-latest}
     container_name: musivault-frontend
     restart: unless-stopped
     ports:
@@ -76,6 +80,4 @@ networks:
 
 volumes:
   mongodb_data:
-    driver: local
-  import_logs:
     driver: local

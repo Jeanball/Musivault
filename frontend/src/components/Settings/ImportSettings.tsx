@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { toastService } from '../../utils/toast';
 
 interface ImportResult {
@@ -10,7 +11,8 @@ interface ImportResult {
     failures: { index: number; artist: string; album: string; reason: string }[];
 }
 
-const CsvImport: React.FC = () => {
+const ImportSettings: React.FC = () => {
+    const { t } = useTranslation();
     const [isImporting, setIsImporting] = useState(false);
     const [importResult, setImportResult] = useState<ImportResult | null>(null);
     const [progress, setProgress] = useState<{
@@ -24,9 +26,9 @@ const CsvImport: React.FC = () => {
 
     const downloadTemplate = () => {
         const csv = [
-            'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional)',
-            'Daft Punk,Discovery,Vinyl,2001,,',
-            'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29'
+            'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional),Media Condition (Optional),Sleeve Condition (Optional)',
+            'Daft Punk,Discovery,Vinyl,2001,,,,',
+            'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29,NM,VG+'
         ].join('\n');
         const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
         const link = document.createElement('a');
@@ -56,7 +58,7 @@ const CsvImport: React.FC = () => {
             link.remove();
             window.URL.revokeObjectURL(url);
         } catch (error) {
-            toastService.error('Failed to download log. Try again in a moment.');
+            toastService.error(t('csvImport.failedDownloadLog'));
         } finally {
             setIsDownloading(false);
         }
@@ -83,7 +85,7 @@ const CsvImport: React.FC = () => {
                     setIsImporting(false);
 
                     if (data.status === 'completed') {
-                        toastService.success(`Import finished: ${data.successCount} added`);
+                        toastService.success(t('csvImport.importFinished', { count: data.successCount }));
                         // Transform log entries to expected failures result
                         const failures = data.entries
                             .filter((e: any) => e.status === 'failed')
@@ -102,7 +104,7 @@ const CsvImport: React.FC = () => {
                             failures
                         });
                     } else {
-                        toastService.error('Import stopped with errors');
+                        toastService.error(t('csvImport.importStoppedErrors'));
                     }
                 }
             } catch (err) {
@@ -130,7 +132,7 @@ const CsvImport: React.FC = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            toastService.info('Import started. Please wait...');
+            toastService.info(t('csvImport.importStarted'));
 
             // Initial progress state
             setProgress({
@@ -146,7 +148,7 @@ const CsvImport: React.FC = () => {
             pollStatus(data.logId);
 
         } catch (error) {
-            toastService.error('Failed to start import.');
+            toastService.error(t('csvImport.failedStartImport'));
             setIsImporting(false);
         } finally {
             if (inputElement) inputElement.value = '';
@@ -160,22 +162,22 @@ const CsvImport: React.FC = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16h16V8l-6-4H4z" />
                     </svg>
-                    Import Collection (CSV)
+                    {t('csvImport.title')}
                 </h2>
                 <p className="text-sm text-base-content/70">
-                    Columns: Artist, Album, Format, Year, Release ID, Catalog Number
+                    {t('csvImport.columns')}
                 </p>
                 <p className="text-xs text-base-content/50 mt-1">
-                    Use Release ID for exact Discogs matches. All columns except Artist+Album or Release ID are optional.
+                    {t('csvImport.hint')}
                 </p>
 
                 <div className="mt-3 flex flex-wrap gap-3 items-center">
                     <button className="btn btn-outline btn-sm" onClick={downloadTemplate}>
-                        Download CSV template
+                        {t('csvImport.downloadTemplate')}
                     </button>
                     {!isImporting && (
                         <label className="btn btn-primary btn-sm">
-                            Choose a CSV file
+                            {t('csvImport.chooseFile')}
                             <input
                                 type="file"
                                 accept=".csv,text/csv"
@@ -197,9 +199,9 @@ const CsvImport: React.FC = () => {
                             max={progress.total}
                         ></progress>
                         <div className="flex gap-4 mt-2 text-xs">
-                            <span className="text-success">{progress.success} Success</span>
-                            <span className="text-warning">{progress.skipped} Skipped</span>
-                            <span className="text-error">{progress.failed} Failed</span>
+                            <span className="text-success">{progress.success} {t('csvImport.success')}</span>
+                            <span className="text-warning">{progress.skipped} {t('csvImport.skipped')}</span>
+                            <span className="text-error">{progress.failed} {t('csvImport.failed')}</span>
                         </div>
                     </div>
                 )}
@@ -208,7 +210,7 @@ const CsvImport: React.FC = () => {
                     <div className="mt-4">
                         <div className="flex flex-wrap items-center gap-3">
                             <p className="text-sm">
-                                <strong>Complete!</strong> {importResult.imported} imported, {importResult.skipped} skipped, {importResult.failed} failed
+                                <strong>{t('csvImport.complete')}</strong> {importResult.imported} {t('csvImport.imported')}, {importResult.skipped} {t('csvImport.skipped').toLowerCase()}, {importResult.failed} {t('csvImport.failed').toLowerCase()}
                             </p>
                             <button
                                 className="btn btn-ghost btn-xs"
@@ -222,7 +224,7 @@ const CsvImport: React.FC = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>
                                 )}
-                                Download Log
+                                {t('csvImport.downloadLog')}
                             </button>
                         </div>
                         {importResult.failures.length > 0 && (
@@ -231,9 +233,9 @@ const CsvImport: React.FC = () => {
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Artist</th>
-                                            <th>Album</th>
-                                            <th>Reason</th>
+                                            <th>{t('csvImport.artist')}</th>
+                                            <th>{t('csvImport.album')}</th>
+                                            <th>{t('csvImport.reason')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -256,4 +258,4 @@ const CsvImport: React.FC = () => {
     );
 };
 
-export default CsvImport;
+export default ImportSettings;

@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import AlbumDetailModal, { type AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
+import AlbumDetailModal, { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import ConditionModal from '../components/Modal/ConditionModal';
 
 interface MasterVersion {
     id: number;
@@ -29,9 +32,14 @@ interface AddedAlbumInfo {
     title: string;
 }
 
-const VersionsPage: React.FC = () => {
+interface PreferencesResponse {
+    enableConditionGrading: boolean;
+}
+
+const MasterPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [pageData, setPageData] = useState<VersionsPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [filter, setFilter] = useState<FormatFilter>('all');
@@ -41,28 +49,36 @@ const VersionsPage: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
+    // Condition grading state
+    const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
+    const [showConditionModal, setShowConditionModal] = useState<boolean>(false);
+    const [pendingFormat, setPendingFormat] = useState<FormatDetails | null>(null);
+    const [pendingAlbum, setPendingAlbum] = useState<AlbumDetails | null>(null);
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
     useEffect(() => {
-        const fetchVersions = async () => {
+        const fetchData = async () => {
             if (!masterId) return;
             try {
-                const { data } = await axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, {
-                    withCredentials: true
-                });
-                setPageData(data);
+                const [versionsRes, prefsRes] = await Promise.all([
+                    axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, { withCredentials: true }),
+                    axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+                ]);
+                setPageData(versionsRes.data);
+                setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
             } catch (error) {
                 console.log("Error charging versions on this album: ", error)
-                toastService.error("Error charging versions on this album.");
+                toastService.error(t('versions.errorLoadingVersions'));
                 navigate('/');
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchVersions();
-    }, [masterId, navigate]);
+        fetchData();
+    }, [masterId, navigate, t]);
 
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
@@ -83,23 +99,63 @@ const VersionsPage: React.FC = () => {
             setSelectedAlbum(response.data);
         } catch (err) {
             console.log(err)
-            toastService.error("Error by retrieving data on this version.");
+            toastService.error(t('versions.errorRetrievingData'));
         }
     };
 
-    const handleConfirmAddToCollection = async (format: any) => {
+    const handleFormatSelected = (format: FormatDetails) => {
         if (!selectedAlbum) return;
+
+        if (conditionGradingEnabled) {
+            // Show condition modal before adding
+            setPendingFormat(format);
+            setPendingAlbum(selectedAlbum);
+            setSelectedAlbum(null);
+            setShowConditionModal(true);
+        } else {
+            // Add directly without conditions
+            addToCollection(selectedAlbum, format, null, null);
+            setSelectedAlbum(null);
+        }
+    };
+
+    const handleConditionConfirm = (mediaCondition: string | null, sleeveCondition: string | null) => {
+        setShowConditionModal(false);
+        if (pendingFormat && pendingAlbum) {
+            addToCollection(pendingAlbum, pendingFormat, mediaCondition, sleeveCondition);
+        }
+    };
+
+    const handleConditionSkip = () => {
+        setShowConditionModal(false);
+        if (pendingFormat && pendingAlbum) {
+            addToCollection(pendingAlbum, pendingFormat, null, null);
+        }
+    };
+
+    const addToCollection = async (
+        album: AlbumDetails,
+        format: FormatDetails,
+        mediaCondition: string | null,
+        sleeveCondition: string | null
+    ) => {
         setIsSubmitting(true);
         try {
-            const response = await axios.post('/api/collection', { ...selectedAlbum, format }, { withCredentials: true });
-            toastService.success(`"${selectedAlbum.title}" added to your collection!`);
+            const response = await axios.post('/api/collection', {
+                ...album,
+                format,
+                mediaCondition,
+                sleeveCondition
+            }, { withCredentials: true });
+            toastService.success(t('common.addedSuccess', { title: album.title }));
             setAddedAlbum({
                 id: response.data.item._id,
-                title: selectedAlbum.title
+                title: album.title
             });
-            setSelectedAlbum(null);
+            setPendingFormat(null);
+            setPendingAlbum(null);
         } catch (err: any) {
-            toastService.error(err.response?.data?.message || "An error occured.");
+            toastService.error(err.response?.data?.message || t('app.error'));
         } finally {
             setIsSubmitting(false);
         }
@@ -122,7 +178,7 @@ const VersionsPage: React.FC = () => {
     }
 
     if (!pageData) {
-        return <div className="text-center p-8">No data for this album.</div>
+        return <div className="text-center p-8">{t('versions.noData')}</div>
     }
 
     return (
@@ -134,14 +190,14 @@ const VersionsPage: React.FC = () => {
                         <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-lg shadow-2xl" />
                     )}
                     <h1 className="text-2xl font-bold mt-4">{pageData.masterTitle}</h1>
-                    <p className="text-gray-400">Choose your version.</p>
+                    <p className="text-gray-400">{t('versions.chooseVersion')}</p>
                 </div>
 
                 <div className="flex-1">
                     <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
                         <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-medium mr-1">Filter by:</p>
-                            <button onClick={() => setFilter('all')} className={`btn btn-xs ${filter === 'all' ? 'btn-active btn-neutral' : ''}`}>All</button>
+                            <p className="text-sm font-medium mr-1">{t('versions.filterBy')}</p>
+                            <button onClick={() => setFilter('all')} className={`btn btn-xs ${filter === 'all' ? 'btn-active btn-neutral' : ''}`}>{t('versions.all')}</button>
                             {pageData.formatCounts.CD > 0 && (
                                 <button onClick={() => setFilter('CD')} className={`btn btn-xs ${filter === 'CD' ? 'btn-active btn-neutral' : ''}`}>
                                     CD <div className="badge badge-primary ml-2">{pageData.formatCounts.CD}</div>
@@ -165,7 +221,7 @@ const VersionsPage: React.FC = () => {
                                     value={countryFilter}
                                     onChange={(e) => setCountryFilter(e.target.value)}
                                 >
-                                    <option value="all">All Countries</option>
+                                    <option value="all">{t('versions.allCountries')}</option>
                                     {Object.entries(pageData.countryCounts || {})
                                         .sort(([, a], [, b]) => b - a)
                                         .map(([country, count]) => (
@@ -177,27 +233,29 @@ const VersionsPage: React.FC = () => {
                                 </select>
                             )}
                         </div>
-                        <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline">← Back</button>
+                        <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline gap-2">
+                            <ArrowLeft size={16} /> {t('common.back')}
+                        </button>
                     </div>
 
                     {filteredVersions.length === 0 ? (
                         pageData.versions.length === 0 ? (
                             <div className="text-center py-12">
                                 <div className="text-4xl mb-4">📁</div>
-                                <h3 className="text-lg font-semibold mb-2">No Physical Versions Available</h3>
-                                <p className="text-gray-400">This release only exists in digital format (streaming/download).</p>
-                                <button onClick={() => navigate(-1)} className="btn btn-primary btn-sm mt-4">← Go Back</button>
+                                <h3 className="text-lg font-semibold mb-2">{t('versions.noPhysicalVersions')}</h3>
+                                <p className="text-gray-400">{t('versions.digitalOnly')}</p>
+                                <button onClick={() => navigate(-1)} className="btn btn-primary btn-sm mt-4">{t('versions.goBack')}</button>
                             </div>
                         ) : (
                             <div className="text-center py-12">
                                 <div className="text-4xl mb-4">🔍</div>
-                                <h3 className="text-lg font-semibold mb-2">No Versions Match Your Filters</h3>
-                                <p className="text-gray-400">Try adjusting your format or country filter.</p>
+                                <h3 className="text-lg font-semibold mb-2">{t('versions.noVersionsMatch')}</h3>
+                                <p className="text-gray-400">{t('versions.adjustFilters')}</p>
                                 <button
                                     onClick={() => { setFilter('all'); setCountryFilter('all'); }}
                                     className="btn btn-outline btn-sm mt-4"
                                 >
-                                    Reset Filters
+                                    {t('versions.resetFilters')}
                                 </button>
                             </div>
                         )
@@ -218,7 +276,7 @@ const VersionsPage: React.FC = () => {
 
                                             <div className="text-xs bg-base-100 rounded px-2 py-1.5 flex items-start gap-1.5 w-full" title={version.country}>
                                                 <span className="opacity-70 mt-0.5 flex-shrink-0">🌍</span>
-                                                <span className="font-medium whitespace-normal leading-tight">{version.country || 'Unknown'}</span>
+                                                <span className="font-medium whitespace-normal leading-tight">{version.country || t('versions.unknown')}</span>
                                             </div>
                                         </div>
 
@@ -227,7 +285,7 @@ const VersionsPage: React.FC = () => {
                                                 className="btn btn-primary btn-xs w-full"
                                                 onClick={() => handleShowDetails(version.id)}
                                             >
-                                                Select
+                                                {t('versions.select')}
                                             </button>
                                         </div>
                                     </div>
@@ -241,8 +299,16 @@ const VersionsPage: React.FC = () => {
             <AlbumDetailModal
                 album={selectedAlbum}
                 onClose={() => setSelectedAlbum(null)}
-                onConfirm={handleConfirmAddToCollection}
+                onConfirm={handleFormatSelected}
                 isSubmitting={isSubmitting}
+            />
+
+            {/* Condition Modal */}
+            <ConditionModal
+                isOpen={showConditionModal}
+                albumTitle={pendingAlbum?.title || ''}
+                onSkip={handleConditionSkip}
+                onConfirm={handleConditionConfirm}
             />
 
             {/* Success Modal - Choice after adding */}
@@ -250,27 +316,27 @@ const VersionsPage: React.FC = () => {
                 <dialog className="modal modal-open">
                     <div className="modal-box text-center">
                         <div className="text-5xl mb-4">🎉</div>
-                        <h3 className="font-bold text-xl mb-2">Album Added!</h3>
+                        <h3 className="font-bold text-xl mb-2">{t('common.albumAdded')}</h3>
                         <p className="text-base-content/70 mb-6">
-                            "{addedAlbum.title}" has been added to your collection.
+                            {t('common.addedSuccess', { title: addedAlbum.title })}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <button
                                 className="btn btn-primary"
                                 onClick={handleGoToAlbum}
                             >
-                                View Album
+                                {t('common.viewAlbum')}
                             </button>
                             <button
                                 className="btn btn-outline"
                                 onClick={handleContinueSearching}
                             >
-                                Continue Searching
+                                {t('common.continueSearching')}
                             </button>
                         </div>
                     </div>
                     <form method="dialog" className="modal-backdrop">
-                        <button onClick={() => setAddedAlbum(null)}>close</button>
+                        <button onClick={() => setAddedAlbum(null)}>{t('common.close')}</button>
                     </form>
                 </dialog>
             )}
@@ -279,4 +345,5 @@ const VersionsPage: React.FC = () => {
     );
 };
 
-export default VersionsPage;
+export default MasterPage;
+

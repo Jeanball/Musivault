@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import type { Express } from 'express';
 import Album, { IAlbum } from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
-import { csvImportService } from '../services/csv-import.service';
+import { csvImportService } from '../services/import.service';
 
 // ===== Types =====
 
@@ -29,6 +29,8 @@ interface AddToCollectionBody {
   styles?: string[];
   tracklist?: TrackInput[];
   labels?: LabelInput[];
+  mediaCondition?: string;
+  sleeveCondition?: string;
 }
 
 // ===== CSV Import =====
@@ -237,7 +239,7 @@ export async function addToCollection(req: Request, res: Response) {
       return;
     }
 
-    const { discogsId, title, artist, year, thumb, cover_image, format, styles, tracklist, labels } = req.body as AddToCollectionBody;
+    const { discogsId, title, artist, year, thumb, cover_image, format, styles, tracklist, labels, mediaCondition, sleeveCondition } = req.body as AddToCollectionBody;
 
     // Find or create album
     let album = await Album.findOne({ discogsId });
@@ -273,6 +275,8 @@ export async function addToCollection(req: Request, res: Response) {
       user: req.user._id,
       album: album._id,
       format: format,
+      mediaCondition: mediaCondition || null,
+      sleeveCondition: sleeveCondition || null,
     });
     await newItem.save();
 
@@ -316,16 +320,33 @@ export async function updateCollectionItem(req: Request, res: Response) {
     }
 
     const { itemId } = req.params;
-    const { format } = req.body;
+    const { format, mediaCondition, sleeveCondition } = req.body;
 
-    if (!format || !format.name) {
-      res.status(400).json({ message: "Format name is required" });
+    // Build update object dynamically
+    const updateFields: Record<string, unknown> = {};
+
+    if (format?.name) {
+      updateFields["format.name"] = format.name;
+      updateFields["format.text"] = format.name;
+    }
+
+    if (mediaCondition !== undefined) {
+      updateFields["mediaCondition"] = mediaCondition;
+    }
+
+    if (sleeveCondition !== undefined) {
+      updateFields["sleeveCondition"] = sleeveCondition;
+    }
+
+    // Require at least one field to update
+    if (Object.keys(updateFields).length === 0) {
+      res.status(400).json({ message: "No valid fields to update" });
       return;
     }
 
     const updatedItem = await CollectionItem.findOneAndUpdate(
       { _id: itemId, user: req.user._id },
-      { $set: { "format.name": format.name, "format.text": format.name } },
+      { $set: updateFields },
       { new: true }
     );
 
@@ -468,6 +489,75 @@ export async function getStyles(req: Request, res: Response) {
     res.status(200).json(styles);
   } catch (error) {
     console.error('Error fetching styles:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+// ===== Manual Album Entry =====
+
+interface ManualAlbumBody {
+  title: string;
+  artist: string;
+  year?: string;
+  format: string;
+}
+
+export async function addManualAlbum(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { title, artist, year, format } = req.body as ManualAlbumBody;
+
+    // Validate required fields
+    if (!title || !artist || !format) {
+      res.status(400).json({ message: 'Title, artist, and format are required' });
+      return;
+    }
+
+    // Handle cover image if uploaded
+    let coverImagePath = '';
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (file) {
+      // The file path is relative to the uploads directory
+      coverImagePath = `/uploads/covers/${file.filename}`;
+    }
+
+    // Create manual album
+    const album = new Album({
+      isManual: true,
+      title: title.trim(),
+      artist: artist.trim(),
+      year: year?.trim() || '',
+      thumb: coverImagePath,
+      cover_image: coverImagePath,
+      styles: [],
+      tracklist: [],
+      labels: []
+    });
+    await album.save();
+
+    // Create collection item
+    const newItem = new CollectionItem({
+      user: req.user._id,
+      album: album._id,
+      format: {
+        name: format,
+        descriptions: [],
+        text: format
+      }
+    });
+    await newItem.save();
+
+    res.status(201).json({
+      message: 'Manual album added to your collection!',
+      item: newItem,
+      album: album
+    });
+  } catch (error) {
+    console.error('Error adding manual album:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

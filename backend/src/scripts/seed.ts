@@ -15,7 +15,7 @@ export async function seedAdminUser(): Promise<void> {
 
     // Check if admin credentials are provided
     if (!adminEmail || !adminUsername || !adminPassword) {
-        console.log('ℹ️  Admin seed: No ADMIN_* env vars set, skipping seed.');
+        console.log('ℹ️  Admin seed: No Admin environment variables set, skipping seed.');
         return;
     }
 

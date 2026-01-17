@@ -29,6 +29,8 @@ export interface CollectionItem {
     _id: string;
     album: Album;
     format: FormatDetails;
+    mediaCondition?: string | null;
+    sleeveCondition?: string | null;
     addedAt: string;
 }
 

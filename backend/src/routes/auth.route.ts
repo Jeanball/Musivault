@@ -1,8 +1,8 @@
+
 import { Router } from 'express';
-import { loginUser, logoutUser, signupUser } from '../controllers/auth.controller';
+import { loginUser, logoutUser, signupUser, userVerification } from '../controllers/auth.controller';
 import { initiateOIDCLogin, handleOIDCCallback, getOIDCStatus } from '../controllers/oidc.controller';
-import { userVerification } from '../middlewares/AuthMiddleware';
-import protectRoute from '../middlewares/protectRoute';
+import protectRoute from '../middlewares/protectRoute.middleware';
 
 const router = Router();
 

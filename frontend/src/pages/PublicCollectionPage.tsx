@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import { Lock, ArrowLeft } from 'lucide-react';
 import CollectionContent from '../components/Collection/CollectionContent';
-import Footer from '../components/Footer';
-import type { CollectionItem } from '../types/collection';
+import type { CollectionItem } from '../types/collection.types';
 
 interface PublicCollectionResponse {
     username: string;
@@ -14,6 +15,7 @@ interface PublicCollectionResponse {
 const PublicCollectionPage: React.FC = () => {
     const { shareId } = useParams<{ shareId: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [collection, setCollection] = useState<CollectionItem[]>([]);
     const [username, setUsername] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
@@ -29,9 +31,9 @@ const PublicCollectionPage: React.FC = () => {
                 setUsername(response.data.username);
             } catch (err: any) {
                 if (err.response?.status === 404) {
-                    setError('Collection not found or is private');
+                    setError(t('publicCollection.notFound'));
                 } else {
-                    setError('Failed to load collection');
+                    setError(t('publicCollection.failedLoad'));
                 }
             } finally {
                 setIsLoading(false);
@@ -43,15 +45,17 @@ const PublicCollectionPage: React.FC = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-base-100 p-8" data-theme="dark">
+            <div className="flex flex-col items-center justify-center p-8">
                 <div className="text-center">
-                    <h1 className="text-4xl font-bold mb-4">🔒</h1>
+                    <div className="flex justify-center mb-4">
+                        <Lock size={48} />
+                    </div>
                     <h2 className="text-2xl font-bold mb-2">{error}</h2>
                     <p className="text-base-content/70 mb-6">
-                        This collection may be private or the link may be invalid.
+                        {t('publicCollection.mayBePrivate')}
                     </p>
-                    <Link to="/" className="btn btn-primary">
-                        Go to Homepage
+                    <Link to="/app" className="btn btn-primary">
+                        {t('common.goBack')}
                     </Link>
                 </div>
             </div>
@@ -59,7 +63,7 @@ const PublicCollectionPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-base-100 p-2 md:p-4" data-theme="dark">
+        <div className="p-2 md:p-4">
             {/* Public Collection Header */}
             {!isLoading && (
                 <div className="mb-6">
@@ -69,17 +73,12 @@ const PublicCollectionPage: React.FC = () => {
                             className="btn btn-ghost btn-circle flex-shrink-0"
                             title="Go Back"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
+                            <ArrowLeft className="h-6 w-6" />
                         </button>
                         <div className="text-center flex-1">
                             <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                                {username}'s Collection
+                                {t('publicCollection.collectionOf', { username })}
                             </h1>
-                            <p className="text-base-content/60">
-                                Powered by <Link to="/" className="link link-primary">Musivault</Link>
-                            </p>
                         </div>
                         {/* Spacer for visual balance */}
                         <div className="w-12 flex-shrink-0"></div>
@@ -92,15 +91,9 @@ const PublicCollectionPage: React.FC = () => {
                 isLoading={isLoading}
                 readOnly={true}
             />
-
-            {/* Footer */}
-            {!isLoading && (
-                <div className="mt-12">
-                    <Footer />
-                </div>
-            )}
         </div>
     );
 };
 
 export default PublicCollectionPage;
+

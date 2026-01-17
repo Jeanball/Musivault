@@ -127,8 +127,10 @@ function formatMissingFields(missing: MissingFields): string {
     return fields.join(', ');
 }
 
-async function migrateAlbumData() {
-    await connectDB();
+export async function migrateAlbumData(isStandalone = false) {
+    if (isStandalone) {
+        await connectDB();
+    }
 
     try {
         // ==================== PHASE 1: ALBUM DATA ====================
@@ -174,7 +176,7 @@ async function migrateAlbumData() {
             console.log(`  Missing: ${missingStr}`);
 
             try {
-                const data = await fetchWithRetry(album.discogsId);
+                const data = await fetchWithRetry(album.discogsId!);
                 let updated = false;
 
                 // Update styles if missing
@@ -335,12 +337,16 @@ async function migrateAlbumData() {
 
     } catch (error) {
         console.error('Migration failed:', error);
+        if (isStandalone) process.exit(1);
     } finally {
-        await mongoose.disconnect();
-        console.log('\nDisconnected from MongoDB');
-        process.exit(0);
+        if (isStandalone) {
+            await mongoose.disconnect();
+            console.log('\nDisconnected from MongoDB');
+            process.exit(0);
+        }
     }
 }
 
-migrateAlbumData();
-
+if (require.main === module) {
+    migrateAlbumData(true);
+}

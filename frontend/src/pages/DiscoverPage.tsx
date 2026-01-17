@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { Users, Music, Mic, Lock, Calendar, Ticket, ChevronRight, AlertCircle } from 'lucide-react';
 
 interface PublicUser {
     username: string;
@@ -10,6 +12,7 @@ interface PublicUser {
 }
 
 const DiscoverPage: React.FC = () => {
+    const { t } = useTranslation();
     const [users, setUsers] = useState<PublicUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -25,7 +28,7 @@ const DiscoverPage: React.FC = () => {
                 setUsers(response.data);
             } catch (err) {
                 console.error('Failed to fetch public users:', err);
-                setError('Failed to load public collections.');
+                setError(t('discover.failedLoadCollections'));
             } finally {
                 setIsLoading(false);
             }
@@ -38,15 +41,18 @@ const DiscoverPage: React.FC = () => {
         <div className="max-w-6xl mx-auto space-y-12">
             {/* Page Header */}
             <div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">Discover</h1>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2">{t('discover.title')}</h1>
                 <p className="text-base-content/70">
-                    Explore music from your community and beyond.
+                    {t('discover.subtitle')}
                 </p>
             </div>
 
             {/* Section 1: Public Collections */}
             <section>
-                <h2 className="text-2xl font-bold mb-4">👥 Public Collections</h2>
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <Users size={24} />
+                    {t('discover.publicCollections')}
+                </h2>
 
                 {isLoading ? (
                     <div className="flex justify-center items-center h-32">
@@ -54,24 +60,26 @@ const DiscoverPage: React.FC = () => {
                     </div>
                 ) : error ? (
                     <div className="alert alert-error">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <AlertCircle className="shrink-0 h-6 w-6" />
                         <span>{error}</span>
                     </div>
                 ) : users.length === 0 ? (
                     <div className="bg-base-200 rounded-xl p-8 text-center border-2 border-dashed border-base-300">
-                        <div className="text-5xl mb-4">🔒</div>
-                        <h3 className="text-lg font-semibold mb-2">No public collections yet</h3>
+                        <div className="flex justify-center mb-4">
+                            <Lock size={48} />
+                        </div>
+                        <h3 className="text-lg font-semibold mb-2">{t('discover.noPublicCollections')}</h3>
                         <p className="text-base-content/60 mb-4">
-                            Be the first! Enable public sharing in your Settings.
+                            {t('discover.beTheFirst')}
                         </p>
-                        <Link to="/app/settings" className="btn btn-primary btn-sm">Go to Settings</Link>
+                        <Link to="/app/settings" className="btn btn-primary btn-sm">{t('discover.goToSettings')}</Link>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {users.map((user) => (
                             <Link
                                 key={user.publicShareId}
-                                to={`/collection/${user.publicShareId}`}
+                                to={`/app/shared/${user.publicShareId}`}
                                 className="card bg-base-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-base-300"
                             >
                                 <div className="card-body p-4">
@@ -86,12 +94,10 @@ const DiscoverPage: React.FC = () => {
                                         <div className="flex-1 min-w-0">
                                             <h3 className="font-semibold truncate">{user.username}</h3>
                                             <p className="text-sm text-base-content/60">
-                                                {user.albumCount} {user.albumCount === 1 ? 'album' : 'albums'}
+                                                {user.albumCount} {user.albumCount === 1 ? t('common.album') : t('common.albums')}
                                             </p>
                                         </div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                        </svg>
+                                        <ChevronRight className="h-5 w-5 text-base-content/40" />
                                     </div>
                                 </div>
                             </Link>
@@ -103,15 +109,19 @@ const DiscoverPage: React.FC = () => {
             {/* Section 2: Upcoming Releases - Coming Soon */}
             <section>
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <h2 className="text-2xl font-bold">🎵 Upcoming Releases</h2>
-                    <span className="badge badge-primary badge-outline whitespace-nowrap">Coming Soon</span>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <Music size={24} />
+                        {t('discover.upcomingReleases')}
+                    </h2>
+                    <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
                 </div>
                 <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
-                    <div className="text-5xl mb-4">📅</div>
-                    <h3 className="text-lg font-semibold mb-2">New music from your favorite artists</h3>
+                    <div className="flex justify-center mb-4">
+                        <Calendar size={48} />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">{t('discover.newMusicFromArtists')}</h3>
                     <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
-                        Get notified about upcoming album releases from artists in your collection.
-                        We're working on integrating release calendars to keep you updated!
+                        {t('discover.upcomingReleasesDescription')}
                     </p>
                 </div>
             </section>
@@ -119,15 +129,19 @@ const DiscoverPage: React.FC = () => {
             {/* Section 3: Shows Near You - Coming Soon */}
             <section>
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <h2 className="text-2xl font-bold">🎤 Shows Near You</h2>
-                    <span className="badge badge-primary badge-outline whitespace-nowrap">Coming Soon</span>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <Mic size={24} />
+                        {t('discover.showsNearYou')}
+                    </h2>
+                    <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
                 </div>
                 <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
-                    <div className="text-5xl mb-4">🎫</div>
-                    <h3 className="text-lg font-semibold mb-2">Live concerts in your area</h3>
+                    <div className="flex justify-center mb-4">
+                        <Ticket size={48} />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">{t('discover.liveConcerts')}</h3>
                     <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
-                        Discover live shows and concerts from artists you love.
-                        We're integrating with Bandsintown to bring you personalized event recommendations!
+                        {t('discover.showsDescription')}
                     </p>
                 </div>
             </section>

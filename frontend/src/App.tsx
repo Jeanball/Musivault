@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import CollectionPage from './pages/CollectionPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
-import VersionsPage from './pages/VersionsPage';
+import MasterPage from './pages/MasterPage';
 import ReleasePage from './pages/ReleasePage';
 import ArtistAlbumsPage from './pages/ArtistAlbumsPage';
 import SettingsPage from './pages/SettingsPage';
@@ -48,20 +48,18 @@ const App = () => {
               <Route path='/signup' element={<SignupPage />} />
             </Route>
 
-            {/* Public Collection Route - No Auth Required */}
-            <Route path="/collection/:shareId" element={<PublicCollectionPage />} />
-
             {/* Protected Routes - User Theme */}
             <Route path="/app" element={<PrivateLayout />}>
               <Route index element={<HomePage />} />
               <Route path="collection" element={<CollectionPage />} />
               <Route path="album/:itemId" element={<AlbumDetailPage />} />
-              <Route path="master/:masterId" element={<VersionsPage />} />
+              <Route path="master/:masterId" element={<MasterPage />} />
               <Route path="release/:releaseId" element={<ReleasePage />} />
               <Route path="artist/:artistId" element={<ArtistAlbumsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin" element={<AdminPage />} />
               <Route path="discover" element={<DiscoverPage />} />
+              <Route path="shared/:shareId" element={<PublicCollectionPage />} />
             </Route>
           </Routes>
         </div>
