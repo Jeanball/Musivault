@@ -5,6 +5,53 @@ All notable changes to Musivault will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+---
+
+## [1.9.0] - 2026-01-17
+
+### Added
+- feat: Add develop branch triggers, prerelease version detection, refined Docker image tagging, and build summary.
+- feat: Allow dynamic image tagging for backend and frontend services in docker-compose.
+- feat: Display application release channel in the footer by exposing it via the version API.
+- feat: display release channel alongside version number in settings page
+- feat: Add wide screen mode user preference with UI toggle and backend support to adjust content width.
+- ci: Remove linux/arm64 from default Docker build platforms.
+- feat: add internationalization (i18n) support with initial DE, EN, and FR translations and instructions.
+- feat: introduce multi-language support and add a language selector in settings
+- feat: implement internationalization across various frontend pages and components by replacing hardcoded strings with translation keys and updating locale files.
+- feat: Add user language preference setting and persistence across frontend and backend.
+- feat: Add authentication check and redirection to PublicLayout, displaying a loading spinner during verification.
+- style: Enhance UI with Lucide icons for navigation and 'Made with' text, and streamline locale strings.
+- feat: Implement user profile management including display name and email, and refactor settings page with tabbed navigation.
+- feat: Add condition grading for collection items including user preferences and dedicated UI.
+- feat: add support for importing media and sleeve conditions and update the CSV template
+- feat: Add Discogs lookup by ID and catalog number with new UI and API endpoint.
+- feat: Implement manual album creation with cover upload, persistent storage, and a centralized image URL utility.
+- feat: Refactor database migration and cleanup scripts for modularity and integrate them into the server.
+- feat: Implement secure entrypoint for permission management and switch backend volumes to bind mounts.
+- shareId` and apply minor UI adjustments.
+- feat: Improve mobile search UI by replacing tabs with a dropdown and using shorter input placeholders, with corresponding localization updates.
+- feat: Allow customization of OIDC login/signup button text by dynamically displaying the provider name from environment variables.
+- feat: update README with new features, OIDC environment variables, and refined setup instructions.
+
+### Changed
+- refactor: Centralize Discogs API logic, types, and utilities into dedicated files, consolidate search endpoints, and update frontend usage.
+- refactor: replace inline SVG icons with lucide-react components across various UI elements.
+- refactor: split settings components, refactor authentication, middleware, file structure and convention name
+- refactor: Update type import paths and add Vite build chunking configuration.
+- refactor: Replace VersionsPage with MasterPage for the master route.
+- refactor: Add non-null assertion for album discogsId in migration script.
+- refactor: simplify log directory path resolution and reuse Album model in migration script.
+- refactor: update 'or' divider translation key to `common.or` in login and signup pages
+
+### Fixed
+- fix: resolve login redirection and headers already sent error
+
+---
+
+
 ## [1.8.0] - 2025-12-31
 
 ### Added
@@ -236,7 +283,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/Jeanball/Musivault/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/Jeanball/Musivault/compare/v1.7.2...v1.8.0
 [1.7.2]: https://github.com/Jeanball/Musivault/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/Jeanball/Musivault/compare/v1.7.0...v1.7.1
