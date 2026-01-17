@@ -50,7 +50,7 @@ const CollectionSettings: React.FC = () => {
 
     const copyShareLink = () => {
         if (publicShareId) {
-            const shareUrl = `${window.location.origin}/collection/${publicShareId}`;
+            const shareUrl = `${window.location.origin}/app/shared/${publicShareId}`;
             navigator.clipboard.writeText(shareUrl);
             toastService.success(t('settings.linkCopied'));
         }
@@ -109,7 +109,7 @@ const CollectionSettings: React.FC = () => {
                         <div className="flex gap-2">
                             <input
                                 type="text"
-                                value={`${window.location.origin}/collection/${publicShareId}`}
+                                value={`${window.location.origin}/app/shared/${publicShareId}`}
                                 readOnly
                                 className="input input-bordered input-sm flex-1 font-mono text-xs"
                             />

@@ -147,7 +147,7 @@ const AdminPage: React.FC = () => {
 
     // Copy public collection link
     const handleCopyPublicLink = (publicShareId: string, username: string) => {
-        const url = `${window.location.origin}/collection/${publicShareId}`;
+        const url = `${window.location.origin}/app/shared/${publicShareId}`;
         navigator.clipboard.writeText(url).then(() => {
             toastService.success(t('admin.publicLinkCopied', { username }));
         }).catch(() => {

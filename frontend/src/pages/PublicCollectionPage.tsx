@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Lock, ArrowLeft } from 'lucide-react';
 import CollectionContent from '../components/Collection/CollectionContent';
-import Footer from '../components/Navigation/Footer';
 import type { CollectionItem } from '../types/collection.types';
 
 interface PublicCollectionResponse {
@@ -46,7 +45,7 @@ const PublicCollectionPage: React.FC = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-base-100 p-8" data-theme="dark">
+            <div className="flex flex-col items-center justify-center p-8">
                 <div className="text-center">
                     <div className="flex justify-center mb-4">
                         <Lock size={48} />
@@ -55,8 +54,8 @@ const PublicCollectionPage: React.FC = () => {
                     <p className="text-base-content/70 mb-6">
                         {t('publicCollection.mayBePrivate')}
                     </p>
-                    <Link to="/" className="btn btn-primary">
-                        {t('publicCollection.goToHomepage')}
+                    <Link to="/app" className="btn btn-primary">
+                        {t('common.goBack')}
                     </Link>
                 </div>
             </div>
@@ -64,7 +63,7 @@ const PublicCollectionPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-base-100 p-2 md:p-4" data-theme="dark">
+        <div className="p-2 md:p-4">
             {/* Public Collection Header */}
             {!isLoading && (
                 <div className="mb-6">
@@ -78,7 +77,7 @@ const PublicCollectionPage: React.FC = () => {
                         </button>
                         <div className="text-center flex-1">
                             <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                                {username}'s Collection
+                                {t('publicCollection.collectionOf', { username })}
                             </h1>
                         </div>
                         {/* Spacer for visual balance */}
@@ -92,15 +91,9 @@ const PublicCollectionPage: React.FC = () => {
                 isLoading={isLoading}
                 readOnly={true}
             />
-
-            {/* Footer */}
-            {!isLoading && (
-                <div className="mt-12">
-                    <Footer />
-                </div>
-            )}
         </div>
     );
 };
 
 export default PublicCollectionPage;
+

@@ -48,9 +48,6 @@ const App = () => {
               <Route path='/signup' element={<SignupPage />} />
             </Route>
 
-            {/* Public Collection Route - No Auth Required */}
-            <Route path="/collection/:shareId" element={<PublicCollectionPage />} />
-
             {/* Protected Routes - User Theme */}
             <Route path="/app" element={<PrivateLayout />}>
               <Route index element={<HomePage />} />
@@ -62,6 +59,7 @@ const App = () => {
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin" element={<AdminPage />} />
               <Route path="discover" element={<DiscoverPage />} />
+              <Route path="shared/:shareId" element={<PublicCollectionPage />} />
             </Route>
           </Routes>
         </div>

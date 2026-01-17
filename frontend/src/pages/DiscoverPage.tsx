@@ -79,7 +79,7 @@ const DiscoverPage: React.FC = () => {
                         {users.map((user) => (
                             <Link
                                 key={user.publicShareId}
-                                to={`/collection/${user.publicShareId}`}
+                                to={`/app/shared/${user.publicShareId}`}
                                 className="card bg-base-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-base-300"
                             >
                                 <div className="card-body p-4">
