@@ -24,12 +24,16 @@ const SignupPage: React.FC = () => {
     const { t } = useTranslation();
     const [inputValue, setInputValue] = useState<SignupFormState>({ email: "", password: "", username: "" });
     const [oidcEnabled, setOidcEnabled] = useState(false);
+    const [oidcProviderName, setOidcProviderName] = useState('SSO');
     const { email, password, username } = inputValue;
 
     useEffect(() => {
-        // Check if OIDC is enabled
-        axios.get<{ enabled: boolean }>(`${API_BASE_URL}/api/auth/oidc/status`)
-            .then(res => setOidcEnabled(res.data.enabled))
+        // Check if OIDC is enabled and get provider name
+        axios.get<{ enabled: boolean; providerName: string }>(`${API_BASE_URL}/api/auth/oidc/status`)
+            .then(res => {
+                setOidcEnabled(res.data.enabled);
+                setOidcProviderName(res.data.providerName || 'SSO');
+            })
             .catch(() => setOidcEnabled(false));
     }, []);
 
@@ -146,7 +150,7 @@ const SignupPage: React.FC = () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                 </svg>
-                                {t('auth.signupWithSSO')}
+                                {t('auth.signupWith', { provider: oidcProviderName })}
                             </button>
                         </>
                     )}
