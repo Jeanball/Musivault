@@ -25,7 +25,7 @@
 - **Collection Sharing** - Share your collection via public links with optional password protection.
 - **Smart Insights** - View collection statistics, format distribution, and top artists.
 - **Advanced Filtering** - Sort and filter by format, decade, date added, and more.
-- **Condition Grading** - Track the media and sleeve condition of your albums.
+- **Condition Grading** - Track the media and sleeve condition of your albums. **(You need to opt-in in settings to use this feature)**
 - **ID Lookup** - Quickly find releases by Discogs ID or Barcode.
 - **Responsive Design** - Optimized for desktop, tablet, and mobile usage.
 - **Dark/Light Mode** - Toggle between aesthetic themes.
