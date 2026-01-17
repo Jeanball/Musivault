@@ -22,6 +22,7 @@
 - **OIDC SSO Support** - Enterprise-ready authentication with OpenID Connect (e.g., Authentik, Keycloak).
 - **PWA Ready** - Installable on mobile and desktop devices with offline capabilities.
 - **Multi-user Support** - Secure private collections for multiple users.
+- **Multi-languages** - Support internationalization (i18n) with initial translations for English, German (DE), and French (FR), along with a language selector in settings. This feature is back by [Weblate](https://hosted.weblate.org/projects/musivault/).
 - **Collection Sharing** - Share your collection via public links with optional password protection.
 - **Smart Insights** - View collection statistics, format distribution, and top artists.
 - **Advanced Filtering** - Sort and filter by format, decade, date added, and more.
