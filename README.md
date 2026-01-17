@@ -16,19 +16,24 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- 🎵 **Discogs Integration** - Search and add albums using the Discogs database
-- 📊 **Smart Insights** - Collection statistics, format distribution, and top artists
-- 🔍 **Advanced Filtering** - Filter by format, decade, or date added
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
-- 🌓 **Dark/Light Mode** - Toggle between themes
-- 👥 **Multi-user Support** - Each user has their own private collection
-- 🔐 **Admin Dashboard** - Manage users with an intuitive admin panel
-- 📦 **CSV Import** - Import from Discogs exports
-- 🐳 **Docker Ready** - Easy deployment with Docker Compose
+- **Discogs Integration** - Search and add albums using the Discogs database.
+- **OIDC SSO Support** - Enterprise-ready authentication with OpenID Connect (e.g., Authentik, Keycloak).
+- **PWA Ready** - Installable on mobile and desktop devices with offline capabilities.
+- **Multi-user Support** - Secure private collections for multiple users.
+- **Collection Sharing** - Share your collection via public links with optional password protection.
+- **Smart Insights** - View collection statistics, format distribution, and top artists.
+- **Advanced Filtering** - Sort and filter by format, decade, date added, and more.
+- **Condition Grading** - Track the media and sleeve condition of your albums.
+- **Random Picker** - Shuffle your collection to help decide what to listen to next.
+- **ID Lookup** - Quickly find releases by Discogs ID or Barcode.
+- **Responsive Design** - Optimized for desktop, tablet, and mobile usage.
+- **Dark/Light Mode** - Toggle between aesthetic themes.
+- **Admin Dashboard** - Manage users and settings.
+- **Docker Ready** - Simple deployment using Docker Compose.
 
-## 📸 Screenshots
+## Screenshots
 
 <p align="center">
   <img src="docs/screenshots/collection-dashboard.png" alt="Collection Dashboard" width="800">
@@ -65,7 +70,7 @@
   <br><em>Public Collection - Share your collection with others</em>
 </p>
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -81,7 +86,7 @@ cd musivault
 
 # Configure environment
 cp .env.example .env
-# Edit .env with your SESSION_SECRET, DISCOGS_KEY, and DISCOGS_SECRET
+# Edit .env with your configuration
 
 # Start the application
 docker compose pull
@@ -92,20 +97,29 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `SESSION_SECRET` | Session encryption key | ✅ |
-| `DISCOGS_KEY` | Discogs API consumer key | ✅ |
-| `DISCOGS_SECRET` | Discogs API consumer secret | ✅ |
-| `PORT` | Application port (default: 3000) | ❌ |
-| `MONGO_URI` | MongoDB connection string | ❌ |
-| `ADMIN_EMAIL/USERNAME/PASSWORD` | Initial admin user | ❌ |
-| `BACKEND_HOST` | Backend hostname for nginx proxy (default: musivault-backend) | ❌ |
-| `BACKEND_PORT` | Backend port for nginx proxy (default: 5000) | ❌ |
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `SESSION_SECRET` | Session encryption key | - | Yes |
+| `DISCOGS_KEY` | Discogs API consumer key | - | Yes |
+| `DISCOGS_SECRET` | Discogs API consumer secret | - | Yes |
+| `MONGO_URI` | MongoDB connection string | mongodb://mongodb:27017/musivault | No |
+| `PORT` | Application port | 3000 | No |
+| `JWT_SECRET` | JWT signing secret | ${SESSION_SECRET} | No |
+| `ADMIN_EMAIL` | Initial admin email | - | No |
+| `ADMIN_USERNAME` | Initial admin username | - | No |
+| `ADMIN_PASSWORD` | Initial admin password | - | No |
+| `OIDC_ISSUER` | OIDC Issuer URL | - | No |
+| `OIDC_CLIENT_ID` | OIDC Client ID | - | No |
+| `OIDC_CLIENT_SECRET` | OIDC Client Secret | - | No |
+| `OIDC_REDIRECT_URI` | OIDC Redirect URI | - | No |
+| `OIDC_PROVIDER_NAME` | Name of the SSO provider | SSO | No |
+| `FRONTEND_URL` | URL of the frontend (for CORS/Auth) | - | No |
+| `IMAGE_TAG` | Docker image tag to use | latest | No |
+| `ENABLE_BACKGROUND_MIGRATION` | Run heavy DB migrations in background | false | No |
+| `BACKEND_HOST` | Backend hostname for Nginx | musivault-backend | No |
+| `BACKEND_PORT` | Backend port for Nginx | 5000 | No |
 
-Generate a session secret: `openssl rand -base64 32`
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Frontend | Backend | Infrastructure |
 |----------|---------|----------------|
@@ -114,7 +128,7 @@ Generate a session secret: `openssl rand -base64 32`
 | Vite | JWT Authentication | GitHub Actions |
 | TailwindCSS + DaisyUI | | |
 
-## 💻 Development
+## Development
 
 ```bash
 # Install dependencies
@@ -131,7 +145,7 @@ Or with Docker:
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-## 📦 Docker Images
+## Docker Images
 
 Pre-built images are available on GitHub Container Registry:
 
@@ -140,7 +154,7 @@ ghcr.io/jeanball/musivault/backend:latest
 ghcr.io/jeanball/musivault/frontend:latest
 ```
 
-## 🔧 Management
+## Management
 
 ```bash
 docker compose logs -f          # View logs
@@ -149,7 +163,7 @@ docker compose down             # Stop application
 docker compose pull && up -d    # Update to latest
 ```
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -157,10 +171,6 @@ docker compose pull && up -d    # Update to latest
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">Made with ❤️ for music collectors</p>
