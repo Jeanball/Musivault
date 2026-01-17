@@ -49,6 +49,9 @@ const SearchBar: React.FC = () => {
     const [lookupSearched, setLookupSearched] = useState<boolean>(false);
     const [lookupType, setLookupType] = useState<'discogsId' | 'catno'>('discogsId');
 
+    // Mobile detection for shorter placeholders
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
     const navigate = useNavigate();
 
     // Barcode scanner state
@@ -58,6 +61,13 @@ const SearchBar: React.FC = () => {
     const [isAddingFromBarcode, setIsAddingFromBarcode] = useState(false);
 
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+    // Listen for window resize to update isMobile
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         if (debouncedSearchQuery.length > 2) {
@@ -243,9 +253,21 @@ const SearchBar: React.FC = () => {
 
     return (
         <div className="w-full max-w-6xl mx-auto">
-            {/* Search Mode Tabs - Centered */}
+            {/* Search Mode - Dropdown on Mobile, Tabs on Desktop */}
             <div className="flex justify-center mb-6">
-                <div className="tabs tabs-boxed">
+                {/* Mobile: Dropdown */}
+                <select
+                    className="select select-bordered w-full max-w-xs lg:hidden"
+                    value={searchMode}
+                    onChange={(e) => setSearchMode(e.target.value as SearchMode)}
+                >
+                    <option value="albumArtist">{t('search.modeAlbumArtist')}</option>
+                    <option value="idLookup">{t('search.modeIdLookup')}</option>
+                    <option value="manual">{t('search.modeManual')}</option>
+                </select>
+
+                {/* Desktop: Tabs */}
+                <div className="tabs tabs-boxed hidden lg:flex">
                     <button
                         className={`tab ${searchMode === 'albumArtist' ? 'tab-active' : ''}`}
                         onClick={() => setSearchMode('albumArtist')}
@@ -277,7 +299,7 @@ const SearchBar: React.FC = () => {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder={t('search.placeholder')}
+                                placeholder={isMobile ? t('search.placeholderShort') : t('search.placeholder')}
                                 className="input input-bordered w-full pr-10"
                                 autoFocus
                             />
@@ -408,7 +430,9 @@ const SearchBar: React.FC = () => {
                                 value={lookupQuery}
                                 onChange={(e) => setLookupQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
-                                placeholder={lookupType === 'discogsId' ? t('search.placeholderDiscogsId') : t('search.placeholderCatno')}
+                                placeholder={lookupType === 'discogsId'
+                                    ? (isMobile ? t('search.placeholderDiscogsIdShort') : t('search.placeholderDiscogsId'))
+                                    : (isMobile ? t('search.placeholderCatnoShort') : t('search.placeholderCatno'))}
                                 className="input input-bordered w-full"
                                 autoFocus
                             />

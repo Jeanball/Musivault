@@ -238,6 +238,7 @@
     },
     "search": {
         "placeholder": "Rechercher des artistes ou des albums...",
+        "placeholderShort": "Rechercher...",
         "artists": "Artistes",
         "resetSearch": "Réinitialiser la recherche",
         "scanBarcode": "Scanner un code-barres",
@@ -252,7 +253,9 @@
         "lookupTypeDiscogsId": "ID Discogs",
         "lookupTypeCatno": "Numéro de catalogue",
         "placeholderDiscogsId": "Entrez l'ID Discogs (ex: 4679783)...",
+        "placeholderDiscogsIdShort": "ID (ex: 4679783)...",
         "placeholderCatno": "Entrez le numéro de catalogue (ex: CAD 0006)...",
+        "placeholderCatnoShort": "Catalogue (ex: CAD 0006)...",
         "find": "Trouver",
         "results": "Résultats",
         "noLookupResult": "Aucune sortie trouvée pour cette référence."
