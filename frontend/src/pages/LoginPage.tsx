@@ -120,7 +120,7 @@ const LoginPage: React.FC = () => {
 
                         {oidcEnabled && (
                             <>
-                                <div className="divider">{t('auth.or')}</div>
+                                <div className="divider">{t('common.or')}</div>
                                 <button
                                     type="button"
                                     onClick={handleSSOLogin}
