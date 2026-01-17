@@ -26,7 +26,6 @@
 - **Smart Insights** - View collection statistics, format distribution, and top artists.
 - **Advanced Filtering** - Sort and filter by format, decade, date added, and more.
 - **Condition Grading** - Track the media and sleeve condition of your albums.
-- **Random Picker** - Shuffle your collection to help decide what to listen to next.
 - **ID Lookup** - Quickly find releases by Discogs ID or Barcode.
 - **Responsive Design** - Optimized for desktop, tablet, and mobile usage.
 - **Dark/Light Mode** - Toggle between aesthetic themes.
