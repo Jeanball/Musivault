@@ -7,6 +7,7 @@ import Footer from '../Navigation/Footer';
 import { useTheme } from '../../context/ThemeContext';
 import { toastService } from '../../utils/toast';
 import { CollectionProvider } from '../../context/CollectionContext';
+import WelcomeModal from '../Modal/WelcomeModal';
 
 interface VerificationResponse {
     status: boolean;
@@ -15,6 +16,7 @@ interface VerificationResponse {
     email: string;
     displayName: string;
     isAdmin: boolean;
+    hasSeenWelcome?: boolean;
 }
 
 export interface PrivateOutletContext {
@@ -41,6 +43,7 @@ const PrivateLayout: React.FC = () => {
     const [userId, setUserId] = useState<string>("");
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showWelcomeModal, setShowWelcomeModal] = useState<boolean>(false);
     const hasShownLoginToast = useRef(false);
 
     const verifyUser = async () => {
@@ -77,6 +80,11 @@ const PrivateLayout: React.FC = () => {
                 }
 
                 setIsLoading(false);
+
+                // Show welcome modal if user hasn't seen it yet
+                if (data.hasSeenWelcome === false) {
+                    setShowWelcomeModal(true);
+                }
             } else {
                 navigate("/login");
             }
@@ -118,6 +126,11 @@ const PrivateLayout: React.FC = () => {
                         <Outlet context={{ username, email, displayName, userId, isAdmin, refreshUser: verifyUser } satisfies PrivateOutletContext} />
                     </CollectionProvider>
                 </main>
+                <WelcomeModal
+                    isOpen={showWelcomeModal}
+                    onClose={() => setShowWelcomeModal(false)}
+                    username={displayName || username}
+                />
             </div>
             <div className="mb-16 lg:mb-0">
                 <Footer />

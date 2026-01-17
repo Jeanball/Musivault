@@ -8,6 +8,7 @@ export interface IUserPreferences {
   wideScreenMode: boolean
   language: string
   enableConditionGrading: boolean
+  hasSeenWelcome: boolean
 }
 
 export interface IUser extends Document {
@@ -68,6 +69,10 @@ const userSchema = new Schema<IUser>({
       default: 'en'
     },
     enableConditionGrading: {
+      type: Boolean,
+      default: false
+    },
+    hasSeenWelcome: {
       type: Boolean,
       default: false
     }

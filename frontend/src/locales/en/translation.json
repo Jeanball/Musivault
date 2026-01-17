@@ -429,5 +429,14 @@
             "noCover": "No Cover",
             "none": "Not Set"
         }
+    },
+    "welcome": {
+        "title": "Welcome to Musivault, {{username}}!",
+        "subtitle": "Your personal music collection, reimagined.",
+        "step1": "Import Your Collection",
+        "step2": "Discover New Music",
+        "step3": "Share with Friends",
+        "getStarted": "Get Started",
+        "enjoy": "Welcome aboard! Enjoy your collection."
     }
 }

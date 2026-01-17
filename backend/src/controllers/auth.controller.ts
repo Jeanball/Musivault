@@ -107,7 +107,8 @@ export async function userVerification(req: Request, res: Response) {
                 userId: user._id,
                 email: user.email,
                 displayName: user.displayName || '',
-                isAdmin: user.isAdmin
+                isAdmin: user.isAdmin,
+                hasSeenWelcome: user.preferences?.hasSeenWelcome ?? false
             });
             return;
         } else {

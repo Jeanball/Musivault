@@ -149,6 +149,9 @@ export async function updatePreferences(req: Request, res: Response) {
         if (enableConditionGrading !== undefined) {
             user.preferences = { ...user.preferences, enableConditionGrading };
         }
+        if (req.body.hasSeenWelcome !== undefined) {
+            user.preferences = { ...user.preferences, hasSeenWelcome: req.body.hasSeenWelcome };
+        }
 
         await user.save();
 

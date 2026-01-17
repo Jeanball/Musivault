@@ -418,5 +418,14 @@
             "noCover": "Sans pochette",
             "none": "Non défini"
         }
+    },
+    "welcome": {
+        "title": "Bienvenue sur Musivault, {{username}} !",
+        "subtitle": "Votre collection musicale personnelle, réinventée.",
+        "step1": "Importez votre collection",
+        "step2": "Découvrez de la musique",
+        "step3": "Partagez avec vos amis",
+        "getStarted": "C'est parti !",
+        "enjoy": "Bienvenue à bord ! Profitez de votre collection."
     }
 }
