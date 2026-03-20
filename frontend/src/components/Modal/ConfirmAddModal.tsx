@@ -27,14 +27,7 @@ const ConfirmAddModal: React.FC<ConfirmAddModalProps> = ({
     return (
         <dialog className="modal modal-open">
             {/* Transparent glassmorphism backdrop */}
-            <div
-                className="modal-box border border-base-content/10"
-                style={{
-                    background: 'color-mix(in srgb, oklch(var(--b2)) 40%, transparent)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                }}
-            >
+            <div className="modal-box w-11/12 max-w-lg">
                 <div className="flex gap-4 items-start">
                     {/* Album cover */}
                     {coverImage && (
@@ -51,12 +44,12 @@ const ConfirmAddModal: React.FC<ConfirmAddModalProps> = ({
                             <p className="text-sm text-base-content/60 mt-0.5 truncate">{albumTitle}</p>
                         )}
                         <div className="mt-2">
-                            <p className="text-base-content/80">
+                            <p className="text-base-content/80 break-words whitespace-normal">
                                 <span className="font-semibold">{format.name}</span>
                                 {format.text && <span className="ml-1 text-accent">{format.text}</span>}
                             </p>
                             {format.descriptions?.length > 0 && (
-                                <p className="text-sm text-base-content/50 mt-0.5">
+                                <p className="text-sm text-base-content/50 mt-0.5 break-words whitespace-normal">
                                     {format.descriptions.join(', ')}
                                 </p>
                             )}
@@ -73,7 +66,7 @@ const ConfirmAddModal: React.FC<ConfirmAddModalProps> = ({
                     </button>
                 </div>
             </div>
-            <form method="dialog" className="modal-backdrop" style={{ background: 'rgba(0, 0, 0, 0.15)' }}>
+            <form method="dialog" className="modal-backdrop">
                 <button onClick={onCancel}>{t('common.close')}</button>
             </form>
         </dialog>

@@ -178,18 +178,18 @@ const ReleasePage: React.FC = () => {
                                 {formats.map((format, index) => (
                                     <button
                                         key={index}
-                                        className="btn btn-outline h-auto py-3 normal-case justify-start"
+                                        className="btn btn-outline h-auto py-3 normal-case justify-start max-w-full"
                                         onClick={() => handleFormatClick(format)}
                                         disabled={isSubmitting}
                                         style={getFormatButtonStyle(format.text, format.descriptions)}
                                     >
-                                        <div className="text-left">
-                                            <div className="font-bold text-lg">
+                                        <div className="text-left w-full break-words whitespace-normal overflow-hidden">
+                                            <div className="font-bold text-lg leading-tight">
                                                 {format.name}
-                                                {format.text && <span className="ml-2">{format.text}</span>}
+                                                {format.text && <span className="ml-2 break-words">{format.text}</span>}
                                             </div>
                                             {format.descriptions?.length > 0 && (
-                                                <div className="text-xs font-normal opacity-70">
+                                                <div className="text-xs font-normal opacity-70 mt-1 break-words">
                                                     {format.descriptions.join(', ')}
                                                 </div>
                                             )}

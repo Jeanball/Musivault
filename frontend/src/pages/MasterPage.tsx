@@ -360,17 +360,17 @@ const MasterPage: React.FC = () => {
                                                             {formats.map((format, index) => (
                                                                 <button
                                                                     key={index}
-                                                                    className="btn btn-sm btn-outline h-auto py-1.5 normal-case"
+                                                                    className="btn btn-sm btn-outline h-auto py-1.5 normal-case max-w-full"
                                                                     onClick={() => details && handleFormatClick(details, format)}
                                                                     disabled={isSubmitting}
                                                                     title={t('versions.clickToAdd')}
                                                                     style={getFormatButtonStyle(format.text, format.descriptions)}
                                                                 >
-                                                                    <div className="text-left">
+                                                                    <div className="text-left w-full break-words whitespace-normal overflow-hidden">
                                                                         <span className="font-semibold">{format.name}</span>
-                                                                        {format.text && <span className="ml-1">{format.text}</span>}
+                                                                        {format.text && <span className="ml-1 break-words">{format.text}</span>}
                                                                         {format.descriptions?.length > 0 && (
-                                                                            <span className="block text-xs opacity-70">
+                                                                            <span className="block text-xs opacity-70 break-words">
                                                                                 {format.descriptions.join(', ')}
                                                                             </span>
                                                                         )}

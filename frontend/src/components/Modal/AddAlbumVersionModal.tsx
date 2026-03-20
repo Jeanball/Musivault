@@ -58,11 +58,11 @@ const AlbumDetailModal: React.FC<AlbumDetailModalProps> = ({ album, onClose, onC
                         <button
                             key={index}
                             onClick={() => setSelectedFormat(format)}
-                            className={`btn btn-block h-auto py-2 ${selectedFormat === format ? 'btn-primary' : 'btn-outline'}`}
+                            className={`btn btn-block h-auto py-2 max-w-full overflow-hidden ${selectedFormat === format ? 'btn-primary' : 'btn-outline'}`}
                         >
-                            <div className="text-left w-full">
-                                <div className="font-bold text-lg">{format.name} <span className="text-accent">{format.text}</span></div>
-                                <div className="text-xs font-normal opacity-70 normal-case">
+                            <div className="text-left w-full break-words whitespace-normal">
+                                <div className="font-bold text-lg leading-tight">{format.name} <span className="text-accent break-words">{format.text}</span></div>
+                                <div className="text-xs font-normal opacity-70 normal-case mt-1 break-words">
                                     {format.descriptions.join(', ')}
                                 </div>
                             </div>
