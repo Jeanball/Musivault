@@ -13,8 +13,8 @@ import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
 import HomePage from './pages/HomePage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
-import PublicCollectionPage from './pages/PublicCollectionPage';
 import DiscoverPage from './pages/DiscoverPage';
+import SharedCollectionLayout from './components/Layout/SharedCollectionLayout';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateLayout from './components/Layout/PrivateLayout';
 import PublicLayout from './components/Layout/PublicLayout';
@@ -48,6 +48,9 @@ const App = () => {
               <Route path='/signup' element={<SignupPage />} />
             </Route>
 
+            {/* Shared Collection - No auth required */}
+            <Route path="/shared/:shareId" element={<SharedCollectionLayout />} />
+
             {/* Protected Routes - User Theme */}
             <Route path="/app" element={<PrivateLayout />}>
               <Route index element={<HomePage />} />
@@ -59,7 +62,6 @@ const App = () => {
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin" element={<AdminPage />} />
               <Route path="discover" element={<DiscoverPage />} />
-              <Route path="shared/:shareId" element={<PublicCollectionPage />} />
             </Route>
           </Routes>
         </div>

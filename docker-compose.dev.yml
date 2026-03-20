@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     environment:
       MONGO_INITDB_DATABASE: musivault
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:

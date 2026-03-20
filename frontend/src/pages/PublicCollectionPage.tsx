@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router';
+import { useParams, Link } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Lock, ArrowLeft } from 'lucide-react';
@@ -12,9 +12,12 @@ interface PublicCollectionResponse {
     total: number;
 }
 
-const PublicCollectionPage: React.FC = () => {
+interface PublicCollectionPageProps {
+    isAuthenticated?: boolean;
+}
+
+const PublicCollectionPage: React.FC<PublicCollectionPageProps> = ({ isAuthenticated = false }) => {
     const { shareId } = useParams<{ shareId: string }>();
-    const navigate = useNavigate();
     const { t } = useTranslation();
     const [collection, setCollection] = useState<CollectionItem[]>([]);
     const [username, setUsername] = useState<string>('');
@@ -54,8 +57,8 @@ const PublicCollectionPage: React.FC = () => {
                     <p className="text-base-content/70 mb-6">
                         {t('publicCollection.mayBePrivate')}
                     </p>
-                    <Link to="/app" className="btn btn-primary">
-                        {t('common.goBack')}
+                    <Link to={isAuthenticated ? '/app' : '/login'} className="btn btn-primary">
+                        {isAuthenticated ? t('common.goBack') : t('nav.signIn', 'Sign in')}
                     </Link>
                 </div>
             </div>
@@ -68,13 +71,13 @@ const PublicCollectionPage: React.FC = () => {
             {!isLoading && (
                 <div className="mb-6">
                     <div className="flex items-start gap-2 mb-4">
-                        <button
-                            onClick={() => navigate(-1)}
+                        <Link
+                            to={isAuthenticated ? '/app/discover' : '/'}
                             className="btn btn-ghost btn-circle flex-shrink-0"
                             title="Go Back"
                         >
                             <ArrowLeft className="h-6 w-6" />
-                        </button>
+                        </Link>
                         <div className="text-center flex-1">
                             <h1 className="text-3xl md:text-4xl font-bold mb-2">
                                 {t('publicCollection.collectionOf', { username })}
@@ -96,4 +99,3 @@ const PublicCollectionPage: React.FC = () => {
 };
 
 export default PublicCollectionPage;
-
