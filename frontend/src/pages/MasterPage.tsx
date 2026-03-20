@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -115,6 +115,27 @@ const MasterPage: React.FC = () => {
     const visibleVersions = useMemo(() => {
         return filteredVersions.slice(0, visibleCount);
     }, [filteredVersions, visibleCount]);
+
+    // Group visible versions by attributes for rendering
+    const groupedVisibleVersions = useMemo(() => {
+        const groups: { [key: string]: { header: { released: string, majorFormat: string, label: string, country: string }, versions: MasterVersion[] } } = {};
+        visibleVersions.forEach(version => {
+            const key = `${version.released || 'N/A'}|${version.majorFormat}|${version.label}|${version.country || ''}`;
+            if (!groups[key]) {
+                groups[key] = {
+                    header: {
+                        released: version.released,
+                        majorFormat: version.majorFormat,
+                        label: version.label,
+                        country: version.country
+                    },
+                    versions: []
+                };
+            }
+            groups[key].versions.push(version);
+        });
+        return Object.values(groups);
+    }, [visibleVersions]);
 
     // Auto-fetch release details for visible versions
     const fetchReleaseDetails = useCallback(async (releaseId: number) => {
@@ -323,84 +344,104 @@ const MasterPage: React.FC = () => {
                             </div>
                         )
                     ) : (
-                        <>
-                            <div className="space-y-4">
-                                {visibleVersions.map((version) => {
-                                    const details = releaseDetailsCache.get(version.id);
-                                    const isLoadingDetails = loadingReleaseIds.has(version.id);
-                                    const formats = details?.availableFormats || [];
+                        <div className="space-y-4">
+                            {groupedVisibleVersions.map((group, groupIdx) => (
+                                <div key={groupIdx} className="bg-base-200/30 rounded-lg p-4 border border-base-200 hover:border-base-300 transition-colors">
+                                    {/* Group Header Info */}
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3">
+                                        <span className="font-bold text-lg whitespace-nowrap">{group.header.released || 'N/A'}</span>
+                                        <span className="text-base-content/40 hidden sm:inline">•</span>
+                                        <span className="font-medium text-base-content/90 truncate max-w-[200px] sm:max-w-[250px]" title={group.header.majorFormat}>{group.header.majorFormat}</span>
+                                        <span className="text-base-content/40 hidden sm:inline">•</span>
+                                        <span className="text-base-content/70 truncate max-w-[200px] sm:max-w-[250px]" title={group.header.label}>{group.header.label}</span>
+                                        <span className="text-base-content/40 hidden sm:inline">•</span>
+                                        <span className="text-sm bg-base-200 px-2 py-0.5 rounded font-medium whitespace-nowrap">{group.header.country || t('versions.unknown')}</span>
+                                    </div>
 
-                                    return (
-                                        <div key={version.id} className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow">
-                                            <div className="card-body p-4">
-                                                {/* Version header row */}
-                                                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        <span className="font-bold text-lg flex-shrink-0">{version.released || 'N/A'}</span>
-                                                        <span className="font-medium text-sm truncate" title={version.majorFormat}>{version.majorFormat}</span>
-                                                        <span className="text-xs text-gray-500 truncate" title={version.label}>
-                                                            {version.label}
-                                                        </span>
+                                    {/* Formats list for this group */}
+                                    <div className="flex flex-col gap-2 pl-2 border-l-2 border-base-300/50">
+                                        {(() => {
+                                            let isGroupLoading = false;
+                                            const uniqueFormatsMap = new Map();
+
+                                            group.versions.forEach(version => {
+                                                if (loadingReleaseIds.has(version.id)) {
+                                                    isGroupLoading = true;
+                                                }
+                                                const details = releaseDetailsCache.get(version.id);
+                                                if (details && details.availableFormats) {
+                                                    details.availableFormats.forEach(format => {
+                                                        const key = `${format.text || ''}|${(format.descriptions || []).join(',')}`;
+                                                        if (!uniqueFormatsMap.has(key)) {
+                                                            uniqueFormatsMap.set(key, { details, format, versionId: version.id });
+                                                        }
+                                                    });
+                                                }
+                                            });
+
+                                            if (isGroupLoading) {
+                                                return (
+                                                    <div className="text-sm text-base-content/40 flex items-center py-1">
+                                                        <span className="loading loading-spinner loading-xs mr-2"></span>
+                                                        {t('versions.loadingFormats')}
                                                     </div>
-                                                    <div className="text-xs bg-base-100 rounded px-2 py-1.5 flex items-center gap-1.5 flex-shrink-0" title={version.country}>
-                                                        <span className="opacity-70">🌍</span>
-                                                        <span className="font-medium">{version.country || t('versions.unknown')}</span>
-                                                    </div>
-                                                </div>
+                                                );
+                                            }
 
-                                                {/* Format variants section */}
-                                                <div className="mt-3">
-                                                    {isLoadingDetails ? (
-                                                        <div className="flex items-center gap-2 text-sm text-gray-400">
-                                                            <span className="loading loading-spinner loading-xs"></span>
-                                                            {t('versions.loadingFormats')}
-                                                        </div>
-                                                    ) : formats.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {formats.map((format, index) => (
-                                                                <button
-                                                                    key={index}
-                                                                    className="btn btn-sm btn-outline h-auto py-1.5 normal-case max-w-full"
-                                                                    onClick={() => details && handleFormatClick(details, format)}
-                                                                    disabled={isSubmitting}
-                                                                    title={t('versions.clickToAdd')}
-                                                                    style={getFormatButtonStyle(format.text, format.descriptions)}
-                                                                >
-                                                                    <div className="text-left w-full break-words whitespace-normal overflow-hidden">
-                                                                        <span className="font-semibold">{format.name}</span>
-                                                                        {format.text && <span className="ml-1 break-words">{format.text}</span>}
-                                                                        {format.descriptions?.length > 0 && (
-                                                                            <span className="block text-xs opacity-70 break-words">
-                                                                                {format.descriptions.join(', ')}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    ) : !isLoadingDetails && (
-                                                        <p className="text-xs text-gray-500">{t('versions.noFormats')}</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                                            const uniqueFormats = Array.from(uniqueFormatsMap.values());
 
-                            {/* See more button */}
-                            {hasMore && (
-                                <div className="flex justify-center mt-6">
-                                    <button
-                                        className="btn btn-ghost gap-2"
-                                        onClick={handleShowMore}
-                                    >
-                                        <ChevronDown size={18} />
-                                        {t('versions.seeMore', { remaining: remaining > VERSIONS_PER_PAGE ? VERSIONS_PER_PAGE : remaining, total: filteredVersions.length })}
-                                    </button>
+                                            if (uniqueFormats.length === 0) {
+                                                return null;
+                                            }
+
+                                            return uniqueFormats.map((item, index) => {
+                                                const { details, format, versionId } = item;
+                                                
+                                                const descStr = format.descriptions?.join(', ') || '';
+                                                const displayTitle = format.text || descStr || format.name;
+                                                const displaySubtitle = format.text ? descStr : '';
+
+                                                return (
+                                                    <button
+                                                        key={`${versionId}-fmt-${index}`}
+                                                        className="btn btn-sm btn-outline border-base-300 hover:border-primary/50 normal-case justify-start text-left group/btn transition-all w-full h-auto py-2 px-3"
+                                                        onClick={() => details && handleFormatClick(details, format)}
+                                                        disabled={isSubmitting}
+                                                        title={t('versions.clickToAdd')}
+                                                        style={getFormatButtonStyle(format.text, format.descriptions)}
+                                                    >
+                                                        <div className="flex flex-col items-start min-w-0 flex-1 w-full gap-0.5">
+                                                            <div className="flex items-center w-full">
+                                                                <span className="font-bold whitespace-normal break-words overflow-hidden text-sm mr-1.5">{displayTitle}</span>
+                                                                <Plus size={16} className="opacity-0 group-hover/btn:opacity-100 transition-opacity ml-auto flex-shrink-0" />
+                                                            </div>
+                                                            {displaySubtitle && (
+                                                                <span className="text-xs opacity-80 break-words whitespace-normal leading-tight mt-0.5 text-base-content/80 font-medium">
+                                                                    {displaySubtitle}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            });
+                                        })()}
+                                    </div>
                                 </div>
-                            )}
-                        </>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* See more button */}
+                    {hasMore && (
+                        <div className="flex justify-center mt-6">
+                            <button
+                                className="btn btn-ghost gap-2"
+                                onClick={handleShowMore}
+                            >
+                                <ChevronDown size={18} />
+                                {t('versions.seeMore', { remaining: remaining > VERSIONS_PER_PAGE ? VERSIONS_PER_PAGE : remaining, total: filteredVersions.length })}
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
