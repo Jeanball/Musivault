@@ -9,7 +9,7 @@ import type { CollectionItem } from '../types/collection.types';
 import RematchModal from '../components/Modal/RematchModal';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
 import { getImageUrl } from '../utils/imageUrl';
-
+import { getFormatButtonStyle } from '../utils/formatColors';
 interface PreferencesResponse {
     enableConditionGrading: boolean;
 }
@@ -246,10 +246,10 @@ const AlbumDetailPage: React.FC = () => {
                                 <h3 className="text-sm font-semibold text-base-content/60 mb-2">{t('album.formatDetails')}</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {item.format.text && (
-                                        <span className="badge badge-accent badge-lg">{item.format.text}</span>
+                                        <span className="badge badge-accent badge-lg border" style={getFormatButtonStyle(item.format.text, [])}>{item.format.text}</span>
                                     )}
                                     {item.format.descriptions?.map((desc, index) => (
-                                        <span key={index} className="badge badge-lg">{desc}</span>
+                                        <span key={index} className="badge badge-lg border" style={getFormatButtonStyle(desc, [])}>{desc}</span>
                                     ))}
                                 </div>
                             </div>
