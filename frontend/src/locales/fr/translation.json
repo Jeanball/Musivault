@@ -236,7 +236,15 @@
         "select": "Sélectionner",
         "unknown": "Inconnu",
         "errorLoadingVersions": "Erreur lors du chargement des versions pour cet album.",
-        "errorRetrievingData": "Erreur lors de la récupération des données pour cette version."
+        "errorRetrievingData": "Erreur lors de la récupération des données pour cette version.",
+        "loadingFormats": "Chargement des formats...",
+        "seeMore": "Afficher {{remaining}} de plus ({{total}} au total)",
+        "noFormats": "Aucune info de format disponible",
+        "clickToAdd": "Cliquer pour ajouter ce format à votre collection",
+        "selectFormat": "Sélectionnez un format à ajouter",
+        "goBack": "Retour",
+        "confirmAddTitle": "Ajouter à votre collection ?",
+        "confirmAddYes": "Oui, ajouter"
     },
     "search": {
         "placeholder": "Rechercher des artistes ou des albums...",

@@ -5,9 +5,11 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
-import AlbumDetailModal, { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
 import ConditionModal from '../components/Modal/ConditionModal';
+import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
 import { getImageUrl } from '../utils/imageUrl';
+import { getFormatButtonStyle } from '../utils/formatColors';
 
 interface AddedAlbumInfo {
     id: string;
@@ -25,13 +27,16 @@ const ReleasePage: React.FC = () => {
     const [albumDetails, setAlbumDetails] = useState<AlbumDetails | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [showModal, setShowModal] = useState<boolean>(false);
     const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
     // Condition grading state
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
     const [showConditionModal, setShowConditionModal] = useState<boolean>(false);
     const [pendingFormat, setPendingFormat] = useState<FormatDetails | null>(null);
+
+    // Confirmation modal state
+    const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+    const [confirmFormat, setConfirmFormat] = useState<FormatDetails | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,17 +60,27 @@ const ReleasePage: React.FC = () => {
         fetchData();
     }, [releaseId, navigate, t]);
 
-    const handleFormatSelected = (format: FormatDetails) => {
-        setShowModal(false);
+    const handleFormatClick = (format: FormatDetails) => {
+        setConfirmFormat(format);
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirmAdd = () => {
+        setShowConfirmModal(false);
+        if (!confirmFormat) return;
 
         if (conditionGradingEnabled) {
-            // Show condition modal before adding
-            setPendingFormat(format);
+            setPendingFormat(confirmFormat);
             setShowConditionModal(true);
         } else {
-            // Add directly without conditions
-            addToCollection(format, null, null);
+            addToCollection(confirmFormat, null, null);
         }
+        setConfirmFormat(null);
+    };
+
+    const handleConfirmCancel = () => {
+        setShowConfirmModal(false);
+        setConfirmFormat(null);
     };
 
     const handleConditionConfirm = (mediaCondition: string | null, sleeveCondition: string | null) => {
@@ -132,6 +147,8 @@ const ReleasePage: React.FC = () => {
         return <div className="text-center p-8">{t('release.noData')}</div>;
     }
 
+    const formats = albumDetails.availableFormats || [];
+
     return (
         <div className="p-4 md:p-8">
             <div className="flex flex-col md:flex-row gap-8 max-w-4xl mx-auto">
@@ -153,30 +170,38 @@ const ReleasePage: React.FC = () => {
                     <p className="text-xl text-gray-400 mt-2">{stripArtistSuffix(albumDetails.artist)}</p>
                     <p className="text-gray-500 mt-1">{albumDetails.year}</p>
 
-                    {/* Available Formats */}
-                    {albumDetails.availableFormats && albumDetails.availableFormats.length > 0 && (
-                        <div className="mt-4">
-                            <h3 className="text-sm font-semibold text-gray-400 mb-2">{t('common.formats')}:</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {albumDetails.availableFormats.map((format, index) => (
-                                    <span key={index} className="badge badge-outline">
-                                        {format.name}
-                                        {format.descriptions?.length > 0 && ` (${format.descriptions.join(', ')})`}
-                                    </span>
+                    {/* Format selection - direct click to add */}
+                    {formats.length > 0 && (
+                        <div className="mt-6">
+                            <h3 className="text-sm font-semibold text-gray-400 mb-3">{t('versions.selectFormat')}</h3>
+                            <div className="flex flex-col gap-2">
+                                {formats.map((format, index) => (
+                                    <button
+                                        key={index}
+                                        className="btn btn-outline h-auto py-3 normal-case justify-start"
+                                        onClick={() => handleFormatClick(format)}
+                                        disabled={isSubmitting}
+                                        style={getFormatButtonStyle(format.text, format.descriptions)}
+                                    >
+                                        <div className="text-left">
+                                            <div className="font-bold text-lg">
+                                                {format.name}
+                                                {format.text && <span className="ml-2">{format.text}</span>}
+                                            </div>
+                                            {format.descriptions?.length > 0 && (
+                                                <div className="text-xs font-normal opacity-70">
+                                                    {format.descriptions.join(', ')}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </button>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Actions */}
-                    <div className="mt-8 flex gap-4">
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => setShowModal(true)}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? <span className="loading loading-spinner"></span> : t('addAlbum.addToCollection')}
-                        </button>
+                    {/* Back button */}
+                    <div className="mt-8">
                         <button onClick={() => navigate(-1)} className="btn btn-outline gap-2">
                             <ArrowLeft size={16} /> {t('common.back')}
                         </button>
@@ -184,12 +209,14 @@ const ReleasePage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Modal for format selection */}
-            <AlbumDetailModal
-                album={showModal ? albumDetails : null}
-                onClose={() => setShowModal(false)}
-                onConfirm={handleFormatSelected}
-                isSubmitting={isSubmitting}
+            {/* Confirmation Modal */}
+            <ConfirmAddModal
+                isOpen={showConfirmModal}
+                coverImage={albumDetails.cover_image}
+                albumTitle={albumDetails.title}
+                format={confirmFormat}
+                onConfirm={handleConfirmAdd}
+                onCancel={handleConfirmCancel}
             />
 
             {/* Condition Modal */}
@@ -234,4 +261,3 @@ const ReleasePage: React.FC = () => {
 };
 
 export default ReleasePage;
-

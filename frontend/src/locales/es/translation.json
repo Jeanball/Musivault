@@ -218,7 +218,15 @@
         "select": "Seleccionar",
         "unknown": "Desconocido",
         "errorLoadingVersions": "Error cargando versiones para este álbum.",
-        "errorRetrievingData": "Error recuperando datos para esta versión."
+        "errorRetrievingData": "Error recuperando datos para esta versión.",
+        "loadingFormats": "Cargando formatos...",
+        "seeMore": "Mostrar {{remaining}} más ({{total}} en total)",
+        "noFormats": "Sin info de formato disponible",
+        "clickToAdd": "Clic para añadir este formato a tu colección",
+        "selectFormat": "Selecciona un formato para añadir",
+        "goBack": "Volver",
+        "confirmAddTitle": "¿Añadir a tu colección?",
+        "confirmAddYes": "Sí, añadir"
     },
     "search": {
         "placeholder": "Buscar artistas o álbumes...",

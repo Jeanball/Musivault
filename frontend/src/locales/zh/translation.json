@@ -218,7 +218,15 @@
         "select": "选择",
         "unknown": "未知",
         "errorLoadingVersions": "加载此专辑版本出错。",
-        "errorRetrievingData": "获取此版本数据出错。"
+        "errorRetrievingData": "获取此版本数据出错。",
+        "loadingFormats": "正在加载格式...",
+        "seeMore": "显示更多 {{remaining}} 个（共 {{total}} 个）",
+        "noFormats": "无格式信息",
+        "clickToAdd": "点击将此格式添加到收藏",
+        "selectFormat": "选择要添加的格式",
+        "goBack": "返回",
+        "confirmAddTitle": "添加到您的收藏？",
+        "confirmAddYes": "是的，添加"
     },
     "search": {
         "placeholder": "搜索艺术家或专辑...",

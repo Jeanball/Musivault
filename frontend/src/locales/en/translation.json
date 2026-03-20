@@ -236,7 +236,15 @@
         "select": "Select",
         "unknown": "Unknown",
         "errorLoadingVersions": "Error loading versions for this album.",
-        "errorRetrievingData": "Error retrieving data for this version."
+        "errorRetrievingData": "Error retrieving data for this version.",
+        "loadingFormats": "Loading formats...",
+        "seeMore": "Show {{remaining}} more ({{total}} total)",
+        "noFormats": "No format info available",
+        "clickToAdd": "Click to add this format to your collection",
+        "selectFormat": "Select a format to add",
+        "goBack": "Go Back",
+        "confirmAddTitle": "Add to your collection?",
+        "confirmAddYes": "Yes, add it"
     },
     "search": {
         "placeholder": "Search for artists or albums...",

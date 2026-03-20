@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import AlbumDetailModal, { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
 import ConditionModal from '../components/Modal/ConditionModal';
+import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
+import { getFormatButtonStyle } from '../utils/formatColors';
 
 interface MasterVersion {
     id: number;
@@ -36,6 +38,8 @@ interface PreferencesResponse {
     enableConditionGrading: boolean;
 }
 
+const VERSIONS_PER_PAGE = 5;
+
 const MasterPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
     const navigate = useNavigate();
@@ -45,9 +49,20 @@ const MasterPage: React.FC = () => {
     const [filter, setFilter] = useState<FormatFilter>('all');
     const [countryFilter, setCountryFilter] = useState<string>('all');
 
-    const [selectedAlbum, setSelectedAlbum] = useState<AlbumDetails | null>(null);
+    // Display pagination
+    const [visibleCount, setVisibleCount] = useState<number>(VERSIONS_PER_PAGE);
+
+    // Release details cache: releaseId -> AlbumDetails
+    const [releaseDetailsCache, setReleaseDetailsCache] = useState<Map<number, AlbumDetails>>(new Map());
+    const [loadingReleaseIds, setLoadingReleaseIds] = useState<Set<number>>(new Set());
+
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
+
+    // Confirmation modal state
+    const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+    const [confirmAlbum, setConfirmAlbum] = useState<AlbumDetails | null>(null);
+    const [confirmFormat, setConfirmFormat] = useState<FormatDetails | null>(null);
 
     // Condition grading state
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
@@ -83,40 +98,85 @@ const MasterPage: React.FC = () => {
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
         return pageData.versions.filter(version => {
-            // Filter by format
             const matchesFormat = filter === 'all' ||
                 version.majorFormat.toLowerCase().includes(filter.toLowerCase());
-            // Filter by country
             const matchesCountry = countryFilter === 'all' ||
                 version.country === countryFilter;
             return matchesFormat && matchesCountry;
         });
     }, [pageData, filter, countryFilter]);
 
-    const handleShowDetails = async (releaseId: number) => {
+    // Reset visible count when filters change
+    useEffect(() => {
+        setVisibleCount(VERSIONS_PER_PAGE);
+    }, [filter, countryFilter]);
+
+    // Visible versions (paginated display)
+    const visibleVersions = useMemo(() => {
+        return filteredVersions.slice(0, visibleCount);
+    }, [filteredVersions, visibleCount]);
+
+    // Auto-fetch release details for visible versions
+    const fetchReleaseDetails = useCallback(async (releaseId: number) => {
+        if (releaseDetailsCache.has(releaseId) || loadingReleaseIds.has(releaseId)) return;
+
+        setLoadingReleaseIds(prev => new Set(prev).add(releaseId));
         try {
             const response = await axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, { withCredentials: true });
-            setSelectedAlbum(response.data);
+            setReleaseDetailsCache(prev => {
+                const updated = new Map(prev);
+                updated.set(releaseId, response.data);
+                return updated;
+            });
         } catch (err) {
-            console.log(err)
-            toastService.error(t('versions.errorRetrievingData'));
+            console.log(`Error fetching release ${releaseId}:`, err);
+        } finally {
+            setLoadingReleaseIds(prev => {
+                const updated = new Set(prev);
+                updated.delete(releaseId);
+                return updated;
+            });
         }
+    }, [releaseDetailsCache, loadingReleaseIds]);
+
+    // Fetch details for all currently visible versions
+    useEffect(() => {
+        visibleVersions.forEach(version => {
+            if (!releaseDetailsCache.has(version.id) && !loadingReleaseIds.has(version.id)) {
+                fetchReleaseDetails(version.id);
+            }
+        });
+    }, [visibleVersions]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleShowMore = () => {
+        setVisibleCount(prev => prev + VERSIONS_PER_PAGE);
     };
 
-    const handleFormatSelected = (format: FormatDetails) => {
-        if (!selectedAlbum) return;
+    const handleFormatClick = (album: AlbumDetails, format: FormatDetails) => {
+        setConfirmAlbum(album);
+        setConfirmFormat(format);
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirmAdd = () => {
+        setShowConfirmModal(false);
+        if (!confirmAlbum || !confirmFormat) return;
 
         if (conditionGradingEnabled) {
-            // Show condition modal before adding
-            setPendingFormat(format);
-            setPendingAlbum(selectedAlbum);
-            setSelectedAlbum(null);
+            setPendingFormat(confirmFormat);
+            setPendingAlbum(confirmAlbum);
             setShowConditionModal(true);
         } else {
-            // Add directly without conditions
-            addToCollection(selectedAlbum, format, null, null);
-            setSelectedAlbum(null);
+            addToCollection(confirmAlbum, confirmFormat, null, null);
         }
+        setConfirmAlbum(null);
+        setConfirmFormat(null);
+    };
+
+    const handleConfirmCancel = () => {
+        setShowConfirmModal(false);
+        setConfirmAlbum(null);
+        setConfirmFormat(null);
     };
 
     const handleConditionConfirm = (mediaCondition: string | null, sleeveCondition: string | null) => {
@@ -180,6 +240,9 @@ const MasterPage: React.FC = () => {
     if (!pageData) {
         return <div className="text-center p-8">{t('versions.noData')}</div>
     }
+
+    const hasMore = visibleCount < filteredVersions.length;
+    const remaining = filteredVersions.length - visibleCount;
 
     return (
         <div className="p-4 md:p-8" >
@@ -260,47 +323,96 @@ const MasterPage: React.FC = () => {
                             </div>
                         )
                     ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {filteredVersions.map((version) => (
-                                <div key={version.id} className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="card-body p-3 flex flex-col h-full">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="font-bold text-lg">{version.released || 'N/A'}</span>
-                                        </div>
+                        <>
+                            <div className="space-y-4">
+                                {visibleVersions.map((version) => {
+                                    const details = releaseDetailsCache.get(version.id);
+                                    const isLoadingDetails = loadingReleaseIds.has(version.id);
+                                    const formats = details?.availableFormats || [];
 
-                                        <div className="space-y-1 flex-1">
-                                            <div className="font-medium text-sm truncate" title={version.majorFormat}>{version.majorFormat}</div>
-                                            <div className="text-xs text-gray-500 truncate mb-2" title={version.label}>
-                                                {version.label}
+                                    return (
+                                        <div key={version.id} className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="card-body p-4">
+                                                {/* Version header row */}
+                                                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <span className="font-bold text-lg flex-shrink-0">{version.released || 'N/A'}</span>
+                                                        <span className="font-medium text-sm truncate" title={version.majorFormat}>{version.majorFormat}</span>
+                                                        <span className="text-xs text-gray-500 truncate" title={version.label}>
+                                                            {version.label}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-xs bg-base-100 rounded px-2 py-1.5 flex items-center gap-1.5 flex-shrink-0" title={version.country}>
+                                                        <span className="opacity-70">🌍</span>
+                                                        <span className="font-medium">{version.country || t('versions.unknown')}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Format variants section */}
+                                                <div className="mt-3">
+                                                    {isLoadingDetails ? (
+                                                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                                                            <span className="loading loading-spinner loading-xs"></span>
+                                                            {t('versions.loadingFormats')}
+                                                        </div>
+                                                    ) : formats.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {formats.map((format, index) => (
+                                                                <button
+                                                                    key={index}
+                                                                    className="btn btn-sm btn-outline h-auto py-1.5 normal-case"
+                                                                    onClick={() => details && handleFormatClick(details, format)}
+                                                                    disabled={isSubmitting}
+                                                                    title={t('versions.clickToAdd')}
+                                                                    style={getFormatButtonStyle(format.text, format.descriptions)}
+                                                                >
+                                                                    <div className="text-left">
+                                                                        <span className="font-semibold">{format.name}</span>
+                                                                        {format.text && <span className="ml-1">{format.text}</span>}
+                                                                        {format.descriptions?.length > 0 && (
+                                                                            <span className="block text-xs opacity-70">
+                                                                                {format.descriptions.join(', ')}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    ) : !isLoadingDetails && (
+                                                        <p className="text-xs text-gray-500">{t('versions.noFormats')}</p>
+                                                    )}
+                                                </div>
                                             </div>
-
-                                            <div className="text-xs bg-base-100 rounded px-2 py-1.5 flex items-start gap-1.5 w-full" title={version.country}>
-                                                <span className="opacity-70 mt-0.5 flex-shrink-0">🌍</span>
-                                                <span className="font-medium whitespace-normal leading-tight">{version.country || t('versions.unknown')}</span>
-                                            </div>
                                         </div>
+                                    );
+                                })}
+                            </div>
 
-                                        <div className="card-actions mt-3">
-                                            <button
-                                                className="btn btn-primary btn-xs w-full"
-                                                onClick={() => handleShowDetails(version.id)}
-                                            >
-                                                {t('versions.select')}
-                                            </button>
-                                        </div>
-                                    </div>
+                            {/* See more button */}
+                            {hasMore && (
+                                <div className="flex justify-center mt-6">
+                                    <button
+                                        className="btn btn-ghost gap-2"
+                                        onClick={handleShowMore}
+                                    >
+                                        <ChevronDown size={18} />
+                                        {t('versions.seeMore', { remaining: remaining > VERSIONS_PER_PAGE ? VERSIONS_PER_PAGE : remaining, total: filteredVersions.length })}
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
 
-            <AlbumDetailModal
-                album={selectedAlbum}
-                onClose={() => setSelectedAlbum(null)}
-                onConfirm={handleFormatSelected}
-                isSubmitting={isSubmitting}
+            {/* Confirmation Modal */}
+            <ConfirmAddModal
+                isOpen={showConfirmModal}
+                coverImage={confirmAlbum?.cover_image}
+                albumTitle={confirmAlbum?.title}
+                format={confirmFormat}
+                onConfirm={handleConfirmAdd}
+                onCancel={handleConfirmCancel}
             />
 
             {/* Condition Modal */}
@@ -346,4 +458,3 @@ const MasterPage: React.FC = () => {
 };
 
 export default MasterPage;
-
