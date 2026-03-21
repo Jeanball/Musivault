@@ -244,7 +244,7 @@
         "selectFormat": "Select a format to add",
         "goBack": "Go Back",
         "confirmAddTitle": "Add to your collection?",
-        "confirmAddYes": "Yes, add it"
+        "confirmAddYes": "Add"
     },
     "search": {
         "placeholder": "Search for artists or albums...",

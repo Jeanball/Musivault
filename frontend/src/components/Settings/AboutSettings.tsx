@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart } from 'lucide-react';
+
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
@@ -74,11 +74,7 @@ const AboutSettings: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="text-xs opacity-70 mt-4 text-center">
-                    <div className="text-xs opacity-70 mt-4 text-center flex justify-center items-center gap-1">
-                        {t('settings.madeWith')} <Heart size={12} className="text-error" fill="currentColor" /> {t('settings.by')} <a href="https://github.com/jeanball" target="_blank" rel="noopener noreferrer" className="link link-hover">Jeanball</a>
-                    </div>
-                </div>
+
             </div>
         </div>
     );

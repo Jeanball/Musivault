@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .modal-box {
+    background-color: oklch(var(--b1) / 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+}
