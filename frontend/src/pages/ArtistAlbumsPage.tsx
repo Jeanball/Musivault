@@ -176,26 +176,30 @@ const ArtistAlbumsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Albums grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {/* Albums List */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
                 {sortedAlbums.map((album) => (
                     <div
                         key={`${album.type}-${album.id}`}
-                        className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-all hover:scale-105"
+                        className="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 bg-base-200 rounded-xl hover:bg-base-300 cursor-pointer transition-all hover:scale-[1.01] shadow-sm group"
                         onClick={() => handleAlbumClick(album)}
                     >
-                        <figure className="px-3 pt-3">
-                            <img
-                                src={getImageUrl(album.thumb || '/placeholder-album.svg')}
-                                alt={album.title}
-                                className="rounded-lg w-full aspect-square object-cover"
-                            />
-                        </figure>
-                        <div className="card-body p-3">
-                            <h3 className="card-title text-sm line-clamp-2">{album.title}</h3>
-                            <p className="text-xs text-gray-400">
+                        <img
+                            src={getImageUrl(album.thumb || '/placeholder-album.svg')}
+                            alt={album.title}
+                            className="w-14 h-14 sm:w-16 sm:h-16 lg:w-[150px] lg:h-[150px] object-cover rounded-lg shadow-sm flex-shrink-0 group-hover:shadow-md transition-shadow"
+                            loading="lazy"
+                        />
+                        <div className="flex flex-col justify-center min-w-0 flex-1 py-0 lg:py-1">
+                            <h3 className="font-bold text-sm sm:text-base lg:text-xl line-clamp-2 group-hover:text-primary transition-colors leading-tight lg:leading-normal">{album.title}</h3>
+                            <p className="text-xs sm:text-sm lg:text-base text-base-content/60 mt-0.5 lg:mt-2 font-medium">
                                 {album.year > 0 ? album.year : t('artist.unknownYear')}
                             </p>
+                        </div>
+                        <div className="px-1 lg:px-6 opacity-0 group-hover:opacity-100 transition-opacity text-base-content/30 group-hover:text-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
                         </div>
                     </div>
                 ))}
