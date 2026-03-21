@@ -178,21 +178,20 @@ const ReleasePage: React.FC = () => {
                                 {formats.map((format, index) => (
                                     <button
                                         key={index}
-                                        className="btn btn-outline h-auto py-3 normal-case justify-start max-w-full"
+                                        className="btn border border-base-300 bg-transparent hover:border-primary/50 hover:bg-transparent h-auto py-3 normal-case justify-start max-w-full relative overflow-hidden group"
                                         onClick={() => handleFormatClick(format)}
                                         disabled={isSubmitting}
                                         style={getFormatButtonStyle(format.text, format.descriptions)}
                                     >
-                                        <div className="text-left w-full break-words whitespace-normal overflow-hidden">
+                                        <div className="absolute inset-0 bg-base-content opacity-0 group-hover:opacity-[0.08] transition-opacity pointer-events-none"></div>
+                                        <div className="text-left w-full break-words whitespace-normal overflow-hidden relative z-10 flex flex-col justify-center gap-0.5">
                                             <div className="font-bold text-lg leading-tight">
                                                 {format.name}
                                                 {format.text && <span className="ml-2 break-words">{format.text}</span>}
                                             </div>
-                                            {format.descriptions?.length > 0 && (
-                                                <div className="text-xs font-normal opacity-70 mt-1 break-words">
-                                                    {format.descriptions.join(', ')}
-                                                </div>
-                                            )}
+                                            <div className="text-xs font-normal opacity-80 mt-1 break-words min-h-[1rem]">
+                                                {format.descriptions?.length > 0 ? format.descriptions.join(', ') : '\u00A0'}
+                                            </div>
                                         </div>
                                     </button>
                                 ))}

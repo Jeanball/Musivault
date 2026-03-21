@@ -9,6 +9,7 @@ import { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAl
 import ConditionModal from '../components/Modal/ConditionModal';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
 import { getFormatButtonStyle } from '../utils/formatColors';
+import { getImageUrl } from '../utils/imageUrl';
 
 interface MasterVersion {
     id: number;
@@ -278,6 +279,15 @@ const MasterPage: React.FC = () => {
                 </div>
 
                 <div className="flex-1">
+                    {/* Helper Tooltip / Alert */}
+                    <div className="alert bg-base-200/50 border border-base-300 shadow-sm py-3 mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info flex-shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div>
+                            <h3 className="font-bold">{t('versions.filterTipTitle', '💡 Astuce de recherche')}</h3>
+                            <div className="text-sm opacity-80">{t('versions.filterTipDesc', 'Sélectionnez un format (ex: Vinyl, CD) et un pays ci-dessous pour trouver facilement votre version exacte.')}</div>
+                        </div>
+                    </div>
+
                     <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
                         <div className="flex flex-wrap items-center gap-2">
                             <p className="text-sm font-medium mr-1">{t('versions.filterBy')}</p>
@@ -404,22 +414,32 @@ const MasterPage: React.FC = () => {
                                                 return (
                                                     <button
                                                         key={`${versionId}-fmt-${index}`}
-                                                        className="btn btn-sm btn-outline border-base-300 hover:border-primary/50 normal-case justify-start text-left group/btn transition-all w-full h-auto py-2 px-3"
+                                                        className="btn btn-sm border border-base-300 bg-transparent hover:border-primary/50 hover:bg-transparent normal-case justify-start text-left group transition-all w-full h-auto py-2 px-3 relative overflow-hidden"
                                                         onClick={() => details && handleFormatClick(details, format)}
                                                         disabled={isSubmitting}
                                                         title={t('versions.clickToAdd')}
                                                         style={getFormatButtonStyle(format.text, format.descriptions)}
                                                     >
-                                                        <div className="flex flex-col items-start min-w-0 flex-1 w-full gap-0.5">
-                                                            <div className="flex items-center w-full">
-                                                                <span className="font-bold whitespace-normal break-words overflow-hidden text-sm mr-1.5">{displayTitle}</span>
-                                                                <Plus size={16} className="opacity-0 group-hover/btn:opacity-100 transition-opacity ml-auto flex-shrink-0" />
-                                                            </div>
-                                                            {displaySubtitle && (
-                                                                <span className="text-xs opacity-80 break-words whitespace-normal leading-tight mt-0.5 text-base-content/80 font-medium">
-                                                                    {displaySubtitle}
+                                                        {/* Subtle Hover Overlay for all buttons including those with gradients */}
+                                                        <div className="absolute inset-0 bg-base-content opacity-0 group-hover:opacity-[0.08] transition-opacity pointer-events-none"></div>
+                                                        
+                                                        <div className="flex items-center gap-3 w-full relative z-10">
+                                                            <img 
+                                                                src={getImageUrl(details?.thumb || details?.cover_image || pageData.coverImage)} 
+                                                                alt="" 
+                                                                className="w-10 h-10 object-cover rounded shadow-sm bg-base-300 flex-shrink-0"
+                                                                loading="lazy"
+                                                            />
+                                                            <div className="flex flex-col items-start min-w-0 flex-1 w-full gap-0.5">
+                                                                <div className="flex items-center w-full">
+                                                                    <span className="font-bold whitespace-normal break-words overflow-hidden text-sm mr-1.5">{displayTitle}</span>
+                                                                    <Plus size={16} className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex-shrink-0" />
+                                                                </div>
+                                                                {/* Render a non-breaking space if empty to ensure uniform button height */}
+                                                                <span className="text-xs break-words whitespace-normal leading-tight mt-0.5 text-base-content/80 font-medium min-h-[1rem]">
+                                                                    {displaySubtitle || '\u00A0'}
                                                                 </span>
-                                                            )}
+                                                            </div>
                                                         </div>
                                                     </button>
                                                 );
