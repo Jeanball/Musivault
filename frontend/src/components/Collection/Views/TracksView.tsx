@@ -94,6 +94,7 @@ const TracksView: React.FC<TracksViewProps> = ({ collection }) => {
                                                 src={getImageUrl(album.thumb || album.cover_image || '/placeholder-album.png')}
                                                 alt={album.title}
                                                 className="w-12 h-12 rounded object-cover"
+                                                loading="lazy"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).src = '/placeholder-album.png';
                                                 }}

@@ -67,6 +67,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                         <img
                                             src={item.album.thumb || item.album.cover_image}
                                             alt={item.album.title}
+                                            loading="lazy"
                                         />
                                     </div>
                                 </div>

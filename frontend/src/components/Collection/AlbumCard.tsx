@@ -29,6 +29,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingD
         src={getImageUrl(result.thumb)}
         alt={`${artist} - ${album}`}
         className="w-20 h-20 object-cover mr-4 rounded flex-shrink-0"
+        loading="lazy"
       />
       <div className="flex-grow min-w-0">
         <h3 className="text-lg font-bold text-gray-100 truncate" title={album}>

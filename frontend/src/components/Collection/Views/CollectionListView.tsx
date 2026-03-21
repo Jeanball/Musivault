@@ -44,6 +44,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                                     <img
                                                         src={getImageUrl(item.album.thumb || item.album.cover_image)}
                                                         alt={item.album.title}
+                                                        loading="lazy"
                                                     />
                                                 </div>
                                             </div>

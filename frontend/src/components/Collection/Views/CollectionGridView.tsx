@@ -35,6 +35,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                     <img
                                         src={getImageUrl(item.album.cover_image || item.album.thumb)}
                                         alt={item.album.title}
+                                        loading="lazy"
                                         className="w-full h-full object-cover relative z-10 opacity-0 transition-opacity duration-300"
                                         onLoad={(e) => { e.currentTarget.classList.remove('opacity-0'); }}
                                     />
