@@ -13,14 +13,20 @@ const sectionIcons: Record<string, React.ReactNode> = {
     Added: <Plus className="w-4 h-4 text-green-400" />,
     Changed: <RefreshCw className="w-4 h-4 text-blue-400" />,
     Fixed: <Wrench className="w-4 h-4 text-yellow-400" />,
-    Removed: <Trash2 className="w-4 h-4 text-red-400" />
+    Removed: <Trash2 className="w-4 h-4 text-red-400" />,
+    "What's New": <Sparkles className="w-4 h-4 text-green-400" />,
+    "Improvements": <RefreshCw className="w-4 h-4 text-blue-400" />,
+    "Bug Fixes": <Wrench className="w-4 h-4 text-yellow-400" />
 };
 
 const sectionColors: Record<string, string> = {
     Added: 'text-green-400',
     Changed: 'text-blue-400',
     Fixed: 'text-yellow-400',
-    Removed: 'text-red-400'
+    Removed: 'text-red-400',
+    "What's New": 'text-green-400',
+    "Improvements": 'text-blue-400',
+    "Bug Fixes": 'text-yellow-400'
 };
 
 const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, onDismiss }) => {

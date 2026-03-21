@@ -6,7 +6,7 @@ export interface ChangelogEntry {
     version: string;
     date: string;
     sections: {
-        type: 'Added' | 'Changed' | 'Fixed' | 'Removed';
+        type: string;
         items: string[];
     }[];
 }
@@ -67,12 +67,12 @@ function parseChangelog(content: string): ChangelogEntry[] {
             sections: []
         };
 
-        // Parse sections (### Added, ### Fixed, etc.)
-        const sectionRegex = /### (Added|Changed|Fixed|Removed)\n([\s\S]*?)(?=###|$)/g;
+        // Parse sections
+        const sectionRegex = /### (Added|Changed|Fixed|Removed|What's New|Improvements|Bug Fixes)\n([\s\S]*?)(?=###|$)/g;
         let sectionMatch;
 
         while ((sectionMatch = sectionRegex.exec(blockContent)) !== null) {
-            const type = sectionMatch[1] as 'Added' | 'Changed' | 'Fixed' | 'Removed';
+            const type = sectionMatch[1];
             const itemsText = sectionMatch[2];
 
             // Extract bullet points, excluding separator lines

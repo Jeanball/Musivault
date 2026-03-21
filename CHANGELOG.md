@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Remove 'Random Picker' feature from README
 - Update Condition Grading feature note in README
-- Add multi-language support with initial translations
 - feat: Introduce a dedicated layout for shared collection pages, enabling dynamic rendering based on user authentication, and expose MongoDB port in the dev environment.
 - feat: Add direct format selection buttons on release page with confirmation modal and styling.
 - feat: Add manual album creation translations and update search mode labels across all supported languages.

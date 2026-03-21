@@ -185,13 +185,42 @@ else
     echo -e "${YELLOW}⚠️  CHANGELOG.md not found, skipping changelog update${NC}"
 fi
 
-# Copy VERSION and CHANGELOG.md to frontend/public for What's New feature
+# Update public changelog entry directly in frontend/public
+PUBLIC_CHANGELOG="frontend/public/CHANGELOG.md"
+PUBLIC_TEMPLATE="scripts/CHANGELOG.public.template.md"
+
+if [ -f "$PUBLIC_TEMPLATE" ] && [ -f "$PUBLIC_CHANGELOG" ]; then
+    echo ""
+    echo -e "${BLUE}📝 Preparing public changelog entry...${NC}"
+    
+    # Replace variables in template
+    TEMPLATE_CONTENT=$(sed "s/{{VERSION}}/$new_version/g" "$PUBLIC_TEMPLATE" | sed "s/{{DATE}}/$DATE/g")
+    
+    # Insert TEMPLATE_CONTENT before the first version header
+    awk -v entry="$TEMPLATE_CONTENT" '
+    /^## \[/ && !inserted {
+        print entry
+        inserted = 1
+    }
+    { print }
+    END {
+        if (!inserted) {
+            print ""
+            print entry
+        }
+    }
+    ' "$PUBLIC_CHANGELOG" > "${PUBLIC_CHANGELOG}.tmp"
+    
+    mv "${PUBLIC_CHANGELOG}.tmp" "$PUBLIC_CHANGELOG"
+    echo -e "${GREEN}✅ Added new version block to $PUBLIC_CHANGELOG${NC}"
+fi
+
+# Copy VERSION to frontend/public for What's New feature
 echo ""
-echo -e "${BLUE}📋 Copying files for What's New feature...${NC}"
+echo -e "${BLUE}📋 Copying VERSION for What's New feature...${NC}"
 if [ -d "frontend/public" ]; then
     cp "$VERSION_FILE" "frontend/public/VERSION"
-    cp "$CHANGELOG_FILE" "frontend/public/CHANGELOG.md"
-    echo -e "${GREEN}✅ Copied VERSION and CHANGELOG.md to frontend/public/${NC}"
+    echo -e "${GREEN}✅ Copied VERSION to frontend/public/${NC}"
 else
     echo -e "${YELLOW}⚠️  frontend/public not found, skipping copy${NC}"
 fi
@@ -203,5 +232,6 @@ echo ""
 echo -e "Next steps:"
 echo -e "  1. Review changes: ${YELLOW}git diff${NC}"
 echo -e "  2. Edit CHANGELOG.md if needed (clean up auto-generated entries)"
-echo -e "  3. Commit changes: ${YELLOW}git add VERSION package.json frontend/package.json backend/package.json CHANGELOG.md frontend/public/VERSION frontend/public/CHANGELOG.md && git commit -m 'chore: bump version to $new_version'${NC}"
-echo -e "  4. Create release: ${YELLOW}npm run release${NC}"
+echo -e "  3. Edit frontend/public/CHANGELOG.md to describe the changes to your users"
+echo -e "  4. Commit changes: ${YELLOW}git add VERSION package.json frontend/package.json backend/package.json CHANGELOG.md frontend/public/CHANGELOG.md frontend/public/VERSION && git commit -m 'chore: bump version to $new_version'${NC}"
+echo -e "  5. Create release: ${YELLOW}npm run release${NC}"
