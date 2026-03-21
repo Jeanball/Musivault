@@ -84,6 +84,7 @@ const COLOR_MAP: Record<string, string> = {
     'mahogany': '#c04000',
 
     // Neutrals
+    'black': '#808080',
     'white': '#f0f0f0',
     'grey': '#718096',
     'gray': '#718096',
