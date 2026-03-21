@@ -41,6 +41,7 @@ const ArtistAlbumsPage: React.FC = () => {
     const storedState = artistId ? getStoredState(artistId) : null;
     const [sortField, setSortField] = useState<SortField>(storedState?.sortField ?? 'year');
     const [sortOrder, setSortOrder] = useState<SortOrder>(storedState?.sortOrder ?? 'desc');
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     // Save state to sessionStorage whenever it changes
     useEffect(() => {
@@ -75,7 +76,14 @@ const ArtistAlbumsPage: React.FC = () => {
     const sortedAlbums = useMemo(() => {
         if (!pageData) return [];
 
-        return [...pageData.albums].sort((a, b) => {
+        let result = pageData.albums;
+
+        if (searchTerm.trim() !== '') {
+            const lowerQuery = searchTerm.toLowerCase();
+            result = result.filter(a => a.title.toLowerCase().includes(lowerQuery));
+        }
+
+        return [...result].sort((a, b) => {
             if (sortField === 'title') {
                 const comparison = a.title.localeCompare(b.title);
                 return sortOrder === 'asc' ? comparison : -comparison;
@@ -84,7 +92,7 @@ const ArtistAlbumsPage: React.FC = () => {
                 return sortOrder === 'asc' ? comparison : -comparison;
             }
         });
-    }, [pageData, sortField, sortOrder]);
+    }, [pageData, sortField, sortOrder, searchTerm]);
 
     const handleAlbumClick = (album: ArtistAlbum) => {
         if (album.type === 'master') {
@@ -130,31 +138,42 @@ const ArtistAlbumsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Sort controls */}
-            <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-base-200 rounded-lg">
-                <span className="text-sm font-medium">{t('artist.sortBy')}</span>
-                <div className="flex gap-2">
+            {/* Filter and Sort controls */}
+            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6 p-4 bg-base-200 rounded-lg">
+                <div className="w-full md:max-w-sm">
+                    <input
+                        type="text"
+                        placeholder={t('search.placeholder', 'Search...')}
+                        className="input input-bordered input-sm w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                    <span className="text-sm font-medium">{t('artist.sortBy')}</span>
+                    <div className="flex gap-2">
+                        <button
+                            className={`btn btn-sm ${sortField === 'title' ? 'btn-primary' : 'btn-outline'}`}
+                            onClick={() => setSortField('title')}
+                        >
+                            {t('common.title')}
+                        </button>
+                        <button
+                            className={`btn btn-sm ${sortField === 'year' ? 'btn-primary' : 'btn-outline'}`}
+                            onClick={() => setSortField('year')}
+                        >
+                            {t('common.year')}
+                        </button>
+                    </div>
+                    <div className="divider divider-horizontal mx-0 hidden md:flex"></div>
                     <button
-                        className={`btn btn-sm ${sortField === 'title' ? 'btn-primary' : 'btn-outline'}`}
-                        onClick={() => setSortField('title')}
+                        className="btn btn-sm btn-ghost gap-2"
+                        onClick={toggleSortOrder}
                     >
-                        {t('common.title')}
-                    </button>
-                    <button
-                        className={`btn btn-sm ${sortField === 'year' ? 'btn-primary' : 'btn-outline'}`}
-                        onClick={() => setSortField('year')}
-                    >
-                        {t('common.year')}
+                        {sortOrder === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                        {sortOrder === 'asc' ? t('artist.ascending') : t('artist.descending')}
                     </button>
                 </div>
-                <div className="divider divider-horizontal mx-0"></div>
-                <button
-                    className="btn btn-sm btn-ghost gap-2"
-                    onClick={toggleSortOrder}
-                >
-                    {sortOrder === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
-                    {sortOrder === 'asc' ? t('artist.ascending') : t('artist.descending')}
-                </button>
             </div>
 
             {/* Albums grid */}
