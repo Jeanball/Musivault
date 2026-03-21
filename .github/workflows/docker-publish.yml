@@ -37,8 +37,23 @@ jobs:
         id: extract_notes
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          # Extract the section for this version from the public changelog
-          awk "/^## \\\[$VERSION\\\]/{flag=1; next} /^## \\\[/{if(flag) exit} flag" frontend/public/CHANGELOG.md > release_notes.md
+          node -e "
+            const fs = require('fs');
+            const version = '$VERSION';
+            const log = fs.readFileSync('frontend/public/CHANGELOG.md', 'utf8');
+            const lines = log.split('\n');
+            let extract = false;
+            const output = [];
+            for (const line of lines) {
+              if (line.startsWith('## [' + version + ']')) {
+                extract = true;
+                continue;
+              }
+              if (extract && line.startsWith('## [')) break;
+              if (extract) output.push(line);
+            }
+            fs.writeFileSync('release_notes.md', output.join('\n').replace(/\s*---\s*$/, '').trim());
+          "
           echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
 
       - name: Create Release
