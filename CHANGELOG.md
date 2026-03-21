@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Redesign format selection buttons with hover effects and images, add a new informational alert, and improve confirmation modal layout.
 - feat: add 'black' color definition to color utility.
 - feat: Redesign artist album display from a grid of cards to a list-like layout with enhanced styling and hover effects.
+- feat: Trigger Docker builds and GitHub releases on version tags, extracting release notes from the changelog.
+- feat: Add new changelog section types and streamline public changelog generation using a template.
 
 ### Changed
 - refactor: group master versions by common attributes for improved display and import Plus icon.
