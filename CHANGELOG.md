@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.10.0] - 2026-03-20
+
+### Added
+- Remove 'Random Picker' feature from README
+- Update Condition Grading feature note in README
+- Add multi-language support with initial translations
+- feat: Introduce a dedicated layout for shared collection pages, enabling dynamic rendering based on user authentication, and expose MongoDB port in the dev environment.
+- feat: Add direct format selection buttons on release page with confirmation modal and styling.
+- feat: Add manual album creation translations and update search mode labels across all supported languages.
+- style: Apply dynamic styling and border to album format and description badges.
+- feat: Make album tracklist collapsible, simplify "Add to collection" text, add modal blur styling, and remove About page footer.
+- feat: Add a loading placeholder with a music icon and a fade-in effect for album cover images in the collection grid view.
+- style: Improve tracklist summary icon size, color, and alignment on the album detail page.
+- feat: Add album search/filter functionality to the ArtistAlbumsPage.
+- feat: Redesign format selection buttons with hover effects and images, add a new informational alert, and improve confirmation modal layout.
+- feat: add 'black' color definition to color utility.
+- feat: Redesign artist album display from a grid of cards to a list-like layout with enhanced styling and hover effects.
+
+### Changed
+- refactor: group master versions by common attributes for improved display and import Plus icon.
+- perf: Add lazy loading to image elements in collection views and album cards.
+
+### Fixed
+- fix: Improve text wrapping and layout for format details within buttons and modal content, and refactor modal styling.
+
+---
+
 ## [1.9.0] - 2026-01-17
 
 ### Added
@@ -283,7 +310,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/Jeanball/Musivault/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/Jeanball/Musivault/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/Jeanball/Musivault/compare/v1.7.2...v1.8.0
 [1.7.2]: https://github.com/Jeanball/Musivault/compare/v1.7.1...v1.7.2
