@@ -2,11 +2,10 @@ name: Build and Push Docker Images
 
 on:
   # Build on push to develop branch (nightly/unstable builds)
+  # Also trigger on version tags (v1.0.0) for production deployments
   push:
     branches: ['develop']
-  # Only build on release for production deployments
-  release:
-    types: [published]
+    tags: ['v*']
   # Build on PR to validate changes (no push)
   pull_request:
     branches: ['main', 'develop']
@@ -24,7 +23,32 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Release Notes
+        id: extract_notes
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          # Extract the section for this version from the public changelog
+          awk "/^## \\\[$VERSION\\\]/{flag=1; next} /^## \\\[/{if(flag) exit} flag" frontend/public/CHANGELOG.md > release_notes.md
+          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ steps.extract_notes.outputs.notes_file }}
+          generate_release_notes: false
+
   build-and-push:
+    name: Build Docker Images
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -87,11 +111,11 @@ jobs:
             # SHA for traceability
             type=sha,prefix=sha-
             # 'latest' tag only for stable releases (not prereleases)
-            type=raw,value=latest,enable=${{ github.event_name == 'release' && steps.version_type.outputs.is_prerelease == 'false' }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && steps.version_type.outputs.is_prerelease == 'false' }}
             # 'beta' tag for prerelease versions
-            type=raw,value=beta,enable=${{ github.event_name == 'release' && steps.version_type.outputs.is_prerelease == 'true' }}
+            type=raw,value=beta,enable=${{ startsWith(github.ref, 'refs/tags/v') && steps.version_type.outputs.is_prerelease == 'true' }}
             # Explicit version tag from VERSION file
-            type=raw,value=${{ steps.version.outputs.version }},enable=${{ github.event_name == 'release' }}
+            type=raw,value=${{ steps.version.outputs.version }},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
