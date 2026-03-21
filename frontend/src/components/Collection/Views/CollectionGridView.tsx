@@ -25,11 +25,18 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                 onClick={() => onItemClick(item)}
                                 className="card bg-base-200 shadow-xl transition-transform hover:scale-105 cursor-pointer"
                             >
-                                <figure>
+                                <figure className="aspect-square w-full bg-base-300 relative">
+                                    <div className="absolute inset-0 flex items-center justify-center text-base-content/20">
+                                        {/* Simple music icon as a placeholder */}
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                                        </svg>
+                                    </div>
                                     <img
                                         src={getImageUrl(item.album.cover_image || item.album.thumb)}
                                         alt={item.album.title}
-                                        className="aspect-square object-cover"
+                                        className="w-full h-full object-cover relative z-10 opacity-0 transition-opacity duration-300"
+                                        onLoad={(e) => { e.currentTarget.classList.remove('opacity-0'); }}
                                     />
                                 </figure>
                                 <div className="card-body p-3">
