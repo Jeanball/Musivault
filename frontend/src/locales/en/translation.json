@@ -4,6 +4,8 @@
         "cancel": "Cancel",
         "close": "Close",
         "confirm": "Confirm",
+        "stay": "Stay",
+        "leave": "Leave",
         "add": "Add",
         "edit": "Edit",
         "delete": "Delete",
@@ -346,7 +348,15 @@
         "recent": "Recent",
         "styles": "Styles",
         "thisWeek": "This week",
-        "thisMonth": "this month"
+        "thisMonth": "this month",
+        "value": "Value",
+        "syncValues": "Sync Values",
+        "syncComplete": "Values synced successfully!",
+        "syncError": "Failed to sync values. Please try again.",
+        "itemsValued": "items valued",
+        "noValueYet": "Click Sync to fetch values",
+        "syncInProgress": "Sync in Progress",
+        "syncLeaveWarning": "A price sync is currently running. Leaving this page will cancel it."
     },
     "tracks": {
         "searchTrack": "Search a track...",

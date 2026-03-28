@@ -4,6 +4,8 @@
         "cancel": "Cancelar",
         "close": "Cerrar",
         "confirm": "Confirmar",
+        "stay": "Quedarse",
+        "leave": "Salir",
         "add": "Añadir",
         "edit": "Editar",
         "delete": "Eliminar",
@@ -327,7 +329,15 @@
         "recent": "Reciente",
         "styles": "Estilos",
         "thisWeek": "Esta semana",
-        "thisMonth": "Este mes"
+        "thisMonth": "Este mes",
+        "value": "Valor",
+        "syncValues": "Sincronizar",
+        "syncComplete": "¡Valores sincronizados exitosamente!",
+        "syncError": "Error al sincronizar. Intenta de nuevo.",
+        "itemsValued": "items valorados",
+        "noValueYet": "Haz clic en Sincronizar",
+        "syncInProgress": "Sincronización en curso",
+        "syncLeaveWarning": "Se está ejecutando una sincronización de precios. Salir de esta página la cancelará."
     },
     "tracks": {
         "searchTrack": "Buscar una pista...",

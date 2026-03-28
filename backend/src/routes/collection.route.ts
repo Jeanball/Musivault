@@ -15,7 +15,8 @@ import {
     updateCollectionItem,
     rematchAlbum,
     getStyles,
-    addManualAlbum
+    addManualAlbum,
+    syncCollectionValues
 } from '../controllers/collection.controller';
 import protectRoute from '../middlewares/protectRoute.middleware';
 
@@ -62,6 +63,7 @@ router.get('/import/logs/:logId/download', protectRoute, downloadImportLog);
 
 // Style filter endpoint (must be before /:itemId to avoid route conflicts)
 router.get('/styles', protectRoute, getStyles);
+router.post('/sync-values', protectRoute, syncCollectionValues);
 
 // Manual album entry (must be before /:itemId to avoid route conflicts)
 router.post('/manual', protectRoute, coverUpload.single('cover'), addManualAlbum);

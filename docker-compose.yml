@@ -31,6 +31,9 @@ services:
       - JWT_SECRET=${JWT_SECRET:-${SESSION_SECRET}}
       - DISCOGS_KEY=${DISCOGS_KEY}
       - DISCOGS_SECRET=${DISCOGS_SECRET}
+      # Discogs Personal Access Token (optional - required for collection value estimation)
+      # Requires a Discogs seller account. Get your token at https://www.discogs.com/settings/developers
+      - DISCOGS_PAT=${DISCOGS_PAT:-}
       # Initial admin (optional - remove after first run)
       - ADMIN_EMAIL=${ADMIN_EMAIL:-}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-}

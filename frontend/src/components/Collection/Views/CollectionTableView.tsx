@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem, SortColumn } from '../../../types/collection.types';
+import { getItemValue } from '../../../types/collection.types';
 
 interface CollectionTableViewProps {
     items: CollectionItem[];
@@ -52,6 +53,12 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                         >
                             {t('collection.added')} {getSortIcon('addedAt')}
                         </th>
+                        <th
+                            className="cursor-pointer hover:bg-base-200"
+                            onClick={() => onSort('price')}
+                        >
+                            {t('stats.value')} {getSortIcon('price')}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,6 +93,23 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                             </td>
                             <td>{item.album.year || t('common.na')}</td>
                             <td>{new Date(item.addedAt).toLocaleDateString('en-US')}</td>
+                            <td>
+                                {(() => {
+                                    const val = getItemValue(item);
+                                    return val > 0 ? (
+                                        <span className="font-semibold text-warning">
+                                            {new Intl.NumberFormat(undefined, {
+                                                style: 'currency',
+                                                currency: item.priceCache?.currency || 'USD',
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0,
+                                            }).format(val)}
+                                        </span>
+                                    ) : (
+                                        <span className="text-base-content/30">—</span>
+                                    );
+                                })()}
+                            </td>
                         </tr>
                     ))}
                 </tbody>

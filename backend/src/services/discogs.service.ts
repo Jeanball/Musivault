@@ -23,6 +23,7 @@ import {
     RATE_LIMIT_MS,
     getAuthParams,
     hasCredentials,
+    hasPAT,
     delay,
     discogsRequest,
     cleanAlbumTitle,
@@ -674,6 +675,63 @@ export async function searchByCatalogNumber(
         };
     } catch (err: any) {
         console.log('[Discogs] Catalog number search error:', err.message);
+        return null;
+    }
+}
+
+// ===== Marketplace / Pricing =====
+
+export interface MarketplaceStats {
+    mint: number | null;
+    nearMint: number | null;
+    veryGoodPlus: number | null;
+    veryGood: number | null;
+    goodPlus: number | null;
+    good: number | null;
+    fair: number | null;
+    poor: number | null;
+    currency: string;
+}
+
+/**
+ * Get price suggestions per condition grade for a release
+ * Requires DISCOGS_PAT (Personal Access Token)
+ * The user must have a Discogs seller account for this to work
+ */
+export async function getMarketplaceStats(releaseId: number): Promise<MarketplaceStats | null> {
+    if (!hasPAT()) {
+        return null;
+    }
+
+    try {
+        await delay(RATE_LIMIT_MS);
+
+        const suggestions = await discogsRequest<Record<string, { value: number; currency: string }>>(
+            `/marketplace/price_suggestions/${releaseId}`,
+            {},
+            { useTokenAuth: true }
+        );
+
+        // If empty response, no data available
+        if (!suggestions || Object.keys(suggestions).length === 0) {
+            return null;
+        }
+
+        const currency = Object.values(suggestions)[0]?.currency || 'USD';
+
+        return {
+            mint: suggestions['Mint (M)']?.value ?? null,
+            nearMint: suggestions['Near Mint (NM or M-)']?.value ?? null,
+            veryGoodPlus: suggestions['Very Good Plus (VG+)']?.value ?? null,
+            veryGood: suggestions['Very Good (VG)']?.value ?? null,
+            goodPlus: suggestions['Good Plus (G+)']?.value ?? null,
+            good: suggestions['Good (G)']?.value ?? null,
+            fair: suggestions['Fair (F)']?.value ?? null,
+            poor: suggestions['Poor (P)']?.value ?? null,
+            currency,
+        };
+    } catch (err: any) {
+        console.log(`[Discogs] Price suggestions error for release ${releaseId}:`, err.message);
         return null;
     }
 }

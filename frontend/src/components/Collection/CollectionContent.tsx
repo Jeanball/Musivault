@@ -25,12 +25,14 @@ interface CollectionContentProps {
     readOnly?: boolean;
     onDelete?: (itemId: string) => Promise<void>;
     isDeleting?: boolean;
+    onRefresh?: () => Promise<void>;
 }
 
 const CollectionContent: React.FC<CollectionContentProps> = ({
     collection,
     isLoading,
     readOnly = false,
+    onRefresh,
 }) => {
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -115,7 +117,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
 
     return (
         <>
-            <CollectionStats stats={stats} />
+            <CollectionStats stats={stats} onSyncComplete={onRefresh} />
 
             {/* View Mode Tabs - Albums/Tracks toggle */}
             {!readOnly && (

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { CollectionItem, CollectionStats } from '../../types/collection.types';
+import { getItemValue } from '../../types/collection.types';
 
 export const useCollectionStats = (collection: CollectionItem[]): CollectionStats => {
     return useMemo(() => {
@@ -63,6 +64,19 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
         const topStyleEntry = Object.entries(styleCounts)
             .sort(([, a], [, b]) => b - a)[0];
 
+        // Collection value (condition-matched per item)
+        let totalValue = 0;
+        let valueCurrency = 'USD';
+        let itemsWithValue = 0;
+        for (const item of collection) {
+            const val = getItemValue(item);
+            if (val > 0) {
+                totalValue += val;
+                valueCurrency = item.priceCache?.currency || 'USD';
+                itemsWithValue++;
+            }
+        }
+
         return {
             total,
             formatCounts,
@@ -73,7 +87,10 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
             topStyle: topStyleEntry ? { name: topStyleEntry[0], count: topStyleEntry[1] } : null,
             availableFormats,
             availableDecades,
-            availableStyles
+            availableStyles,
+            totalValue: Math.round(totalValue * 100) / 100,
+            valueCurrency,
+            itemsWithValue
         };
     }, [collection]);
 };

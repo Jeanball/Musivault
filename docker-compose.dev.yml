@@ -35,6 +35,8 @@ services:
       - JWT_SECRET=${JWT_SECRET:-${SESSION_SECRET}}
       - DISCOGS_KEY=${DISCOGS_KEY}
       - DISCOGS_SECRET=${DISCOGS_SECRET}
+      # Discogs Personal Access Token (optional - required for collection value estimation)
+      - DISCOGS_PAT=${DISCOGS_PAT:-}
       - CORS_ORIGINS=*
       - TRUST_PROXY=true
       # Initial admin (optional - remove after first run)

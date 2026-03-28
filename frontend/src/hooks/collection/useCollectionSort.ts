@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, SortColumn, SortOrder } from '../../types/collection.types';
+import { getItemValue } from '../../types/collection.types';
 
 const SORT_STORAGE_KEY = 'musivault_collection_sort';
 
@@ -69,6 +70,10 @@ export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
                 case 'addedAt':
                     aValue = new Date(a.addedAt).getTime();
                     bValue = new Date(b.addedAt).getTime();
+                    break;
+                case 'price':
+                    aValue = getItemValue(a) || -1;
+                    bValue = getItemValue(b) || -1;
                     break;
                 default:
                     return 0;

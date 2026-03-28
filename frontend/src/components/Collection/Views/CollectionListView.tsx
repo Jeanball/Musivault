@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from '../../../types/collection.types';
+import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
 
 interface CollectionListViewProps {
@@ -29,6 +30,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                     <th>{t('common.album')}</th>
                                     <th>{t('common.format')}</th>
                                     <th>{t('common.year')}</th>
+                                    <th>{t('stats.value')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -59,6 +61,23 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                             )}
                                         </td>
                                         <td>{item.album.year}</td>
+                                        <td>
+                                            {(() => {
+                                                const val = getItemValue(item);
+                                                return val > 0 ? (
+                                                    <span className="font-semibold text-warning">
+                                                        {new Intl.NumberFormat(undefined, {
+                                                            style: 'currency',
+                                                            currency: item.priceCache?.currency || 'USD',
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 0,
+                                                        }).format(val)}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-base-content/30">—</span>
+                                                );
+                                            })()}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

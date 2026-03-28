@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
+import { getItemValue } from '../types/collection.types';
 import RematchModal from '../components/Modal/RematchModal';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
 import { getImageUrl } from '../utils/imageUrl';
@@ -225,6 +226,42 @@ const AlbumDetailPage: React.FC = () => {
                                 </div>
                             </>
                         )}
+                        {/* Market Value */}
+                        {(() => {
+                            const val = getItemValue(item);
+                            const conditionLabel = item.mediaCondition || 'VG+';
+                            
+                            if (val <= 0) {
+                                return (
+                                    <div className="stat bg-base-200 rounded-lg p-4 opacity-70">
+                                        <div className="stat-title">{t('stats.value')}</div>
+                                        <div className="stat-value text-2xl text-base-content/30">
+                                            N/A
+                                        </div>
+                                        <div className="stat-desc">
+                                            {conditionLabel}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="stat bg-base-200 rounded-lg p-4">
+                                    <div className="stat-title">{t('stats.value')}</div>
+                                    <div className="stat-value text-2xl text-warning">
+                                        {new Intl.NumberFormat(undefined, {
+                                            style: 'currency',
+                                            currency: item.priceCache?.currency || 'USD',
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                        }).format(val)}
+                                    </div>
+                                    <div className="stat-desc">
+                                        {conditionLabel}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Genres & Format Details - Side by Side */}

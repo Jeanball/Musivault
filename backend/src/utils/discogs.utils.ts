@@ -41,6 +41,14 @@ export function hasCredentials(): boolean {
     return !!(process.env.DISCOGS_KEY && process.env.DISCOGS_SECRET);
 }
 
+/**
+ * Check if a Discogs Personal Access Token is configured
+ * Required for marketplace endpoints (price_suggestions)
+ */
+export function hasPAT(): boolean {
+    return !!process.env.DISCOGS_PAT;
+}
+
 // ===== Rate Limiting =====
 
 /**
@@ -68,15 +76,15 @@ export async function discogsRequest<T>(
     const url = endpoint.startsWith('http') ? endpoint : `${DISCOGS_BASE_URL}${endpoint}`;
 
     if (useTokenAuth) {
-        // Token-based auth (for some endpoints)
-        const secret = process.env.DISCOGS_SECRET;
-        if (!secret) {
-            throw new Error('Discogs API secret not configured');
+        // PAT-based auth (required for marketplace/price_suggestions)
+        const pat = process.env.DISCOGS_PAT;
+        if (!pat) {
+            throw new Error('Discogs Personal Access Token (DISCOGS_PAT) not configured');
         }
         const response = await axios.get<T>(url, {
             headers: {
                 ...DISCOGS_HEADERS,
-                'Authorization': `Discogs token=${secret}`
+                'Authorization': `Discogs token=${pat}`
             },
             params
         });

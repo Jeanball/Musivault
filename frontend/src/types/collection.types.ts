@@ -25,16 +25,51 @@ export interface Album {
     labels?: Label[];
 }
 
+export interface PriceCache {
+    mint?: number;
+    nearMint?: number;
+    veryGoodPlus?: number;
+    veryGood?: number;
+    goodPlus?: number;
+    good?: number;
+    fair?: number;
+    poor?: number;
+    currency: string;
+    updatedAt?: string;
+}
+
+/**
+ * Get the effective value for a collection item based on its media condition.
+ * Matches mediaCondition to the stored per-condition price. Defaults to VG+.
+ */
+export function getItemValue(item: CollectionItem): number {
+    if (!item.priceCache) return 0;
+    const pc = item.priceCache;
+
+    switch (item.mediaCondition) {
+        case 'M': return pc.mint ?? pc.nearMint ?? 0;
+        case 'NM': return pc.nearMint ?? pc.mint ?? 0;
+        case 'VG+': return pc.veryGoodPlus ?? 0;
+        case 'VG': return pc.veryGood ?? 0;
+        case 'G+': return pc.goodPlus ?? 0;
+        case 'G': return pc.good ?? 0;
+        case 'F': return pc.fair ?? 0;
+        case 'P': return pc.poor ?? 0;
+        default: return pc.veryGoodPlus ?? pc.nearMint ?? 0;
+    }
+}
+
 export interface CollectionItem {
     _id: string;
     album: Album;
     format: FormatDetails;
     mediaCondition?: string | null;
     sleeveCondition?: string | null;
+    priceCache?: PriceCache | null;
     addedAt: string;
 }
 
-export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'addedAt';
+export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'addedAt' | 'price';
 export type SortOrder = 'asc' | 'desc';
 export type LayoutType = 'grid' | 'list' | 'table';
 
@@ -65,4 +100,7 @@ export interface CollectionStats {
     availableFormats: string[];
     availableDecades: string[];
     availableStyles: string[];
+    totalValue: number;
+    valueCurrency: string;
+    itemsWithValue: number;
 }

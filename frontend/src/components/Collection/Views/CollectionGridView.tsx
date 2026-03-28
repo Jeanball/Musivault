@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CollectionItem } from '../../../types/collection.types';
+import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
 
 interface CollectionGridViewProps {
@@ -47,8 +48,25 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                     >
                                         {item.album.title}
                                     </h2>
-                                    <div className="card-actions justify-start mt-2">
+                                    <div className="card-actions justify-start mt-2 gap-1">
                                         <div className="badge badge-secondary">{item.format.name}</div>
+                                        {(() => {
+                                            const val = getItemValue(item);
+                                            return val > 0 ? (
+                                                <div className="badge badge-warning badge-outline font-semibold">
+                                                    {new Intl.NumberFormat(undefined, {
+                                                        style: 'currency',
+                                                        currency: item.priceCache?.currency || 'USD',
+                                                        minimumFractionDigits: 0,
+                                                        maximumFractionDigits: 0,
+                                                    }).format(val)}
+                                                </div>
+                                            ) : (
+                                                <div className="badge badge-ghost badge-outline text-base-content/50">
+                                                    N/A
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>

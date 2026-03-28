@@ -26,6 +26,8 @@ import CollectionItem from '../models/CollectionItem';
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const DISCOGS_SECRET = process.env.DISCOGS_SECRET;
+const DISCOGS_PAT = process.env.DISCOGS_PAT;
+
 if (!DISCOGS_SECRET) {
     console.error('❌ DISCOGS_SECRET is missing in .env');
     process.exit(1);
@@ -95,6 +97,30 @@ async function fetchWithRetry(discogsId: number, retries: number = 0): Promise<D
     }
 }
 
+async function fetchPriceWithRetry(discogsId: number, retries: number = 0): Promise<any> {
+    if (!DISCOGS_PAT) throw new Error('DISCOGS_PAT missing');
+    try {
+        const response = await axios.get(`https://api.discogs.com/marketplace/price_suggestions/${discogsId}`, {
+            headers: {
+                'Authorization': `Discogs token=${DISCOGS_PAT}`,
+                'User-Agent': 'Musivault/1.5 (+https://github.com/Musivault)'
+            }
+        });
+        return response.data;
+    } catch (error: any) {
+        if (error.response?.status === 429) {
+            // Rate limited
+            if (retries < MAX_RETRIES) {
+                console.log(`  ⏳ Rate limited. Waiting 60 seconds before retry ${retries + 1}/${MAX_RETRIES}...`);
+                await sleep(RETRY_DELAY_MS);
+                return fetchPriceWithRetry(discogsId, retries + 1);
+            }
+            throw new Error('Rate limit exceeded, max retries reached');
+        }
+        throw error;
+    }
+}
+
 interface MissingFields {
     styles: boolean;
     tracklist: boolean;
@@ -133,207 +159,192 @@ export async function migrateAlbumData(isStandalone = false) {
     }
 
     try {
-        // ==================== PHASE 1: ALBUM DATA ====================
-        console.log('\n========== PHASE 1: Album Data Migration ==========\n');
+        // Ensure Album is registered in Mongoose BEFORE population
+        if (!Album) throw new Error('Album model missing');
 
-        // Find all albums with a discogsId
-        const albums = await Album.find({
-            discogsId: { $exists: true, $ne: null }
-        });
+        console.log('\n========== Unified Collection Data Migration ==========\n');
 
-        console.log(`Found ${albums.length} albums to check.`);
+        // Find all collection items and populate the album
+        const collectionItems = await CollectionItem.find({}).populate('album');
+        console.log(`Found ${collectionItems.length} items in your collection.\n`);
 
-        // First pass: count albums that need updates
-        let needsUpdateCount = 0;
-        for (const album of albums) {
-            const missing = checkMissingFields(album);
-            if (hasMissingFields(missing)) {
-                needsUpdateCount++;
-            }
-        }
-
-        console.log(`Albums needing updates: ${needsUpdateCount}`);
-        console.log(`Rate limit: 1 request every ${RATE_LIMIT_DELAY_MS / 1000} seconds`);
-        console.log(`Estimated time: ${Math.ceil((needsUpdateCount * RATE_LIMIT_DELAY_MS) / 60000)} minutes\n`);
-
-        let updatedCount = 0;
-        let skippedCount = 0;
+        let updatedAlbumsCount = 0;
+        let updatedFormatsCount = 0;
+        let updatedPricesCount = 0;
+        let fullySkippedCount = 0;
         let errorCount = 0;
 
-        for (let i = 0; i < albums.length; i++) {
-            const album = albums[i];
-            const progress = `[${i + 1}/${albums.length}]`;
-            const missing = checkMissingFields(album);
-
-            if (!hasMissingFields(missing)) {
-                // All fields are present, skip
-                skippedCount++;
-                continue;
-            }
-
-            const missingStr = formatMissingFields(missing);
-            console.log(`${progress} Processing: ${album.title} (ID: ${album.discogsId})`);
-            console.log(`  Missing: ${missingStr}`);
-
-            try {
-                const data = await fetchWithRetry(album.discogsId!);
-                let updated = false;
-
-                // Update styles if missing
-                if (missing.styles && data.styles && data.styles.length > 0) {
-                    album.styles = data.styles;
-                    updated = true;
-                    console.log(`  ✅ styles: ${data.styles.join(', ')}`);
-                }
-
-                // Update tracklist if missing OR if it exists but lacks artist data
-                const tracklistNeedsArtist = album.tracklist && album.tracklist.length > 0 &&
-                    album.tracklist.some((t: any) => !t.artist || t.artist === '');
-                if ((missing.tracklist || tracklistNeedsArtist) && data.tracklist && data.tracklist.length > 0) {
-                    album.tracklist = data.tracklist.map(t => ({
-                        position: t.position || '',
-                        title: t.title || '',
-                        duration: t.duration || '',
-                        artist: t.artists?.map(a => a.name).join(', ') || ''
-                    }));
-                    updated = true;
-                    console.log(`  ✅ tracklist: ${data.tracklist.length} tracks (with artists)`);
-                }
-
-                // Update labels if missing
-                if (missing.labels && data.labels && data.labels.length > 0) {
-                    album.labels = data.labels.map(l => ({
-                        name: l.name || '',
-                        catno: l.catno || ''
-                    }));
-                    updated = true;
-                    console.log(`  ✅ labels: ${data.labels.map(l => l.name).join(', ')}`);
-                }
-
-                // Update cover_image if missing
-                if (missing.cover_image) {
-                    const primaryImage = data.images?.find(img => img.type === 'primary')?.uri;
-                    const fallbackImage = data.images?.[0]?.uri;
-                    const newCoverImage = primaryImage || fallbackImage;
-                    if (newCoverImage) {
-                        album.cover_image = newCoverImage;
-                        updated = true;
-                        console.log(`  ✅ cover_image: updated`);
-                    }
-                }
-
-                // Update year if missing
-                if (missing.year && data.year) {
-                    album.year = data.year.toString();
-                    updated = true;
-                    console.log(`  ✅ year: ${data.year}`);
-                }
-
-                if (updated) {
-                    await album.save();
-                    updatedCount++;
-                } else {
-                    console.log(`  ⚠️ No data available on Discogs to fill missing fields`);
-                }
-
-                // Wait to respect rate limit
-                await sleep(RATE_LIMIT_DELAY_MS);
-
-            } catch (error: any) {
-                console.error(`  ❌ Failed: ${error.message}`);
-                if (error.response?.status === 404) {
-                    console.error(`     Release not found on Discogs.`);
-                }
-                errorCount++;
-
-                // Still wait to avoid hammering the API
-                await sleep(RATE_LIMIT_DELAY_MS);
-            }
-        }
-
-        console.log('\n========== Album Migration Summary ==========');
-        console.log(`Total Albums: ${albums.length}`);
-        console.log(`Needed Updates: ${needsUpdateCount}`);
-        console.log(`Updated: ${updatedCount}`);
-        console.log(`Skipped (Complete): ${skippedCount}`);
-        console.log(`Errors: ${errorCount}`);
-        console.log('=============================================\n');
-
-        // ==================== PHASE 2: FORMAT DETAILS ====================
-        console.log('\n========== PHASE 2: Collection Format Details ==========\n');
-
-        // Find all collection items with missing format details
-        const collectionItems = await CollectionItem.find({}).populate('album');
-
-        // Filter items that need format updates (missing text or descriptions)
-        const itemsNeedingUpdate = collectionItems.filter(item => {
-            const hasText = item.format?.text && item.format.text.trim() !== '';
-            const hasDescriptions = item.format?.descriptions && item.format.descriptions.length > 0;
-            return !hasText && !hasDescriptions;
-        });
-
-        console.log(`Found ${collectionItems.length} collection items total.`);
-        console.log(`Items needing format updates: ${itemsNeedingUpdate.length}`);
-        console.log(`Estimated time: ${Math.ceil((itemsNeedingUpdate.length * RATE_LIMIT_DELAY_MS) / 60000)} minutes\n`);
-
-        let formatUpdatedCount = 0;
-        let formatSkippedCount = 0;
-        let formatErrorCount = 0;
-
-        for (let i = 0; i < itemsNeedingUpdate.length; i++) {
-            const item = itemsNeedingUpdate[i];
+        for (let i = 0; i < collectionItems.length; i++) {
+            const item = collectionItems[i];
             const album = item.album as any;
-            const progress = `[${i + 1}/${itemsNeedingUpdate.length}]`;
+            const progress = `[${i + 1}/${collectionItems.length}]`;
 
             if (!album?.discogsId) {
-                console.log(`${progress} Skipping: No discogsId for album`);
-                formatSkippedCount++;
+                console.log(`${progress} Skipping: No discogsId for item`);
+                fullySkippedCount++;
+                continue;
+            }
+
+            // 1. Determine what is missing
+            const missingAlbumFields = checkMissingFields(album);
+            const needsAlbumUpdate = hasMissingFields(missingAlbumFields);
+            
+            const hasFormatText = item.format?.text && item.format.text.trim() !== '';
+            const hasFormatDescriptions = item.format?.descriptions && item.format.descriptions.length > 0;
+            const needsFormatUpdate = !hasFormatText && !hasFormatDescriptions;
+            
+            const needsPriceUpdate = item.priceCache?.veryGoodPlus === undefined;
+
+            if (!needsAlbumUpdate && !needsFormatUpdate && !needsPriceUpdate) {
+                fullySkippedCount++;
                 continue;
             }
 
             console.log(`${progress} Processing: ${album.title} (ID: ${album.discogsId})`);
+            
+            let itemChanged = false;
+            let albumChanged = false;
 
             try {
-                const data = await fetchWithRetry(album.discogsId);
+                // If we need album data OR format data, fetch the release endpoint
+                if (needsAlbumUpdate || needsFormatUpdate) {
+                    const data = await fetchWithRetry(album.discogsId);
+                    
+                    // --- Handle Album Data ---
+                    if (needsAlbumUpdate) {
+                        const missingStr = formatMissingFields(missingAlbumFields);
+                        console.log(`  🔍 Needs Album Data (${missingStr})`);
+                        
+                        // Update styles
+                        if (missingAlbumFields.styles && data.styles?.length) {
+                            album.styles = data.styles;
+                            albumChanged = true;
+                            console.log(`  ✅ styles added: ${data.styles.length}`);
+                        }
 
-                if (data.formats && data.formats.length > 0) {
-                    // Find the best matching format based on the item's format.name
-                    const matchingFormat = data.formats.find(f =>
-                        f.name.toLowerCase() === item.format.name.toLowerCase()
-                    ) || data.formats[0];
+                        // Update tracklist
+                        const tracklistNeedsArtist = album.tracklist?.some((t: any) => !t.artist || t.artist === '');
+                        if ((missingAlbumFields.tracklist || tracklistNeedsArtist) && data.tracklist?.length) {
+                            album.tracklist = data.tracklist.map(t => ({
+                                position: t.position || '',
+                                title: t.title || '',
+                                duration: t.duration || '',
+                                artist: t.artists?.map(a => a.name).join(', ') || ''
+                            }));
+                            albumChanged = true;
+                            console.log(`  ✅ tracklist added: ${data.tracklist.length} tracks`);
+                        }
 
-                    if (matchingFormat) {
-                        item.format.text = matchingFormat.text || '';
-                        item.format.descriptions = matchingFormat.descriptions || [];
-                        await item.save();
-                        formatUpdatedCount++;
+                        // Update labels
+                        if (missingAlbumFields.labels && data.labels?.length) {
+                            album.labels = data.labels.map(l => ({
+                                name: l.name || '',
+                                catno: l.catno || ''
+                            }));
+                            albumChanged = true;
+                            console.log(`  ✅ labels added`);
+                        }
 
-                        const textInfo = matchingFormat.text ? `"${matchingFormat.text}"` : 'none';
-                        const descInfo = matchingFormat.descriptions?.join(', ') || 'none';
-                        console.log(`  ✅ Updated: text=${textInfo}, descriptions=${descInfo}`);
-                    } else {
-                        console.log(`  ⚠️ No format data found on Discogs`);
+                        // Update cover_image
+                        if (missingAlbumFields.cover_image) {
+                            const newCoverImage = data.images?.find(img => img.type === 'primary')?.uri || data.images?.[0]?.uri;
+                            if (newCoverImage) {
+                                album.cover_image = newCoverImage;
+                                albumChanged = true;
+                                console.log(`  ✅ cover_image updated`);
+                            }
+                        }
+
+                        // Update year
+                        if (missingAlbumFields.year && data.year) {
+                            album.year = data.year.toString();
+                            albumChanged = true;
+                            console.log(`  ✅ year added: ${data.year}`);
+                        }
                     }
-                } else {
-                    console.log(`  ⚠️ No formats in release data`);
+
+                    // --- Handle Format Data ---
+                    if (needsFormatUpdate) {
+                        console.log(`  🔍 Needs Format Data`);
+                        if (data.formats && data.formats.length > 0) {
+                            const matchingFormat = data.formats.find(f =>
+                                f.name.toLowerCase() === item.format.name.toLowerCase()
+                            ) || data.formats[0];
+
+                            if (matchingFormat) {
+                                item.format.text = matchingFormat.text || '';
+                                item.format.descriptions = matchingFormat.descriptions || [];
+                                itemChanged = true;
+                                console.log(`  ✅ format updated`);
+                            }
+                        }
+                    }
+
+                    // Sleep to respect rate limits if we made an API call
+                    await sleep(RATE_LIMIT_DELAY_MS);
                 }
 
-                await sleep(RATE_LIMIT_DELAY_MS);
+                // --- Handle Price Data ---
+                if (needsPriceUpdate) {
+                    console.log(`  🔍 Needs Price Data`);
+                    if (!DISCOGS_PAT) {
+                        console.log(`  ⚠️ Skipping Price fetch: DISCOGS_PAT missing in .env`);
+                    } else {
+                        const suggestions = await fetchPriceWithRetry(album.discogsId);
+                        const currency = (Object.values(suggestions || {})[0] as any)?.currency || 'USD';
+                        
+                        item.priceCache = {
+                            mint: suggestions?.['Mint (M)']?.value ?? undefined,
+                            nearMint: suggestions?.['Near Mint (NM or M-)']?.value ?? undefined,
+                            veryGoodPlus: suggestions?.['Very Good Plus (VG+)']?.value ?? undefined,
+                            veryGood: suggestions?.['Very Good (VG)']?.value ?? undefined,
+                            goodPlus: suggestions?.['Good Plus (G+)']?.value ?? undefined,
+                            good: suggestions?.['Good (G)']?.value ?? undefined,
+                            fair: suggestions?.['Fair (F)']?.value ?? undefined,
+                            poor: suggestions?.['Poor (P)']?.value ?? undefined,
+                            currency,
+                            updatedAt: new Date()
+                        };
+                        item.markModified('priceCache');
+                        itemChanged = true;
+
+                        if (suggestions && Object.keys(suggestions).length > 0) {
+                            console.log(`  ✅ price added: ${item.priceCache.veryGoodPlus} ${currency} (VG+)`);
+                        } else {
+                            console.log(`  ⚠️ No price data found in marketplace`);
+                        }
+
+                        // Sleep to respect rate limits if we made an API call
+                        await sleep(RATE_LIMIT_DELAY_MS);
+                    }
+                }
+
+                // --- Save Changes ---
+                if (albumChanged) {
+                    await album.save();
+                    updatedAlbumsCount++;
+                }
+                
+                if (itemChanged) {
+                    await item.save();
+                    if (needsFormatUpdate) updatedFormatsCount++;
+                    if (needsPriceUpdate) updatedPricesCount++;
+                }
 
             } catch (error: any) {
                 console.error(`  ❌ Failed: ${error.message}`);
-                formatErrorCount++;
+                errorCount++;
                 await sleep(RATE_LIMIT_DELAY_MS);
             }
         }
 
-        console.log('\n========== Format Details Summary ==========');
-        console.log(`Total Collection Items: ${collectionItems.length}`);
-        console.log(`Needed Updates: ${itemsNeedingUpdate.length}`);
-        console.log(`Updated: ${formatUpdatedCount}`);
-        console.log(`Skipped: ${formatSkippedCount}`);
-        console.log(`Errors: ${formatErrorCount}`);
-        console.log('============================================');
+        console.log('\n========== Migration Summary ==========');
+        console.log(`Albums updated with new data: ${updatedAlbumsCount}`);
+        console.log(`Items updated with formats:   ${updatedFormatsCount}`);
+        console.log(`Items updated with prices:    ${updatedPricesCount}`);
+        console.log(`Items already complete:       ${fullySkippedCount}`);
+        console.log(`Errors encountered:           ${errorCount}`);
+        console.log('=======================================');
 
     } catch (error) {
         console.error('Migration failed:', error);

@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import type { Express } from 'express';
 import Album, { IAlbum } from '../models/Album';
-import CollectionItem from '../models/CollectionItem';
+import CollectionItem, { ICollectionItem } from '../models/CollectionItem';
 import { csvImportService } from '../services/import.service';
+import { getMarketplaceStats } from '../services/discogs.service';
 
 // ===== Types =====
 
@@ -279,6 +280,11 @@ export async function addToCollection(req: Request, res: Response) {
       sleeveCondition: sleeveCondition || null,
     });
     await newItem.save();
+
+    // Fire-and-forget: fetch price in the background
+    if (discogsId) {
+      fetchPriceForItem(String(newItem._id), discogsId).catch(() => {});
+    }
 
     res.status(201).json({ message: 'Album added to your collection!', item: newItem });
   } catch (error) {
@@ -561,3 +567,162 @@ export async function addManualAlbum(req: Request, res: Response) {
     res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+// ===== Collection Value Sync =====
+
+/**
+ * Get the effective value for a collection item based on its media condition.
+ * Matches the item's mediaCondition to the stored per-condition price.
+ * Defaults to VG+ if no condition is set.
+ */
+function getValueForItem(item: any): number {
+  if (!item.priceCache) return 0;
+  const pc = item.priceCache;
+
+  switch (item.mediaCondition) {
+    case 'M': return pc.mint ?? pc.nearMint ?? 0;
+    case 'NM': return pc.nearMint ?? pc.mint ?? 0;
+    case 'VG+': return pc.veryGoodPlus ?? 0;
+    case 'VG': return pc.veryGood ?? 0;
+    case 'G+': return pc.goodPlus ?? 0;
+    case 'G': return pc.good ?? 0;
+    case 'F': return pc.fair ?? 0;
+    case 'P': return pc.poor ?? 0;
+    default: return pc.veryGoodPlus ?? pc.nearMint ?? 0; // default to VG+
+  }
+}
+
+/**
+ * Fetch and store the price for a single collection item (fire-and-forget helper)
+ */
+async function fetchPriceForItem(itemId: string, discogsId: number): Promise<void> {
+  try {
+    const stats = await getMarketplaceStats(discogsId);
+    if (stats) {
+      await CollectionItem.findByIdAndUpdate(itemId, {
+        $set: {
+          priceCache: {
+            mint: stats.mint,
+            nearMint: stats.nearMint,
+            veryGoodPlus: stats.veryGoodPlus,
+            veryGood: stats.veryGood,
+            goodPlus: stats.goodPlus,
+            good: stats.good,
+            fair: stats.fair,
+            poor: stats.poor,
+            currency: stats.currency,
+            updatedAt: new Date(),
+          }
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`[PriceSync] Error fetching price for item ${itemId}:`, err);
+  }
+}
+
+export async function syncCollectionValues(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    // Set up Server-Sent Events for progress streaming
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    // Find ALL items for this user, populate album for discogsId
+    const allItems = await CollectionItem.find({ user: req.user._id })
+      .populate<{ album: IAlbum }>('album');
+
+    let synced = 0;
+    let skipped = 0;
+    const total = allItems.length;
+
+    console.log(`[PriceSync] Starting sync for ${total} items`);
+
+    for (let i = 0; i < allItems.length; i++) {
+      const item = allItems[i];
+      const idx = i + 1;
+
+      if (!item.album || !item.album.discogsId) {
+        skipped++;
+        console.log(`[PriceSync] ${idx}/${total} SKIP - ${item.album?.artist || 'Unknown'} - ${item.album?.title || 'Unknown'} (no discogsId)`);
+        continue;
+      }
+
+      const artist = item.album.artist;
+      const title = item.album.title;
+
+      // Send progress event to frontend
+      res.write(`data: ${JSON.stringify({
+        type: 'progress',
+        current: idx,
+        total,
+        artist,
+        title,
+      })}\n\n`);
+
+      const stats = await getMarketplaceStats(item.album.discogsId);
+      if (stats) {
+        item.priceCache = {
+          mint: stats.mint ?? undefined,
+          nearMint: stats.nearMint ?? undefined,
+          veryGoodPlus: stats.veryGoodPlus ?? undefined,
+          veryGood: stats.veryGood ?? undefined,
+          goodPlus: stats.goodPlus ?? undefined,
+          good: stats.good ?? undefined,
+          fair: stats.fair ?? undefined,
+          poor: stats.poor ?? undefined,
+          currency: stats.currency,
+          updatedAt: new Date(),
+        };
+        await item.save();
+        synced++;
+        console.log(`[PriceSync] ${idx}/${total} SUCCESS - ${artist} - ${title} | VG+: ${stats.veryGoodPlus} ${stats.currency} | NM: ${stats.nearMint} | M: ${stats.mint}`);
+      } else {
+        skipped++;
+        console.log(`[PriceSync] ${idx}/${total} FAILED - ${artist} - ${title} (no data or PAT not configured)`);
+      }
+    }
+
+    // Calculate total collection value (uses condition-matched price per item)
+    let totalValue = 0;
+    let currency = 'USD';
+    for (const item of allItems) {
+      const val = getValueForItem(item);
+      if (val > 0) {
+        totalValue += val;
+        currency = item.priceCache?.currency || 'USD';
+      }
+    }
+
+    console.log(`[PriceSync] Complete: ${synced}/${total} synced, ${skipped} skipped. Total value: ${totalValue.toFixed(2)} ${currency}`);
+
+    // Send final event with summary
+    res.write(`data: ${JSON.stringify({
+      type: 'complete',
+      synced,
+      skipped,
+      total,
+      totalValue: Math.round(totalValue * 100) / 100,
+      currency,
+      message: `Synced ${synced}/${total} items.`
+    })}\n\n`);
+
+    res.end();
+  } catch (error) {
+    console.error('Error syncing collection values:', error);
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Internal server error' })}\n\n`);
+      res.end();
+    } else {
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+}
+
+export { fetchPriceForItem, getValueForItem };

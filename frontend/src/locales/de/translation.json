@@ -4,6 +4,8 @@
         "cancel": "Abbrechen",
         "close": "Schließen",
         "confirm": "Bestätigen",
+        "stay": "Bleiben",
+        "leave": "Verlassen",
         "add": "Hinzufügen",
         "edit": "Bearbeiten",
         "delete": "Löschen",
@@ -327,7 +329,15 @@
         "recent": "Letzte",
         "styles": "Stile",
         "thisWeek": "Diese Woche",
-        "thisMonth": "Diesen Monat"
+        "thisMonth": "Diesen Monat",
+        "value": "Wert",
+        "syncValues": "Synchronisieren",
+        "syncComplete": "Werte erfolgreich synchronisiert!",
+        "syncError": "Fehler beim Synchronisieren. Bitte erneut versuchen.",
+        "itemsValued": "Artikel bewertet",
+        "noValueYet": "Klicken Sie auf Synchronisieren",
+        "syncInProgress": "Synchronisierung läuft",
+        "syncLeaveWarning": "Eine Preissynchronisierung läuft gerade. Das Verlassen dieser Seite wird sie abbrechen."
     },
     "tracks": {
         "searchTrack": "Suchen Sie einen Titel...",

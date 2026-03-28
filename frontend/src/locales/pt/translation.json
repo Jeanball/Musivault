@@ -4,6 +4,8 @@
         "cancel": "Cancelar",
         "close": "Fechar",
         "confirm": "Confirmar",
+        "stay": "Ficar",
+        "leave": "Sair",
         "add": "Adicionar",
         "edit": "Editar",
         "delete": "Excluir",
@@ -327,7 +329,15 @@
         "recent": "Recentes",
         "styles": "Estilos",
         "thisWeek": "Esta semana",
-        "thisMonth": "Este mês"
+        "thisMonth": "Este mês",
+        "value": "Valor",
+        "syncValues": "Sincronizar",
+        "syncComplete": "Valores sincronizados com sucesso!",
+        "syncError": "Falha ao sincronizar. Tente novamente.",
+        "itemsValued": "itens avaliados",
+        "noValueYet": "Clique em Sincronizar",
+        "syncInProgress": "Sincronização em andamento",
+        "syncLeaveWarning": "Uma sincronização de preços está em execução. Sair desta página a cancelará."
     },
     "tracks": {
         "searchTrack": "Buscar uma faixa...",

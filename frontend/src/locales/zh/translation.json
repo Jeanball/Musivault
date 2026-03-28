@@ -4,6 +4,8 @@
         "cancel": "取消",
         "close": "关闭",
         "confirm": "确认",
+        "stay": "留下",
+        "leave": "离开",
         "add": "添加",
         "edit": "编辑",
         "delete": "删除",
@@ -327,7 +329,15 @@
         "recent": "近期",
         "styles": "风格",
         "thisWeek": "本周",
-        "thisMonth": "本月"
+        "thisMonth": "本月",
+        "value": "价值",
+        "syncValues": "同步价值",
+        "syncComplete": "价值同步成功！",
+        "syncError": "同步失败。请重试。",
+        "itemsValued": "项已估价",
+        "noValueYet": "点击同步获取价值",
+        "syncInProgress": "同步进行中",
+        "syncLeaveWarning": "价格同步正在进行中。离开此页面将取消同步。"
     },
     "tracks": {
         "searchTrack": "搜索曲目...",
