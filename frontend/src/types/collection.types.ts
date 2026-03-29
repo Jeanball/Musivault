@@ -86,6 +86,7 @@ export interface FilterState {
     decade: string;
     addedPeriod: string;
     style: string;
+    issueStatus: string;
 }
 
 export interface CollectionStats {

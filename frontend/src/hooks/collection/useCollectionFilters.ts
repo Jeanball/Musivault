@@ -2,22 +2,27 @@ import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, FilterState } from '../../types/collection.types';
 
 const FILTER_STORAGE_KEY = 'musivault_collection_filters';
+const DEFAULT_FILTERS: FilterState = {
+    format: 'all',
+    decade: 'all',
+    addedPeriod: 'all',
+    style: 'all',
+    issueStatus: 'all'
+};
 
 const getInitialFilters = (): FilterState => {
     try {
         const stored = sessionStorage.getItem(FILTER_STORAGE_KEY);
         if (stored) {
-            return JSON.parse(stored);
+            return {
+                ...DEFAULT_FILTERS,
+                ...JSON.parse(stored)
+            };
         }
     } catch (e) {
         // Ignore parse errors
     }
-    return {
-        format: 'all',
-        decade: 'all',
-        addedPeriod: 'all',
-        style: 'all'
-    };
+    return DEFAULT_FILTERS;
 };
 
 export const useCollectionFilters = (collection: CollectionItem[], searchTerm: string) => {
@@ -62,6 +67,14 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
             // Filter by style
             if (filters.style !== 'all') {
                 if (!item.album.styles || !item.album.styles.includes(filters.style)) {
+                    return false;
+                }
+            }
+
+            // Filter by issue status
+            if (filters.issueStatus === 'issues') {
+                const hasIssue = item.formatVerification && item.formatVerification.status !== 'match';
+                if (!hasIssue) {
                     return false;
                 }
             }
@@ -112,12 +125,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
     }, [filteredCollection]);
 
     const clearFilters = () => {
-        setFilters({
-            format: 'all',
-            decade: 'all',
-            addedPeriod: 'all',
-            style: 'all'
-        });
+        setFilters(DEFAULT_FILTERS);
     };
 
     return {

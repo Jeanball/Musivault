@@ -177,6 +177,10 @@
         "lastYear": "Ano Passado",
         "style": "Estilo",
         "allStyles": "Todos os Estilos",
+        "issues": "Problemas",
+        "issueButton": "Problema",
+        "allItems": "Todos os álbuns",
+        "issuesOnly": "Somente com problemas",
         "period": "Período",
         "goToMusivault": "Ir para Musivault",
         "addAlbum": "Adicionar um álbum"

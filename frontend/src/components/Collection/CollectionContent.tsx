@@ -82,6 +82,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     const { filters, setFilters, filteredCollection, groupedByArtist, clearFilters } = useCollectionFilters(collection, searchTerm);
     const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection);
     const stats = useCollectionStats(collection);
+    const issueCount = collection.filter(item => item.formatVerification && item.formatVerification.status !== 'match').length;
 
     const handleClearAll = () => {
         setSearchTerm('');
@@ -111,7 +112,8 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         filters.format !== 'all' ||
         filters.decade !== 'all' ||
         filters.addedPeriod !== 'all' ||
-        filters.style !== 'all';
+        filters.style !== 'all' ||
+        filters.issueStatus !== 'all';
 
     return (
         <>
@@ -128,52 +130,29 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 </div>
             )}
 
-            {/* View Mode Tabs - Albums/Tracks toggle */}
-            {!readOnly && (
-                <div className="flex justify-center mb-4">
-                    <div className="tabs tabs-boxed bg-base-200">
-                        <button
-                            className={`tab ${viewMode === 'albums' ? 'tab-active' : ''}`}
-                            onClick={() => setViewMode('albums')}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            {t('common.albums')}
-                        </button>
-                        <button
-                            className={`tab ${viewMode === 'tracks' ? 'tab-active' : ''}`}
-                            onClick={() => setViewMode('tracks')}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                            </svg>
-                            {t('common.tracks')}
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* Advanced Filters */}
+            <CollectionFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                availableFormats={stats.availableFormats}
+                availableDecades={stats.availableDecades}
+                availableStyles={stats.availableStyles}
+                styleCounts={stats.styleCounts}
+                totalResults={collection.length}
+                filteredResults={filteredCollection.length}
+                onClearAll={hasAnyFilters ? handleClearAll : undefined}
+                issueCount={issueCount}
+                viewMode={readOnly ? undefined : viewMode}
+                onViewModeChange={readOnly ? undefined : setViewMode}
+                layout={layout}
+                onLayoutChange={setLayout}
+            />
 
             {/* Tracks View */}
             {viewMode === 'tracks' && !readOnly ? (
-                <TracksView collection={collection} />
+                <TracksView collection={filteredCollection} />
             ) : (
                 <>
-                    {/* Advanced Filters */}
-                    <CollectionFilters
-                        filters={filters}
-                        onFiltersChange={setFilters}
-                        availableFormats={stats.availableFormats}
-                        availableDecades={stats.availableDecades}
-                        availableStyles={stats.availableStyles}
-                        styleCounts={stats.styleCounts}
-                        totalResults={collection.length}
-                        filteredResults={filteredCollection.length}
-                        onClearAll={hasAnyFilters ? handleClearAll : undefined}
-                        layout={layout}
-                        onLayoutChange={setLayout}
-                    />
-
                     <div className="form-control mb-4">
                         <input
                             type="text"

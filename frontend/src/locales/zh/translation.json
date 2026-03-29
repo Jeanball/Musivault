@@ -177,6 +177,10 @@
         "lastYear": "去年",
         "style": "风格",
         "allStyles": "所有风格",
+        "issues": "问题",
+        "issueButton": "问题",
+        "allItems": "所有专辑",
+        "issuesOnly": "仅显示有问题的",
         "period": "时期",
         "goToMusivault": "前往 Musivault",
         "addAlbum": "添加专辑"
