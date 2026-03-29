@@ -1,38 +1,45 @@
 import { Request, Response } from 'express';
 import type { Express } from 'express';
-import Album, { IAlbum } from '../models/Album';
+import Album, { IAlbum, ITrack, ILabel } from '../models/Album';
 import CollectionItem, { ICollectionItem } from '../models/CollectionItem';
 import { csvImportService } from '../services/import.service';
 import { getMarketplaceStats } from '../services/discogs.service';
 import { isPriceStale } from '../utils/price.utils';
+import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
+import type { DiscogsReleaseResponse } from '../types/discogs.types';
 
 // ===== Types =====
 
-interface TrackInput {
-  position: string;
-  title: string;
-  duration: string;
-  artist?: string;
-}
-
-interface LabelInput {
-  name: string;
-  catno: string;
-}
-
-interface AddToCollectionBody {
+type AddToCollectionBody = {
   discogsId: number;
   title: string;
   artist: string;
   year: string;
   thumb: string;
   cover_image: string;
-  format: string;
+  format: ICollectionItem['format'];
   styles?: string[];
-  tracklist?: TrackInput[];
-  labels?: LabelInput[];
+  tracklist?: ITrack[];
+  labels?: ILabel[];
   mediaCondition?: string;
   sleeveCondition?: string;
+};
+
+function buildPriceCache(stats: Awaited<ReturnType<typeof getMarketplaceStats>>) {
+  if (!stats) return undefined;
+
+  return {
+    mint: stats.mint ?? undefined,
+    nearMint: stats.nearMint ?? undefined,
+    veryGoodPlus: stats.veryGoodPlus ?? undefined,
+    veryGood: stats.veryGood ?? undefined,
+    goodPlus: stats.goodPlus ?? undefined,
+    good: stats.good ?? undefined,
+    fair: stats.fair ?? undefined,
+    poor: stats.poor ?? undefined,
+    currency: stats.currency,
+    updatedAt: new Date(),
+  };
 }
 
 // ===== CSV Import =====
@@ -273,19 +280,17 @@ export async function addToCollection(req: Request, res: Response) {
     }
 
     // Create collection item
+    const priceStats = discogsId ? await getMarketplaceStats(discogsId) : null;
+
     const newItem = new CollectionItem({
       user: req.user._id,
       album: album._id,
       format: format,
       mediaCondition: mediaCondition || null,
       sleeveCondition: sleeveCondition || null,
+      priceCache: buildPriceCache(priceStats),
     });
     await newItem.save();
-
-    // Fire-and-forget: fetch price in the background
-    if (discogsId) {
-      fetchPriceForItem(String(newItem._id), discogsId).catch(() => {});
-    }
 
     res.status(201).json({ message: 'Album added to your collection!', item: newItem });
   } catch (error) {
@@ -379,7 +384,7 @@ export async function rematchAlbum(req: Request, res: Response) {
     }
 
     const { itemId } = req.params;
-    const { newDiscogsId } = req.body;
+    const { newDiscogsId, format } = req.body;
 
     if (!newDiscogsId || typeof newDiscogsId !== 'number') {
       res.status(400).json({ message: 'newDiscogsId is required and must be a number' });
@@ -397,30 +402,8 @@ export async function rematchAlbum(req: Request, res: Response) {
       return;
     }
 
-    // Fetch release details from Discogs
-    const discogsSecret = process.env.DISCOGS_SECRET;
-    if (!discogsSecret) {
-      res.status(500).json({ message: 'Server configuration error' });
-      return;
-    }
-
-    const axios = (await import('axios')).default;
-    const discogsResponse = await axios.get(`https://api.discogs.com/releases/${newDiscogsId}`, {
-      headers: {
-        'Authorization': `Discogs token=${discogsSecret}`,
-        'User-Agent': 'Musivault/1.0'
-      }
-    });
-
-    const releaseData = discogsResponse.data;
-
-    // Clean the title (remove artist prefix)
-    let cleanedTitle = releaseData.title;
-    const separator = ' - ';
-    const separatorIndex = cleanedTitle.indexOf(separator);
-    if (separatorIndex !== -1) {
-      cleanedTitle = cleanedTitle.substring(separatorIndex + separator.length).trim();
-    }
+    const releaseData = await discogsRequest<DiscogsReleaseResponse>(`/releases/${newDiscogsId}`);
+    const cleanedTitle = cleanAlbumTitle(releaseData.title);
 
     // Update the album with new Discogs data
     const album = item.album as any;
@@ -444,7 +427,18 @@ export async function rematchAlbum(req: Request, res: Response) {
       catno: l.catno || ''
     })) || [];
 
+    if (format?.name) {
+      item.format = {
+        name: format.name,
+        descriptions: format.descriptions || [],
+        text: format.text || ''
+      };
+    }
+
+    item.priceCache = buildPriceCache(await getMarketplaceStats(newDiscogsId));
+
     await album.save();
+    await item.save();
 
     // Return the updated item
     const updatedItem = await CollectionItem.findById(itemId).populate('album');

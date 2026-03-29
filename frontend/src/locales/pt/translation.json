@@ -219,6 +219,8 @@
     },
     "versions": {
         "chooseVersion": "Escolha sua versão.",
+        "filterTipTitle": "Dicas de versão",
+        "filterTipDesc": "Use os filtros de formato e país para reduzir a lista e encontrar o lançamento exato.",
         "noData": "Sem dados para este álbum.",
         "filterBy": "Filtrar por:",
         "all": "Todos",

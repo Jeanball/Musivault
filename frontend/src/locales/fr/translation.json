@@ -237,6 +237,8 @@
     },
     "versions": {
         "chooseVersion": "Choisissez votre version.",
+        "filterTipTitle": "Aide pour les versions",
+        "filterTipDesc": "Utilisez les filtres de format et de pays pour réduire la liste et trouver la sortie exacte.",
         "noData": "Aucune donnée pour cet album.",
         "filterBy": "Filtrer par :",
         "all": "Tous",

@@ -41,10 +41,11 @@ export interface DiscogsLabel {
 
 export interface DiscogsReleaseResponse {
     id: number;
+    master_id?: number;
     title: string;
     artists: { name: string }[];
     year: string;
-    images: { type: string; uri: string }[];
+    images: { type: string; uri: string; uri150?: string }[];
     formats: DiscogsFormat[];
     styles?: string[];
     tracklist?: DiscogsTrack[];
@@ -109,6 +110,7 @@ export interface CleanedSearchResult {
 
 export interface CleanedReleaseDetails {
     discogsId: number;
+    master_id?: number;
     title: string;
     artist: string;
     year: string;

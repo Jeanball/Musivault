@@ -191,6 +191,7 @@ export async function getReleaseDetails(releaseId: string): Promise<CleanedRelea
 
     return {
         discogsId: data.id,
+        master_id: data.master_id,
         title: data.title,
         artist: data.artists?.map(a => a.name).join(', ') || 'Unknown artist',
         year: data.year,

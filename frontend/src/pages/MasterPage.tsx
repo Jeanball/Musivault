@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -44,10 +44,18 @@ const VERSIONS_PER_PAGE = 5;
 const MasterPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { t } = useTranslation();
     const [pageData, setPageData] = useState<VersionsPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [filter, setFilter] = useState<FormatFilter>('all');
+    const rematchItemId = searchParams.get('rematchItemId');
+    const requestedFormat = searchParams.get('format');
+    const isRematchMode = !!rematchItemId;
+    const initialFilter = requestedFormat === 'CD' || requestedFormat === 'Vinyl' || requestedFormat === 'Cassette'
+        ? requestedFormat
+        : 'all';
+
+    const [filter, setFilter] = useState<FormatFilter>(initialFilter);
     const [countryFilter, setCountryFilter] = useState<string>('all');
 
     // Display pagination
@@ -74,6 +82,10 @@ const MasterPage: React.FC = () => {
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
+
+    useEffect(() => {
+        setFilter(initialFilter);
+    }, [initialFilter]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -175,9 +187,33 @@ const MasterPage: React.FC = () => {
     };
 
     const handleFormatClick = (album: AlbumDetails, format: FormatDetails) => {
+        if (isRematchMode && rematchItemId) {
+            void handleRematch(album.discogsId, format);
+            return;
+        }
         setConfirmAlbum(album);
         setConfirmFormat(format);
         setShowConfirmModal(true);
+    };
+
+    const handleRematch = async (newDiscogsId: number, format: FormatDetails) => {
+        if (!rematchItemId) return;
+
+        setIsSubmitting(true);
+        try {
+            await axios.post(
+                `/api/collection/${rematchItemId}/rematch`,
+                { newDiscogsId, format },
+                { withCredentials: true }
+            );
+            toastService.success(t('rematch.success'));
+            navigate(`/app/album/${rematchItemId}`);
+        } catch (error: any) {
+            console.error('Rematch failed:', error);
+            toastService.error(error.response?.data?.message || t('rematch.failed'));
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleConfirmAdd = () => {
@@ -275,7 +311,9 @@ const MasterPage: React.FC = () => {
                         <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-lg shadow-2xl" />
                     )}
                     <h1 className="text-2xl font-bold mt-4">{pageData.masterTitle}</h1>
-                    <p className="text-gray-400">{t('versions.chooseVersion')}</p>
+                    <p className="text-gray-400">
+                        {isRematchMode ? t('rematch.instructions') : t('versions.chooseVersion')}
+                    </p>
                 </div>
 
                 <div className="flex-1">
@@ -283,8 +321,16 @@ const MasterPage: React.FC = () => {
                     <div className="alert bg-base-200/50 border border-base-300 shadow-sm py-3 mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info flex-shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <div>
-                            <h3 className="font-bold">{t('versions.filterTipTitle', '💡 Astuce de recherche')}</h3>
-                            <div className="text-sm opacity-80">{t('versions.filterTipDesc', 'Sélectionnez un format (ex: Vinyl, CD) et un pays ci-dessous pour trouver facilement votre version exacte.')}</div>
+                            <h3 className="font-bold">
+                                {isRematchMode
+                                    ? t('rematch.title')
+                                    : t('versions.filterTipTitle')}
+                            </h3>
+                            <div className="text-sm opacity-80">
+                                {isRematchMode
+                                    ? t('rematch.instructions')
+                                    : t('versions.filterTipDesc')}
+                            </div>
                         </div>
                     </div>
 
@@ -417,7 +463,7 @@ const MasterPage: React.FC = () => {
                                                         className="btn btn-sm border border-base-300 bg-transparent hover:border-primary/50 hover:bg-transparent normal-case justify-start text-left group transition-all w-full h-auto py-2 px-3 relative overflow-hidden"
                                                         onClick={() => details && handleFormatClick(details, format)}
                                                         disabled={isSubmitting}
-                                                        title={t('versions.clickToAdd')}
+                                                        title={isRematchMode ? t('album.rematch') : t('versions.clickToAdd')}
                                                         style={getFormatButtonStyle(format.text, format.descriptions)}
                                                     >
                                                         {/* Subtle Hover Overlay for all buttons including those with gradients */}
@@ -466,26 +512,27 @@ const MasterPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Confirmation Modal */}
-            <ConfirmAddModal
-                isOpen={showConfirmModal}
-                coverImage={confirmAlbum?.cover_image}
-                albumTitle={confirmAlbum?.title}
-                format={confirmFormat}
-                onConfirm={handleConfirmAdd}
-                onCancel={handleConfirmCancel}
-            />
+            {!isRematchMode && (
+                <ConfirmAddModal
+                    isOpen={showConfirmModal}
+                    coverImage={confirmAlbum?.cover_image}
+                    albumTitle={confirmAlbum?.title}
+                    format={confirmFormat}
+                    onConfirm={handleConfirmAdd}
+                    onCancel={handleConfirmCancel}
+                />
+            )}
 
-            {/* Condition Modal */}
-            <ConditionModal
-                isOpen={showConditionModal}
-                albumTitle={pendingAlbum?.title || ''}
-                onSkip={handleConditionSkip}
-                onConfirm={handleConditionConfirm}
-            />
+            {!isRematchMode && (
+                <ConditionModal
+                    isOpen={showConditionModal}
+                    albumTitle={pendingAlbum?.title || ''}
+                    onSkip={handleConditionSkip}
+                    onConfirm={handleConditionConfirm}
+                />
+            )}
 
-            {/* Success Modal - Choice after adding */}
-            {addedAlbum && (
+            {!isRematchMode && addedAlbum && (
                 <dialog className="modal modal-open">
                     <div className="modal-box text-center">
                         <div className="text-5xl mb-4">🎉</div>

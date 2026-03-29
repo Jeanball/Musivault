@@ -219,6 +219,8 @@
     },
     "versions": {
         "chooseVersion": "选择您的版本。",
+        "filterTipTitle": "版本提示",
+        "filterTipDesc": "使用格式和国家筛选来缩小列表范围，找到准确的发行版本。",
         "noData": "此专辑无数据。",
         "filterBy": "筛选：",
         "all": "全部",

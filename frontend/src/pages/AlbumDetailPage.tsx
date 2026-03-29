@@ -7,10 +7,11 @@ import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
 import { getItemValue } from '../types/collection.types';
-import RematchModal from '../components/Modal/RematchModal';
+import type { AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
 import { getImageUrl } from '../utils/imageUrl';
 import { getFormatButtonStyle } from '../utils/formatColors';
+
 interface PreferencesResponse {
     enableConditionGrading: boolean;
 }
@@ -22,9 +23,9 @@ const AlbumDetailPage: React.FC = () => {
     const [item, setItem] = useState<CollectionItem | null>(null);
     const [spotifyUrl, setSpotifyUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
-    const [isRematchOpen, setIsRematchOpen] = useState(false);
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState(false);
     const [isSyncingPrice, setIsSyncingPrice] = useState(false);
+    const [isOpeningRematch, setIsOpeningRematch] = useState(false);
 
     useEffect(() => {
         if (itemId) {
@@ -107,6 +108,34 @@ const AlbumDetailPage: React.FC = () => {
         } catch (error) {
             console.error('Failed to delete album:', error);
             toastService.error(t('album.failedRemove'));
+        }
+    };
+
+    const handleOpenRematchVersions = async () => {
+        if (!item?.album.discogsId) {
+            toastService.error(t('rematch.noMainRelease'));
+            return;
+        }
+
+        setIsOpeningRematch(true);
+        try {
+            const response = await axios.get<AlbumDetails>(`/api/discogs/release/${item.album.discogsId}`, {
+                withCredentials: true
+            });
+
+            const masterId = response.data.master_id;
+
+            if (masterId) {
+                navigate(`/app/master/${masterId}?rematchItemId=${item._id}&format=${encodeURIComponent(item.format.name)}`);
+                return;
+            }
+
+            navigate(`/app/release/${item.album.discogsId}`);
+        } catch (error) {
+            console.error('Failed to open rematch versions:', error);
+            toastService.error(t('versions.errorLoadingVersions'));
+        } finally {
+            setIsOpeningRematch(false);
         }
     };
 
@@ -361,7 +390,12 @@ const AlbumDetailPage: React.FC = () => {
 
                     {/* Management Actions */}
                     <div className="flex flex-wrap gap-3">
-                        <button onClick={() => setIsRematchOpen(true)} className="btn btn-warning btn-outline" title="Fix incorrect Discogs match">
+                        <button
+                            onClick={handleOpenRematchVersions}
+                            className={`btn btn-warning btn-outline ${isOpeningRematch ? 'loading' : ''}`}
+                            title={t('album.rematch')}
+                            disabled={isOpeningRematch}
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
@@ -418,19 +452,6 @@ const AlbumDetailPage: React.FC = () => {
                 </details>
             )}
 
-            {/* Rematch Modal */}
-            {item && (
-                <RematchModal
-                    isOpen={isRematchOpen}
-                    onClose={() => setIsRematchOpen(false)}
-                    itemId={item._id}
-                    currentArtist={item.album.artist}
-                    currentTitle={item.album.title}
-                    onRematchSuccess={() => {
-                        if (itemId) fetchData(itemId);
-                    }}
-                />
-            )}
         </div>
     );
 };

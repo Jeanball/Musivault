@@ -6,7 +6,9 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/server.js",
-    "migrate-album-data": "node dist/scripts/migrate-album-data.js"
+    "migrate-album-data": "node dist/scripts/migrate-album-data.js",
+    "verify-collection-formats": "node dist/scripts/verify-collection-formats.js",
+    "fix-collection-format-mismatches": "node dist/scripts/fix-collection-format-mismatches.js"
   },
   "keywords": [],
   "author": "",

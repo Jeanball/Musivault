@@ -10,6 +10,7 @@ export interface FormatDetails {
 
 export interface AlbumDetails {
     discogsId: number;
+    master_id?: number;
     title: string;
     artist: string;
     year: string;
