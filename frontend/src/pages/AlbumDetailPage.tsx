@@ -201,34 +201,7 @@ const AlbumDetailPage: React.FC = () => {
                         </div>
                         <div className="stat bg-base-200 rounded-lg p-4">
                             <div className="stat-title">{t('common.format')}</div>
-                            <div className="stat-value text-2xl">
-                                <select
-                                    className="select select-bordered select-sm bg-base-200 text-base-content font-bold"
-                                    value={item.format.name}
-                                    onChange={async (e) => {
-                                        const newFormat = e.target.value;
-                                        try {
-                                            await axios.put(`/api/collection/${item._id}`, {
-                                                format: { name: newFormat }
-                                            }, { withCredentials: true });
-
-                                            setItem(prev => prev ? {
-                                                ...prev,
-                                                format: { ...prev.format, name: newFormat }
-                                            } : null);
-                                            toastService.success(t('album.formatUpdated', { format: newFormat }));
-                                        } catch (error) {
-                                            console.error('Failed to update format:', error);
-                                            toastService.error(t('album.failedUpdateFormat'));
-                                        }
-                                    }}
-                                >
-                                    <option value="Vinyl">{t('formats.vinyl')}</option>
-                                    <option value="CD">{t('formats.cd')}</option>
-
-                                    <option value="Cassette">{t('formats.cassette')}</option>
-                                </select>
-                            </div>
+                            <div className="stat-value text-2xl">{item.format.name}</div>
                         </div>
                         <div className="stat bg-base-200 rounded-lg p-4">
                             <div className="stat-title">{t('collection.added')}</div>

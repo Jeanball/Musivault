@@ -334,13 +334,13 @@ export async function updateCollectionItem(req: Request, res: Response) {
     const { itemId } = req.params;
     const { format, mediaCondition, sleeveCondition } = req.body;
 
+    if (format !== undefined) {
+      res.status(400).json({ message: 'Manual format updates are not supported. Please use rematch instead.' });
+      return;
+    }
+
     // Build update object dynamically
     const updateFields: Record<string, unknown> = {};
-
-    if (format?.name) {
-      updateFields["format.name"] = format.name;
-      updateFields["format.text"] = format.name;
-    }
 
     if (mediaCondition !== undefined) {
       updateFields["mediaCondition"] = mediaCondition;
