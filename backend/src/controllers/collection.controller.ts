@@ -725,4 +725,56 @@ export async function syncCollectionValues(req: Request, res: Response) {
   }
 }
 
+export async function syncItemPrice(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { itemId } = req.params;
+    const item = await CollectionItem.findOne({ _id: itemId, user: req.user._id })
+      .populate<{ album: IAlbum }>('album');
+
+    if (!item) {
+      res.status(404).json({ message: 'Item not found in your collection' });
+      return;
+    }
+
+    if (!item.album || !item.album.discogsId) {
+      res.status(400).json({ message: 'Cannot sync price: No Discogs ID associated with this album' });
+      return;
+    }
+
+    const stats = await getMarketplaceStats(item.album.discogsId);
+
+    if (stats) {
+      item.priceCache = {
+        mint: stats.mint ?? undefined,
+        nearMint: stats.nearMint ?? undefined,
+        veryGoodPlus: stats.veryGoodPlus ?? undefined,
+        veryGood: stats.veryGood ?? undefined,
+        goodPlus: stats.goodPlus ?? undefined,
+        good: stats.good ?? undefined,
+        fair: stats.fair ?? undefined,
+        poor: stats.poor ?? undefined,
+        currency: stats.currency,
+        updatedAt: new Date(),
+      };
+      await item.save();
+      
+      res.status(200).json({ 
+        message: 'Price updated successfully', 
+        priceCache: item.priceCache,
+        value: getValueForItem(item)
+      });
+    } else {
+      res.status(404).json({ message: 'No price data found for this album on Discogs' });
+    }
+  } catch (error) {
+    console.error(`Error syncing price for item ${req.params?.itemId}:`, error);
+    res.status(500).json({ message: 'Internal server error while syncing price' });
+  }
+}
+
 export { fetchPriceForItem, getValueForItem };

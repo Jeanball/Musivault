@@ -16,7 +16,8 @@ import {
     rematchAlbum,
     getStyles,
     addManualAlbum,
-    syncCollectionValues
+    syncCollectionValues,
+    syncItemPrice
 } from '../controllers/collection.controller';
 import protectRoute from '../middlewares/protectRoute.middleware';
 
@@ -69,10 +70,12 @@ router.post('/sync-values', protectRoute, syncCollectionValues);
 router.post('/manual', protectRoute, coverUpload.single('cover'), addManualAlbum);
 
 // Collection CRUD
+// Collection CRUD
 router.post('/', protectRoute, addToCollection);
 router.get('/', protectRoute, getMyCollection);
 router.get('/:itemId', protectRoute, getCollectionItemById);
 router.put('/:itemId', protectRoute, updateCollectionItem);
+router.post('/:itemId/sync-price', protectRoute, syncItemPrice);
 router.post('/:itemId/rematch', protectRoute, rematchAlbum);
 router.delete('/:itemId', protectRoute, deleteFromCollection);
 

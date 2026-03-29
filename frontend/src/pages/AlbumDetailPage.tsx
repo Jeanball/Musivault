@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,7 @@ const AlbumDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isRematchOpen, setIsRematchOpen] = useState(false);
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState(false);
+    const [isSyncingPrice, setIsSyncingPrice] = useState(false);
 
     useEffect(() => {
         if (itemId) {
@@ -67,6 +68,25 @@ const AlbumDetailPage: React.FC = () => {
         } catch (error) {
             console.error('Failed to update condition:', error);
             toastService.error(t('settings.failedUpdateSetting'));
+        }
+    };
+
+    const syncPrice = async () => {
+        if (!item) return;
+        setIsSyncingPrice(true);
+        try {
+            const res = await axios.post(`/api/collection/${item._id}/sync-price`, {}, { withCredentials: true });
+            setItem({ ...item, priceCache: res.data.priceCache });
+            toastService.success('Price updated successfully');
+        } catch (error: any) {
+            console.error('Failed to sync price:', error);
+            if (error.response?.status === 404) {
+               toastService.error('No price data found on Discogs for this version');
+            } else {
+               toastService.error('Failed to sync price');
+            }
+        } finally {
+            setIsSyncingPrice(false);
         }
     };
 
@@ -230,16 +250,35 @@ const AlbumDetailPage: React.FC = () => {
                         {(() => {
                             const val = getItemValue(item);
                             const conditionLabel = item.mediaCondition || 'VG+';
+                            const lastUpdated = item.priceCache?.updatedAt 
+                                ? new Date(item.priceCache.updatedAt).toLocaleString(undefined, { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })
+                                : null;
                             
                             if (val <= 0) {
                                 return (
                                     <div className="stat bg-base-200 rounded-lg p-4 opacity-70">
-                                        <div className="stat-title">{t('stats.value')}</div>
+                                        <div className="stat-title flex items-center justify-between">
+                                            <span>{t('stats.value')}</span>
+                                            <button 
+                                                onClick={syncPrice} 
+                                                disabled={isSyncingPrice}
+                                                className="btn btn-ghost btn-xs btn-circle tooltip tooltip-left" 
+                                                data-tip="Actualiser le prix"
+                                            >
+                                                <RefreshCw size={14} className={isSyncingPrice ? 'animate-spin' : ''} />
+                                            </button>
+                                        </div>
                                         <div className="stat-value text-2xl text-base-content/30">
                                             N/A
                                         </div>
                                         <div className="stat-desc">
-                                            {conditionLabel}
+                                            {conditionLabel} {lastUpdated && <span className="opacity-50 ml-1">• {lastUpdated}</span>}
                                         </div>
                                     </div>
                                 );
@@ -247,7 +286,17 @@ const AlbumDetailPage: React.FC = () => {
 
                             return (
                                 <div className="stat bg-base-200 rounded-lg p-4">
-                                    <div className="stat-title">{t('stats.value')}</div>
+                                    <div className="stat-title flex items-center justify-between">
+                                        <span>{t('stats.value')}</span>
+                                        <button 
+                                            onClick={syncPrice} 
+                                            disabled={isSyncingPrice}
+                                            className="btn btn-ghost btn-xs btn-circle tooltip tooltip-left" 
+                                            data-tip="Actualiser le prix"
+                                        >
+                                            <RefreshCw size={14} className={isSyncingPrice ? 'animate-spin' : ''} />
+                                        </button>
+                                    </div>
                                     <div className="stat-value text-2xl text-warning">
                                         {new Intl.NumberFormat(undefined, {
                                             style: 'currency',
@@ -257,7 +306,7 @@ const AlbumDetailPage: React.FC = () => {
                                         }).format(val)}
                                     </div>
                                     <div className="stat-desc">
-                                        {conditionLabel}
+                                        {conditionLabel} {lastUpdated && <span className="opacity-50 ml-1">• {lastUpdated}</span>}
                                     </div>
                                 </div>
                             );
