@@ -46,7 +46,8 @@ services:
       - OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-SSO}
       - FRONTEND_URL=${FRONTEND_URL:-}
       - IMAGE_TAG=${IMAGE_TAG:-latest}
-      - ENABLE_BACKGROUND_MIGRATION=${ENABLE_BACKGROUND_MIGRATION:-false}
+      # Price cache TTL in hours (default: 168 = 7 days)
+      - PRICE_CACHE_TTL_HOURS=${PRICE_CACHE_TTL_HOURS:-168}
     depends_on:
       mongodb:
         condition: service_healthy

@@ -115,7 +115,7 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `OIDC_PROVIDER_NAME` | Name of the SSO provider | SSO | No |
 | `FRONTEND_URL` | URL of the frontend (for CORS/Auth) | - | No |
 | `IMAGE_TAG` | Docker image tag to use | latest | No |
-| `ENABLE_BACKGROUND_MIGRATION` | Run heavy DB migrations in background | false | No |
+| `PRICE_CACHE_TTL_HOURS` | Price cache TTL in hours | 168 | No |
 | `BACKEND_HOST` | Backend hostname for Nginx | musivault-backend | No |
 | `BACKEND_PORT` | Backend port for Nginx | 5000 | No |
 

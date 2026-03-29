@@ -19,9 +19,7 @@ import publicRoute from './routes/public.route'
 
 // Scripts
 import { seedAdminUser } from "./scripts/seed"
-import { migrateIndexes } from "./scripts/migrate-indexes"
-import { cleanupArtistNames } from "./scripts/cleanup-artist-names"
-import { migrateAlbumData } from "./scripts/migrate-album-data"
+import { runPendingMigrations } from "./scripts/migration-runner"
 
 dotenv.config()
 
@@ -156,21 +154,14 @@ app.get('/api/health', (req, res) => {
 // ============================================================================
 
 connectDB().then(async () => {
-    // 1. Database Migrations
-    console.log('🔄 Running startup migrations...');
-    await migrateIndexes();      // Schema changes (blocking)
-    await cleanupArtistNames();  // Fast data cleanup (blocking)
+    // 1. Run all pending migrations automatically
+    console.log('Running startup migrations...');
+    await runPendingMigrations();
 
-    // 2. Background Tasks
-    if (process.env.ENABLE_BACKGROUND_MIGRATION === 'true') {
-        console.log('🔄 Starting background album data migration...');
-        migrateAlbumData().catch((err: any) => console.error('Background migration error:', err));
-    }
-
-    // 3. Seeding
+    // 2. Seeding
     await seedAdminUser();
 
-    // 4. Start Server
+    // 3. Start Server
     const server = app.listen(PORT, '0.0.0.0', () => {
         console.log("=================================");
         console.log(`🚀 Musivault API v${VERSION}`);
