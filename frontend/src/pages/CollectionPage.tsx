@@ -3,7 +3,7 @@ import CollectionContent from '../components/Collection/CollectionContent';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 
 const CollectionPage: React.FC = () => {
-    const { collection, isLoading, isDeleting, handleDeleteItem, refreshCollection } = useCollectionData();
+    const { collection, isLoading, isDeleting, handleDeleteItem } = useCollectionData();
 
     return (
         <div className="p-2 md:p-4">
@@ -13,7 +13,6 @@ const CollectionPage: React.FC = () => {
                 readOnly={false}
                 onDelete={handleDeleteItem}
                 isDeleting={isDeleting}
-                onRefresh={refreshCollection}
             />
         </div>
     );

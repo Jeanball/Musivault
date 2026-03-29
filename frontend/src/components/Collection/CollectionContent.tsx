@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import CollectionFilters from '../Collection/CollectionFilters';
-import CollectionStats from '../Collection/CollectionStats';
 import CollectionTableView from '../Collection/Views/CollectionTableView';
 import CollectionGridView from '../Collection/Views/CollectionGridView';
 import CollectionListView from '../Collection/Views/CollectionListView';
@@ -12,6 +11,7 @@ import { useCollectionFilters } from '../../hooks/collection/useCollectionFilter
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
 import type { CollectionItem, LayoutType } from '../../types/collection.types';
+import { BarChart2 } from 'lucide-react';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
 const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
@@ -25,14 +25,12 @@ interface CollectionContentProps {
     readOnly?: boolean;
     onDelete?: (itemId: string) => Promise<void>;
     isDeleting?: boolean;
-    onRefresh?: () => Promise<void>;
 }
 
 const CollectionContent: React.FC<CollectionContentProps> = ({
     collection,
     isLoading,
     readOnly = false,
-    onRefresh,
 }) => {
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -117,7 +115,18 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
 
     return (
         <>
-            <CollectionStats stats={stats} onSyncComplete={onRefresh} />
+            {/* Mobile Stats Button */}
+            {!readOnly && (
+                <div className="md:hidden flex justify-end mb-4 pr-1">
+                    <button 
+                        onClick={() => navigate('/app/stats')}
+                        className="btn btn-sm btn-outline btn-primary gap-2"
+                    >
+                        <BarChart2 size={16} />
+                        {t('nav.stats', 'Stats')}
+                    </button>
+                </div>
+            )}
 
             {/* View Mode Tabs - Albums/Tracks toggle */}
             {!readOnly && (

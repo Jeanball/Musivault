@@ -14,6 +14,7 @@ import AdminPage from './pages/AdminPage';
 import HomePage from './pages/HomePage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import DiscoverPage from './pages/DiscoverPage';
+import StatsPage from './pages/StatsPage';
 import SharedCollectionLayout from './components/Layout/SharedCollectionLayout';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateLayout from './components/Layout/PrivateLayout';
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="/app" element={<PrivateLayout />}>
               <Route index element={<HomePage />} />
               <Route path="collection" element={<CollectionPage />} />
+              <Route path="stats" element={<StatsPage />} />
               <Route path="album/:itemId" element={<AlbumDetailPage />} />
               <Route path="master/:masterId" element={<MasterPage />} />
               <Route path="release/:releaseId" element={<ReleasePage />} />
