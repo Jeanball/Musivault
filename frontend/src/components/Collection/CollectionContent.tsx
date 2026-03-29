@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import CollectionFilters from '../Collection/CollectionFilters';
@@ -51,6 +51,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         readOnly ? '' : (sessionStorage.getItem(SEARCH_STORAGE_KEY) || '')
     );
     const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
+    const deferredSearchTerm = useDeferredValue(searchTerm);
     const [viewMode, setViewMode] = useState<ViewMode>(() => {
         if (readOnly) return 'albums';
         const stored = sessionStorage.getItem(VIEW_MODE_STORAGE_KEY);
@@ -79,10 +80,13 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     }, [viewMode, readOnly]);
 
     // Custom hooks
-    const { filters, setFilters, filteredCollection, groupedByArtist, clearFilters } = useCollectionFilters(collection, searchTerm);
+    const { filters, setFilters, filteredCollection, groupedByArtist, clearFilters } = useCollectionFilters(collection, deferredSearchTerm);
     const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection);
     const stats = useCollectionStats(collection);
-    const issueCount = collection.filter(item => item.formatVerification && item.formatVerification.status !== 'match').length;
+    const issueCount = useMemo(
+        () => collection.reduce((count, item) => count + (item.formatVerification && item.formatVerification.status !== 'match' ? 1 : 0), 0),
+        [collection]
+    );
 
     const handleClearAll = () => {
         setSearchTerm('');

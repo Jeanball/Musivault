@@ -196,7 +196,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                         onChange={(e) => handleFilterChange('decade', e.target.value)}
                     >
                         <option value="all">{t('collection.allDecades')}</option>
-                        {availableDecades.sort().map(decade => (
+                        {availableDecades.map(decade => (
                             <option key={decade} value={decade}>{decade}</option>
                         ))}
                     </select>

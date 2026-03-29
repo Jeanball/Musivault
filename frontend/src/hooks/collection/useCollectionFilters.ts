@@ -27,79 +27,76 @@ const getInitialFilters = (): FilterState => {
 
 export const useCollectionFilters = (collection: CollectionItem[], searchTerm: string) => {
     const [filters, setFilters] = useState<FilterState>(getInitialFilters);
+    const normalizedSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     // Persist filters to sessionStorage
     useEffect(() => {
         sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
     }, [filters]);
 
-    const applyFilters = (items: CollectionItem[]) => {
-        return items.filter(item => {
-            // Filter by text search
-            const term = searchTerm.toLowerCase();
-            const matchesTitle = item.album.title.toLowerCase().includes(term);
-            const matchesArtist = item.album.artist.toLowerCase().includes(term);
-            const matchesTrack = item.album.tracklist?.some(track =>
-                track.title.toLowerCase().includes(term) ||
-                (track.artist && track.artist.toLowerCase().includes(term))
-            ) || false;
-            const matchesSearch = matchesTitle || matchesArtist || matchesTrack;
+    const filteredCollection = useMemo(() => {
+        const hasSearchTerm = normalizedSearchTerm.length > 0;
+        const now = new Date();
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        const lastYearStart = new Date(now.getFullYear() - 1, 0, 1);
+        const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31);
 
-            if (!matchesSearch) return false;
+        return collection.filter(item => {
+            if (hasSearchTerm) {
+                const matchesTitle = item.album.title.toLowerCase().includes(normalizedSearchTerm);
+                const matchesArtist = item.album.artist.toLowerCase().includes(normalizedSearchTerm);
+                const matchesTrack = !matchesTitle && !matchesArtist
+                    ? item.album.tracklist?.some(track =>
+                        track.title.toLowerCase().includes(normalizedSearchTerm) ||
+                        (track.artist && track.artist.toLowerCase().includes(normalizedSearchTerm))
+                    ) || false
+                    : false;
 
-            // Filter by format
+                if (!matchesTitle && !matchesArtist && !matchesTrack) {
+                    return false;
+                }
+            }
+
             if (filters.format !== 'all' && item.format.name !== filters.format) {
                 return false;
             }
 
-            // Filter by decade
             if (filters.decade !== 'all') {
-                const year = parseInt(item.album.year);
+                const year = Number.parseInt(item.album.year, 10);
                 if (year) {
                     const decade = Math.floor(year / 10) * 10;
-                    const decadeLabel = `${decade}s`;
-                    if (decadeLabel !== filters.decade) return false;
+                    if (`${decade}s` !== filters.decade) {
+                        return false;
+                    }
                 } else if (filters.decade !== 'unknown') {
                     return false;
                 }
             }
 
-            // Filter by style
-            if (filters.style !== 'all') {
-                if (!item.album.styles || !item.album.styles.includes(filters.style)) {
-                    return false;
-                }
+            if (filters.style !== 'all' && (!item.album.styles || !item.album.styles.includes(filters.style))) {
+                return false;
             }
 
-            // Filter by issue status
-            if (filters.issueStatus === 'issues') {
-                const hasIssue = item.formatVerification && item.formatVerification.status !== 'match';
-                if (!hasIssue) {
-                    return false;
-                }
+            if (filters.issueStatus === 'issues' && (!item.formatVerification || item.formatVerification.status === 'match')) {
+                return false;
             }
 
-            // Filter by added period
             if (filters.addedPeriod !== 'all') {
                 const addedDate = new Date(item.addedAt);
-                const now = new Date();
 
                 switch (filters.addedPeriod) {
                     case 'thisWeek':
-                        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
                         if (addedDate < weekAgo) return false;
                         break;
                     case 'thisMonth':
-                        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
                         if (addedDate < monthStart) return false;
                         break;
                     case 'thisYear':
-                        const yearStart = new Date(now.getFullYear(), 0, 1);
                         if (addedDate < yearStart) return false;
                         break;
                     case 'lastYear':
-                        const lastYearStart = new Date(now.getFullYear() - 1, 0, 1);
-                        const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31);
                         if (addedDate < lastYearStart || addedDate > lastYearEnd) return false;
                         break;
                 }
@@ -107,11 +104,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
 
             return true;
         });
-    };
-
-    const filteredCollection = useMemo(() => {
-        return applyFilters(collection);
-    }, [collection, searchTerm, filters]);
+    }, [collection, filters, normalizedSearchTerm]);
 
     const groupedByArtist = useMemo(() => {
         return filteredCollection.reduce((acc, item) => {
