@@ -217,6 +217,18 @@
         "duration": "Dauer",
         "cover": "Cover"
     },
+    "formatVerification": {
+        "mismatch": {
+            "message": "Das in Musivault angezeigte Format stimmt nicht mit der verknüpften Discogs-Veröffentlichung überein."
+        },
+        "unknown": {
+            "noDiscogsAssociation": "Diesem Album ist noch keine Discogs-Veröffentlichung zugeordnet.",
+            "unclassified": "Eine Discogs-Veröffentlichung ist verknüpft, aber ihr Format konnte nicht klassifiziert werden."
+        },
+        "error": {
+            "lookupFailed": "Musivault konnte dieses Album derzeit nicht mit Discogs abgleichen."
+        }
+    },
     "versions": {
         "chooseVersion": "Wählen Sie Ihre Version.",
         "filterTipTitle": "Versionshilfe",

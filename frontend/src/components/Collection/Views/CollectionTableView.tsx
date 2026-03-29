@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem, SortColumn } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
+import FormatVerificationBadge from '../FormatVerificationBadge';
 
 interface CollectionTableViewProps {
     items: CollectionItem[];
@@ -86,7 +87,10 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                 <div className="font-semibold">{item.album.title}</div>
                             </td>
                             <td>
-                                <div className="badge badge-secondary">{item.format.name}</div>
+                                <div className="flex items-center gap-2">
+                                    <div className="badge badge-secondary">{item.format.name}</div>
+                                    <FormatVerificationBadge verification={item.formatVerification} />
+                                </div>
                                 {item.format.text && item.format.text !== item.format.name && (
                                     <div className="text-xs opacity-70 mt-1">{item.format.text}</div>
                                 )}

@@ -217,6 +217,18 @@
         "duration": "Duración",
         "cover": "Portada"
     },
+    "formatVerification": {
+        "mismatch": {
+            "message": "El formato mostrado en Musivault no coincide con la edición de Discogs vinculada."
+        },
+        "unknown": {
+            "noDiscogsAssociation": "Todavía no hay una edición de Discogs asociada a este álbum.",
+            "unclassified": "Hay una edición de Discogs vinculada, pero su formato no se pudo clasificar."
+        },
+        "error": {
+            "lookupFailed": "Musivault no pudo verificar este álbum en Discogs en este momento."
+        }
+    },
     "versions": {
         "chooseVersion": "Elige tu versión.",
         "filterTipTitle": "Consejos de versión",

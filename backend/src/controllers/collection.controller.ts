@@ -435,6 +435,7 @@ export async function rematchAlbum(req: Request, res: Response) {
       };
     }
 
+    item.formatVerification = null;
     item.priceCache = buildPriceCache(await getMarketplaceStats(newDiscogsId));
 
     await album.save();

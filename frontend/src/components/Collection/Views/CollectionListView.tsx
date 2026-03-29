@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
+import FormatVerificationBadge from '../FormatVerificationBadge';
 
 interface CollectionListViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -55,7 +56,10 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                             <div className="font-bold">{item.album.title}</div>
                                         </td>
                                         <td>
-                                            <div className="font-semibold">{item.format.name}</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-semibold">{item.format.name}</div>
+                                                <FormatVerificationBadge verification={item.formatVerification} />
+                                            </div>
                                             {item.format.text && item.format.text !== item.format.name && (
                                                 <div className="text-xs opacity-70">{item.format.text}</div>
                                             )}

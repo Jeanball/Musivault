@@ -217,6 +217,18 @@
         "duration": "时长",
         "cover": "封面"
     },
+    "formatVerification": {
+        "mismatch": {
+            "message": "Musivault 中显示的格式与已关联的 Discogs 发行版本不一致。"
+        },
+        "unknown": {
+            "noDiscogsAssociation": "这张专辑目前还没有关联任何 Discogs 发行版本。",
+            "unclassified": "已关联 Discogs 发行版本，但其格式无法被分类。"
+        },
+        "error": {
+            "lookupFailed": "Musivault 当前无法通过 Discogs 验证这张专辑。"
+        }
+    },
     "versions": {
         "chooseVersion": "选择您的版本。",
         "filterTipTitle": "版本提示",

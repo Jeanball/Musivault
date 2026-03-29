@@ -14,6 +14,13 @@ export interface IPriceCache {
   updatedAt?: Date;
 }
 
+export interface IFormatVerification {
+  status: 'match' | 'mismatch' | 'unknown' | 'error';
+  reasonCode?: string;
+  detectedDiscogsFormat?: string;
+  checkedAt?: Date;
+}
+
 export interface ICollectionItem extends Document {
   user: mongoose.Types.ObjectId;
   album: mongoose.Types.ObjectId;
@@ -25,6 +32,7 @@ export interface ICollectionItem extends Document {
   mediaCondition?: string;
   sleeveCondition?: string;
   priceCache?: IPriceCache;
+  formatVerification?: IFormatVerification | null;
   addedAt: Date;
 }
 
@@ -39,6 +47,17 @@ const priceCacheSchema = new Schema<IPriceCache>({
   poor: { type: Number, default: null },
   currency: { type: String, default: 'USD' },
   updatedAt: { type: Date, default: null },
+}, { _id: false });
+
+const formatVerificationSchema = new Schema<IFormatVerification>({
+  status: {
+    type: String,
+    enum: ['match', 'mismatch', 'unknown', 'error'],
+    required: true,
+  },
+  reasonCode: { type: String, default: null },
+  detectedDiscogsFormat: { type: String, default: null },
+  checkedAt: { type: Date, default: null },
 }, { _id: false });
 
 const collectionItemSchema = new Schema<ICollectionItem>({
@@ -67,6 +86,10 @@ const collectionItemSchema = new Schema<ICollectionItem>({
   },
   priceCache: {
     type: priceCacheSchema,
+    default: null,
+  },
+  formatVerification: {
+    type: formatVerificationSchema,
     default: null,
   },
   addedAt: {

@@ -44,7 +44,16 @@ interface VerificationEntry {
     detectedDiscogsFormat: string;
     discogsFormats: string[];
     status: 'match' | 'mismatch' | 'unknown' | 'error';
-    reason?: string;
+    reasonCode?: 'format_mismatch' | 'missing_discogs_association' | 'discogs_format_unclassified' | 'discogs_lookup_failed';
+}
+
+function buildVerificationState(entry: VerificationEntry) {
+    return {
+        status: entry.status,
+        reasonCode: entry.reasonCode || undefined,
+        detectedDiscogsFormat: entry.detectedDiscogsFormat !== 'Unknown' ? entry.detectedDiscogsFormat : undefined,
+        checkedAt: new Date()
+    };
 }
 
 function ensureReportsDir() {
@@ -130,14 +139,24 @@ async function run() {
         let mismatches = 0;
         let unknown = 0;
         let errors = 0;
+        let manualSkipped = 0;
 
         for (let index = 0; index < items.length; index++) {
             const item = items[index] as any;
             const album = item.album;
             const username = item.user?.username;
 
+            if (album?.isManual && !album?.discogsId) {
+                await CollectionItem.updateOne(
+                    { _id: item._id },
+                    { $unset: { formatVerification: "" } }
+                );
+                manualSkipped++;
+                continue;
+            }
+
             if (!album?.discogsId) {
-                entries.push({
+                const entry: VerificationEntry = {
                     itemId: String(item._id),
                     username,
                     storedArtist: album?.artist || 'Unknown',
@@ -148,8 +167,13 @@ async function run() {
                     detectedDiscogsFormat: 'Unknown',
                     discogsFormats: [],
                     status: 'unknown',
-                    reason: 'Missing discogsId'
-                });
+                    reasonCode: 'missing_discogs_association'
+                };
+                entries.push(entry);
+                await CollectionItem.updateOne(
+                    { _id: item._id },
+                    { $set: { formatVerification: buildVerificationState(entry) } }
+                );
                 unknown++;
                 continue;
             }
@@ -179,20 +203,24 @@ async function run() {
 
                 if (detectedDiscogsFormat === 'Unknown') {
                     baseEntry.status = 'unknown';
-                    baseEntry.reason = 'Discogs format could not be classified';
+                    baseEntry.reasonCode = 'discogs_format_unclassified';
                     unknown++;
                 } else if (storedFormat !== detectedDiscogsFormat) {
                     baseEntry.status = 'mismatch';
-                    baseEntry.reason = `Musivault says ${storedFormat}, Discogs release says ${detectedDiscogsFormat}`;
+                    baseEntry.reasonCode = 'format_mismatch';
                     mismatches++;
                 } else {
                     matches++;
                 }
 
                 entries.push(baseEntry);
+                await CollectionItem.updateOne(
+                    { _id: item._id },
+                    { $set: { formatVerification: buildVerificationState(baseEntry) } }
+                );
             } catch (error: any) {
                 errors++;
-                entries.push({
+                const entry: VerificationEntry = {
                     itemId: String(item._id),
                     username,
                     storedArtist: album.artist,
@@ -203,8 +231,13 @@ async function run() {
                     detectedDiscogsFormat: 'Unknown',
                     discogsFormats: [],
                     status: 'error',
-                    reason: error.message || 'Unknown error'
-                });
+                    reasonCode: 'discogs_lookup_failed'
+                };
+                entries.push(entry);
+                await CollectionItem.updateOne(
+                    { _id: item._id },
+                    { $set: { formatVerification: buildVerificationState(entry) } }
+                );
             }
         }
 
@@ -217,7 +250,8 @@ async function run() {
                 matches,
                 mismatches,
                 unknown,
-                errors
+                errors,
+                manualSkipped
             },
             mismatches: entries.filter(entry => entry.status === 'mismatch'),
             unknown: entries.filter(entry => entry.status === 'unknown'),
@@ -232,6 +266,7 @@ async function run() {
         console.log(`Mismatches: ${mismatches}`);
         console.log(`Unknown: ${unknown}`);
         console.log(`Errors: ${errors}`);
+        console.log(`Manual skipped: ${manualSkipped}`);
         console.log(`Report saved to: ${reportPath}`);
     } finally {
         await mongoose.disconnect();

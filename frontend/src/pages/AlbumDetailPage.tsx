@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, CircleAlert, RefreshCw } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,8 @@ import type { AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
 import { getImageUrl } from '../utils/imageUrl';
 import { getFormatButtonStyle } from '../utils/formatColors';
+import { getFormatVerificationMessage } from '../utils/formatVerification';
+import FormatVerificationBadge from '../components/Collection/FormatVerificationBadge';
 
 interface PreferencesResponse {
     enableConditionGrading: boolean;
@@ -200,8 +202,13 @@ const AlbumDetailPage: React.FC = () => {
                             <div className="stat-value text-2xl">{album.year || '—'}</div>
                         </div>
                         <div className="stat bg-base-200 rounded-lg p-4">
-                            <div className="stat-title">{t('common.format')}</div>
-                            <div className="stat-value text-2xl">{item.format.name}</div>
+                            <div className="stat-title flex items-center gap-2">
+                                <span>{t('common.format')}</span>
+                                <FormatVerificationBadge verification={item.formatVerification} />
+                            </div>
+                            <div className="stat-value text-2xl flex items-center gap-2">
+                                <span>{item.format.name}</span>
+                            </div>
                         </div>
                         <div className="stat bg-base-200 rounded-lg p-4">
                             <div className="stat-title">{t('collection.added')}</div>
@@ -271,7 +278,7 @@ const AlbumDetailPage: React.FC = () => {
                                                 onClick={syncPrice} 
                                                 disabled={isSyncingPrice}
                                                 className="btn btn-ghost btn-xs btn-circle tooltip tooltip-left" 
-                                                data-tip="Actualiser le prix"
+                                                data-tip={t('album.syncPrice')}
                                             >
                                                 <RefreshCw size={14} className={isSyncingPrice ? 'animate-spin' : ''} />
                                             </button>
@@ -294,7 +301,7 @@ const AlbumDetailPage: React.FC = () => {
                                             onClick={syncPrice} 
                                             disabled={isSyncingPrice}
                                             className="btn btn-ghost btn-xs btn-circle tooltip tooltip-left" 
-                                            data-tip="Actualiser le prix"
+                                            data-tip={t('album.syncPrice')}
                                         >
                                             <RefreshCw size={14} className={isSyncingPrice ? 'animate-spin' : ''} />
                                         </button>
@@ -362,6 +369,14 @@ const AlbumDetailPage: React.FC = () => {
                     </div>
 
                     {/* Management Actions */}
+                    {item.formatVerification && item.formatVerification.status !== 'match' && (
+                        <div className={`alert mb-4 ${item.formatVerification.status === 'mismatch' ? 'alert-error' : 'alert-warning'}`}>
+                            <CircleAlert size={18} />
+                            <span>
+                                {getFormatVerificationMessage(item.formatVerification, t)}
+                            </span>
+                        </div>
+                    )}
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={handleOpenRematchVersions}

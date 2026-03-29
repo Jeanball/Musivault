@@ -2,6 +2,7 @@ import React from 'react';
 import type { CollectionItem } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
+import FormatVerificationBadge from '../FormatVerificationBadge';
 
 interface CollectionGridViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -27,6 +28,11 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                 className="card bg-base-200 shadow-xl transition-transform hover:scale-105 cursor-pointer"
                             >
                                 <figure className="aspect-square w-full bg-base-300 relative">
+                                    {item.formatVerification && item.formatVerification.status !== 'match' && (
+                                        <div className="absolute top-2 right-2 z-20 rounded-full bg-base-100/90 p-1 shadow-sm">
+                                            <FormatVerificationBadge verification={item.formatVerification} className="tooltip-left" />
+                                        </div>
+                                    )}
                                     <div className="absolute inset-0 flex items-center justify-center text-base-content/20">
                                         {/* Simple music icon as a placeholder */}
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">

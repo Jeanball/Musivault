@@ -235,6 +235,18 @@
         "duration": "Durée",
         "cover": "Pochette"
     },
+    "formatVerification": {
+        "mismatch": {
+            "message": "Le format affiché dans Musivault ne correspond pas à la sortie Discogs liée."
+        },
+        "unknown": {
+            "noDiscogsAssociation": "Aucune sortie Discogs n'est encore associée à cet album.",
+            "unclassified": "Une sortie Discogs est liée, mais son format n'a pas pu être classé."
+        },
+        "error": {
+            "lookupFailed": "Musivault n'a pas pu vérifier cet album auprès de Discogs pour le moment."
+        }
+    },
     "versions": {
         "chooseVersion": "Choisissez votre version.",
         "filterTipTitle": "Aide pour les versions",

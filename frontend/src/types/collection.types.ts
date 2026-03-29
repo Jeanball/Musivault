@@ -38,6 +38,13 @@ export interface PriceCache {
     updatedAt?: string;
 }
 
+export interface FormatVerification {
+    status: 'match' | 'mismatch' | 'unknown' | 'error';
+    reasonCode?: string | null;
+    detectedDiscogsFormat?: string | null;
+    checkedAt?: string | null;
+}
+
 /**
  * Get the effective value for a collection item based on its media condition.
  * Matches mediaCondition to the stored per-condition price. Defaults to VG+.
@@ -66,6 +73,7 @@ export interface CollectionItem {
     mediaCondition?: string | null;
     sleeveCondition?: string | null;
     priceCache?: PriceCache | null;
+    formatVerification?: FormatVerification | null;
     addedAt: string;
 }
 
