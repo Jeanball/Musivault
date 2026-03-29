@@ -343,6 +343,7 @@
     },
     "stats": {
         "title": "Collection Stats",
+        "subtitle": "Analytics and valuation of your music collection.",
         "total": "Total",
         "decades": "Decades",
         "recent": "Recent",
@@ -350,6 +351,9 @@
         "thisWeek": "This week",
         "thisMonth": "this month",
         "value": "Value",
+        "totalValue": "Total value",
+        "evolutionTitle": "Portfolio Evolution",
+        "chartDateLabel": "Date",
         "syncValues": "Sync Values",
         "syncComplete": "Values synced successfully!",
         "syncError": "Failed to sync values. Please try again.",

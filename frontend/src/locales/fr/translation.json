@@ -343,6 +343,7 @@
     },
     "stats": {
         "title": "Statistiques de la collection",
+        "subtitle": "Analyse et valorisation de votre collection musicale.",
         "total": "Total",
         "decades": "Décennies",
         "recent": "Récent",
@@ -350,6 +351,9 @@
         "thisWeek": "Cette semaine",
         "thisMonth": "ce mois",
         "value": "Valeur",
+        "totalValue": "Valeur totale",
+        "evolutionTitle": "Évolution du portefeuille",
+        "chartDateLabel": "Date",
         "syncValues": "Synchroniser",
         "syncComplete": "Valeurs synchronisées avec succès !",
         "syncError": "Échec de la synchronisation. Veuillez réessayer.",

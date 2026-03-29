@@ -324,6 +324,7 @@
     },
     "stats": {
         "title": "收藏统计",
+        "subtitle": "您的音乐收藏分析与估值。",
         "total": "总计",
         "decades": "年代",
         "recent": "近期",
@@ -331,6 +332,9 @@
         "thisWeek": "本周",
         "thisMonth": "本月",
         "value": "价值",
+        "totalValue": "总价值",
+        "evolutionTitle": "收藏价值走势",
+        "chartDateLabel": "日期",
         "syncValues": "同步价值",
         "syncComplete": "价值同步成功！",
         "syncError": "同步失败。请重试。",
