@@ -77,13 +77,13 @@ const AlbumDetailPage: React.FC = () => {
         try {
             const res = await axios.post(`/api/collection/${item._id}/sync-price`, {}, { withCredentials: true });
             setItem({ ...item, priceCache: res.data.priceCache });
-            toastService.success('Price updated successfully');
+            toastService.success(t('album.priceUpdated'));
         } catch (error: any) {
             console.error('Failed to sync price:', error);
             if (error.response?.status === 404) {
-               toastService.error('No price data found on Discogs for this version');
+               toastService.error(t('album.priceUnavailable'));
             } else {
-               toastService.error('Failed to sync price');
+               toastService.error(t('album.failedSyncPrice'));
             }
         } finally {
             setIsSyncingPrice(false);
