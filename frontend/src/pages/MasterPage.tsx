@@ -207,7 +207,10 @@ const MasterPage: React.FC = () => {
                 { withCredentials: true }
             );
             toastService.success(t('rematch.success'));
-            navigate(`/app/album/${rematchItemId}`);
+            navigate(`/app/album/${rematchItemId}`, {
+                replace: true,
+                state: { backTo: '/app/collection' }
+            });
         } catch (error: any) {
             console.error('Rematch failed:', error);
             toastService.error(error.response?.data?.message || t('rematch.failed'));

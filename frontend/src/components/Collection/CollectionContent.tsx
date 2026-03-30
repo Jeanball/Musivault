@@ -16,6 +16,7 @@ import { BarChart2 } from 'lucide-react';
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
 const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
 const VIEW_MODE_STORAGE_KEY = 'musivault_collection_view_mode';
+const COLLECTION_SCROLL_KEY = 'musivault_collection_scroll_y';
 
 type ViewMode = 'albums' | 'tracks';
 
@@ -100,7 +101,10 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
             setSelectedItem(item);
         } else {
             // Private collection: navigate to detail page
-            navigate(`/app/album/${item._id}`);
+            sessionStorage.setItem(COLLECTION_SCROLL_KEY, String(window.scrollY));
+            navigate(`/app/album/${item._id}`, {
+                state: { backTo: '/app/collection' }
+            });
         }
     };
 

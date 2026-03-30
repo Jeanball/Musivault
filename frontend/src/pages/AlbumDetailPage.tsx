@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, CircleAlert, RefreshCw } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -18,9 +18,14 @@ interface PreferencesResponse {
     enableConditionGrading: boolean;
 }
 
+interface AlbumDetailLocationState {
+    backTo?: string;
+}
+
 const AlbumDetailPage: React.FC = () => {
     const { itemId } = useParams<{ itemId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { t } = useTranslation();
     const [item, setItem] = useState<CollectionItem | null>(null);
     const [spotifyUrl, setSpotifyUrl] = useState<string>('');
@@ -28,6 +33,7 @@ const AlbumDetailPage: React.FC = () => {
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState(false);
     const [isSyncingPrice, setIsSyncingPrice] = useState(false);
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
+    const backTarget = (location.state as AlbumDetailLocationState | null)?.backTo || '/app/collection';
 
     useEffect(() => {
         if (itemId) {
@@ -141,6 +147,12 @@ const AlbumDetailPage: React.FC = () => {
         }
     };
 
+    const handleBack = () => {
+        navigate(backTarget, {
+            state: { restoreCollectionScroll: backTarget === '/app/collection' }
+        });
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -168,7 +180,7 @@ const AlbumDetailPage: React.FC = () => {
         <div className="max-w-6xl mx-auto p-4">
             {/* Header Actions */}
             <div className="flex justify-start items-center mb-6">
-                <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">
+                <button onClick={handleBack} className="btn btn-ghost btn-sm gap-2">
                     <ArrowLeft size={16} /> {t('common.back')}
                 </button>
             </div>

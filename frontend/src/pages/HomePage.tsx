@@ -49,7 +49,9 @@ const HomePage: React.FC = () => {
   const latestAdditions = collection.slice(0, 6);
 
   const handleAlbumClick = (item: CollectionItem) => {
-    navigate(`/app/album/${item._id}`);
+    navigate(`/app/album/${item._id}`, {
+      state: { backTo: '/app/collection' }
+    });
   };
 
   return (

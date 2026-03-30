@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useCollectionStats } from '../hooks/collection/useCollectionStats';
 import CollectionStats from '../components/Collection/CollectionStats';
 import { getItemValue } from '../types/collection.types';
 import { toastService } from '../utils/toast';
+
+const BACK_NAVIGATION_TOKEN = '__history_back__';
 
 const StatsPage: React.FC = () => {
     const { t } = useTranslation();
@@ -18,6 +20,16 @@ const StatsPage: React.FC = () => {
     const [syncProgress, setSyncProgress] = useState('');
     const [showBlockerModal, setShowBlockerModal] = useState(false);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+    const handleBack = () => {
+        if (isSyncing) {
+            setPendingHref(BACK_NAVIGATION_TOKEN);
+            setShowBlockerModal(true);
+            return;
+        }
+
+        navigate(-1);
+    };
 
     useEffect(() => {
         if (!isSyncing) return;
@@ -163,6 +175,11 @@ const StatsPage: React.FC = () => {
         <div className="p-2 md:p-4 max-w-7xl mx-auto space-y-6">
             {/* Page Header */}
             <div className="mb-6">
+                <div className="md:hidden mb-3">
+                    <button onClick={handleBack} className="btn btn-ghost btn-sm gap-2 -ml-3">
+                        <ArrowLeft size={16} /> {t('common.back')}
+                    </button>
+                </div>
                 <h1 className="text-3xl font-bold">{t('nav.stats', 'Stats')}</h1>
                 <p className="text-base-content/60 mt-2">{t('stats.subtitle')}</p>
             </div>
@@ -273,7 +290,9 @@ const StatsPage: React.FC = () => {
                                 className="btn btn-warning"
                                 onClick={() => {
                                     setShowBlockerModal(false);
-                                    if (pendingHref) {
+                                    if (pendingHref === BACK_NAVIGATION_TOKEN) {
+                                        navigate(-1);
+                                    } else if (pendingHref) {
                                         navigate(pendingHref);
                                     }
                                 }}
