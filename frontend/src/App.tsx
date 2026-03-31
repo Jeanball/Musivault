@@ -11,6 +11,7 @@ import ReleasePage from './pages/ReleasePage';
 import ArtistAlbumsPage from './pages/ArtistAlbumsPage';
 import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
+import AdminTasksPage from './pages/AdminTasksPage';
 import HomePage from './pages/HomePage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import DiscoverPage from './pages/DiscoverPage';
@@ -63,6 +64,7 @@ const App = () => {
               <Route path="artist/:artistId" element={<ArtistAlbumsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin" element={<AdminPage />} />
+              <Route path="admin/tasks" element={<AdminTasksPage />} />
               <Route path="discover" element={<DiscoverPage />} />
             </Route>
           </Routes>

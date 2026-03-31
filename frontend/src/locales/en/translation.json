@@ -337,10 +337,15 @@
     },
     "admin": {
         "title": "Administration",
+        "subtitle": "Manage users, permissions, and operational tools.",
         "totalUsers": "Total Users",
         "admins": "Admins",
         "totalAlbums": "Total Albums",
         "publicCollections": "Public Collections",
+        "sections": {
+            "users": "Users",
+            "tasks": "Tasks"
+        },
         "userManagement": "User Management",
         "searchUsers": "Search users...",
         "role": "Role",
@@ -375,7 +380,43 @@
         "passwordUpdatedFor": "Password updated for {{username}}",
         "failedUpdatePassword": "Failed to update password",
         "publicLinkCopied": "Public link copied for {{username}}",
-        "failedCopyLink": "Failed to copy link"
+        "failedCopyLink": "Failed to copy link",
+        "tasks": {
+            "title": "Admin Tasks",
+            "description": "Run maintenance actions that are reserved for administrators.",
+            "refreshPrices": "Fetch New Prices",
+            "refreshPricesHelp": "Force-refresh cached prices across all collections, even when entries are still fresh.",
+            "priceRefreshSuccess": "Price refresh completed successfully.",
+            "priceRefreshError": "Failed to refresh prices. Please try again.",
+            "pageTitle": "Task Center",
+            "pageSubtitle": "Run and monitor admin jobs from one place.",
+            "openPage": "Open Tasks",
+            "tableTitle": "Available Tasks",
+            "tableSubtitle": "Each task exposes a stable schedule view so we can add more jobs without redesigning the page.",
+            "countLabel": "tasks",
+            "liveStatus": "Live status",
+            "starting": "Starting...",
+            "runButton": "Run Task",
+            "runSuccess": "Task completed successfully.",
+            "runError": "Failed to run task. Please try again.",
+            "notRunYet": "Not run yet",
+            "notAvailable": "N/A",
+            "onDemand": "On demand",
+            "defaultDescription": "No description available yet.",
+            "columns": {
+                "task": "Task",
+                "interval": "Interval",
+                "lastExecution": "Last Execution",
+                "lastDuration": "Last Duration",
+                "nextExecution": "Next Execution"
+            },
+            "items": {
+                "refreshPrices": {
+                    "name": "Refresh Prices",
+                    "description": "Refresh cached Discogs prices for every collection item, even when the cache is still fresh."
+                }
+            }
+        }
     },
     "stats": {
         "title": "Collection Stats",
@@ -396,7 +437,9 @@
         "itemsValued": "items valued",
         "noValueYet": "Click Sync to fetch values",
         "syncInProgress": "Sync in Progress",
-        "syncLeaveWarning": "A price sync is currently running. Leaving this page will cancel it."
+        "syncLeaveWarning": "A price sync is currently running. Leaving this page will cancel it.",
+        "nextAutoSync": "Next auto sync",
+        "noAutoSyncScheduled": "No automatic price sync scheduled yet"
     },
     "tracks": {
         "searchTrack": "Search a track...",

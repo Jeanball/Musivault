@@ -356,7 +356,15 @@
         "passwordUpdatedFor": "{{username}} 的密码已更新",
         "failedUpdatePassword": "更新密码失败",
         "publicLinkCopied": "已复制 {{username}} 的公开链接",
-        "failedCopyLink": "复制链接失败"
+        "failedCopyLink": "复制链接失败",
+        "tasks": {
+            "title": "管理任务",
+            "description": "执行仅限管理员的维护操作。",
+            "refreshPrices": "获取最新价格",
+            "refreshPricesHelp": "强制刷新所有收藏中的缓存价格，即使这些条目仍然是最新的。",
+            "priceRefreshSuccess": "价格刷新已成功完成。",
+            "priceRefreshError": "刷新价格失败。请重试。"
+        }
     },
     "stats": {
         "title": "收藏统计",
@@ -377,7 +385,9 @@
         "itemsValued": "项已估价",
         "noValueYet": "点击同步获取价值",
         "syncInProgress": "同步进行中",
-        "syncLeaveWarning": "价格同步正在进行中。离开此页面将取消同步。"
+        "syncLeaveWarning": "价格同步正在进行中。离开此页面将取消同步。",
+        "nextAutoSync": "下次自动同步",
+        "noAutoSyncScheduled": "尚未安排自动价格同步"
     },
     "tracks": {
         "searchTrack": "搜索曲目...",

@@ -356,7 +356,15 @@
         "passwordUpdatedFor": "Passwort für {{username}} aktualisiert",
         "failedUpdatePassword": "Passwort konnte nicht aktualisiert werden",
         "publicLinkCopied": "Öffentlicher Link für {{username}} kopiert",
-        "failedCopyLink": "Link konnte nicht kopiert werden"
+        "failedCopyLink": "Link konnte nicht kopiert werden",
+        "tasks": {
+            "title": "Admin-Aufgaben",
+            "description": "Führen Sie Wartungsaktionen aus, die Administratoren vorbehalten sind.",
+            "refreshPrices": "Neue Preise abrufen",
+            "refreshPricesHelp": "Aktualisiert zwischengespeicherte Preise für alle Sammlungen zwangsweise, auch wenn die Einträge noch frisch sind.",
+            "priceRefreshSuccess": "Preisaktualisierung erfolgreich abgeschlossen.",
+            "priceRefreshError": "Preise konnten nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+        }
     },
     "stats": {
         "title": "Sammlungsstatistiken",
@@ -377,7 +385,9 @@
         "itemsValued": "Artikel bewertet",
         "noValueYet": "Klicken Sie auf Synchronisieren",
         "syncInProgress": "Synchronisierung läuft",
-        "syncLeaveWarning": "Eine Preissynchronisierung läuft gerade. Das Verlassen dieser Seite wird sie abbrechen."
+        "syncLeaveWarning": "Eine Preissynchronisierung läuft gerade. Das Verlassen dieser Seite wird sie abbrechen.",
+        "nextAutoSync": "Nächste automatische Synchronisierung",
+        "noAutoSyncScheduled": "Noch keine automatische Preissynchronisierung geplant"
     },
     "tracks": {
         "searchTrack": "Suchen Sie einen Titel...",

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { AdminUser } from '../types/admin.types';
 import { toastService } from '../utils/toast';
+import AdminTabs from '../components/Admin/AdminTabs';
 
 const AdminPage: React.FC = () => {
     const navigate = useNavigate();
@@ -195,23 +196,28 @@ const AdminPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center gap-3">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                </svg>
-                <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
+            <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 text-primary"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                    </svg>
+                    <div>
+                        <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
+                        <p className="text-sm text-base-content/70">{t('admin.subtitle', 'Manage users, permissions, and operational tools.')}</p>
+                    </div>
+                </div>
+                <AdminTabs />
             </div>
 
             {/* Stats */}
@@ -298,6 +304,23 @@ const AdminPage: React.FC = () => {
                     </div>
                     <div className="stat-title text-xs sm:text-sm">{t('admin.publicCollections')}</div>
                     <div className="stat-value text-info text-2xl sm:text-3xl">{publicCollections}</div>
+                </div>
+            </div>
+
+            <div className="card bg-base-200 shadow-xl">
+                <div className="card-body p-4 sm:p-6 gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <div>
+                            <h2 className="card-title">{t('admin.tasks.pageTitle', 'Task Center')}</h2>
+                            <p className="text-sm opacity-70">{t('admin.tasks.pageSubtitle', 'Run and monitor admin jobs from one place.')}</p>
+                        </div>
+                    </div>
+                    <button
+                        className="btn btn-outline btn-primary btn-sm"
+                        onClick={() => navigate('/app/admin/tasks')}
+                    >
+                        {t('admin.tasks.openPage', 'Open Tasks')}
+                    </button>
                 </div>
             </div>
 

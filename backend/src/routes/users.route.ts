@@ -1,5 +1,5 @@
 import express from 'express';
-import { deleteUser, getAllUsers, updateUser, getUserById, createAdminUser, getPreferences, updatePreferences, updatePassword, updateProfile } from '../controllers/users.controller';
+import { deleteUser, getAllUsers, updateUser, getUserById, createAdminUser, getPreferences, updatePreferences, updatePassword, updateProfile, getAdminTasks, runAdminTask } from '../controllers/users.controller';
 import protectRoute from '../middlewares/protectRoute.middleware';
 import requireAdmin from '../middlewares/requireAdmin.middleware';
 
@@ -13,6 +13,8 @@ router.put("/profile", protectRoute, updateProfile);
 
 // Admin-only routes - require authentication and admin privileges
 router.get("/", protectRoute, requireAdmin, getAllUsers);
+router.get('/admin/tasks', protectRoute, requireAdmin, getAdminTasks);
+router.post('/admin/tasks/:taskId/run', protectRoute, requireAdmin, runAdminTask);
 
 router.get("/:id", protectRoute, requireAdmin, getUserById);
 

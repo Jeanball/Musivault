@@ -1,118 +1,50 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useCollectionStats } from '../hooks/collection/useCollectionStats';
 import CollectionStats from '../components/Collection/CollectionStats';
 import { getItemValue } from '../types/collection.types';
-import { toastService } from '../utils/toast';
 
-const BACK_NAVIGATION_TOKEN = '__history_back__';
+interface CollectionSyncInfo {
+    nextAutoSyncAt: string | null;
+    lastSyncedAt: string | null;
+    ttlHours: number;
+}
 
 const StatsPage: React.FC = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
-    const { collection, isLoading, refreshCollection } = useCollectionData();
+    const { collection, isLoading } = useCollectionData();
     const stats = useCollectionStats(collection);
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [syncProgress, setSyncProgress] = useState('');
-    const [showBlockerModal, setShowBlockerModal] = useState(false);
-    const [pendingHref, setPendingHref] = useState<string | null>(null);
+    const [syncInfo, setSyncInfo] = useState<CollectionSyncInfo | null>(null);
 
     const handleBack = () => {
-        if (isSyncing) {
-            setPendingHref(BACK_NAVIGATION_TOKEN);
-            setShowBlockerModal(true);
-            return;
-        }
-
         navigate(-1);
     };
 
     useEffect(() => {
-        if (!isSyncing) return;
-
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            e.preventDefault();
-        };
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        const handleClick = (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            const anchor = target.closest('a');
-
-            if (anchor && anchor.href && !anchor.href.includes('#')) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const url = new URL(anchor.href);
-                setPendingHref(url.pathname + url.search + url.hash);
-                setShowBlockerModal(true);
+        const loadSyncInfo = async () => {
+            try {
+                const { data } = await axios.get<CollectionSyncInfo>('/api/collection/sync-info', {
+                    withCredentials: true,
+                });
+                setSyncInfo(data);
+            } catch (error) {
+                console.error('Failed to load collection sync info:', error);
+                setSyncInfo(null);
             }
         };
 
-        document.documentElement.addEventListener('click', handleClick, true);
-
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-            document.documentElement.removeEventListener('click', handleClick, true);
-        };
-    }, [isSyncing]);
-
-    const handleSyncValues = async () => {
-        setIsSyncing(true);
-        setSyncProgress('');
-
-        try {
-            const response = await fetch('/api/collection/sync-values', {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            if (!response.ok || !response.body) {
-                throw new Error('Sync failed');
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (!line.startsWith('data: ')) continue;
-                    try {
-                        const event = JSON.parse(line.slice(6));
-                        if (event.type === 'progress') {
-                            setSyncProgress(`${event.current}/${event.total} — ${event.artist} - ${event.title}`);
-                        } else if (event.type === 'complete') {
-                            toastService.success(event.message || t('stats.syncComplete'));
-                        } else if (event.type === 'error') {
-                            toastService.error(event.message || t('stats.syncError'));
-                        }
-                    } catch {
-                        // Skip malformed events from the stream.
-                    }
-                }
-            }
-
-            refreshCollection();
-        } catch {
-            toastService.error(t('stats.syncError'));
-        } finally {
-            setIsSyncing(false);
-            setSyncProgress('');
+        if (collection.length > 0) {
+            loadSyncInfo();
+        } else {
+            setSyncInfo(null);
         }
-    };
+    }, [collection]);
 
     const formatCurrency = (value: number, currency: string) => {
         try {
@@ -125,6 +57,16 @@ const StatsPage: React.FC = () => {
         } catch {
             return `$${value.toFixed(0)}`;
         }
+    };
+
+    const formatDateTime = (value: string) => {
+        return new Date(value).toLocaleString(i18n.language, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
     };
 
     // Compute chart data: Evolution of the collection's total value over time.
@@ -197,19 +139,12 @@ const StatsPage: React.FC = () => {
                                     ? formatCurrency(stats.totalValue, stats.valueCurrency)
                                     : '—'}
                             </p>
-                            {isSyncing && syncProgress && (
-                                <p className="text-sm text-base-content/70">{syncProgress}</p>
-                            )}
+                            <p className="text-sm text-base-content/70">
+                                {t('stats.nextAutoSync')}: {syncInfo?.nextAutoSyncAt
+                                    ? formatDateTime(syncInfo.nextAutoSyncAt)
+                                    : t('stats.noAutoSyncScheduled')}
+                            </p>
                         </div>
-                        <button
-                            className={`btn btn-sm btn-outline btn-primary gap-2 ${isSyncing ? 'loading' : ''}`}
-                            onClick={handleSyncValues}
-                            disabled={isSyncing}
-                            title={t('stats.syncValues')}
-                        >
-                            <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
-                            {t('stats.syncValues')}
-                        </button>
                     </div>
                     <div className="w-full h-[300px] md:h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -269,42 +204,6 @@ const StatsPage: React.FC = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-            )}
-
-            {showBlockerModal && (
-                <dialog className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg">{t('stats.syncInProgress')}</h3>
-                        <p className="py-4">{t('stats.syncLeaveWarning')}</p>
-                        {syncProgress && (
-                            <p className="text-sm text-base-content/70 mb-2">{syncProgress}</p>
-                        )}
-                        <div className="modal-action">
-                            <button
-                                className="btn btn-ghost"
-                                onClick={() => setShowBlockerModal(false)}
-                            >
-                                {t('common.stay')}
-                            </button>
-                            <button
-                                className="btn btn-warning"
-                                onClick={() => {
-                                    setShowBlockerModal(false);
-                                    if (pendingHref === BACK_NAVIGATION_TOKEN) {
-                                        navigate(-1);
-                                    } else if (pendingHref) {
-                                        navigate(pendingHref);
-                                    }
-                                }}
-                            >
-                                {t('common.leave')}
-                            </button>
-                        </div>
-                    </div>
-                    <form method="dialog" className="modal-backdrop">
-                        <button onClick={() => setShowBlockerModal(false)}>close</button>
-                    </form>
-                </dialog>
             )}
         </div>
     );

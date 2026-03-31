@@ -356,7 +356,15 @@
         "passwordUpdatedFor": "Contraseña actualizada para {{username}}",
         "failedUpdatePassword": "Fallo al actualizar contraseña",
         "publicLinkCopied": "Enlace público copiado para {{username}}",
-        "failedCopyLink": "Fallo al copiar enlace"
+        "failedCopyLink": "Fallo al copiar enlace",
+        "tasks": {
+            "title": "Tareas de administración",
+            "description": "Ejecuta acciones de mantenimiento reservadas para administradores.",
+            "refreshPrices": "Obtener precios nuevos",
+            "refreshPricesHelp": "Fuerza la actualización de los precios en caché en todas las colecciones, incluso cuando las entradas siguen siendo recientes.",
+            "priceRefreshSuccess": "La actualización de precios se completó correctamente.",
+            "priceRefreshError": "No se pudieron actualizar los precios. Inténtalo de nuevo."
+        }
     },
     "stats": {
         "title": "Estadísticas de Colección",
@@ -377,7 +385,9 @@
         "itemsValued": "items valorados",
         "noValueYet": "Haz clic en Sincronizar",
         "syncInProgress": "Sincronización en curso",
-        "syncLeaveWarning": "Se está ejecutando una sincronización de precios. Salir de esta página la cancelará."
+        "syncLeaveWarning": "Se está ejecutando una sincronización de precios. Salir de esta página la cancelará.",
+        "nextAutoSync": "Próxima sincronización automática",
+        "noAutoSyncScheduled": "Todavía no hay una sincronización automática de precios programada"
     },
     "tracks": {
         "searchTrack": "Buscar una pista...",

@@ -375,7 +375,15 @@
         "passwordUpdatedFor": "Mot de passe mis à jour pour {{username}}",
         "failedUpdatePassword": "Échec de la mise à jour du mot de passe",
         "publicLinkCopied": "Lien public copié pour {{username}}",
-        "failedCopyLink": "Échec de la copie du lien"
+        "failedCopyLink": "Échec de la copie du lien",
+        "tasks": {
+            "title": "Tâches d'administration",
+            "description": "Exécutez des actions de maintenance réservées aux administrateurs.",
+            "refreshPrices": "Récupérer les nouveaux prix",
+            "refreshPricesHelp": "Force l'actualisation des prix en cache pour toutes les collections, même si les entrées sont encore fraîches.",
+            "priceRefreshSuccess": "Actualisation des prix terminée avec succès.",
+            "priceRefreshError": "Échec de l'actualisation des prix. Veuillez réessayer."
+        }
     },
     "stats": {
         "title": "Statistiques de la collection",
@@ -396,7 +404,9 @@
         "itemsValued": "items évalués",
         "noValueYet": "Cliquez sur Synchroniser",
         "syncInProgress": "Synchronisation en cours",
-        "syncLeaveWarning": "Une synchronisation des prix est en cours. Quitter cette page l'annulera."
+        "syncLeaveWarning": "Une synchronisation des prix est en cours. Quitter cette page l'annulera.",
+        "nextAutoSync": "Prochaine synchronisation automatique",
+        "noAutoSyncScheduled": "Aucune synchronisation automatique des prix n'est encore planifiée"
     },
     "tracks": {
         "searchTrack": "Rechercher une piste...",

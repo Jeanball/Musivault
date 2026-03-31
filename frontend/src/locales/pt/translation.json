@@ -356,7 +356,15 @@
         "passwordUpdatedFor": "Senha atualizada para {{username}}",
         "failedUpdatePassword": "Falha ao atualizar senha",
         "publicLinkCopied": "Link público copiado para {{username}}",
-        "failedCopyLink": "Falha ao copiar link"
+        "failedCopyLink": "Falha ao copiar link",
+        "tasks": {
+            "title": "Tarefas de administração",
+            "description": "Execute ações de manutenção reservadas aos administradores.",
+            "refreshPrices": "Buscar novos preços",
+            "refreshPricesHelp": "Força a atualização dos preços em cache em todas as coleções, mesmo quando as entradas ainda estão recentes.",
+            "priceRefreshSuccess": "Atualização de preços concluída com sucesso.",
+            "priceRefreshError": "Falha ao atualizar preços. Tente novamente."
+        }
     },
     "stats": {
         "title": "Estatísticas da Coleção",
@@ -377,7 +385,9 @@
         "itemsValued": "itens avaliados",
         "noValueYet": "Clique em Sincronizar",
         "syncInProgress": "Sincronização em andamento",
-        "syncLeaveWarning": "Uma sincronização de preços está em execução. Sair desta página a cancelará."
+        "syncLeaveWarning": "Uma sincronização de preços está em execução. Sair desta página a cancelará.",
+        "nextAutoSync": "Próxima sincronização automática",
+        "noAutoSyncScheduled": "Ainda não há uma sincronização automática de preços agendada"
     },
     "tracks": {
         "searchTrack": "Buscar uma faixa...",

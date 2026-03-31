@@ -4,7 +4,7 @@ import Album, { IAlbum, ITrack, ILabel } from '../models/Album';
 import CollectionItem, { ICollectionItem } from '../models/CollectionItem';
 import { csvImportService } from '../services/import.service';
 import { getMarketplaceStats } from '../services/discogs.service';
-import { isPriceStale } from '../utils/price.utils';
+import { getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
 import type { DiscogsReleaseResponse } from '../types/discogs.types';
 
@@ -25,6 +25,17 @@ type AddToCollectionBody = {
   sleeveCondition?: string;
 };
 
+export type PopulatedCollectionItem = ICollectionItem & {
+  album: IAlbum;
+};
+
+type SyncableCollectionItem = {
+  album?: Pick<IAlbum, 'discogsId'> | null;
+  priceCache?: {
+    updatedAt?: Date | string | null;
+  } | null;
+};
+
 function buildPriceCache(stats: Awaited<ReturnType<typeof getMarketplaceStats>>) {
   if (!stats) return undefined;
 
@@ -40,6 +51,146 @@ function buildPriceCache(stats: Awaited<ReturnType<typeof getMarketplaceStats>>)
     currency: stats.currency,
     updatedAt: new Date(),
   };
+}
+
+export function getNextAutoSyncAt(items: SyncableCollectionItem[]): Date | null {
+  const ttlMs = getPriceTTLHours() * 60 * 60 * 1000;
+  const now = Date.now();
+  let nextAutoSyncAt: number | null = null;
+
+  for (const item of items) {
+    if (!item.album?.discogsId) {
+      continue;
+    }
+
+    const updatedAt = item.priceCache?.updatedAt
+      ? new Date(item.priceCache.updatedAt).getTime()
+      : NaN;
+
+    const candidate = Number.isFinite(updatedAt) ? updatedAt + ttlMs : now;
+    nextAutoSyncAt = nextAutoSyncAt === null
+      ? candidate
+      : Math.min(nextAutoSyncAt, candidate);
+  }
+
+  return nextAutoSyncAt === null ? null : new Date(nextAutoSyncAt);
+}
+
+export async function streamPriceSync(
+  res: Response,
+  items: PopulatedCollectionItem[],
+  options?: {
+    forceRefresh?: boolean;
+    logLabel?: string;
+  }
+) {
+  const forceRefresh = options?.forceRefresh ?? false;
+  const logLabel = options?.logLabel ?? 'PriceSync';
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
+
+  const groupedByRelease = new Map<number, PopulatedCollectionItem[]>();
+  const noDiscogsItems: PopulatedCollectionItem[] = [];
+
+  for (const item of items) {
+    const discogsId = item.album?.discogsId;
+    if (!discogsId) {
+      noDiscogsItems.push(item);
+      continue;
+    }
+    if (!groupedByRelease.has(discogsId)) {
+      groupedByRelease.set(discogsId, []);
+    }
+    groupedByRelease.get(discogsId)!.push(item);
+  }
+
+  const totalReleases = groupedByRelease.size;
+  const totalItems = items.length;
+  let syncedReleases = 0;
+  let syncedItems = 0;
+  let skippedFresh = 0;
+  let skippedNoData = 0;
+  let releaseIdx = 0;
+
+  console.log(`[${logLabel}] Starting sync: ${totalItems} items, ${totalReleases} unique releases, ${noDiscogsItems.length} without discogsId, forceRefresh=${forceRefresh}`);
+
+  for (const [discogsId, releaseItems] of groupedByRelease) {
+    releaseIdx++;
+    const firstItem = releaseItems[0];
+    const artist = firstItem.album?.artist || 'Unknown';
+    const title = firstItem.album?.title || 'Unknown';
+
+    const shouldSync = forceRefresh || releaseItems.some(item => isPriceStale(item.priceCache?.updatedAt));
+
+    if (!shouldSync) {
+      skippedFresh += releaseItems.length;
+      continue;
+    }
+
+    res.write(`data: ${JSON.stringify({
+      type: 'progress',
+      current: releaseIdx,
+      total: totalReleases,
+      artist,
+      title,
+      itemCount: releaseItems.length,
+    })}\n\n`);
+
+    const stats = await getMarketplaceStats(discogsId);
+
+    if (stats) {
+      const priceCache = buildPriceCache(stats);
+
+      await CollectionItem.updateMany(
+        { _id: { $in: releaseItems.map(item => item._id) } },
+        { $set: { priceCache } }
+      );
+
+      for (const item of releaseItems) {
+        item.priceCache = priceCache;
+      }
+
+      syncedReleases++;
+      syncedItems += releaseItems.length;
+      console.log(`[${logLabel}] ${releaseIdx}/${totalReleases} SUCCESS - ${artist} - ${title} (${releaseItems.length} items) | VG+: ${stats.veryGoodPlus} ${stats.currency}`);
+    } else {
+      skippedNoData += releaseItems.length;
+      console.log(`[${logLabel}] ${releaseIdx}/${totalReleases} NO DATA - ${artist} - ${title}`);
+    }
+  }
+
+  let totalValue = 0;
+  let currency = 'USD';
+  for (const item of items) {
+    const value = getValueForItem(item);
+    if (value > 0) {
+      totalValue += value;
+      currency = item.priceCache?.currency || 'USD';
+    }
+  }
+
+  console.log(`[${logLabel}] Complete: ${syncedReleases}/${totalReleases} releases synced (${syncedItems} items), ${skippedFresh} fresh, ${skippedNoData} no data, ${noDiscogsItems.length} no discogsId. Total value: ${totalValue.toFixed(2)} ${currency}`);
+
+  const summaryMessage = forceRefresh
+    ? `Refreshed ${syncedReleases} releases (${syncedItems} items).`
+    : `Synced ${syncedReleases} releases (${syncedItems} items). ${skippedFresh} already fresh.`;
+
+  res.write(`data: ${JSON.stringify({
+    type: 'complete',
+    synced: syncedItems,
+    skipped: skippedFresh + skippedNoData + noDiscogsItems.length,
+    total: totalItems,
+    totalValue: Math.round(totalValue * 100) / 100,
+    currency,
+    message: summaryMessage,
+  })}\n\n`);
+
+  res.end();
 }
 
 // ===== CSV Import =====
@@ -683,142 +834,37 @@ async function fetchPriceForItem(itemId: string, discogsId: number): Promise<voi
   }
 }
 
-export async function syncCollectionValues(req: Request, res: Response) {
+export async function getCollectionSyncInfo(req: Request, res: Response) {
   try {
     if (!req.user) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 
-    // Set up Server-Sent Events for progress streaming
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
+    const collectionItems = await CollectionItem.find({ user: req.user._id })
+      .select('priceCache album')
+      .populate<{ album: Pick<IAlbum, 'discogsId'> }>('album', 'discogsId');
 
-    // Find ALL items for this user, populate album for discogsId
-    const allItems = await CollectionItem.find({ user: req.user._id })
-      .populate<{ album: IAlbum }>('album');
-
-    // Group items by discogsId to avoid duplicate API calls
-    const groupedByRelease = new Map<number, typeof allItems>();
-    const noDiscogsItems: typeof allItems = [];
-
-    for (const item of allItems) {
-      const discogsId = item.album?.discogsId;
-      if (!discogsId) {
-        noDiscogsItems.push(item);
-        continue;
+    const nextAutoSyncAt = getNextAutoSyncAt(collectionItems);
+    const lastSyncedAt = collectionItems.reduce<Date | null>((latest, item) => {
+      const updatedAt = item.priceCache?.updatedAt ? new Date(item.priceCache.updatedAt) : null;
+      if (!updatedAt || Number.isNaN(updatedAt.getTime())) {
+        return latest;
       }
-      if (!groupedByRelease.has(discogsId)) {
-        groupedByRelease.set(discogsId, []);
+      if (!latest || updatedAt.getTime() > latest.getTime()) {
+        return updatedAt;
       }
-      groupedByRelease.get(discogsId)!.push(item);
-    }
+      return latest;
+    }, null);
 
-    const totalReleases = groupedByRelease.size;
-    const totalItems = allItems.length;
-    let syncedReleases = 0;
-    let syncedItems = 0;
-    let skippedFresh = 0;
-    let skippedNoData = 0;
-    let releaseIdx = 0;
-
-    console.log(`[PriceSync] Starting sync: ${totalItems} items, ${totalReleases} unique releases, ${noDiscogsItems.length} without discogsId`);
-
-    for (const [discogsId, items] of groupedByRelease) {
-      releaseIdx++;
-      const firstItem = items[0];
-      const artist = firstItem.album?.artist || 'Unknown';
-      const title = firstItem.album?.title || 'Unknown';
-
-      // Check if any item in this group has a stale price
-      const anyStale = items.some(i => isPriceStale(i.priceCache?.updatedAt));
-
-      if (!anyStale) {
-        skippedFresh += items.length;
-        continue;
-      }
-
-      // Send progress event
-      res.write(`data: ${JSON.stringify({
-        type: 'progress',
-        current: releaseIdx,
-        total: totalReleases,
-        artist,
-        title,
-        itemCount: items.length,
-      })}\n\n`);
-
-      const stats = await getMarketplaceStats(discogsId);
-
-      if (stats) {
-        const priceCache = {
-          mint: stats.mint ?? undefined,
-          nearMint: stats.nearMint ?? undefined,
-          veryGoodPlus: stats.veryGoodPlus ?? undefined,
-          veryGood: stats.veryGood ?? undefined,
-          goodPlus: stats.goodPlus ?? undefined,
-          good: stats.good ?? undefined,
-          fair: stats.fair ?? undefined,
-          poor: stats.poor ?? undefined,
-          currency: stats.currency,
-          updatedAt: new Date(),
-        };
-
-        // Bulk update all items sharing this discogsId
-        await CollectionItem.updateMany(
-          { _id: { $in: items.map(i => i._id) } },
-          { $set: { priceCache } }
-        );
-
-        // Update in-memory for final value calculation
-        for (const item of items) {
-          item.priceCache = priceCache;
-        }
-
-        syncedReleases++;
-        syncedItems += items.length;
-        console.log(`[PriceSync] ${releaseIdx}/${totalReleases} SUCCESS - ${artist} - ${title} (${items.length} items) | VG+: ${stats.veryGoodPlus} ${stats.currency}`);
-      } else {
-        skippedNoData += items.length;
-        console.log(`[PriceSync] ${releaseIdx}/${totalReleases} NO DATA - ${artist} - ${title}`);
-      }
-    }
-
-    // Calculate total collection value
-    let totalValue = 0;
-    let currency = 'USD';
-    for (const item of allItems) {
-      const val = getValueForItem(item);
-      if (val > 0) {
-        totalValue += val;
-        currency = item.priceCache?.currency || 'USD';
-      }
-    }
-
-    console.log(`[PriceSync] Complete: ${syncedReleases}/${totalReleases} releases synced (${syncedItems} items), ${skippedFresh} fresh, ${skippedNoData} no data, ${noDiscogsItems.length} no discogsId. Total value: ${totalValue.toFixed(2)} ${currency}`);
-
-    // Send final event with summary
-    res.write(`data: ${JSON.stringify({
-      type: 'complete',
-      synced: syncedItems,
-      skipped: skippedFresh + skippedNoData + noDiscogsItems.length,
-      total: totalItems,
-      totalValue: Math.round(totalValue * 100) / 100,
-      currency,
-      message: `Synced ${syncedReleases} releases (${syncedItems} items). ${skippedFresh} already fresh.`
-    })}\n\n`);
-
-    res.end();
+    res.status(200).json({
+      nextAutoSyncAt: nextAutoSyncAt?.toISOString() ?? null,
+      lastSyncedAt: lastSyncedAt?.toISOString() ?? null,
+      ttlHours: getPriceTTLHours(),
+    });
   } catch (error) {
-    console.error('Error syncing collection values:', error);
-    if (res.headersSent) {
-      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Internal server error' })}\n\n`);
-      res.end();
-    } else {
-      res.status(500).json({ message: 'Internal server error' });
-    }
+    console.error('Error fetching collection sync info:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
 

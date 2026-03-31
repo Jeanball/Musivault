@@ -9,3 +9,12 @@ export interface AdminUser {
     isPublic: boolean;
     publicShareId: string;
 }
+
+export interface AdminTask {
+    id: string;
+    intervalLabel: string;
+    nextExecutionAt: string | null;
+    lastExecutionAt: string | null;
+    lastDurationMs: number | null;
+    lastStatus: 'success' | 'failed' | null;
+}
