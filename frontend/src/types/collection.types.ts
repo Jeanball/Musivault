@@ -43,6 +43,7 @@ export interface FormatVerification {
     reasonCode?: string | null;
     detectedDiscogsFormat?: string | null;
     checkedAt?: string | null;
+    ignoredAt?: string | null;
 }
 
 /**

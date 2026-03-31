@@ -47,13 +47,40 @@ interface VerificationEntry {
     reasonCode?: 'format_mismatch' | 'missing_discogs_association' | 'discogs_format_unclassified' | 'discogs_lookup_failed';
 }
 
-function buildVerificationState(entry: VerificationEntry) {
+interface PersistedVerificationState {
+    status: VerificationEntry['status'];
+    reasonCode?: VerificationEntry['reasonCode'];
+    detectedDiscogsFormat?: string;
+    checkedAt: Date;
+    ignoredAt?: Date | string | null;
+}
+
+function buildVerificationState(
+    entry: VerificationEntry,
+    previousVerification?: {
+        status?: VerificationEntry['status'];
+        reasonCode?: VerificationEntry['reasonCode'];
+        detectedDiscogsFormat?: string;
+        ignoredAt?: Date | string | null;
+    } | null
+) {
+    const detectedDiscogsFormat = entry.detectedDiscogsFormat !== 'Unknown'
+        ? entry.detectedDiscogsFormat
+        : undefined;
+    const shouldPreserveIgnore = Boolean(
+        previousVerification?.ignoredAt
+        && previousVerification.status === entry.status
+        && previousVerification.reasonCode === entry.reasonCode
+        && previousVerification.detectedDiscogsFormat === detectedDiscogsFormat
+    );
+
     return {
         status: entry.status,
         reasonCode: entry.reasonCode || undefined,
-        detectedDiscogsFormat: entry.detectedDiscogsFormat !== 'Unknown' ? entry.detectedDiscogsFormat : undefined,
-        checkedAt: new Date()
-    };
+        detectedDiscogsFormat,
+        checkedAt: new Date(),
+        ignoredAt: shouldPreserveIgnore ? previousVerification?.ignoredAt : undefined
+    } satisfies PersistedVerificationState;
 }
 
 function ensureReportsDir() {
@@ -140,6 +167,8 @@ async function run() {
         let unknown = 0;
         let errors = 0;
         let manualSkipped = 0;
+        let ignored = 0;
+        const ignoredEntries: VerificationEntry[] = [];
 
         for (let index = 0; index < items.length; index++) {
             const item = items[index] as any;
@@ -170,9 +199,14 @@ async function run() {
                     reasonCode: 'missing_discogs_association'
                 };
                 entries.push(entry);
+                const verificationState = buildVerificationState(entry, item.formatVerification);
+                if (verificationState.ignoredAt) {
+                    ignored++;
+                    ignoredEntries.push(entry);
+                }
                 await CollectionItem.updateOne(
                     { _id: item._id },
-                    { $set: { formatVerification: buildVerificationState(entry) } }
+                    { $set: { formatVerification: verificationState } }
                 );
                 unknown++;
                 continue;
@@ -214,9 +248,14 @@ async function run() {
                 }
 
                 entries.push(baseEntry);
+                const verificationState = buildVerificationState(baseEntry, item.formatVerification);
+                if (verificationState.ignoredAt) {
+                    ignored++;
+                    ignoredEntries.push(baseEntry);
+                }
                 await CollectionItem.updateOne(
                     { _id: item._id },
-                    { $set: { formatVerification: buildVerificationState(baseEntry) } }
+                    { $set: { formatVerification: verificationState } }
                 );
             } catch (error: any) {
                 errors++;
@@ -234,9 +273,14 @@ async function run() {
                     reasonCode: 'discogs_lookup_failed'
                 };
                 entries.push(entry);
+                const verificationState = buildVerificationState(entry, item.formatVerification);
+                if (verificationState.ignoredAt) {
+                    ignored++;
+                    ignoredEntries.push(entry);
+                }
                 await CollectionItem.updateOne(
                     { _id: item._id },
-                    { $set: { formatVerification: buildVerificationState(entry) } }
+                    { $set: { formatVerification: verificationState } }
                 );
             }
         }
@@ -251,11 +295,13 @@ async function run() {
                 mismatches,
                 unknown,
                 errors,
+                ignored,
                 manualSkipped
             },
             mismatches: entries.filter(entry => entry.status === 'mismatch'),
             unknown: entries.filter(entry => entry.status === 'unknown'),
             errors: entries.filter(entry => entry.status === 'error'),
+            ignored: ignoredEntries,
             all: entries
         };
 
@@ -266,6 +312,7 @@ async function run() {
         console.log(`Mismatches: ${mismatches}`);
         console.log(`Unknown: ${unknown}`);
         console.log(`Errors: ${errors}`);
+        console.log(`Ignored: ${ignored}`);
         console.log(`Manual skipped: ${manualSkipped}`);
         console.log(`Report saved to: ${reportPath}`);
     } finally {

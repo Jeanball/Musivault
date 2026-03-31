@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, FilterState } from '../../types/collection.types';
+import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
 
 const FILTER_STORAGE_KEY = 'musivault_collection_filters';
 const DEFAULT_FILTERS: FilterState = {
@@ -79,7 +80,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
                 return false;
             }
 
-            if (filters.issueStatus === 'issues' && (!item.formatVerification || item.formatVerification.status === 'match')) {
+            if (filters.issueStatus === 'issues' && !hasActiveFormatVerificationIssue(item.formatVerification)) {
                 return false;
             }
 

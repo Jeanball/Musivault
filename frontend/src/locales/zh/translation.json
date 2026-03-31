@@ -223,7 +223,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "Musivault 中显示的格式与已关联的 Discogs 发行版本不一致。"
+            "message": "Musivault 中的格式与已关联的 Discogs 发行版本不一致。请使用 Rematch 或忽略此提醒。"
         },
         "unknown": {
             "noDiscogsAssociation": "这张专辑目前还没有关联任何 Discogs 发行版本。",
@@ -231,7 +231,14 @@
         },
         "error": {
             "lookupFailed": "Musivault 当前无法通过 Discogs 验证这张专辑。"
-        }
+        },
+        "ignoredLabel": "提醒已忽略",
+        "ignoreAction": "忽略提醒",
+        "ignoreSuccess": "已从该条目移除格式提醒",
+        "ignoreError": "无法忽略格式提醒",
+        "undoAction": "撤销",
+        "undoSuccess": "格式提醒已恢复",
+        "undoError": "无法恢复格式提醒"
     },
     "versions": {
         "chooseVersion": "选择您的版本。",

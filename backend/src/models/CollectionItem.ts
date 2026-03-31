@@ -19,6 +19,7 @@ export interface IFormatVerification {
   reasonCode?: string;
   detectedDiscogsFormat?: string;
   checkedAt?: Date;
+  ignoredAt?: Date | null;
 }
 
 export interface ICollectionItem extends Document {
@@ -58,6 +59,7 @@ const formatVerificationSchema = new Schema<IFormatVerification>({
   reasonCode: { type: String, default: null },
   detectedDiscogsFormat: { type: String, default: null },
   checkedAt: { type: Date, default: null },
+  ignoredAt: { type: Date, default: null },
 }, { _id: false });
 
 const collectionItemSchema = new Schema<ICollectionItem>({

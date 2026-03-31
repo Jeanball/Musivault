@@ -27,3 +27,15 @@ export function getFormatVerificationMessage(
 
     return '';
 }
+
+export function hasActiveFormatVerificationIssue(
+    verification: FormatVerification | null | undefined
+): verification is FormatVerification {
+    return Boolean(verification && verification.status !== 'match' && !verification.ignoredAt);
+}
+
+export function hasIgnoredFormatVerificationIssue(
+    verification: FormatVerification | null | undefined
+): verification is FormatVerification {
+    return Boolean(verification && verification.status !== 'match' && verification.ignoredAt);
+}

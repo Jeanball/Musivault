@@ -374,6 +374,72 @@ export async function updateCollectionItem(req: Request, res: Response) {
   }
 }
 
+export async function ignoreFormatVerificationAlert(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { itemId } = req.params;
+    const item = await CollectionItem.findOne({
+      _id: itemId,
+      user: req.user._id
+    }).populate('album');
+
+    if (!item) {
+      res.status(404).json({ message: 'Item not found in your collection' });
+      return;
+    }
+
+    if (!item.formatVerification || item.formatVerification.status === 'match') {
+      res.status(400).json({ message: 'No active format verification alert to ignore' });
+      return;
+    }
+
+    item.formatVerification.ignoredAt = new Date();
+    await item.save();
+
+    res.status(200).json(item);
+  } catch (error) {
+    console.error('Error ignoring format verification alert:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function restoreFormatVerificationAlert(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { itemId } = req.params;
+    const item = await CollectionItem.findOne({
+      _id: itemId,
+      user: req.user._id
+    }).populate('album');
+
+    if (!item) {
+      res.status(404).json({ message: 'Item not found in your collection' });
+      return;
+    }
+
+    if (!item.formatVerification || item.formatVerification.status === 'match' || !item.formatVerification.ignoredAt) {
+      res.status(400).json({ message: 'No ignored format verification alert to restore' });
+      return;
+    }
+
+    item.formatVerification.ignoredAt = null;
+    await item.save();
+
+    res.status(200).json(item);
+  } catch (error) {
+    console.error('Error restoring format verification alert:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 // ===== Album Rematch =====
 
 export async function rematchAlbum(req: Request, res: Response) {

@@ -12,6 +12,7 @@ import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
 import type { CollectionItem, LayoutType } from '../../types/collection.types';
 import { BarChart2 } from 'lucide-react';
+import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
 const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
@@ -85,7 +86,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection);
     const stats = useCollectionStats(collection);
     const issueCount = useMemo(
-        () => collection.reduce((count, item) => count + (item.formatVerification && item.formatVerification.status !== 'match' ? 1 : 0), 0),
+        () => collection.reduce((count, item) => count + (hasActiveFormatVerificationIssue(item.formatVerification) ? 1 : 0), 0),
         [collection]
     );
 

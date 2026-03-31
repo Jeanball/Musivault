@@ -8,7 +8,8 @@
     "start": "node dist/server.js",
     "migrate-album-data": "node dist/scripts/migrate-album-data.js",
     "verify-collection-formats": "node dist/scripts/verify-collection-formats.js",
-    "fix-collection-format-mismatches": "node dist/scripts/fix-collection-format-mismatches.js"
+    "fix-collection-format-mismatches": "node dist/scripts/fix-collection-format-mismatches.js",
+    "create-format-mismatch-test-item": "node dist/scripts/create-format-mismatch-test-item.js"
   },
   "keywords": [],
   "author": "",

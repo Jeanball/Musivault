@@ -9,9 +9,10 @@ import type { CollectionItem } from '../types/collection.types';
 import { getItemValue } from '../types/collection.types';
 import type { AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
+import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { getImageUrl } from '../utils/imageUrl';
 import { getFormatButtonStyle } from '../utils/formatColors';
-import { getFormatVerificationMessage } from '../utils/formatVerification';
+import { getFormatVerificationMessage, hasActiveFormatVerificationIssue, hasIgnoredFormatVerificationIssue } from '../utils/formatVerification';
 import FormatVerificationBadge from '../components/Collection/FormatVerificationBadge';
 
 interface PreferencesResponse {
@@ -27,12 +28,15 @@ const AlbumDetailPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { t } = useTranslation();
+    const { refreshCollection } = useCollectionData();
     const [item, setItem] = useState<CollectionItem | null>(null);
     const [spotifyUrl, setSpotifyUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState(false);
     const [isSyncingPrice, setIsSyncingPrice] = useState(false);
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
+    const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
+    const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
     const backTarget = (location.state as AlbumDetailLocationState | null)?.backTo || '/app/collection';
 
     useEffect(() => {
@@ -175,6 +179,54 @@ const AlbumDetailPage: React.FC = () => {
     const album = item.album;
     const tracklist = album.tracklist || [];
     const labels = album.labels || [];
+    const hasActiveFormatIssue = hasActiveFormatVerificationIssue(item.formatVerification);
+    const hasIgnoredFormatIssue = hasIgnoredFormatVerificationIssue(item.formatVerification);
+
+    const handleIgnoreFormatAlert = async () => {
+        if (!item || !hasActiveFormatIssue) {
+            return;
+        }
+
+        setIsIgnoringFormatAlert(true);
+        try {
+            const response = await axios.post<CollectionItem>(
+                `/api/collection/${item._id}/ignore-format-alert`,
+                {},
+                { withCredentials: true }
+            );
+            setItem(response.data);
+            await refreshCollection();
+            toastService.success(t('formatVerification.ignoreSuccess'));
+        } catch (error) {
+            console.error('Failed to ignore format alert:', error);
+            toastService.error(t('formatVerification.ignoreError'));
+        } finally {
+            setIsIgnoringFormatAlert(false);
+        }
+    };
+
+    const handleRestoreFormatAlert = async () => {
+        if (!item || !hasIgnoredFormatIssue) {
+            return;
+        }
+
+        setIsRestoringFormatAlert(true);
+        try {
+            const response = await axios.post<CollectionItem>(
+                `/api/collection/${item._id}/restore-format-alert`,
+                {},
+                { withCredentials: true }
+            );
+            setItem(response.data);
+            await refreshCollection();
+            toastService.success(t('formatVerification.undoSuccess'));
+        } catch (error) {
+            console.error('Failed to restore format alert:', error);
+            toastService.error(t('formatVerification.undoError'));
+        } finally {
+            setIsRestoringFormatAlert(false);
+        }
+    };
 
     return (
         <div className="max-w-6xl mx-auto p-4">
@@ -221,6 +273,18 @@ const AlbumDetailPage: React.FC = () => {
                             <div className="stat-value text-2xl flex items-center gap-2">
                                 <span>{item.format.name}</span>
                             </div>
+                            {hasIgnoredFormatIssue && (
+                                <div className="mt-2 flex items-center gap-2 text-xs text-base-content/60">
+                                    <span>{t('formatVerification.ignoredLabel')}</span>
+                                    <button
+                                        onClick={handleRestoreFormatAlert}
+                                        className={`btn btn-ghost btn-xs min-h-0 h-auto px-1 normal-case ${isRestoringFormatAlert ? 'loading' : ''}`}
+                                        disabled={isRestoringFormatAlert}
+                                    >
+                                        {t('formatVerification.undoAction')}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                         <div className="stat bg-base-200 rounded-lg p-4">
                             <div className="stat-title">{t('collection.added')}</div>
@@ -381,12 +445,21 @@ const AlbumDetailPage: React.FC = () => {
                     </div>
 
                     {/* Management Actions */}
-                    {item.formatVerification && item.formatVerification.status !== 'match' && (
-                        <div className={`alert mb-4 ${item.formatVerification.status === 'mismatch' ? 'alert-error' : 'alert-warning'}`}>
-                            <CircleAlert size={18} />
-                            <span>
-                                {getFormatVerificationMessage(item.formatVerification, t)}
-                            </span>
+                    {hasActiveFormatIssue && item.formatVerification && (
+                        <div className={`alert mb-4 items-start ${item.formatVerification.status === 'mismatch' ? 'alert-error' : 'alert-warning'}`}>
+                            <CircleAlert size={18} className="mt-0.5 shrink-0" />
+                            <div className="flex-1">
+                                <p>{getFormatVerificationMessage(item.formatVerification, t)}</p>
+                                <div className="mt-3">
+                                    <button
+                                        onClick={handleIgnoreFormatAlert}
+                                        className={`btn btn-sm btn-outline bg-base-100 ${isIgnoringFormatAlert ? 'loading' : ''}`}
+                                        disabled={isIgnoringFormatAlert}
+                                    >
+                                        {t('formatVerification.ignoreAction')}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                     <div className="flex flex-wrap gap-3">

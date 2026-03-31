@@ -2,7 +2,7 @@ import React from 'react';
 import { CircleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { FormatVerification } from '../../types/collection.types';
-import { getFormatVerificationMessage } from '../../utils/formatVerification';
+import { getFormatVerificationMessage, hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
 
 interface FormatVerificationBadgeProps {
     verification?: FormatVerification | null;
@@ -15,15 +15,16 @@ const FormatVerificationBadge: React.FC<FormatVerificationBadgeProps> = ({
 }) => {
     const { t } = useTranslation();
 
-    if (!verification || verification.status === 'match') {
+    if (!hasActiveFormatVerificationIssue(verification)) {
         return null;
     }
 
-    const isMismatch = verification.status === 'mismatch';
-    const tooltip = getFormatVerificationMessage(verification, t);
+    const activeVerification = verification;
+    const isMismatch = activeVerification.status === 'mismatch';
+    const tooltip = getFormatVerificationMessage(activeVerification, t);
     const colorClass = isMismatch
         ? 'text-error'
-        : verification.status === 'error'
+        : activeVerification.status === 'error'
             ? 'text-warning'
             : 'text-warning';
 

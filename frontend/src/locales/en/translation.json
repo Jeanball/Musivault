@@ -241,7 +241,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "The format shown in Musivault does not match the linked Discogs release."
+            "message": "The Musivault format does not match the linked Discogs release. Use Rematch or ignore this alert."
         },
         "unknown": {
             "noDiscogsAssociation": "No Discogs release is associated with this album yet.",
@@ -249,7 +249,14 @@
         },
         "error": {
             "lookupFailed": "Musivault could not verify this album against Discogs right now."
-        }
+        },
+        "ignoredLabel": "Alert ignored",
+        "ignoreAction": "Ignore alert",
+        "ignoreSuccess": "Format alert removed from this item",
+        "ignoreError": "Failed to ignore format alert",
+        "undoAction": "Undo",
+        "undoSuccess": "Format alert restored",
+        "undoError": "Failed to restore format alert"
     },
     "versions": {
         "chooseVersion": "Choose your version.",

@@ -13,6 +13,8 @@ import {
     getImportLogById,
     downloadImportLog,
     updateCollectionItem,
+    ignoreFormatVerificationAlert,
+    restoreFormatVerificationAlert,
     rematchAlbum,
     getStyles,
     addManualAlbum,
@@ -75,6 +77,8 @@ router.post('/', protectRoute, addToCollection);
 router.get('/', protectRoute, getMyCollection);
 router.get('/:itemId', protectRoute, getCollectionItemById);
 router.put('/:itemId', protectRoute, updateCollectionItem);
+router.post('/:itemId/ignore-format-alert', protectRoute, ignoreFormatVerificationAlert);
+router.post('/:itemId/restore-format-alert', protectRoute, restoreFormatVerificationAlert);
 router.post('/:itemId/sync-price', protectRoute, syncItemPrice);
 router.post('/:itemId/rematch', protectRoute, rematchAlbum);
 router.delete('/:itemId', protectRoute, deleteFromCollection);

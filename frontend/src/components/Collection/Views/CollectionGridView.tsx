@@ -2,6 +2,7 @@ import React from 'react';
 import type { CollectionItem } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
+import { hasActiveFormatVerificationIssue } from '../../../utils/formatVerification';
 import FormatVerificationBadge from '../FormatVerificationBadge';
 
 interface CollectionGridViewProps {
@@ -28,7 +29,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                 className="card bg-base-200 shadow-xl transition-transform hover:scale-105 cursor-pointer"
                             >
                                 <figure className="aspect-square w-full bg-base-300 relative">
-                                    {item.formatVerification && item.formatVerification.status !== 'match' && (
+                                    {hasActiveFormatVerificationIssue(item.formatVerification) && (
                                         <div className="absolute top-2 right-2 z-20 rounded-full bg-base-100/90 p-1 shadow-sm">
                                             <FormatVerificationBadge verification={item.formatVerification} className="tooltip-left" />
                                         </div>

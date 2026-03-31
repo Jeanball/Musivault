@@ -223,7 +223,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "Das in Musivault angezeigte Format stimmt nicht mit der verknüpften Discogs-Veröffentlichung überein."
+            "message": "Das Musivault-Format stimmt nicht mit der verknüpften Discogs-Veröffentlichung überein. Verwenden Sie Rematch oder ignorieren Sie diesen Hinweis."
         },
         "unknown": {
             "noDiscogsAssociation": "Diesem Album ist noch keine Discogs-Veröffentlichung zugeordnet.",
@@ -231,7 +231,14 @@
         },
         "error": {
             "lookupFailed": "Musivault konnte dieses Album derzeit nicht mit Discogs abgleichen."
-        }
+        },
+        "ignoredLabel": "Hinweis ignoriert",
+        "ignoreAction": "Hinweis ignorieren",
+        "ignoreSuccess": "Formathinweis für diesen Eintrag entfernt",
+        "ignoreError": "Formathinweis konnte nicht ignoriert werden",
+        "undoAction": "Rückgängig",
+        "undoSuccess": "Formathinweis wiederhergestellt",
+        "undoError": "Formathinweis konnte nicht wiederhergestellt werden"
     },
     "versions": {
         "chooseVersion": "Wählen Sie Ihre Version.",
