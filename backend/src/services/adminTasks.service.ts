@@ -4,6 +4,7 @@ import AdminTaskExecution from '../models/AdminTaskExecution';
 import type { IAlbum } from '../models/Album';
 import { streamPriceSync } from '../controllers/collection.controller';
 import type { PopulatedCollectionItem } from '../controllers/collection.controller';
+import { getPriceTTLHours } from '../utils/price.utils';
 
 export interface AdminTaskSummary {
   id: string;
@@ -32,16 +33,23 @@ interface AdminTaskDefinition {
 const ADMIN_TASKS: AdminTaskDefinition[] = [
   {
     id: 'refresh-prices',
-    intervalLabel: 'On demand',
-    getNextExecutionAt: () => null,
+    get intervalLabel() { return `${Math.round(getPriceTTLHours() / 24)} days`; },
+    getNextExecutionAt: (lastExecution) => {
+      if (!lastExecution) return null;
+      return new Date(lastExecution.executedAt.getTime() + getPriceTTLHours() * 60 * 60 * 1000);
+    },
     run: async (res: Response) => {
       const allItems = await CollectionItem.find({})
         .populate<{ album: IAlbum }>('album');
 
-      await streamPriceSync(res, allItems as unknown as PopulatedCollectionItem[], {
+      const finished = await streamPriceSync(res, allItems as unknown as PopulatedCollectionItem[], {
         forceRefresh: true,
         logLabel: 'AdminPriceSync',
       });
+
+      if (!finished) {
+        throw new Error('Task was cancelled by the user.');
+      }
 
       return 'Refreshed cached prices across all collections.';
     },

@@ -23,6 +23,7 @@
         "tracks": "曲目",
         "error": "发生错误。",
         "success": "成功",
+        "failed": "失败",
         "goBack": "返回",
         "viewAlbum": "查看专辑",
         "continueSearching": "继续搜索",
@@ -363,7 +364,37 @@
             "refreshPrices": "获取最新价格",
             "refreshPricesHelp": "强制刷新所有收藏中的缓存价格，即使这些条目仍然是最新的。",
             "priceRefreshSuccess": "价格刷新已成功完成。",
-            "priceRefreshError": "刷新价格失败。请重试。"
+            "priceRefreshError": "刷新价格失败。请重试。",
+            "pageTitle": "任务中心",
+            "pageSubtitle": "从一个地方运行和监控管理任务。",
+            "openPage": "打开任务",
+            "tableTitle": "可用任务",
+            "tableSubtitle": "每个任务都提供一个稳定的日程视图，因此我们可以在不重新设计页面的情况下添加更多任务。",
+            "countLabel": "任务",
+            "liveStatus": "实时状态",
+            "starting": "正在启动...",
+            "runButton": "运行任务",
+            "runSuccess": "任务成功完成。",
+            "runError": "运行任务失败。请重试。",
+            "notRunYet": "尚未运行",
+            "notAvailable": "无",
+            "onDemand": "按需",
+            "runCancelled": "任务已取消。",
+            "defaultDescription": "暂无描述。",
+            "columns": {
+                "task": "任务",
+                "status": "状态",
+                "interval": "间隔",
+                "lastExecution": "最后执行",
+                "lastDuration": "最后时长",
+                "nextExecution": "下次执行"
+            },
+            "items": {
+                "refreshPrices": {
+                    "name": "刷新价格",
+                    "description": "刷新收藏中所有条目的 Discogs 缓存价格，即使缓存尚未过期。"
+                }
+            }
         }
     },
     "stats": {

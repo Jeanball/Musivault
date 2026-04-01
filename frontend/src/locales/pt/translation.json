@@ -23,6 +23,7 @@
         "tracks": "Faixas",
         "error": "Ocorreu um erro.",
         "success": "Sucesso",
+        "failed": "Falhou",
         "goBack": "Voltar",
         "viewAlbum": "Ver Álbum",
         "continueSearching": "Continuar Pesquisando",
@@ -363,7 +364,37 @@
             "refreshPrices": "Buscar novos preços",
             "refreshPricesHelp": "Força a atualização dos preços em cache em todas as coleções, mesmo quando as entradas ainda estão recentes.",
             "priceRefreshSuccess": "Atualização de preços concluída com sucesso.",
-            "priceRefreshError": "Falha ao atualizar preços. Tente novamente."
+            "priceRefreshError": "Falha ao atualizar preços. Tente novamente.",
+            "pageTitle": "Centro de Tarefas",
+            "pageSubtitle": "Execute e monitore tarefas administrativas em um só lugar.",
+            "openPage": "Abrir Tarefas",
+            "tableTitle": "Tarefas Disponíveis",
+            "tableSubtitle": "Cada tarefa expõe uma visão de agendamento estável para que possamos adicionar mais trabalhos sem redesenhar a página.",
+            "countLabel": "tarefas",
+            "liveStatus": "Status em tempo real",
+            "starting": "Iniciando...",
+            "runButton": "Executar Tarefa",
+            "runSuccess": "Tarefa concluída com sucesso.",
+            "runError": "Falha ao executar tarefa. Tente novamente.",
+            "notRunYet": "Ainda não executado",
+            "notAvailable": "N/A",
+            "onDemand": "Sob demanda",
+            "runCancelled": "A tarefa foi cancelada.",
+            "defaultDescription": "Nenhuma descrição disponível ainda.",
+            "columns": {
+                "task": "Tarefa",
+                "status": "Status",
+                "interval": "Intervalo",
+                "lastExecution": "Última Execução",
+                "lastDuration": "Última Duração",
+                "nextExecution": "Próxima Execução"
+            },
+            "items": {
+                "refreshPrices": {
+                    "name": "Atualizar Preços",
+                    "description": "Atualizar preços Discogs em cache para cada item da coleção, mesmo se o cache ainda estiver atualizado."
+                }
+            }
         }
     },
     "stats": {

@@ -40,6 +40,12 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
               </Link>
             </li>
             <li>
+              <Link to="/app/discover" className={isActive('/app/discover') ? 'active font-bold' : 'font-medium'}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                {t('nav.discover', 'Discover')}
+              </Link>
+            </li>
+            <li>
               <Link to="/app/collection" className={isCollectionActive ? 'active font-bold' : 'font-medium'}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                 {t('nav.collection', 'Collection')}
@@ -49,12 +55,6 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
               <Link to="/app/stats" className={isActive('/app/stats') ? 'active font-bold' : 'font-medium'}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                 {t('nav.stats', 'Stats')}
-              </Link>
-            </li>
-            <li>
-              <Link to="/app/discover" className={isActive('/app/discover') ? 'active font-bold' : 'font-medium'}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
-                {t('nav.discover', 'Discover')}
               </Link>
             </li>
           </ul>
@@ -85,13 +85,17 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <span className="btm-nav-label text-xs font-medium">{t('nav.search', 'Search')}</span>
         </Link>
+        <Link to="/app/discover" className={`${isActive('/app/discover') ? 'active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+          <span className="btm-nav-label text-xs font-medium">{t('nav.discover', 'Discover')}</span>
+        </Link>
         <Link to="/app/collection" className={`${isCollectionActive ? 'active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
           <span className="btm-nav-label text-xs font-medium">{t('nav.collection', 'Collection')}</span>
         </Link>
-        <Link to="/app/discover" className={`${isActive('/app/discover') ? 'active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
-          <span className="btm-nav-label text-xs font-medium">{t('nav.discover', 'Discover')}</span>
+        <Link to="/app/stats" className={`${isActive('/app/stats') ? 'active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+          <span className="btm-nav-label text-xs font-medium">{t('nav.stats', 'Stats')}</span>
         </Link>
         <button className={`dropdown dropdown-top dropdown-end ${location.pathname === '/app/settings' ? 'active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'}`}>
           {/* Dropdown triggers on click for mobile usually needs careful handling, simplified for standard daisyui behavior */}

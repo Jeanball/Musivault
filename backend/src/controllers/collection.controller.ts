@@ -94,6 +94,11 @@ export async function streamPriceSync(
     res.flushHeaders();
   }
 
+  let isAborted = false;
+  res.on('close', () => {
+    isAborted = true;
+  });
+
   const groupedByRelease = new Map<number, PopulatedCollectionItem[]>();
   const noDiscogsItems: PopulatedCollectionItem[] = [];
 
@@ -162,6 +167,11 @@ export async function streamPriceSync(
       skippedNoData += releaseItems.length;
       console.log(`[${logLabel}] ${releaseIdx}/${totalReleases} NO DATA - ${artist} - ${title}`);
     }
+
+    if (isAborted) {
+      console.log(`[${logLabel}] Client disconnected. Aborting sync loop.`);
+      break;
+    }
   }
 
   let totalValue = 0;
@@ -180,17 +190,21 @@ export async function streamPriceSync(
     ? `Refreshed ${syncedReleases} releases (${syncedItems} items).`
     : `Synced ${syncedReleases} releases (${syncedItems} items). ${skippedFresh} already fresh.`;
 
-  res.write(`data: ${JSON.stringify({
-    type: 'complete',
-    synced: syncedItems,
-    skipped: skippedFresh + skippedNoData + noDiscogsItems.length,
-    total: totalItems,
-    totalValue: Math.round(totalValue * 100) / 100,
-    currency,
-    message: summaryMessage,
-  })}\n\n`);
+  if (!isAborted) {
+    res.write(`data: ${JSON.stringify({
+      type: 'complete',
+      synced: syncedItems,
+      skipped: skippedFresh + skippedNoData + noDiscogsItems.length,
+      total: totalItems,
+      totalValue: Math.round(totalValue * 100) / 100,
+      currency,
+      message: summaryMessage,
+    })}\n\n`);
 
-  res.end();
+    res.end();
+  }
+
+  return !isAborted;
 }
 
 // ===== CSV Import =====

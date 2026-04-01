@@ -11,7 +11,6 @@ import { useCollectionFilters } from '../../hooks/collection/useCollectionFilter
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
 import type { CollectionItem, LayoutType } from '../../types/collection.types';
-import { BarChart2 } from 'lucide-react';
 import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
@@ -126,19 +125,6 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
 
     return (
         <>
-            {/* Mobile Stats Button */}
-            {!readOnly && (
-                <div className="md:hidden flex justify-end mb-4 pr-1">
-                    <button 
-                        onClick={() => navigate('/app/stats')}
-                        className="btn btn-sm btn-outline btn-primary gap-2"
-                    >
-                        <BarChart2 size={16} />
-                        {t('nav.stats', 'Stats')}
-                    </button>
-                </div>
-            )}
-
             {/* Advanced Filters */}
             <CollectionFilters
                 filters={filters}

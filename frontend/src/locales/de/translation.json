@@ -23,6 +23,7 @@
         "tracks": "Titel",
         "error": "Ein Fehler ist aufgetreten.",
         "success": "Erfolg",
+        "failed": "Fehlgeschlagen",
         "goBack": "Züruck",
         "viewAlbum": "Album ansehen",
         "continueSearching": "Weiter suchen",
@@ -363,7 +364,37 @@
             "refreshPrices": "Neue Preise abrufen",
             "refreshPricesHelp": "Aktualisiert zwischengespeicherte Preise für alle Sammlungen zwangsweise, auch wenn die Einträge noch frisch sind.",
             "priceRefreshSuccess": "Preisaktualisierung erfolgreich abgeschlossen.",
-            "priceRefreshError": "Preise konnten nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+            "priceRefreshError": "Preise konnten nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+            "pageTitle": "Aufgabenzentrum",
+            "pageSubtitle": "Admin-Aufgaben von einem Ort aus ausführen und überwachen.",
+            "openPage": "Aufgaben öffnen",
+            "tableTitle": "Verfügbare Aufgaben",
+            "tableSubtitle": "Jede Aufgabe bietet eine stabile Zeitplanansicht, sodass wir mehr Aufgaben hinzufügen können, ohne die Seite neu zu gestalten.",
+            "countLabel": "Aufgaben",
+            "liveStatus": "Live-Status",
+            "starting": "Startet...",
+            "runButton": "Aufgabe ausführen",
+            "runSuccess": "Aufgabe erfolgreich abgeschlossen.",
+            "runError": "Aufgabe konnte nicht ausgeführt werden. Bitte versuchen Sie es erneut.",
+            "notRunYet": "Noch nicht ausgeführt",
+            "notAvailable": "N/V",
+            "onDemand": "Auf Anfrage",
+            "runCancelled": "Aufgabe wurde abgebrochen.",
+            "defaultDescription": "Noch keine Beschreibung verfügbar.",
+            "columns": {
+                "task": "Aufgabe",
+                "status": "Status",
+                "interval": "Intervall",
+                "lastExecution": "Letzte Ausführung",
+                "lastDuration": "Letzte Dauer",
+                "nextExecution": "Nächste Ausführung"
+            },
+            "items": {
+                "refreshPrices": {
+                    "name": "Preise aktualisieren",
+                    "description": "Zwischengespeicherte Discogs-Preise für jedes Element in der Sammlung aktualisieren, auch wenn der Cache noch frisch ist."
+                }
+            }
         }
     },
     "stats": {

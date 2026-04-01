@@ -382,7 +382,37 @@
             "refreshPrices": "Récupérer les nouveaux prix",
             "refreshPricesHelp": "Force l'actualisation des prix en cache pour toutes les collections, même si les entrées sont encore fraîches.",
             "priceRefreshSuccess": "Actualisation des prix terminée avec succès.",
-            "priceRefreshError": "Échec de l'actualisation des prix. Veuillez réessayer."
+            "priceRefreshError": "Échec de l'actualisation des prix. Veuillez réessayer.",
+            "pageTitle": "Centre de tâches",
+            "pageSubtitle": "Exécutez et surveillez les tâches d'administration depuis un seul endroit.",
+            "openPage": "Ouvrir les tâches",
+            "tableTitle": "Tâches disponibles",
+            "tableSubtitle": "Chaque tâche expose une vue de planification stable afin que nous puissions ajouter plus de jobs sans redessiner la page.",
+            "countLabel": "tâches",
+            "liveStatus": "Statut en direct",
+            "starting": "Démarrage...",
+            "runButton": "Exécuter la tâche",
+            "runSuccess": "Tâche terminée avec succès.",
+            "runError": "Échec de l'exécution de la tâche. Veuillez réessayer.",
+            "notRunYet": "Pas encore exécuté",
+            "notAvailable": "N/A",
+            "onDemand": "À la demande",
+            "runCancelled": "La tâche a été annulée.",
+            "defaultDescription": "Aucune description disponible pour le moment.",
+            "columns": {
+                "task": "Tâche",
+                "status": "Statut",
+                "interval": "Intervalle",
+                "lastExecution": "Dernière exécution",
+                "lastDuration": "Dernière durée",
+                "nextExecution": "Prochaine exécution"
+            },
+            "items": {
+                "refreshPrices": {
+                    "name": "Actualiser les prix",
+                    "description": "Actualiser les prix Discogs mis en cache pour chaque élément de la collection, même si le cache est encore frais."
+                }
+            }
         }
     },
     "stats": {

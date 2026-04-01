@@ -15,6 +15,7 @@ const AdminTasksPage: React.FC = () => {
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
     const [activeTaskProgress, setActiveTaskProgress] = useState('');
     const [activeTaskSummary, setActiveTaskSummary] = useState('');
+    const [activeTaskAbortController, setActiveTaskAbortController] = useState<AbortController | null>(null);
 
     const loadTasks = async () => {
         const { data } = await axios.get<AdminTask[]>('/api/users/admin/tasks', {
@@ -77,11 +78,15 @@ const AdminTasksPage: React.FC = () => {
         setActiveTaskProgress('');
         setActiveTaskSummary('');
 
+        const abortController = new AbortController();
+        setActiveTaskAbortController(abortController);
+
         try {
             const response = await fetch(`/api/users/admin/tasks/${task.id}/run`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
+                signal: abortController.signal,
             });
 
             if (!response.ok || !response.body) {
@@ -126,13 +131,19 @@ const AdminTasksPage: React.FC = () => {
             }
 
             await loadTasks();
-        } catch (error) {
-            console.error(`Error running admin task "${task.id}":`, error);
-            setActiveTaskSummary('');
-            toastService.error(t('admin.tasks.runError', 'Failed to run task. Please try again.'));
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                setActiveTaskSummary(t('admin.tasks.runCancelled', 'Task was cancelled.'));
+                toastService.info(t('admin.tasks.runCancelled', 'Task was cancelled.'));
+            } else {
+                console.error(`Error running admin task "${task.id}":`, error);
+                setActiveTaskSummary('');
+                toastService.error(t('admin.tasks.runError', 'Failed to run task. Please try again.'));
+            }
         } finally {
             setActiveTaskId(null);
             setActiveTaskProgress('');
+            setActiveTaskAbortController(null);
         }
     };
 
@@ -167,7 +178,7 @@ const AdminTasksPage: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-[50vh]">
-                <span className="loading loading-spinner loading-lg"></span>
+                <span className="loading loading-spinner loading-lg text-primary"></span>
             </div>
         );
     }
@@ -237,6 +248,7 @@ const AdminTasksPage: React.FC = () => {
                             <thead>
                                 <tr>
                                     <th>{t('admin.tasks.columns.task', 'Task')}</th>
+                                    <th>{t('admin.tasks.columns.status', 'Status')}</th>
                                     <th>{t('admin.tasks.columns.interval', 'Interval')}</th>
                                     <th>{t('admin.tasks.columns.lastExecution', 'Last Execution')}</th>
                                     <th>{t('admin.tasks.columns.lastDuration', 'Last Duration')}</th>
@@ -251,27 +263,41 @@ const AdminTasksPage: React.FC = () => {
                                             <div className="space-y-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-semibold">{getTaskName(task.id)}</span>
-                                                    {task.lastStatus && (
-                                                        <span className={`badge badge-sm ${task.lastStatus === 'success' ? 'badge-success' : 'badge-error'}`}>
-                                                            {task.lastStatus}
-                                                        </span>
-                                                    )}
                                                 </div>
                                                 <p className="text-sm text-base-content/70">{getTaskDescription(task.id)}</p>
                                             </div>
+                                        </td>
+                                        <td>
+                                            {task.lastStatus ? (
+                                                <span className={`badge badge-sm ${task.lastStatus === 'success' ? 'badge-success' : 'badge-error'}`}>
+                                                    {task.lastStatus === 'success' ? t('common.success', 'Success') : t('common.failed', 'Failed')}
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm text-base-content/50">{t('admin.tasks.notAvailable', 'N/A')}</span>
+                                            )}
                                         </td>
                                         <td>{task.intervalLabel}</td>
                                         <td>{formatDate(task.lastExecutionAt)}</td>
                                         <td>{formatDuration(task.lastDurationMs)}</td>
                                         <td>{formatNextExecution(task)}</td>
                                         <td>
-                                            <button
-                                                className={`btn btn-primary btn-sm ${activeTaskId === task.id ? 'loading' : ''}`}
-                                                onClick={() => handleRunTask(task)}
-                                                disabled={activeTaskId !== null}
-                                            >
-                                                {t('admin.tasks.runButton', 'Run Task')}
-                                            </button>
+                                            {activeTaskId === task.id ? (
+                                                <button
+                                                    className="btn btn-error btn-sm w-28 flex-nowrap"
+                                                    onClick={() => activeTaskAbortController?.abort()}
+                                                >
+                                                    <span className="loading loading-spinner loading-xs"></span>
+                                                    {t('common.cancel', 'Cancel')}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="btn btn-primary btn-sm w-28 flex-nowrap"
+                                                    onClick={() => handleRunTask(task)}
+                                                    disabled={activeTaskId !== null}
+                                                >
+                                                    {t('admin.tasks.runButton', 'Run Task')}
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -285,41 +311,58 @@ const AdminTasksPage: React.FC = () => {
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
                                         <h3 className="font-semibold">{getTaskName(task.id)}</h3>
-                                        {task.lastStatus && (
-                                            <span className={`badge badge-sm ${task.lastStatus === 'success' ? 'badge-success' : 'badge-error'}`}>
-                                                {task.lastStatus}
-                                            </span>
-                                        )}
                                     </div>
                                     <p className="text-sm text-base-content/70">{getTaskDescription(task.id)}</p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div>
-                                        <div className="text-xs uppercase tracking-wide text-base-content/50">{t('admin.tasks.columns.interval', 'Interval')}</div>
-                                        <div>{task.intervalLabel}</div>
+                                        <div className="text-xs uppercase tracking-wide text-base-content/50">{t('admin.tasks.columns.status', 'Status')}</div>
+                                        <div>
+                                            {task.lastStatus ? (
+                                                <span className={`badge badge-sm ${task.lastStatus === 'success' ? 'badge-success' : 'badge-error'}`}>
+                                                    {task.lastStatus === 'success' ? t('common.success', 'Success') : t('common.failed', 'Failed')}
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm text-base-content/50">{t('admin.tasks.notAvailable', 'N/A')}</span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div>
-                                        <div className="text-xs uppercase tracking-wide text-base-content/50">{t('admin.tasks.columns.lastDuration', 'Last Duration')}</div>
-                                        <div>{formatDuration(task.lastDurationMs)}</div>
+                                        <div className="text-xs uppercase tracking-wide text-base-content/50">{t('admin.tasks.columns.interval', 'Interval')}</div>
+                                        <div>{task.intervalLabel}</div>
                                     </div>
                                     <div>
                                         <div className="text-xs uppercase tracking-wide text-base-content/50">{t('admin.tasks.columns.lastExecution', 'Last Execution')}</div>
                                         <div>{formatDate(task.lastExecutionAt)}</div>
                                     </div>
                                     <div>
+                                        <div className="text-xs uppercase tracking-wide text-base-content/50">{t('admin.tasks.columns.lastDuration', 'Last Duration')}</div>
+                                        <div>{formatDuration(task.lastDurationMs)}</div>
+                                    </div>
+                                    <div className="col-span-2">
                                         <div className="text-xs uppercase tracking-wide text-base-content/50">{t('admin.tasks.columns.nextExecution', 'Next Execution')}</div>
                                         <div>{formatNextExecution(task)}</div>
                                     </div>
                                 </div>
 
-                                <button
-                                    className={`btn btn-primary btn-sm w-full ${activeTaskId === task.id ? 'loading' : ''}`}
-                                    onClick={() => handleRunTask(task)}
-                                    disabled={activeTaskId !== null}
-                                >
-                                    {t('admin.tasks.runButton', 'Run Task')}
-                                </button>
+                                {activeTaskId === task.id ? (
+                                    <button
+                                        className="btn btn-error btn-sm w-full"
+                                        onClick={() => activeTaskAbortController?.abort()}
+                                    >
+                                        <span className="loading loading-spinner loading-xs"></span>
+                                        {t('common.cancel', 'Cancel')}
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="btn btn-primary btn-sm w-full"
+                                        onClick={() => handleRunTask(task)}
+                                        disabled={activeTaskId !== null}
+                                    >
+                                        {t('admin.tasks.runButton', 'Run Task')}
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>

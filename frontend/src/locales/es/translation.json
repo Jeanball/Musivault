@@ -363,7 +363,37 @@
             "refreshPrices": "Obtener precios nuevos",
             "refreshPricesHelp": "Fuerza la actualización de los precios en caché en todas las colecciones, incluso cuando las entradas siguen siendo recientes.",
             "priceRefreshSuccess": "La actualización de precios se completó correctamente.",
-            "priceRefreshError": "No se pudieron actualizar los precios. Inténtalo de nuevo."
+            "priceRefreshError": "No se pudieron actualizar los precios. Inténtalo de nuevo.",
+            "pageTitle": "Centro de Tareas",
+            "pageSubtitle": "Ejecuta y monitorea trabajos de administración desde un solo lugar.",
+            "openPage": "Abrir tareas",
+            "tableTitle": "Tareas disponibles",
+            "tableSubtitle": "Cada tarea expone una vista de programación estable para que podamos agregar más trabajos sin rediseñar la página.",
+            "countLabel": "tareas",
+            "liveStatus": "Estado en vivo",
+            "starting": "Iniciando...",
+            "runButton": "Ejecutar tarea",
+            "runSuccess": "Tarea completada con éxito.",
+            "runError": "Error al ejecutar la tarea. Por favor, inténtalo de nuevo.",
+            "notRunYet": "Aún no ejecutado",
+            "notAvailable": "N/D",
+            "onDemand": "A pedido",
+            "runCancelled": "La tarea fue cancelada.",
+            "defaultDescription": "No hay descripción disponible todavía.",
+            "columns": {
+                "task": "Tarea",
+                "status": "Estado",
+                "interval": "Intervalo",
+                "lastExecution": "Última ejecución",
+                "lastDuration": "Última duración",
+                "nextExecution": "Próxima ejecución"
+            },
+            "items": {
+                "refreshPrices": {
+                    "name": "Actualizar precios",
+                    "description": "Actualizar precios de Discogs en caché para cada artículo de la colección, incluso si el caché todavía está fresco."
+                }
+            }
         }
     },
     "stats": {
