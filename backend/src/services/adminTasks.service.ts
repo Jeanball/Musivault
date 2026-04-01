@@ -2,7 +2,7 @@ import type { Response } from 'express';
 import CollectionItem from '../models/CollectionItem';
 import AdminTaskExecution from '../models/AdminTaskExecution';
 import type { IAlbum } from '../models/Album';
-import { streamPriceSync } from '../controllers/collection.controller';
+import { streamPriceSync, getNextAutoSyncAt } from '../controllers/collection.controller';
 import type { PopulatedCollectionItem } from '../controllers/collection.controller';
 import { getPriceTTLHours } from '../utils/price.utils';
 
@@ -34,7 +34,14 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
   {
     id: 'refresh-prices',
     get intervalLabel() { return `${Math.round(getPriceTTLHours() / 24)} days`; },
-    getNextExecutionAt: (lastExecution) => {
+    getNextExecutionAt: async (lastExecution) => {
+      const allItems = await CollectionItem.find({}).select('priceCache album').populate<{ album: Pick<IAlbum, 'discogsId'> }>('album', 'discogsId');
+      const nextSync = getNextAutoSyncAt(allItems);
+      
+      if (nextSync) {
+        return nextSync;
+      }
+
       if (!lastExecution) return null;
       return new Date(lastExecution.executedAt.getTime() + getPriceTTLHours() * 60 * 60 * 1000);
     },
