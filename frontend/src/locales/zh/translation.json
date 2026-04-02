@@ -105,6 +105,9 @@
         "wideScreenDisabled": "内容扩展以填充整个屏幕宽度",
         "wideScreenModeEnabled": "宽屏模式已启用！",
         "wideScreenModeDisabled": "宽屏模式已禁用",
+        "currency": "货币",
+        "currencyDescription": "选择用于显示收藏价值的首选货币。",
+        "currencySaved": "货币已保存！",
         "publicCollection": "公开收藏",
         "publicCollectionDescription": "允许任何拥有链接的人查看您的收藏。默认情况下您的收藏是私有的。",
         "collectionPublic": "收藏已公开",
@@ -392,7 +395,14 @@
             "items": {
                 "refreshPrices": {
                     "name": "刷新价格",
-                    "description": "刷新收藏中所有条目的 Discogs 缓存价格，即使缓存尚未过期。"
+                    "description": "刷新收藏中所有条目的 Discogs 缓存价格，即使缓存尚未过期。",
+                    "successForce": "已刷新 {{synced}} 个发行版本（共 {{total}} 项）。",
+                    "successSync": "已同步 {{synced}} 个发行版本（共 {{total}} 项）。{{skipped}} 项已是最新。"
+                },
+                "refreshExchangeRates": {
+                    "name": "更新汇率",
+                    "description": "从外部 API 获取最新汇率，以确保准确的收藏估值。",
+                    "success": "汇率更新成功。"
                 }
             }
         }

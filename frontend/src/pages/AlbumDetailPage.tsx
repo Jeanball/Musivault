@@ -14,6 +14,7 @@ import { getImageUrl } from '../utils/imageUrl';
 import { getFormatButtonStyle } from '../utils/formatColors';
 import { getFormatVerificationMessage, hasActiveFormatVerificationIssue, hasIgnoredFormatVerificationIssue } from '../utils/formatVerification';
 import FormatVerificationBadge from '../components/Collection/FormatVerificationBadge';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface PreferencesResponse {
     enableConditionGrading: boolean;
@@ -37,6 +38,7 @@ const AlbumDetailPage: React.FC = () => {
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
     const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
     const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
+    const { formatValue } = useCurrency();
     const backTarget = (location.state as AlbumDetailLocationState | null)?.backTo || '/app/collection';
 
     useEffect(() => {
@@ -60,7 +62,7 @@ const AlbumDetailPage: React.FC = () => {
         try {
             const [itemRes, prefsRes] = await Promise.all([
                 axios.get(`/api/collection/${id}`, { withCredentials: true }),
-                axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+                axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
             ]);
             setItem(itemRes.data);
             setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
@@ -383,12 +385,7 @@ const AlbumDetailPage: React.FC = () => {
                                         </button>
                                     </div>
                                     <div className="stat-value text-2xl text-warning">
-                                        {new Intl.NumberFormat(undefined, {
-                                            style: 'currency',
-                                            currency: item.priceCache?.currency || 'USD',
-                                            minimumFractionDigits: 0,
-                                            maximumFractionDigits: 0,
-                                        }).format(val)}
+                                        {formatValue(val)}
                                     </div>
                                     <div className="stat-desc">
                                         {conditionLabel} {lastUpdated && <span className="opacity-50 ml-1">• {lastUpdated}</span>}

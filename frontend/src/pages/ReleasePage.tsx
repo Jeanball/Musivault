@@ -45,7 +45,7 @@ const ReleasePage: React.FC = () => {
                 // Fetch release details and user preferences in parallel
                 const [releaseRes, prefsRes] = await Promise.all([
                     axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, { withCredentials: true }),
-                    axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+                    axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
                 ]);
                 setAlbumDetails(releaseRes.data);
                 setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);

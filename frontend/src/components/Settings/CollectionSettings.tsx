@@ -18,7 +18,7 @@ const CollectionSettings: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+        axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
             .then(res => {
                 setIsPublic(res.data.isPublic || false);
                 setPublicShareId(res.data.publicShareId || null);
@@ -33,7 +33,7 @@ const CollectionSettings: React.FC = () => {
 
         try {
             const response = await axios.put<{ preferences: PreferencesResponse; publicShareId: string | null }>(
-                '/api/users/preferences',
+                '/api/preferences',
                 { isPublic: newValue },
                 { withCredentials: true }
             );

@@ -8,6 +8,7 @@ import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useCollectionStats } from '../hooks/collection/useCollectionStats';
 import CollectionStats from '../components/Collection/CollectionStats';
 import { getItemValue } from '../types/collection.types';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface CollectionSyncInfo {
     nextAutoSyncAt: string | null;
@@ -21,6 +22,7 @@ const StatsPage: React.FC = () => {
     const { collection, isLoading } = useCollectionData();
     const stats = useCollectionStats(collection);
     const [syncInfo, setSyncInfo] = useState<CollectionSyncInfo | null>(null);
+    const { formatValue, getValue } = useCurrency();
 
     const handleBack = () => {
         navigate(-1);
@@ -45,19 +47,6 @@ const StatsPage: React.FC = () => {
             setSyncInfo(null);
         }
     }, [collection]);
-
-    const formatCurrency = (value: number, currency: string) => {
-        try {
-            return new Intl.NumberFormat(undefined, {
-                style: 'currency',
-                currency,
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-            }).format(value);
-        } catch {
-            return `$${value.toFixed(0)}`;
-        }
-    };
 
     const formatDateTime = (value: string) => {
         return new Date(value).toLocaleString(i18n.language, {
@@ -98,7 +87,7 @@ const StatsPage: React.FC = () => {
             cumulative += dailyValue;
             series.push({
                 date,
-                value: Math.round(cumulative * 100) / 100,
+                value: Math.round(getValue(cumulative) * 100) / 100, // Pre-calculate converted value for chart rendering
             });
         }
 
@@ -136,7 +125,7 @@ const StatsPage: React.FC = () => {
                             <h2 className="text-xl font-bold">{t('stats.evolutionTitle')}</h2>
                             <p className="text-lg font-semibold text-warning">
                                 {t('stats.totalValue')}: {stats.totalValue > 0
-                                    ? formatCurrency(stats.totalValue, stats.valueCurrency)
+                                    ? formatValue(stats.totalValue)
                                     : '—'}
                             </p>
                             <p className="text-sm text-base-content/70">
@@ -179,7 +168,7 @@ const StatsPage: React.FC = () => {
                                 <YAxis
                                     stroke="oklch(var(--bc) / 0.5)"
                                     fontSize={12}
-                                    tickFormatter={(val) => `$${val}`}
+                                    tickFormatter={(val) => formatValue(val)}
                                 />
                                 <Tooltip
                                     contentStyle={{
@@ -189,7 +178,7 @@ const StatsPage: React.FC = () => {
                                         color: 'oklch(var(--bc))'
                                     }}
                                     itemStyle={{ color: 'oklch(var(--p))' }}
-                                    formatter={(value: any) => [`${value} ${stats.valueCurrency}`, t('stats.value')]}
+                                    formatter={(value: any) => [formatValue(value), t('stats.value')]}
                                     labelFormatter={(label) => `${t('stats.chartDateLabel')}: ${label}`}
                                 />
                                 <Area

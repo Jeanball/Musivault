@@ -59,7 +59,7 @@ const PrivateLayout: React.FC = () => {
 
                 // Explicitly sync language preference
                 try {
-                    const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
+                    const { data } = await axios.get('/api/preferences', { withCredentials: true });
                     if (data.language && data.language !== i18n.language) {
                         i18n.changeLanguage(data.language);
                     }

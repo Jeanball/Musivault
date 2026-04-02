@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { CollectionItem, SortColumn } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import FormatVerificationBadge from '../FormatVerificationBadge';
+import { useCurrency } from '../../../hooks/useCurrency';
 
 interface CollectionTableViewProps {
     items: CollectionItem[];
@@ -18,6 +19,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
     getSortIcon
 }) => {
     const { t } = useTranslation();
+    const { formatValue } = useCurrency();
     return (
         <div className="overflow-x-auto">
             <table className="table w-full">
@@ -102,12 +104,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                     const val = getItemValue(item);
                                     return val > 0 ? (
                                         <span className="font-semibold text-warning">
-                                            {new Intl.NumberFormat(undefined, {
-                                                style: 'currency',
-                                                currency: item.priceCache?.currency || 'USD',
-                                                minimumFractionDigits: 0,
-                                                maximumFractionDigits: 0,
-                                            }).format(val)}
+                                            {formatValue(val)}
                                         </span>
                                     ) : (
                                         <span className="text-base-content/30">—</span>

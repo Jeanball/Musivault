@@ -18,7 +18,7 @@ const AdminTasksPage: React.FC = () => {
     const [activeTaskAbortController, setActiveTaskAbortController] = useState<AbortController | null>(null);
 
     const loadTasks = async () => {
-        const { data } = await axios.get<AdminTask[]>('/api/users/admin/tasks', {
+        const { data } = await axios.get<AdminTask[]>('/api/admin/tasks', {
             withCredentials: true,
         });
         setTasks(data);
@@ -56,6 +56,8 @@ const AdminTasksPage: React.FC = () => {
         switch (taskId) {
             case 'refresh-prices':
                 return t('admin.tasks.items.refreshPrices.name', 'Refresh Prices');
+            case 'refresh-exchange-rates':
+                return t('admin.tasks.items.refreshExchangeRates.name', 'Update Exchange Rates');
             default:
                 return taskId;
         }
@@ -67,6 +69,11 @@ const AdminTasksPage: React.FC = () => {
                 return t(
                     'admin.tasks.items.refreshPrices.description',
                     'Refresh cached Discogs prices for every collection item, even when the cache is still fresh.'
+                );
+            case 'refresh-exchange-rates':
+                return t(
+                    'admin.tasks.items.refreshExchangeRates.description',
+                    'Fetch the latest currency exchange rates from the external API to ensure accurate collection valuations.'
                 );
             default:
                 return t('admin.tasks.defaultDescription', 'No description available yet.');
@@ -82,7 +89,7 @@ const AdminTasksPage: React.FC = () => {
         setActiveTaskAbortController(abortController);
 
         try {
-            const response = await fetch(`/api/users/admin/tasks/${task.id}/run`, {
+            const response = await fetch(`/api/admin/tasks/${task.id}/run`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -96,6 +103,7 @@ const AdminTasksPage: React.FC = () => {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            let completedByEvent = false;
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -113,9 +121,27 @@ const AdminTasksPage: React.FC = () => {
                         if (event.type === 'progress') {
                             setActiveTaskProgress(`${event.current}/${event.total} - ${event.artist} - ${event.title}`);
                         } else if (event.type === 'complete') {
-                            const summary = event.message || t('admin.tasks.runSuccess', 'Task completed successfully.');
+                            let summary = '';
+                            if (task.id === 'refresh-prices') {
+                                const key = event.forceRefresh 
+                                    ? 'admin.tasks.items.refreshPrices.successForce' 
+                                    : 'admin.tasks.items.refreshPrices.successSync';
+                                summary = t(key, { 
+                                    synced: event.synced, 
+                                    syncedItems: event.syncedItems,
+                                    total: event.total, 
+                                    totalItems: event.totalItems,
+                                    skipped: event.skipped 
+                                });
+                            } else if (task.id === 'refresh-exchange-rates') {
+                                summary = t('admin.tasks.items.refreshExchangeRates.success', 'Successfully refreshed exchange rates.');
+                            } else {
+                                summary = event.message || t('admin.tasks.runSuccess', 'Task completed successfully.');
+                            }
+
                             setActiveTaskSummary(summary);
                             toastService.success(summary);
+                            completedByEvent = true;
                         } else if (event.type === 'error') {
                             throw new Error(event.message || 'Task failed');
                         }
@@ -128,6 +154,20 @@ const AdminTasksPage: React.FC = () => {
                         }
                     }
                 }
+            }
+
+            // Fallback: If the stream is done but no 'complete' event was received, 
+            // and no error occurred, show a generic success message.
+            if (!completedByEvent) {
+                let defaultSuccess = t('admin.tasks.runSuccess', 'Task completed successfully.');
+                
+                // Even for fallback, try to use the task-specific key if we can
+                if (task.id === 'refresh-exchange-rates') {
+                    defaultSuccess = t('admin.tasks.items.refreshExchangeRates.success', 'Successfully refreshed exchange rates.');
+                }
+                
+                setActiveTaskSummary(defaultSuccess);
+                toastService.success(defaultSuccess);
             }
 
             await loadTasks();

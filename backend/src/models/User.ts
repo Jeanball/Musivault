@@ -8,6 +8,7 @@ export interface IUserPreferences {
   wideScreenMode: boolean
   language: string
   enableConditionGrading: boolean
+  preferredCurrency: string
 }
 
 export interface IUser extends Document {
@@ -70,6 +71,10 @@ const userSchema = new Schema<IUser>({
     enableConditionGrading: {
       type: Boolean,
       default: false
+    },
+    preferredCurrency: {
+      type: String,
+      default: 'USD'
     }
   },
   publicShareId: {

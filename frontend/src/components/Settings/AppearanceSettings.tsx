@@ -17,7 +17,7 @@ const languages = [
 
 const AppearanceSettings: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { theme, setTheme, wideScreenMode, setWideScreenMode } = useTheme();
+    const { theme, setTheme, wideScreenMode, setWideScreenMode, preferredCurrency, setPreferredCurrency } = useTheme();
     const [isSaving, setIsSaving] = useState(false);
 
     const handleThemeChange = async (newTheme: string) => {
@@ -25,7 +25,7 @@ const AppearanceSettings: React.FC = () => {
         setIsSaving(true);
 
         try {
-            await axios.put('/api/users/preferences', { theme: newTheme }, { withCredentials: true });
+            await axios.put('/api/preferences', { theme: newTheme }, { withCredentials: true });
             toastService.success(t('settings.themeSaved'));
         } catch (error) {
             console.error('Failed to save theme to server:', error);
@@ -39,7 +39,7 @@ const AppearanceSettings: React.FC = () => {
         localStorage.setItem('i18nextLng', lng);
         setIsSaving(true);
         try {
-            await axios.put('/api/users/preferences', { language: lng }, { withCredentials: true });
+            await axios.put('/api/preferences', { language: lng }, { withCredentials: true });
             const tNew = i18n.getFixedT(lng);
             toastService.success(tNew('settings.languageSaved', 'Language saved!'));
         } catch (error) {
@@ -55,10 +55,23 @@ const AppearanceSettings: React.FC = () => {
         setIsSaving(true);
 
         try {
-            await axios.put('/api/users/preferences', { wideScreenMode: newValue }, { withCredentials: true });
+            await axios.put('/api/preferences', { wideScreenMode: newValue }, { withCredentials: true });
             toastService.success(newValue ? t('settings.wideScreenModeEnabled') : t('settings.wideScreenModeDisabled'));
         } catch (error) {
             console.error('Failed to save wide screen mode to server:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCurrencyChange = async (currency: string) => {
+        setPreferredCurrency(currency);
+        setIsSaving(true);
+        try {
+            await axios.put('/api/preferences', { preferredCurrency: currency }, { withCredentials: true });
+            toastService.success(t('settings.currencySaved', 'Currency updated!'));
+        } catch (error) {
+            console.error('Failed to save preferred currency:', error);
         } finally {
             setIsSaving(false);
         }
@@ -127,6 +140,37 @@ const AppearanceSettings: React.FC = () => {
                                 {lang.label}
                             </option>
                         ))}
+                    </select>
+                </div>
+            </div>
+
+            {/* Currency Section */}
+            <div className="card bg-base-200 shadow-xl">
+                <div className="card-body">
+                    <h2 className="card-title flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {t('settings.currency')}
+                        {isSaving && <span className="loading loading-spinner loading-xs"></span>}
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-4">
+                        {t('settings.currencyDescription')}
+                    </p>
+
+                    <select
+                        className="select select-bordered w-full max-w-xs uppercase"
+                        value={preferredCurrency}
+                        onChange={(e) => handleCurrencyChange(e.target.value)}
+                        disabled={isSaving}
+                    >
+                        <option value="USD">USD ($)</option>
+                        <option value="CAD">CAD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="AUD">AUD ($)</option>
+                        <option value="JPY">JPY (¥)</option>
+                        <option value="CHF">CHF (Fr)</option>
                     </select>
                 </div>
             </div>

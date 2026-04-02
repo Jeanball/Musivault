@@ -105,6 +105,9 @@
         "wideScreenDisabled": "O conteúdo expande para preencher toda a largura da tela",
         "wideScreenModeEnabled": "Modo tela larga ativado!",
         "wideScreenModeDisabled": "Modo tela larga desativado",
+        "currency": "Moeda",
+        "currencyDescription": "Escolha a moeda preferida para exibir o valor da coleção.",
+        "currencySaved": "Moeda salva!",
         "publicCollection": "Coleção Pública",
         "publicCollectionDescription": "Permitir que qualquer um com o link veja sua coleção. Sua coleção é privada por padrão.",
         "collectionPublic": "Coleção é pública",
@@ -314,7 +317,7 @@
         "upcomingReleasesDescription": "Receba notificações sobre lançamentos de artistas na sua coleção. Estamos integrando calendários de lançamentos!",
         "showsNearYou": "Shows Perto de Você",
         "liveConcerts": "Shows ao vivo na sua área",
-        "showsDescription": "Descubra shows de artistas que você ama. Estamos integrando com Bandsintown para recomendações personalizadas!",
+        "showsDescription": "Descubra shows de artistas que você ama.",
         "failedLoadCollections": "Falha ao carregar coleções públicas."
     },
     "admin": {
@@ -392,7 +395,14 @@
             "items": {
                 "refreshPrices": {
                     "name": "Atualizar Preços",
-                    "description": "Atualizar preços Discogs em cache para cada item da coleção, mesmo se o cache ainda estiver atualizado."
+                    "description": "Atualizar preços Discogs em cache para cada item da coleção, mesmo se o cache ainda estiver atualizado.",
+                    "successForce": "{{synced}} edições atualizadas ({{totalItems}} itens).",
+                    "successSync": "{{synced}} edições sincronizadas ({{totalItems}} itens). {{skipped}} já estavam atualizadas."
+                },
+                "refreshExchangeRates": {
+                    "name": "Atualizar Taxas de Câmbio",
+                    "description": "Obtenha as taxas de câmbio mais recentes da API externa para garantir avaliações de coleção precisas.",
+                    "success": "Taxas de câmbio atualizadas com sucesso."
                 }
             }
         }

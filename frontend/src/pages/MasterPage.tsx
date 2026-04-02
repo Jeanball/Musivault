@@ -93,7 +93,7 @@ const MasterPage: React.FC = () => {
             try {
                 const [versionsRes, prefsRes] = await Promise.all([
                     axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, { withCredentials: true }),
-                    axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+                    axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
                 ]);
                 setPageData(versionsRes.data);
                 setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);

@@ -8,6 +8,8 @@ interface ThemeContextType {
     setTheme: (theme: Theme) => void;
     wideScreenMode: boolean;
     setWideScreenMode: (enabled: boolean) => void;
+    preferredCurrency: string;
+    setPreferredCurrency: (currency: string) => void;
     syncPreferencesFromServer: () => Promise<void>;
 }
 
@@ -19,6 +21,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     );
     const [wideScreenMode, setWideScreenMode] = useState<boolean>(
         localStorage.getItem('wideScreenMode') === 'true' // Default to false
+    );
+    const [preferredCurrency, setPreferredCurrency] = useState<string>(
+        localStorage.getItem('preferredCurrency') || 'USD'
     );
 
     // Apply theme to DOM and localStorage
@@ -32,25 +37,33 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('wideScreenMode', String(wideScreenMode));
     }, [wideScreenMode]);
 
+    // Apply preferredCurrency to localStorage
+    useEffect(() => {
+        localStorage.setItem('preferredCurrency', preferredCurrency);
+    }, [preferredCurrency]);
+
     // Function to sync preferences from server (called after login)
     const syncPreferencesFromServer = useCallback(async () => {
         try {
-            const { data } = await axios.get('/api/users/preferences', { withCredentials: true });
+            const { data } = await axios.get('/api/preferences', { withCredentials: true });
             if (data.theme && data.theme !== theme) {
                 setTheme(data.theme);
             }
             if (data.wideScreenMode !== undefined && data.wideScreenMode !== wideScreenMode) {
                 setWideScreenMode(data.wideScreenMode);
             }
+            if (data.preferredCurrency && data.preferredCurrency !== preferredCurrency) {
+                setPreferredCurrency(data.preferredCurrency);
+            }
         } catch {
             // Silent if not logged in or error - keep local preferences
         }
-    }, [theme, wideScreenMode]);
+    }, [theme, wideScreenMode, preferredCurrency]);
 
 
 
     return (
-        <ThemeContext.Provider value={{ theme, setTheme, wideScreenMode, setWideScreenMode, syncPreferencesFromServer }}>
+        <ThemeContext.Provider value={{ theme, setTheme, wideScreenMode, setWideScreenMode, preferredCurrency, setPreferredCurrency, syncPreferencesFromServer }}>
             {children}
         </ThemeContext.Provider>
     );

@@ -5,6 +5,7 @@ import type { IAlbum } from '../models/Album';
 import { streamPriceSync, getNextAutoSyncAt } from '../controllers/collection.controller';
 import type { PopulatedCollectionItem } from '../controllers/collection.controller';
 import { getPriceTTLHours } from '../utils/price.utils';
+import ExchangeRates from '../models/ExchangeRates';
 
 export interface AdminTaskSummary {
   id: string;
@@ -59,6 +60,46 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
       }
 
       return 'Refreshed cached prices across all collections.';
+    },
+  },
+  {
+    id: 'refresh-exchange-rates',
+    get intervalLabel() { return '1 day'; },
+    getNextExecutionAt: async (lastExecution) => {
+      // Run right away if no execution
+      if (!lastExecution) return new Date();
+      // Otherwise in 24 hours
+      return new Date(lastExecution.executedAt.getTime() + 24 * 60 * 60 * 1000);
+    },
+    run: async (res: Response) => {
+      try {
+        const fetchRes = await fetch('https://open.er-api.com/v6/latest/USD');
+        if (!fetchRes.ok) {
+          throw new Error(`Failed to fetch exchange rates: ${fetchRes.statusText}`);
+        }
+        const data = await fetchRes.json() as { rates?: Record<string, number> };
+        
+        if (!data || !data.rates) {
+          throw new Error('Invalid response structure from exchange rate API.');
+        }
+
+        const ratesMap = new Map<string, number>();
+        for (const [currency, rate] of Object.entries(data.rates)) {
+          ratesMap.set(currency, rate);
+        }
+
+        await ExchangeRates.findOneAndUpdate(
+          { baseCurrency: 'USD' },
+          { rates: ratesMap, lastUpdated: new Date() },
+          { upsert: true, new: true }
+        );
+
+        res.write(`data: ${JSON.stringify({ type: 'complete' })}\n\n`);
+        res.end();
+        return 'Fetched and updated daily exchange rates from open.er-api.com.';
+      } catch (error) {
+         throw error;
+      }
     },
   },
 ];

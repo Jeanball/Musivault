@@ -392,7 +392,14 @@
             "items": {
                 "refreshPrices": {
                     "name": "Preise aktualisieren",
-                    "description": "Zwischengespeicherte Discogs-Preise für jedes Element in der Sammlung aktualisieren, auch wenn der Cache noch frisch ist."
+                    "description": "Zwischengespeicherte Discogs-Preise für jedes Element in der Sammlung aktualisieren, auch wenn der Cache noch frisch ist.",
+                    "successForce": "{{synced}} Releases aktualisiert ({{totalItems}} Artikel).",
+                    "successSync": "{{synced}} Releases synchronisiert ({{totalItems}} Artikel). {{skipped}} bereits aktuell."
+                },
+                "refreshExchangeRates": {
+                    "name": "Wechselkurse aktualisieren",
+                    "description": "Aktualisieren Sie die neuesten Wechselkurse von der externen API, um genaue Sammlungsbewertungen zu gewährleisten.",
+                    "success": "Wechselkurse erfolgreich aktualisiert."
                 }
             }
         }

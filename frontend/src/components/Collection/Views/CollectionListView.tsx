@@ -4,6 +4,7 @@ import type { CollectionItem } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
 import FormatVerificationBadge from '../FormatVerificationBadge';
+import { useCurrency } from '../../../hooks/useCurrency';
 
 interface CollectionListViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -15,6 +16,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
     onItemClick
 }) => {
     const { t } = useTranslation();
+    const { formatValue } = useCurrency();
 
     return (
         <div className="space-y-10">
@@ -70,12 +72,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                                 const val = getItemValue(item);
                                                 return val > 0 ? (
                                                     <span className="font-semibold text-warning">
-                                                        {new Intl.NumberFormat(undefined, {
-                                                            style: 'currency',
-                                                            currency: item.priceCache?.currency || 'USD',
-                                                            minimumFractionDigits: 0,
-                                                            maximumFractionDigits: 0,
-                                                        }).format(val)}
+                                                        {formatValue(val)}
                                                     </span>
                                                 ) : (
                                                     <span className="text-base-content/30">—</span>

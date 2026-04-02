@@ -23,6 +23,7 @@
         "tracks": "Pistes",
         "error": "Une erreur est survenue.",
         "success": "Succès",
+        "failed": "Échec",
         "goBack": "Retour",
         "viewAlbum": "Voir l'album",
         "continueSearching": "Continuer la recherche",
@@ -108,6 +109,9 @@
         "wideScreenDisabled": "Le contenu s'étend sur toute la largeur de l'écran",
         "wideScreenModeEnabled": "Mode écran large activé !",
         "wideScreenModeDisabled": "Mode écran large désactivé",
+        "currency": "Devise",
+        "currencyDescription": "Choisissez votre devise préférée pour l'affichage de la valeur de la collection.",
+        "currencySaved": "Devise enregistrée !",
         "publicCollection": "Collection publique",
         "publicCollectionDescription": "Permettre à quiconque avec le lien de voir votre collection. Votre collection est privée par défaut.",
         "collectionPublic": "La collection est publique",
@@ -410,7 +414,14 @@
             "items": {
                 "refreshPrices": {
                     "name": "Actualiser les prix",
-                    "description": "Actualiser les prix Discogs mis en cache pour chaque élément de la collection, même si le cache est encore frais."
+                    "description": "Actualiser les prix Discogs mis en cache pour chaque élément de la collection, même si le cache est encore frais.",
+                    "successForce": "{{synced}} éditions actualisées ({{totalItems}} articles).",
+                    "successSync": "{{synced}} éditions synchronisées ({{totalItems}} articles). {{skipped}} déjà à jour."
+                },
+                "refreshExchangeRates": {
+                    "name": "Mettre à jour les taux de change",
+                    "description": "Récupérer les derniers taux de change auprès de l'API externe pour assurer des valorisations de collection précises.",
+                    "success": "Taux de change mis à jour avec succès."
                 }
             }
         }

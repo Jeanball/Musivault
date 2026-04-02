@@ -23,6 +23,7 @@
         "tracks": "Pistas",
         "error": "Ocurrió un error.",
         "success": "Éxito",
+        "failed": "Fallido",
         "goBack": "Volver",
         "viewAlbum": "Ver álbum",
         "continueSearching": "Seguir buscando",
@@ -104,6 +105,9 @@
         "wideScreenDisabled": "El contenido se expande para llenar todo el ancho de la pantalla",
         "wideScreenModeEnabled": "¡Modo pantalla ancha activado!",
         "wideScreenModeDisabled": "Modo pantalla ancha desactivado",
+        "currency": "Moneda",
+        "currencyDescription": "Moneda preferida para mostrar los precios de los álbumes.",
+        "currencySaved": "Moneda guardada!",
         "publicCollection": "Colección Pública",
         "publicCollectionDescription": "Permitir que cualquiera con el enlace vea tu colección. Tu colección es privada por defecto.",
         "collectionPublic": "La colección es pública",
@@ -391,7 +395,14 @@
             "items": {
                 "refreshPrices": {
                     "name": "Actualizar precios",
-                    "description": "Actualizar precios de Discogs en caché para cada artículo de la colección, incluso si el caché todavía está fresco."
+                    "description": "Actualizar precios de Discogs en caché para cada artículo de la colección, incluso si el caché todavía está fresco.",
+                    "successForce": "Se actualizaron {{synced}} ediciones ({{totalItems}} artículos).",
+                    "successSync": "Se sincronizaron {{synced}} ediciones ({{totalItems}} artículos). {{skipped}} ya estaban actualizados."
+                },
+                "refreshExchangeRates": {
+                    "name": "Actualizar tipos de cambio",
+                    "description": "Obtén los últimos tipos de cambio de la API externa para asegurar valoraciones de colección precisas.",
+                    "success": "Tipos de cambio actualizados con éxito."
                 }
             }
         }
@@ -446,7 +457,7 @@
         "searchFailed": "Búsqueda fallida",
         "noMainRelease": "Fallo al obtener info del lanzamiento. Intenta otro resultado.",
         "success": "¡Álbum reemparejado exitosamente!",
-        "failed": "Fallo al reemparejar álbum"
+        "failed": "Fallido"
     },
     "whatsNew": {
         "title": "Novedades en Musivault",
@@ -480,6 +491,7 @@
     },
     "toast": {
         "success": "Éxito",
+        "failed": "Fallido",
         "error": "Error",
         "info": "Info",
         "warning": "Aviso"

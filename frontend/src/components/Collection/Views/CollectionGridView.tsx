@@ -4,6 +4,7 @@ import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
 import { hasActiveFormatVerificationIssue } from '../../../utils/formatVerification';
 import FormatVerificationBadge from '../FormatVerificationBadge';
+import { useCurrency } from '../../../hooks/useCurrency';
 
 interface CollectionGridViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -14,6 +15,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
     groupedItems,
     onItemClick
 }) => {
+    const { formatValue } = useCurrency();
     return (
         <div className="space-y-10">
             {Object.entries(groupedItems).map(([artist, items]) => (
@@ -61,12 +63,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                             const val = getItemValue(item);
                                             return val > 0 ? (
                                                 <div className="badge badge-warning badge-outline font-semibold">
-                                                    {new Intl.NumberFormat(undefined, {
-                                                        style: 'currency',
-                                                        currency: item.priceCache?.currency || 'USD',
-                                                        minimumFractionDigits: 0,
-                                                        maximumFractionDigits: 0,
-                                                    }).format(val)}
+                                                    {formatValue(val)}
                                                 </div>
                                             ) : (
                                                 <div className="badge badge-ghost badge-outline text-base-content/50">

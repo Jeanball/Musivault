@@ -109,6 +109,9 @@
         "wideScreenDisabled": "Content expands to fill the entire screen width",
         "wideScreenModeEnabled": "Wide screen mode enabled!",
         "wideScreenModeDisabled": "Wide screen mode disabled",
+        "currency": "Currency",
+        "currencyDescription": "Choose your preferred currency for collection valuation display.",
+        "currencySaved": "Currency saved!",
         "publicCollection": "Public Collection",
         "publicCollectionDescription": "Allow anyone with the link to view your collection. Your collection is private by default.",
         "collectionPublic": "Collection is public",
@@ -416,7 +419,14 @@
             "items": {
                 "refreshPrices": {
                     "name": "Refresh Prices",
-                    "description": "Refresh cached Discogs prices for every collection item, even when the cache is still fresh."
+                    "description": "Refresh cached Discogs prices for every collection item, even when the cache is still fresh.",
+                    "successForce": "Refreshed {{synced}} releases ({{totalItems}} items).",
+                    "successSync": "Synced {{synced}} releases ({{totalItems}} items). {{skipped}} already fresh."
+                },
+                "refreshExchangeRates": {
+                    "name": "Update Exchange Rates",
+                    "description": "Fetch the latest currency exchange rates from the external API to ensure accurate collection valuations.",
+                    "success": "Successfully refreshed exchange rates."
                 }
             }
         }

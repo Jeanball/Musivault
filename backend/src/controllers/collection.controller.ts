@@ -193,12 +193,14 @@ export async function streamPriceSync(
   if (!isAborted) {
     res.write(`data: ${JSON.stringify({
       type: 'complete',
-      synced: syncedItems,
-      skipped: skippedFresh + skippedNoData + noDiscogsItems.length,
-      total: totalItems,
+      synced: syncedReleases,
+      syncedItems,
+      skipped: skippedFresh + skippedNoData,
+      total: totalReleases,
+      totalItems,
       totalValue: Math.round(totalValue * 100) / 100,
       currency,
-      message: summaryMessage,
+      forceRefresh,
     })}\n\n`);
 
     res.end();

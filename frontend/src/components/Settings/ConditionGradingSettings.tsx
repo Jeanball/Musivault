@@ -15,7 +15,7 @@ const ConditionGradingSettings: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        axios.get<PreferencesResponse>('/api/users/preferences', { withCredentials: true })
+        axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
             .then(res => {
                 setIsEnabled(res.data.enableConditionGrading || false);
             })
@@ -29,7 +29,7 @@ const ConditionGradingSettings: React.FC = () => {
 
         try {
             await axios.put(
-                '/api/users/preferences',
+                '/api/preferences',
                 { enableConditionGrading: newValue },
                 { withCredentials: true }
             );
