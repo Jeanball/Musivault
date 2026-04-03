@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useCollectionStats } from '../hooks/collection/useCollectionStats';
@@ -18,15 +16,10 @@ interface CollectionSyncInfo {
 
 const StatsPage: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const navigate = useNavigate();
     const { collection, isLoading } = useCollectionData();
     const stats = useCollectionStats(collection);
     const [syncInfo, setSyncInfo] = useState<CollectionSyncInfo | null>(null);
     const { formatValue, getValue } = useCurrency();
-
-    const handleBack = () => {
-        navigate(-1);
-    };
 
     useEffect(() => {
         const loadSyncInfo = async () => {
@@ -106,11 +99,6 @@ const StatsPage: React.FC = () => {
         <div className="p-2 md:p-4 max-w-7xl mx-auto space-y-6">
             {/* Page Header */}
             <div className="mb-6">
-                <div className="md:hidden mb-3">
-                    <button onClick={handleBack} className="btn btn-ghost btn-sm gap-2 -ml-3">
-                        <ArrowLeft size={16} /> {t('common.back')}
-                    </button>
-                </div>
                 <h1 className="text-3xl font-bold">{t('nav.stats', 'Stats')}</h1>
                 <p className="text-base-content/60 mt-2">{t('stats.subtitle')}</p>
             </div>

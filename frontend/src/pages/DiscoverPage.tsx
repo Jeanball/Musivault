@@ -75,32 +75,35 @@ const DiscoverPage: React.FC = () => {
                         <Link to="/app/settings" className="btn btn-primary btn-sm">{t('discover.goToSettings')}</Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         {users.map((user) => (
-                            <Link
+                            <div
                                 key={user.publicShareId}
-                                to={`/shared/${user.publicShareId}`}
-                                className="card bg-base-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-base-300"
+                                className="bg-base-200 rounded-lg p-3 hover:bg-base-300 transition-colors duration-200"
                             >
-                                <div className="card-body p-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="avatar placeholder">
-                                            <div className="bg-primary text-primary-content rounded-full w-12">
-                                                <span className="text-xl font-bold">
-                                                    {user.username.charAt(0).toUpperCase()}
-                                                </span>
-                                            </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="avatar placeholder">
+                                        <div className="bg-primary text-primary-content rounded-full w-10 h-10">
+                                            <span className="text-lg font-bold">
+                                                {user.username.charAt(0).toUpperCase()}
+                                            </span>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold truncate">{user.username}</h3>
-                                            <p className="text-sm text-base-content/60">
-                                                {user.albumCount} {user.albumCount === 1 ? t('common.album') : t('common.albums')}
-                                            </p>
-                                        </div>
-                                        <ChevronRight className="h-5 w-5 text-base-content/40" />
                                     </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-medium text-sm truncate">{user.username}</h3>
+                                        <p className="text-xs text-base-content/60">
+                                            {user.albumCount} {user.albumCount === 1 ? t('common.album') : t('common.albums')}
+                                        </p>
+                                    </div>
+                                    <Link
+                                        to={`/shared/${user.publicShareId}`}
+                                        className="btn btn-primary btn-xs btn-circle"
+                                        title={t('discover.viewCollection')}
+                                    >
+                                        <ChevronRight size={14} />
+                                    </Link>
                                 </div>
-                            </Link>
+                            </div>
                         ))}
                     </div>
                 )}
