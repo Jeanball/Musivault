@@ -19,7 +19,7 @@ const StatsPage: React.FC = () => {
     const { collection, isLoading } = useCollectionData();
     const stats = useCollectionStats(collection);
     const [syncInfo, setSyncInfo] = useState<CollectionSyncInfo | null>(null);
-    const { formatValue, getValue } = useCurrency();
+    const { formatValue } = useCurrency();
 
     useEffect(() => {
         const loadSyncInfo = async () => {
