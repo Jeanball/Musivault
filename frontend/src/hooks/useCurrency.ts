@@ -57,11 +57,11 @@ export const useCurrency = () => {
             return new Intl.NumberFormat(undefined, {
                 style: 'currency',
                 currency: targetCurrency,
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
             }).format(convertedValue);
         } catch {
-            return `${targetCurrency} ${convertedValue.toFixed(0)}`;
+            return `${targetCurrency} ${convertedValue.toFixed(2)}`;
         }
     }, [preferredCurrency, rates]);
 

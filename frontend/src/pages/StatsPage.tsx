@@ -79,7 +79,7 @@ const StatsPage: React.FC = () => {
             dailyTotals[dateKey] = (dailyTotals[dateKey] || 0) + val;
         }
 
-        // Build the cumulative time series
+        // Build the cumulative time series (raw USD values). Conversion is handled on render so we don't apply it twice.
         const series: { date: string; value: number }[] = [];
         let cumulative = 0;
 
@@ -87,7 +87,7 @@ const StatsPage: React.FC = () => {
             cumulative += dailyValue;
             series.push({
                 date,
-                value: Math.round(getValue(cumulative) * 100) / 100, // Pre-calculate converted value for chart rendering
+                value: Math.round(cumulative * 100) / 100,
             });
         }
 
