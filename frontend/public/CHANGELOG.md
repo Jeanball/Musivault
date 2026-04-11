@@ -2,7 +2,7 @@
 
 Find all the new features and improvements added to the app right here!
 
-## [1.11.0] - 2026-04-11
+## [1.11.1] - 2026-04-11
 
 ### **BREAKING CHANGE: Discogs Setup Required (Admin Only)**
 
@@ -37,6 +37,7 @@ Once configured, you can fetch prices from the **Admin Task Center**.
 - Updated Discover page layout with "View Collection" links for better usability.
 
 ### Bug Fixes
+- **What's New Modal**: Restored markdown rendering (bold text, links, and formatting) parsing so that update notes are easier to read and beautifully formatted.
 - Fixed currency formatting to consistently display two decimal places.
 - Removed unused code from the currency hook for cleaner performance.
 
