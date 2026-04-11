@@ -4,7 +4,7 @@ Find all the new features and improvements added to the app right here!
 
 ## [1.11.0] - 2026-04-11
 
-### BREAKING CHANGE: Discogs Seller Enrollment Required (Administrators Only)
+### **BREAKING CHANGE: Discogs Setup Required (Administrators Only)**
 
 *Note: This setup is only required for the Musivault Administrator. Regular users do not need to take any action.*
 
@@ -13,7 +13,10 @@ To use the new **price synchronization** features, the Musivault administrator m
 **Step 1 — Enroll as a Discogs seller:**
 [https://www.discogs.com/settings/seller/](https://www.discogs.com/settings/seller/)
 
-**Step 2 — Generate a Personal Access Token (PAT):**
+**Step 2 — Keep Discogs Currency as USD:**
+In your Discogs Seller Settings, ensure your currency is set to **USD**. Do not change it there! You will configure your local display currency directly within Musivault's settings.
+
+**Step 3 — Generate a Personal Access Token (PAT):**
 Go to [https://www.discogs.com/settings/developers](https://www.discogs.com/settings/developers), click **"Generate new token"**, and add the token as `DISCOGS_PAT` in your `.env` or `docker-compose.yml`.
 
 Once configured, you can fetch prices from the **Admin Task Center**.
