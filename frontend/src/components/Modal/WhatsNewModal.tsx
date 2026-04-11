@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChangelogEntry } from '../../hooks/useWhatsNew';
-import { Sparkles, Plus, RefreshCw, Wrench, Trash2 } from 'lucide-react';
+import { Sparkles, Plus, RefreshCw, Wrench, Trash2, AlertTriangle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface WhatsNewModalProps {
     entries: ChangelogEntry[];
@@ -58,15 +59,15 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, 
 
                             {entry.sections.map((section, idx) => (
                                 <div key={idx} className="mb-3">
-                                    <div className={`flex items-center gap-2 font-medium mb-2 ${sectionColors[section.type]}`}>
-                                        {sectionIcons[section.type]}
+                                    <div className={`flex items-center gap-2 font-medium mb-2 ${sectionColors[section.type] || 'text-red-400'}`}>
+                                        {sectionIcons[section.type] || <AlertTriangle className="w-4 h-4 text-red-400" />}
                                         <span>{section.type}</span>
                                     </div>
-                                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-300 ml-6">
-                                        {section.items.map((item, itemIdx) => (
-                                            <li key={itemIdx}>{item}</li>
-                                        ))}
-                                    </ul>
+                                    <div className="text-sm text-gray-300 ml-6 [&>ul]:list-disc [&>ul]:list-inside [&>ul>li]:mb-1 [&>p]:mb-2 [&>p>a]:text-primary [&>p>a]:underline">
+                                        <ReactMarkdown>
+                                            {section.content}
+                                        </ReactMarkdown>
+                                    </div>
                                 </div>
                             ))}
                         </div>

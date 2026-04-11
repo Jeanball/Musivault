@@ -7,7 +7,7 @@ export interface ChangelogEntry {
     date: string;
     sections: {
         type: string;
-        items: string[];
+        content: string;
     }[];
 }
 
@@ -67,23 +67,17 @@ function parseChangelog(content: string): ChangelogEntry[] {
             sections: []
         };
 
-        // Parse sections
-        const sectionRegex = /### (Added|Changed|Fixed|Removed|What's New|Improvements|Bug Fixes)\n([\s\S]*?)(?=###|$)/g;
+        // Parse sections matching any ### Header
+        const sectionRegex = /### (.*?)\n([\s\S]*?)(?=###|$)/g;
         let sectionMatch;
 
         while ((sectionMatch = sectionRegex.exec(blockContent)) !== null) {
-            const type = sectionMatch[1];
-            const itemsText = sectionMatch[2];
+            // Remove markdown bold syntax from the section header title
+            const type = sectionMatch[1].replace(/\*\*/g, '').trim();
+            const content = sectionMatch[2].trim();
 
-            // Extract bullet points, excluding separator lines
-            const items = itemsText
-                .split('\n')
-                .filter(line => line.trim().startsWith('-') && !line.trim().match(/^-+$/))
-                .map(line => line.replace(/^-\s*/, '').trim())
-                .filter(Boolean);
-
-            if (items.length > 0) {
-                entry.sections.push({ type, items });
+            if (content) {
+                entry.sections.push({ type, content });
             }
         }
 

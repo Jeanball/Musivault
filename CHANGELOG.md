@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.11.0] - 2026-04-11
 
-### **BREAKING CHANGE: Discogs Setup Required (Administrators Only)**
+### **BREAKING CHANGE: Discogs Setup Required (Admin Only)**
 
 *Note: This setup is only required for the Musivault Administrator. Regular users do not need to take any action.*
 

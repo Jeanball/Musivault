@@ -4,7 +4,7 @@ Find all the new features and improvements added to the app right here!
 
 ## [1.11.0] - 2026-04-11
 
-### **BREAKING CHANGE: Discogs Setup Required (Administrators Only)**
+### **BREAKING CHANGE: Discogs Setup Required (Admin Only)**
 
 *Note: This setup is only required for the Musivault Administrator. Regular users do not need to take any action.*
 
