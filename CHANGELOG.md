@@ -9,6 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.11.0] - 2026-04-11
+
+### **BREAKING CHANGE: Discogs Seller Enrollment Required (Administrators Only)**
+
+*Note: This setup is only required for the Musivault Administrator. Regular users do not need to take any action.*
+
+To use the new **price synchronization** features, the Musivault administrator must complete the following setup:
+
+**Step 1 — Enroll as a Discogs seller:**
+[https://www.discogs.com/settings/seller/](https://www.discogs.com/settings/seller/)
+
+**Step 2 — Generate a Personal Access Token (PAT):**
+Go to [https://www.discogs.com/settings/developers](https://www.discogs.com/settings/developers), click **"Generate new token"**, and add the token as `DISCOGS_PAT` in your `.env` or `docker-compose.yml`.
+
+Once configured, you can fetch prices from the **Admin Task Center**.
+
+### Added
+- feat: implement collection value estimation and synchronization using Discogs marketplace data
+- feat: add functionality to sync individual collection item prices from Discogs marketplace data
+- feat: implement automatic migration runner and replace background migration toggle with price cache TTL configuration
+- feat: add StatsPage with collection valuation charts and integrate into navigation
+- feat: streamline stats layout and move value sync to chart header
+- feat: reuse versions picker and refresh format details with price sync
+- feat: Remove manual format edits from album details page
+- feat: Add format verification warnings for mismatched releases
+- feat: Add collection issue and view toggles to filter bar
+- feat: improve collection navigation back behavior on mobile
+- feat: add dismissible format mismatch alerts with undo support
+- feat: Add new Tasks section in Admin to run task on demand
+- feat: update refresh-prices task to calculate next execution time based on auto-sync schedule
+- feat: implement user currency preferences and refactor preferences and admin logic into dedicated controllers and routes
+- feat: add "View Collection" text to translations and update DiscoverPage layout for better user experience
+
+### Changed
+- refactor: Organize and clarify .env.example with new Docker and backend configuration variables and improved comments.
+- refactor: translate price sync messages
+- perf: optimize collection page filtering and derived stats
+- refactor: reorganize navigation menu, remove redundant mobile stats button, and implement request abortion for collection price synchronization
+
+### Fixed
+- fix: update currency formatting to display two decimal places and clarify cumulative time series calculation in stats page
+- fix: remove unused getValue function from useCurrency in StatsPage
+
+---
+
 ## [1.10.0] - 2026-03-20
 
 ### Added
@@ -311,7 +356,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/Jeanball/Musivault/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/Jeanball/Musivault/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/Jeanball/Musivault/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/Jeanball/Musivault/compare/v1.7.2...v1.8.0

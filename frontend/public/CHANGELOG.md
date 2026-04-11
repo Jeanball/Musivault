@@ -2,6 +2,42 @@
 
 Find all the new features and improvements added to the app right here!
 
+## [1.11.0] - 2026-04-11
+
+### BREAKING CHANGE: Discogs Seller Enrollment Required (Administrators Only)
+
+*Note: This setup is only required for the Musivault Administrator. Regular users do not need to take any action.*
+
+To use the new **price synchronization** features, the Musivault administrator must complete the following setup:
+
+**Step 1 — Enroll as a Discogs seller:**
+[https://www.discogs.com/settings/seller/](https://www.discogs.com/settings/seller/)
+
+**Step 2 — Generate a Personal Access Token (PAT):**
+Go to [https://www.discogs.com/settings/developers](https://www.discogs.com/settings/developers), click **"Generate new token"**, and add the token as `DISCOGS_PAT` in your `.env` or `docker-compose.yml`.
+
+Once configured, you can fetch prices from the **Admin Task Center**.
+
+### What's New
+- **Collection Value & Stats Page**: A brand-new Stats page lets you visualize your collection's estimated market value with interactive charts and time series tracking.
+- **Price Synchronization**: Sync individual album prices or your entire collection from Discogs marketplace data, with automatic scheduled refreshes.
+- **Admin Task Center**: Administrators can now manage and run background tasks on demand, including price fetching and exchange rate refreshes, with localized notifications and scheduling.
+- **Format Verification**: The collection page now detects and warns you about format mismatches between your saved format and the Discogs release data, with dismissible alerts and undo support.
+- **Currency Preferences**: Choose your preferred display currency in the settings, with automatic conversion using live exchange rates.
+
+### Improvements
+- Redesigned collection filter bar with new issue and view toggles.
+- Streamlined stats layout with value sync controls directly in the chart header.
+- Improved mobile navigation with better back button behavior in the collection.
+- Optimized collection page filtering and derived stats for faster performance.
+- Reorganized the navigation menu for a cleaner experience.
+- Updated Discover page layout with "View Collection" links for better usability.
+
+### Bug Fixes
+- Fixed currency formatting to consistently display two decimal places.
+- Removed unused code from the currency hook for cleaner performance.
+
+---
 ## [1.10.0] - 2026-03-20
 
 ### What's New
