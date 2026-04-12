@@ -121,6 +121,17 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `BACKEND_HOST` | Backend hostname for Nginx | musivault-backend | No |
 | `BACKEND_PORT` | Backend port for Nginx | 5000 | No |
 
+### Optional Setup: Price Tracking
+
+If you want to use the **price tracking** feature to track your collection's value, you need to configure a Discogs Personal Access Token:
+
+1. **Enroll as a Discogs Seller**: You must have a seller account (it's free). Visit [Discogs Seller Settings](https://www.discogs.com/settings/seller/) to enroll.
+2. **Keep Discogs Currency as USD**: In your Discogs Seller Settings, ensure your currency is set to **USD**. Do not change it there! You will configure your local display currency directly within Musivault's settings.
+3. **Generate a Token**: Go to [Discogs Developer Settings](https://www.discogs.com/settings/developers), click **"Generate new token"**.
+4. **Configure Musivault**: Add the generated token as `DISCOGS_PAT` in your `.env` file or `docker-compose.yml`.
+
+Once configured, prices can be fetched immediately from the **Admin Task Center**, or by restarting the backend server until the `2026-03-28_album-data-backfill` migration has succeeded.
+
 ## Tech Stack
 
 | Frontend | Backend | Infrastructure |
