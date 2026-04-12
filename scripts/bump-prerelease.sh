@@ -78,6 +78,17 @@ for pkg in "$PACKAGE_JSON" "frontend/package.json" "backend/package.json"; do
     fi
 done
 
+# Update README.md
+README_FILE="README.md"
+if [ -f "$README_FILE" ]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s/badge\/version-[0-9a-zA-Z\.\-]*\-blue\.svg/badge\/version-${new_version}-blue.svg/" "$README_FILE"
+    else
+        sed -i "s/badge\/version-[0-9a-zA-Z\.\-]*\-blue\.svg/badge\/version-${new_version}-blue.svg/" "$README_FILE"
+    fi
+    echo -e "${GREEN}✅ Updated README.md${NC}"
+fi
+
 # Generate changelog entry from commits since last tag
 echo ""
 echo -e "${BLUE}📝 Generating changelog entry...${NC}"

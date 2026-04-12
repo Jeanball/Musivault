@@ -90,6 +90,17 @@ if [ -f "$BACKEND_PACKAGE" ]; then
     echo -e "${GREEN}✅ Updated backend/package.json${NC}"
 fi
 
+# Update README.md
+README_FILE="README.md"
+if [ -f "$README_FILE" ]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s/badge\/version-[0-9a-zA-Z\.\-]*\-blue\.svg/badge\/version-${new_version}-blue.svg/" "$README_FILE"
+    else
+        sed -i "s/badge\/version-[0-9a-zA-Z\.\-]*\-blue\.svg/badge\/version-${new_version}-blue.svg/" "$README_FILE"
+    fi
+    echo -e "${GREEN}✅ Updated README.md${NC}"
+fi
+
 # Generate changelog entry from commits since last tag
 echo ""
 echo -e "${BLUE}📝 Generating changelog entry...${NC}"
@@ -233,5 +244,5 @@ echo -e "Next steps:"
 echo -e "  1. Review changes: ${YELLOW}git diff${NC}"
 echo -e "  2. Edit CHANGELOG.md if needed (clean up auto-generated entries)"
 echo -e "  3. Edit frontend/public/CHANGELOG.md to describe the changes to your users"
-echo -e "  4. Commit changes: ${YELLOW}git add VERSION package.json frontend/package.json backend/package.json CHANGELOG.md frontend/public/CHANGELOG.md frontend/public/VERSION && git commit -m 'chore: bump version to $new_version'${NC}"
+echo -e "  4. Commit changes: ${YELLOW}git add VERSION package.json frontend/package.json backend/package.json README.md CHANGELOG.md frontend/public/CHANGELOG.md frontend/public/VERSION && git commit -m 'chore: bump version to $new_version'${NC}"
 echo -e "  5. Create release: ${YELLOW}npm run release${NC}"

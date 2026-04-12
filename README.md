@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.11.1-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
@@ -28,6 +28,7 @@
 - **Advanced Filtering** - Sort and filter by format, decade, date added, and more.
 - **Condition Grading** - Track the media and sleeve condition of your albums. **(You need to opt-in in settings to use this feature)**
 - **ID Lookup** - Quickly find releases by Discogs ID or Barcode.
+- **Price Tracking** - Automatically track item values based on Discogs marketplace data (requires a personal access token and seller account).
 - **Responsive Design** - Optimized for desktop, tablet, and mobile usage.
 - **Dark/Light Mode** - Toggle between aesthetic themes.
 - **Admin Dashboard** - Manage users and settings.
@@ -102,6 +103,7 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `SESSION_SECRET` | Session encryption key | - | Yes |
 | `DISCOGS_KEY` | Discogs API consumer key | - | Yes |
 | `DISCOGS_SECRET` | Discogs API consumer secret | - | Yes |
+| `DISCOGS_PAT` | Discogs Personal Access Token | - | No |
 | `MONGO_URI` | MongoDB connection string | mongodb://mongodb:27017/musivault | No |
 | `PORT` | Application port | 3000 | No |
 | `JWT_SECRET` | JWT signing secret | ${SESSION_SECRET} | No |
