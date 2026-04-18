@@ -22,6 +22,7 @@ import adminRoute from './routes/admin.route'
 // Scripts
 import { seedAdminUser } from "./scripts/seed"
 import { runPendingMigrations } from "./scripts/migration-runner"
+import { startTaskScheduler } from "./services/taskScheduler.service"
 
 dotenv.config()
 
@@ -175,4 +176,7 @@ connectDB().then(async () => {
         console.log("=================================");
     });
     server.setTimeout(3600000); // 1 hour timeout for long imports
+
+    // 4. Start background task scheduler
+    startTaskScheduler();
 });

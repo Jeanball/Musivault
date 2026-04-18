@@ -7,6 +7,7 @@ import { getMarketplaceStats } from '../services/discogs.service';
 import { getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
 import type { DiscogsReleaseResponse } from '../types/discogs.types';
+import AdminTaskExecution from '../models/AdminTaskExecution';
 
 // ===== Types =====
 
@@ -29,13 +30,6 @@ export type PopulatedCollectionItem = ICollectionItem & {
   album: IAlbum;
 };
 
-type SyncableCollectionItem = {
-  album?: Pick<IAlbum, 'discogsId'> | null;
-  priceCache?: {
-    updatedAt?: Date | string | null;
-  } | null;
-};
-
 function buildPriceCache(stats: Awaited<ReturnType<typeof getMarketplaceStats>>) {
   if (!stats) return undefined;
 
@@ -53,51 +47,36 @@ function buildPriceCache(stats: Awaited<ReturnType<typeof getMarketplaceStats>>)
   };
 }
 
-export function getNextAutoSyncAt(items: SyncableCollectionItem[]): Date | null {
-  const ttlMs = getPriceTTLHours() * 60 * 60 * 1000;
-  const now = Date.now();
-  let nextAutoSyncAt: number | null = null;
-
-  for (const item of items) {
-    if (!item.album?.discogsId) {
-      continue;
-    }
-
-    const updatedAt = item.priceCache?.updatedAt
-      ? new Date(item.priceCache.updatedAt).getTime()
-      : NaN;
-
-    const candidate = Number.isFinite(updatedAt) ? updatedAt + ttlMs : now;
-    nextAutoSyncAt = nextAutoSyncAt === null
-      ? candidate
-      : Math.min(nextAutoSyncAt, candidate);
-  }
-
-  return nextAutoSyncAt === null ? null : new Date(nextAutoSyncAt);
+export interface PriceSyncResult {
+  syncedReleases: number;
+  syncedItems: number;
+  skippedFresh: number;
+  skippedNoData: number;
+  totalReleases: number;
+  totalItems: number;
+  totalValue: number;
+  currency: string;
+  forceRefresh: boolean;
 }
 
-export async function streamPriceSync(
-  res: Response,
+/**
+ * Core price sync logic. Iterates over collection items grouped by release,
+ * fetches prices from Discogs, and updates the database.
+ * Accepts a progress callback and an optional abort signal.
+ */
+export async function executePriceSync(
   items: PopulatedCollectionItem[],
-  options?: {
+  options: {
     forceRefresh?: boolean;
     logLabel?: string;
-  }
-) {
-  const forceRefresh = options?.forceRefresh ?? false;
-  const logLabel = options?.logLabel ?? 'PriceSync';
-
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  if (typeof res.flushHeaders === 'function') {
-    res.flushHeaders();
-  }
-
-  let isAborted = false;
-  res.on('close', () => {
-    isAborted = true;
-  });
+    onProgress?: (event: Record<string, unknown>) => void;
+    shouldAbort?: () => boolean;
+  } = {}
+): Promise<PriceSyncResult> {
+  const forceRefresh = options.forceRefresh ?? false;
+  const logLabel = options.logLabel ?? 'PriceSync';
+  const onProgress = options.onProgress ?? (() => {});
+  const shouldAbort = options.shouldAbort ?? (() => false);
 
   const groupedByRelease = new Map<number, PopulatedCollectionItem[]>();
   const noDiscogsItems: PopulatedCollectionItem[] = [];
@@ -137,14 +116,14 @@ export async function streamPriceSync(
       continue;
     }
 
-    res.write(`data: ${JSON.stringify({
+    onProgress({
       type: 'progress',
       current: releaseIdx,
       total: totalReleases,
       artist,
       title,
       itemCount: releaseItems.length,
-    })}\n\n`);
+    });
 
     const stats = await getMarketplaceStats(discogsId);
 
@@ -168,8 +147,8 @@ export async function streamPriceSync(
       console.log(`[${logLabel}] ${releaseIdx}/${totalReleases} NO DATA - ${artist} - ${title}`);
     }
 
-    if (isAborted) {
-      console.log(`[${logLabel}] Client disconnected. Aborting sync loop.`);
+    if (shouldAbort()) {
+      console.log(`[${logLabel}] Aborted.`);
       break;
     }
   }
@@ -184,25 +163,59 @@ export async function streamPriceSync(
     }
   }
 
+  const result: PriceSyncResult = {
+    syncedReleases,
+    syncedItems,
+    skippedFresh,
+    skippedNoData,
+    totalReleases,
+    totalItems,
+    totalValue: Math.round(totalValue * 100) / 100,
+    currency,
+    forceRefresh,
+  };
+
   console.log(`[${logLabel}] Complete: ${syncedReleases}/${totalReleases} releases synced (${syncedItems} items), ${skippedFresh} fresh, ${skippedNoData} no data, ${noDiscogsItems.length} no discogsId. Total value: ${totalValue.toFixed(2)} ${currency}`);
 
-  const summaryMessage = forceRefresh
-    ? `Refreshed ${syncedReleases} releases (${syncedItems} items).`
-    : `Synced ${syncedReleases} releases (${syncedItems} items). ${skippedFresh} already fresh.`;
+  return result;
+}
+
+/**
+ * SSE wrapper around executePriceSync for direct HTTP streaming.
+ */
+export async function streamPriceSync(
+  res: Response,
+  items: PopulatedCollectionItem[],
+  options?: {
+    forceRefresh?: boolean;
+    logLabel?: string;
+  }
+) {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
+
+  let isAborted = false;
+  res.on('close', () => {
+    isAborted = true;
+  });
+
+  const result = await executePriceSync(items, {
+    forceRefresh: options?.forceRefresh,
+    logLabel: options?.logLabel,
+    onProgress: (event) => {
+      if (!isAborted) {
+        res.write(`data: ${JSON.stringify(event)}\n\n`);
+      }
+    },
+    shouldAbort: () => isAborted,
+  });
 
   if (!isAborted) {
-    res.write(`data: ${JSON.stringify({
-      type: 'complete',
-      synced: syncedReleases,
-      syncedItems,
-      skipped: skippedFresh + skippedNoData,
-      total: totalReleases,
-      totalItems,
-      totalValue: Math.round(totalValue * 100) / 100,
-      currency,
-      forceRefresh,
-    })}\n\n`);
-
+    res.write(`data: ${JSON.stringify({ type: 'complete', ...result })}\n\n`);
     res.end();
   }
 
@@ -861,7 +874,22 @@ export async function getCollectionSyncInfo(req: Request, res: Response) {
       .select('priceCache album')
       .populate<{ album: Pick<IAlbum, 'discogsId'> }>('album', 'discogsId');
 
-    const nextAutoSyncAt = getNextAutoSyncAt(collectionItems);
+    // Use the last admin task execution for refresh-prices to compute next sync
+    const lastExecution = await AdminTaskExecution.findOne({ taskId: 'refresh-prices' })
+      .sort({ executedAt: -1 })
+      .lean();
+
+    let nextAutoSyncAt: Date | null = null;
+    if (lastExecution?.executedAt) {
+      const ttlMs = getPriceTTLHours() * 60 * 60 * 1000;
+      let ts = new Date(lastExecution.executedAt).getTime();
+      const now = Date.now();
+      while (ts <= now) {
+        ts += ttlMs;
+      }
+      nextAutoSyncAt = new Date(ts);
+    }
+
     const lastSyncedAt = collectionItems.reduce<Date | null>((latest, item) => {
       const updatedAt = item.priceCache?.updatedAt ? new Date(item.priceCache.updatedAt) : null;
       if (!updatedAt || Number.isNaN(updatedAt.getTime())) {

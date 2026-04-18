@@ -322,6 +322,11 @@
     },
     "admin": {
         "title": "Administración",
+        "sections": {
+            "users": "Usuarios",
+            "tasks": "Tareas",
+            "logs": "Registros"
+        },
         "totalUsers": "Usuarios Totales",
         "admins": "Admins",
         "totalAlbums": "Álbumes Totales",
@@ -405,7 +410,24 @@
                     "success": "Tipos de cambio actualizados con éxito."
                 }
             }
-        }
+        },
+        "logs": {
+            "pageTitle": "Registros de ejecución",
+            "pageSubtitle": "Historial completo de ejecuciones automáticas y manuales.",
+            "filterAll": "Todas las tareas",
+            "noLogs": "Aún no hay registros de ejecución.",
+            "triggerAuto": "Auto",
+            "triggerManual": "Manual",
+            "columns": {
+                "task": "Tarea",
+                "trigger": "Disparador",
+                "status": "Estado",
+                "executedAt": "Ejecutado el",
+                "duration": "Duración",
+                "details": "Detalles"
+            }
+        },
+        "statusRunning": "Ejecutando"
     },
     "stats": {
         "title": "Estadísticas de Colección",

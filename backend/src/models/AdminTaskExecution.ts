@@ -5,6 +5,7 @@ export interface IAdminTaskExecution extends Document {
   executedAt: Date;
   durationMs: number;
   status: 'success' | 'failed';
+  trigger: 'auto' | 'manual';
   details?: string;
 }
 
@@ -27,6 +28,11 @@ const adminTaskExecutionSchema = new Schema<IAdminTaskExecution>({
     type: String,
     enum: ['success', 'failed'],
     required: true,
+  },
+  trigger: {
+    type: String,
+    enum: ['auto', 'manual'],
+    default: 'manual',
   },
   details: {
     type: String,

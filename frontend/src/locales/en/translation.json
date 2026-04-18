@@ -349,7 +349,8 @@
         "publicCollections": "Public Collections",
         "sections": {
             "users": "Users",
-            "tasks": "Tasks"
+            "tasks": "Tasks",
+            "logs": "Logs"
         },
         "userManagement": "User Management",
         "searchUsers": "Search users...",
@@ -430,7 +431,24 @@
                     "success": "Successfully refreshed exchange rates."
                 }
             }
-        }
+        },
+        "logs": {
+            "pageTitle": "Execution Logs",
+            "pageSubtitle": "Full history of automated and manual task executions.",
+            "filterAll": "All tasks",
+            "noLogs": "No execution logs yet.",
+            "triggerAuto": "Auto",
+            "triggerManual": "Manual",
+            "columns": {
+                "task": "Task",
+                "trigger": "Trigger",
+                "status": "Status",
+                "executedAt": "Executed At",
+                "duration": "Duration",
+                "details": "Details"
+            }
+        },
+        "statusRunning": "Running"
     },
     "stats": {
         "title": "Collection Stats",

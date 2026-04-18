@@ -94,11 +94,20 @@ export async function runPendingMigrations(): Promise<void> {
   if (backgroundMigrations.length > 0) {
     console.log(`Launching ${backgroundMigrations.length} background migration(s)...`);
     for (const migration of backgroundMigrations) {
+      activeBackgroundMigrations++;
       executeMigration(migration).catch(err => {
         console.error(`Background migration ${migration.id} error:`, err);
+      }).finally(() => {
+        activeBackgroundMigrations--;
       });
     }
   }
+}
+
+let activeBackgroundMigrations = 0;
+
+export function isBackgroundMigrationRunning(): boolean {
+  return activeBackgroundMigrations > 0;
 }
 
 /**

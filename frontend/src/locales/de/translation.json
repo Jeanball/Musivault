@@ -319,6 +319,11 @@
     },
     "admin": {
         "title": "Verwaltung",
+        "sections": {
+            "users": "Benutzer",
+            "tasks": "Aufgaben",
+            "logs": "Protokolle"
+        },
         "totalUsers": "Benutzer gesamt",
         "admins": "Administratoren",
         "totalAlbums": "Alben gesamt",
@@ -402,7 +407,24 @@
                     "success": "Wechselkurse erfolgreich aktualisiert."
                 }
             }
-        }
+        },
+        "logs": {
+            "pageTitle": "Ausführungsprotokolle",
+            "pageSubtitle": "Vollständiger Verlauf automatischer und manueller Aufgabenausführungen.",
+            "filterAll": "Alle Aufgaben",
+            "noLogs": "Noch keine Ausführungsprotokolle.",
+            "triggerAuto": "Auto",
+            "triggerManual": "Manuell",
+            "columns": {
+                "task": "Aufgabe",
+                "trigger": "Auslöser",
+                "status": "Status",
+                "executedAt": "Ausgeführt am",
+                "duration": "Dauer",
+                "details": "Details"
+            }
+        },
+        "statusRunning": "Läuft"
     },
     "stats": {
         "title": "Sammlungsstatistiken",

@@ -323,6 +323,11 @@
     },
     "admin": {
         "title": "管理",
+        "sections": {
+            "users": "用户",
+            "tasks": "任务",
+            "logs": "日志"
+        },
         "totalUsers": "总用户",
         "admins": "管理员",
         "totalAlbums": "总专辑",
@@ -406,7 +411,24 @@
                     "success": "汇率更新成功。"
                 }
             }
-        }
+        },
+        "logs": {
+            "pageTitle": "执行日志",
+            "pageSubtitle": "自动和手动任务执行的完整历史记录。",
+            "filterAll": "所有任务",
+            "noLogs": "暂无执行日志。",
+            "triggerAuto": "自动",
+            "triggerManual": "手动",
+            "columns": {
+                "task": "任务",
+                "trigger": "触发方式",
+                "status": "状态",
+                "executedAt": "执行时间",
+                "duration": "时长",
+                "details": "详情"
+            }
+        },
+        "statusRunning": "运行中"
     },
     "stats": {
         "title": "收藏统计",

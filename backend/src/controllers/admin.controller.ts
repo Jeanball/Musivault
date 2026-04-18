@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { getAdminTaskDefinition, listAdminTasks, recordAdminTaskExecution } from '../services/adminTasks.service';
+import { listAdminTasks, getAdminTaskLogs } from '../services/adminTasks.service';
+import { startTask, subscribeToTask, isTaskRunning } from '../services/taskRunner.service';
 
 export async function getAdminTasks(req: Request, res: Response) {
     try {
-        const tasks = await listAdminTasks();
+        const tasks = await listAdminTasks((taskId) => isTaskRunning(taskId));
         res.status(200).json(tasks);
     } catch (error) {
         console.error('Error fetching admin tasks:', error);
@@ -13,45 +14,40 @@ export async function getAdminTasks(req: Request, res: Response) {
 
 export async function runAdminTask(req: Request, res: Response) {
     const { taskId } = req.params;
-    const task = getAdminTaskDefinition(taskId);
 
-    if (!task) {
-        res.status(404).json({ message: 'Admin task not found' });
+    const started = startTask(taskId, { forceRefresh: true, trigger: 'manual' });
+
+    if (!started) {
+        // Task might already be running — subscribe to it instead
+        const subscribed = subscribeToTask(taskId, res);
+        if (subscribed) return;
+
+        res.status(404).json({ message: 'Admin task not found or could not be started.' });
         return;
     }
 
-    const startedAt = Date.now();
+    // Subscribe the client to the task's SSE stream
+    subscribeToTask(taskId, res);
+}
 
+export async function subscribeAdminTask(req: Request, res: Response) {
+    const { taskId } = req.params;
+
+    const subscribed = subscribeToTask(taskId, res);
+    if (!subscribed) {
+        res.status(404).json({ message: 'No running task to subscribe to.' });
+    }
+}
+
+export async function getTaskLogs(req: Request, res: Response) {
     try {
-        const details = await task.run(res);
-        try {
-            await recordAdminTaskExecution({
-                taskId,
-                durationMs: Date.now() - startedAt,
-                status: 'success',
-                details,
-            });
-        } catch (recordError) {
-            console.error(`Failed to record admin task "${taskId}" success:`, recordError);
-        }
-    } catch (error) {
-        console.error(`Error running admin task "${taskId}":`, error);
-        try {
-            await recordAdminTaskExecution({
-                taskId,
-                durationMs: Date.now() - startedAt,
-                status: 'failed',
-                details: error instanceof Error ? error.message : 'Internal server error',
-            });
-        } catch (recordError) {
-            console.error(`Failed to record admin task "${taskId}" failure:`, recordError);
-        }
+        const limit = parseInt(req.query.limit as string) || 50;
+        const taskId = req.query.taskId as string | undefined;
 
-        if (res.headersSent) {
-            res.write(`data: ${JSON.stringify({ type: 'error', message: 'Internal server error' })}\n\n`);
-            res.end();
-        } else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        const logs = await getAdminTaskLogs(limit, taskId);
+        res.status(200).json(logs);
+    } catch (error) {
+        console.error('Error fetching task logs:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 }

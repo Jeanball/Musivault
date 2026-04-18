@@ -323,6 +323,11 @@
     },
     "admin": {
         "title": "Administração",
+        "sections": {
+            "users": "Usuários",
+            "tasks": "Tarefas",
+            "logs": "Registros"
+        },
         "totalUsers": "Total Usuários",
         "admins": "Admins",
         "totalAlbums": "Total Álbuns",
@@ -406,7 +411,24 @@
                     "success": "Taxas de câmbio atualizadas com sucesso."
                 }
             }
-        }
+        },
+        "logs": {
+            "pageTitle": "Registros de execução",
+            "pageSubtitle": "Histórico completo de execuções automáticas e manuais.",
+            "filterAll": "Todas as tarefas",
+            "noLogs": "Nenhum registro de execução ainda.",
+            "triggerAuto": "Auto",
+            "triggerManual": "Manual",
+            "columns": {
+                "task": "Tarefa",
+                "trigger": "Gatilho",
+                "status": "Status",
+                "executedAt": "Executado em",
+                "duration": "Duração",
+                "details": "Detalhes"
+            }
+        },
+        "statusRunning": "Executando"
     },
     "stats": {
         "title": "Estatísticas da Coleção",

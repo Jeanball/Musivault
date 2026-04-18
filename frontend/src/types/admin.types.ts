@@ -17,4 +17,15 @@ export interface AdminTask {
     lastExecutionAt: string | null;
     lastDurationMs: number | null;
     lastStatus: 'success' | 'failed' | null;
+    isRunning: boolean;
+}
+
+export interface AdminTaskLog {
+    _id: string;
+    taskId: string;
+    executedAt: string;
+    durationMs: number;
+    status: 'success' | 'failed';
+    trigger: 'auto' | 'manual';
+    details?: string;
 }

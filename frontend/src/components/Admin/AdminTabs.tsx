@@ -17,6 +17,11 @@ const AdminTabs: React.FC = () => {
             label: t('admin.sections.tasks', 'Tasks'),
             isActive: location.pathname === '/app/admin/tasks',
         },
+        {
+            to: '/app/admin/tasks/logs',
+            label: t('admin.sections.logs', 'Logs'),
+            isActive: location.pathname === '/app/admin/tasks/logs',
+        },
     ];
 
     return (

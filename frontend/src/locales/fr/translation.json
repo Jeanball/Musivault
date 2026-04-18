@@ -342,6 +342,11 @@
     },
     "admin": {
         "title": "Administration",
+        "sections": {
+            "users": "Utilisateurs",
+            "tasks": "Tâches",
+            "logs": "Journaux"
+        },
         "totalUsers": "Utilisateurs totaux",
         "admins": "Administrateurs",
         "totalAlbums": "Albums totaux",
@@ -425,7 +430,24 @@
                     "success": "Taux de change mis à jour avec succès."
                 }
             }
-        }
+        },
+        "logs": {
+            "pageTitle": "Journaux d'exécution",
+            "pageSubtitle": "Historique complet des exécutions automatiques et manuelles.",
+            "filterAll": "Toutes les tâches",
+            "noLogs": "Aucun journal d'exécution pour le moment.",
+            "triggerAuto": "Auto",
+            "triggerManual": "Manuel",
+            "columns": {
+                "task": "Tâche",
+                "trigger": "Déclencheur",
+                "status": "Statut",
+                "executedAt": "Exécuté le",
+                "duration": "Durée",
+                "details": "Détails"
+            }
+        },
+        "statusRunning": "En cours"
     },
     "stats": {
         "title": "Statistiques de la collection",

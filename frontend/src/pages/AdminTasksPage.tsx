@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -15,14 +15,103 @@ const AdminTasksPage: React.FC = () => {
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
     const [activeTaskProgress, setActiveTaskProgress] = useState('');
     const [activeTaskSummary, setActiveTaskSummary] = useState('');
-    const [activeTaskAbortController, setActiveTaskAbortController] = useState<AbortController | null>(null);
+    const activeReaderRef = useRef<ReadableStreamDefaultReader | null>(null);
 
-    const loadTasks = async () => {
+    const loadTasks = useCallback(async () => {
         const { data } = await axios.get<AdminTask[]>('/api/admin/tasks', {
             withCredentials: true,
         });
         setTasks(data);
-    };
+        return data;
+    }, []);
+
+    /**
+     * Read SSE events from a response body stream.
+     * Used for both starting a new task and subscribing to a running one.
+     */
+    const consumeSSEStream = useCallback(async (taskId: string, body: ReadableStream<Uint8Array>) => {
+        const reader = body.getReader();
+        activeReaderRef.current = reader;
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
+
+                    try {
+                        const event = JSON.parse(line.slice(6));
+                        if (event.type === 'progress') {
+                            setActiveTaskProgress(`${event.current}/${event.total} - ${event.artist} - ${event.title}`);
+                        } else if (event.type === 'complete') {
+                            let summary = '';
+                            if (taskId === 'refresh-prices') {
+                                const key = event.forceRefresh
+                                    ? 'admin.tasks.items.refreshPrices.successForce'
+                                    : 'admin.tasks.items.refreshPrices.successSync';
+                                summary = t(key, {
+                                    synced: event.synced ?? event.syncedReleases,
+                                    syncedItems: event.syncedItems,
+                                    total: event.total ?? event.totalReleases,
+                                    totalItems: event.totalItems,
+                                    skipped: event.skipped ?? ((event.skippedFresh ?? 0) + (event.skippedNoData ?? 0)),
+                                });
+                            } else if (taskId === 'refresh-exchange-rates') {
+                                summary = t('admin.tasks.items.refreshExchangeRates.success', 'Successfully refreshed exchange rates.');
+                            } else {
+                                summary = event.message || t('admin.tasks.runSuccess', 'Task completed successfully.');
+                            }
+
+                            setActiveTaskSummary(summary);
+                            toastService.success(summary);
+                        } else if (event.type === 'error') {
+                            toastService.error(event.message || t('admin.tasks.runError', 'Failed to run task. Please try again.'));
+                        }
+                    } catch (error) {
+                        if (error instanceof SyntaxError) continue;
+                        if (error instanceof Error) throw error;
+                    }
+                }
+            }
+        } catch {
+            // Stream ended or errored — that's OK, task keeps running on the server
+        } finally {
+            activeReaderRef.current = null;
+            setActiveTaskId(null);
+            setActiveTaskProgress('');
+            await loadTasks();
+        }
+    }, [t, loadTasks]);
+
+    /**
+     * Subscribe to a running task's SSE stream (for reconnection).
+     */
+    const subscribeToRunningTask = useCallback(async (taskId: string) => {
+        setActiveTaskId(taskId);
+        setActiveTaskProgress('');
+        setActiveTaskSummary('');
+
+        try {
+            const response = await fetch(`/api/admin/tasks/${taskId}/subscribe`, {
+                credentials: 'include',
+            });
+
+            if (!response.ok || !response.body) return;
+
+            await consumeSSEStream(taskId, response.body);
+        } catch {
+            setActiveTaskId(null);
+            setActiveTaskProgress('');
+        }
+    }, [consumeSSEStream]);
 
     useEffect(() => {
         const verifyAndLoad = async () => {
@@ -39,7 +128,13 @@ const AdminTasksPage: React.FC = () => {
                 }
 
                 setIsAdmin(true);
-                await loadTasks();
+                const loadedTasks = await loadTasks();
+
+                // Auto-subscribe to any task that's already running
+                const runningTask = loadedTasks.find((t: AdminTask) => t.isRunning);
+                if (runningTask) {
+                    subscribeToRunningTask(runningTask.id);
+                }
             } catch (error) {
                 console.error('Error loading admin tasks:', error);
                 toastService.error(t('admin.accessDenied'));
@@ -85,105 +180,24 @@ const AdminTasksPage: React.FC = () => {
         setActiveTaskProgress('');
         setActiveTaskSummary('');
 
-        const abortController = new AbortController();
-        setActiveTaskAbortController(abortController);
-
         try {
             const response = await fetch(`/api/admin/tasks/${task.id}/run`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                signal: abortController.signal,
             });
 
             if (!response.ok || !response.body) {
                 throw new Error('Task failed');
             }
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let completedByEvent = false;
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (!line.startsWith('data: ')) continue;
-
-                    try {
-                        const event = JSON.parse(line.slice(6));
-                        if (event.type === 'progress') {
-                            setActiveTaskProgress(`${event.current}/${event.total} - ${event.artist} - ${event.title}`);
-                        } else if (event.type === 'complete') {
-                            let summary = '';
-                            if (task.id === 'refresh-prices') {
-                                const key = event.forceRefresh 
-                                    ? 'admin.tasks.items.refreshPrices.successForce' 
-                                    : 'admin.tasks.items.refreshPrices.successSync';
-                                summary = t(key, { 
-                                    synced: event.synced, 
-                                    syncedItems: event.syncedItems,
-                                    total: event.total, 
-                                    totalItems: event.totalItems,
-                                    skipped: event.skipped 
-                                });
-                            } else if (task.id === 'refresh-exchange-rates') {
-                                summary = t('admin.tasks.items.refreshExchangeRates.success', 'Successfully refreshed exchange rates.');
-                            } else {
-                                summary = event.message || t('admin.tasks.runSuccess', 'Task completed successfully.');
-                            }
-
-                            setActiveTaskSummary(summary);
-                            toastService.success(summary);
-                            completedByEvent = true;
-                        } else if (event.type === 'error') {
-                            throw new Error(event.message || 'Task failed');
-                        }
-                    } catch (error) {
-                        if (error instanceof SyntaxError) {
-                            continue;
-                        }
-                        if (error instanceof Error) {
-                            throw error;
-                        }
-                    }
-                }
-            }
-
-            // Fallback: If the stream is done but no 'complete' event was received, 
-            // and no error occurred, show a generic success message.
-            if (!completedByEvent) {
-                let defaultSuccess = t('admin.tasks.runSuccess', 'Task completed successfully.');
-                
-                // Even for fallback, try to use the task-specific key if we can
-                if (task.id === 'refresh-exchange-rates') {
-                    defaultSuccess = t('admin.tasks.items.refreshExchangeRates.success', 'Successfully refreshed exchange rates.');
-                }
-                
-                setActiveTaskSummary(defaultSuccess);
-                toastService.success(defaultSuccess);
-            }
-
-            await loadTasks();
+            await consumeSSEStream(task.id, response.body);
         } catch (error: any) {
-            if (error.name === 'AbortError') {
-                setActiveTaskSummary(t('admin.tasks.runCancelled', 'Task was cancelled.'));
-                toastService.info(t('admin.tasks.runCancelled', 'Task was cancelled.'));
-            } else {
-                console.error(`Error running admin task "${task.id}":`, error);
-                setActiveTaskSummary('');
-                toastService.error(t('admin.tasks.runError', 'Failed to run task. Please try again.'));
-            }
-        } finally {
+            console.error(`Error running admin task "${task.id}":`, error);
+            setActiveTaskSummary('');
+            toastService.error(t('admin.tasks.runError', 'Failed to run task. Please try again.'));
             setActiveTaskId(null);
             setActiveTaskProgress('');
-            setActiveTaskAbortController(null);
         }
     };
 
@@ -308,7 +322,12 @@ const AdminTasksPage: React.FC = () => {
                                             </div>
                                         </td>
                                         <td>
-                                            {task.lastStatus ? (
+                                            {task.isRunning ? (
+                                                <span className="badge badge-sm badge-info gap-1">
+                                                    <span className="loading loading-spinner loading-xs"></span>
+                                                    {t('admin.tasks.statusRunning', 'Running')}
+                                                </span>
+                                            ) : task.lastStatus ? (
                                                 <span className={`badge badge-sm ${task.lastStatus === 'success' ? 'badge-success' : 'badge-error'}`}>
                                                     {task.lastStatus === 'success' ? t('common.success', 'Success') : t('common.failed', 'Failed')}
                                                 </span>
@@ -321,14 +340,11 @@ const AdminTasksPage: React.FC = () => {
                                         <td>{formatDuration(task.lastDurationMs)}</td>
                                         <td>{formatNextExecution(task)}</td>
                                         <td>
-                                            {activeTaskId === task.id ? (
-                                                <button
-                                                    className="btn btn-error btn-sm w-28 flex-nowrap"
-                                                    onClick={() => activeTaskAbortController?.abort()}
-                                                >
+                                            {activeTaskId === task.id || task.isRunning ? (
+                                                <span className="btn btn-sm btn-disabled w-28 flex-nowrap">
                                                     <span className="loading loading-spinner loading-xs"></span>
-                                                    {t('common.cancel', 'Cancel')}
-                                                </button>
+                                                    {t('admin.tasks.statusRunning', 'Running')}
+                                                </span>
                                             ) : (
                                                 <button
                                                     className="btn btn-primary btn-sm w-28 flex-nowrap"
@@ -359,7 +375,12 @@ const AdminTasksPage: React.FC = () => {
                                     <div>
                                         <div className="text-xs uppercase tracking-wide text-base-content/50">{t('admin.tasks.columns.status', 'Status')}</div>
                                         <div>
-                                            {task.lastStatus ? (
+                                            {task.isRunning ? (
+                                                <span className="badge badge-sm badge-info gap-1">
+                                                    <span className="loading loading-spinner loading-xs"></span>
+                                                    {t('admin.tasks.statusRunning', 'Running')}
+                                                </span>
+                                            ) : task.lastStatus ? (
                                                 <span className={`badge badge-sm ${task.lastStatus === 'success' ? 'badge-success' : 'badge-error'}`}>
                                                     {task.lastStatus === 'success' ? t('common.success', 'Success') : t('common.failed', 'Failed')}
                                                 </span>
@@ -386,14 +407,11 @@ const AdminTasksPage: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {activeTaskId === task.id ? (
-                                    <button
-                                        className="btn btn-error btn-sm w-full"
-                                        onClick={() => activeTaskAbortController?.abort()}
-                                    >
+                                {activeTaskId === task.id || task.isRunning ? (
+                                    <span className="btn btn-sm btn-disabled w-full">
                                         <span className="loading loading-spinner loading-xs"></span>
-                                        {t('common.cancel', 'Cancel')}
-                                    </button>
+                                        {t('admin.tasks.statusRunning', 'Running')}
+                                    </span>
                                 ) : (
                                     <button
                                         className="btn btn-primary btn-sm w-full"
