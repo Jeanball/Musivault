@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.12.0] - 2026-05-02
+
+### Added
+- feat: add price tracking feature and automate version badge updates in README scripts
+- feat: implement background task runner with SSE progress streaming and admin task logging UI
+
+### Changed
+- Documentation: docs: add setup instructions for Discogs price tracking feature to README
+
+---
+
 ## [1.11.1] - 2026-04-11
 
 ### Added
@@ -369,7 +380,8 @@ Once configured, you can fetch prices from the **Admin Task Center**.
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.11.1...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/Jeanball/Musivault/compare/v1.11.1...v1.12.0
 [1.11.1]: https://github.com/Jeanball/Musivault/compare/v1.11.0...v1.11.1
 [1.11.0]: https://github.com/Jeanball/Musivault/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/Jeanball/Musivault/compare/v1.9.0...v1.10.0

@@ -2,6 +2,20 @@
 
 Find all the new features and improvements added to the app right here!
 
+## [1.12.0] - 2026-05-02
+
+### What's New
+- **Admin Task Center Enhancements**: Run background maintenance jobs with live progress updates and a clearer activity log, so admins can track what is happening in real time.
+- **Price Tracking Improvements**: Collection price tracking is now more robust and easier to monitor as part of regular admin operations.
+
+### Improvements
+- Improved internal release/version badge automation used in project documentation workflows.
+- Added clearer setup guidance for Discogs price tracking in the documentation to make first-time configuration smoother for admins.
+
+### Bug Fixes
+- No user-facing bug fixes were included in this release.
+
+---
 ## [1.11.1] - 2026-04-11
 
 ### **BREAKING CHANGE: Discogs Setup Required (Admin Only)**
