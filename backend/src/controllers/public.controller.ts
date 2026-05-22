@@ -50,15 +50,22 @@ export async function getPublicUsers(req: Request, res: Response) {
         const publicUsers = await User.find({ 'preferences.isPublic': true })
             .select('username publicShareId createdAt');
 
-        // Get album counts for each user
+        // Get album counts and latest albums for each user
         const usersWithCounts = await Promise.all(
             publicUsers.map(async (user) => {
                 const albumCount = await CollectionItem.countDocuments({ user: user._id });
+                
+                const latestAlbums = await CollectionItem.find({ user: user._id })
+                    .sort({ addedAt: -1 })
+                    .limit(5)
+                    .populate<{ album: IAlbum }>('album');
+
                 return {
                     username: user.username,
                     publicShareId: user.publicShareId,
                     albumCount,
-                    createdAt: user.createdAt
+                    createdAt: user.createdAt,
+                    latestAlbums
                 };
             })
         );
@@ -69,6 +76,26 @@ export async function getPublicUsers(req: Request, res: Response) {
         res.status(200).json(usersWithCounts);
     } catch (error) {
         console.error('Error fetching public users:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export async function getLatestPublicAlbums(req: Request, res: Response) {
+    try {
+        // Find all users with public collections
+        const publicUsers = await User.find({ 'preferences.isPublic': true }).select('_id');
+        const publicUserIds = publicUsers.map(u => u._id);
+
+        // Fetch latest collection items for these users
+        const latestItems = await CollectionItem.find({ user: { $in: publicUserIds } })
+            .sort({ addedAt: -1 })
+            .limit(6)
+            .populate<{ album: IAlbum }>('album')
+            .populate('user', 'username publicShareId');
+
+        res.status(200).json(latestItems);
+    } catch (error) {
+        console.error('Error fetching latest public albums:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }

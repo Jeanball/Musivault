@@ -1,7 +1,10 @@
 import { Router } from 'express';
-import { getPublicCollection, getPublicUsers } from '../controllers/public.controller';
+import { getPublicCollection, getPublicUsers, getLatestPublicAlbums } from '../controllers/public.controller';
 
 const router = Router();
+
+// List latest albums from public users
+router.get('/albums/latest', getLatestPublicAlbums);
 
 // List all public users - must be before /:shareId
 router.get('/users', getPublicUsers);

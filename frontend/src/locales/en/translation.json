@@ -338,7 +338,11 @@
         "showsNearYou": "Shows Near You",
         "liveConcerts": "Live concerts in your area",
         "showsDescription": "Discover live shows and concerts from artists you love. We're integrating with Bandsintown to bring you personalized event recommendations!",
-        "failedLoadCollections": "Failed to load public collections."
+        "failedLoadCollections": "Failed to load public collections.",
+        "latestAlbums": "Latest Additions by Users",
+        "latestUserAdditions": "Latest additions",
+        "noLatestAlbums": "No recent additions.",
+        "failedLoadAlbums": "Failed to load latest albums."
     },
     "admin": {
         "title": "Administration",

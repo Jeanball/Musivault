@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Users, Music, Mic, Lock, Calendar, Ticket, ChevronRight, AlertCircle } from 'lucide-react';
+import { Users, Music, Mic, Lock, Calendar, Ticket, AlertCircle } from 'lucide-react';
+import { getImageUrl } from '../utils/imageUrl';
 
 interface PublicUser {
     username: string;
     publicShareId: string;
     albumCount: number;
     createdAt: string;
+    latestAlbums?: any[];
 }
 
 const DiscoverPage: React.FC = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [users, setUsers] = useState<PublicUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -36,6 +39,8 @@ const DiscoverPage: React.FC = () => {
 
         fetchPublicUsers();
     }, []);
+
+
 
     return (
         <div className="max-w-6xl mx-auto space-y-12">
@@ -75,34 +80,75 @@ const DiscoverPage: React.FC = () => {
                         <Link to="/app/settings" className="btn btn-primary btn-sm">{t('discover.goToSettings')}</Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="space-y-6">
                         {users.map((user) => (
-                            <div
-                                key={user.publicShareId}
-                                className="bg-base-200 rounded-lg p-3 hover:bg-base-300 transition-colors duration-200"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="avatar placeholder">
-                                        <div className="bg-primary text-primary-content rounded-full w-10 h-10">
-                                            <span className="text-lg font-bold">
-                                                {user.username.charAt(0).toUpperCase()}
-                                            </span>
+                            <div key={user.publicShareId} className="bg-base-200 rounded-xl p-5 border border-base-300">
+                                {/* User Header */}
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="avatar placeholder">
+                                            <div className="bg-primary text-primary-content rounded-full w-12 h-12">
+                                                <span className="text-xl font-bold">
+                                                    {user.username.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-medium text-sm truncate">{user.username}</h3>
-                                        <p className="text-xs text-base-content/60">
-                                            {user.albumCount} {user.albumCount === 1 ? t('common.album') : t('common.albums')}
-                                        </p>
+                                        <div>
+                                            <h3 className="font-bold text-lg">{user.username}</h3>
+                                            <p className="text-sm text-base-content/60">
+                                                {user.albumCount} {user.albumCount === 1 ? t('common.album') : t('common.albums')}
+                                            </p>
+                                        </div>
                                     </div>
                                     <Link
                                         to={`/shared/${user.publicShareId}`}
-                                        className="btn btn-primary btn-xs btn-circle"
-                                        title={t('discover.viewCollection')}
+                                        className="btn btn-outline btn-sm"
                                     >
-                                        <ChevronRight size={14} />
+                                        {t('discover.viewCollection')}
                                     </Link>
                                 </div>
+                                
+                                {/* Latest Albums for User */}
+                                {user.latestAlbums && user.latestAlbums.length > 0 ? (
+                                    <div className="mt-4">
+                                        <h4 className="text-sm font-semibold mb-3 text-base-content/70">
+                                            {t('discover.latestUserAdditions', 'Latest additions')}
+                                        </h4>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                        {user.latestAlbums.map((item) => (
+                                            <div
+                                                key={item._id}
+                                                onClick={() => navigate(`/shared/${user.publicShareId}`)}
+                                                className="card bg-base-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                                            >
+                                                <figure className="aspect-square relative overflow-hidden rounded-t-xl">
+                                                    <img 
+                                                        src={getImageUrl(item.album?.cover_image || "/placeholder-album.svg")} 
+                                                        alt={item.album?.title} 
+                                                        className="object-cover w-full h-full" 
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <span className="badge badge-primary badge-sm">{item.format?.name || 'Vinyl'}</span>
+                                                    </div>
+                                                </figure>
+                                                <div className="card-body p-2 gap-0.5">
+                                                    <h3 className="card-title text-xs leading-tight truncate block" title={item.album?.title}>
+                                                        {item.album?.title}
+                                                    </h3>
+                                                    <p className="text-[10px] opacity-70 truncate block">{item.album?.artist}</p>
+                                                    <p className="text-[9px] opacity-50 mt-0.5">
+                                                        {new Date(item.addedAt).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-base-content/50 italic mt-2">
+                                        {t('discover.noLatestAlbums', 'No recent additions.')}
+                                    </p>
+                                )}
                             </div>
                         ))}
                     </div>

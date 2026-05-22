@@ -338,7 +338,11 @@
         "showsNearYou": "Concerts près de chez vous",
         "liveConcerts": "Concerts live dans votre région",
         "showsDescription": "Découvrez des concerts et spectacles live de vos artistes préférés. Nous intégrons Bandsintown pour vous apporter des recommandations d'événements personnalisées !",
-        "failedLoadCollections": "Échec du chargement des collections publiques."
+        "failedLoadCollections": "Échec du chargement des collections publiques.",
+        "latestAlbums": "Derniers ajouts par les utilisateurs",
+        "latestUserAdditions": "Derniers ajouts",
+        "noLatestAlbums": "Aucun ajout récent.",
+        "failedLoadAlbums": "Échec du chargement des derniers albums."
     },
     "admin": {
         "title": "Administration",
