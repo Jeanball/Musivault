@@ -114,12 +114,12 @@ const DiscoverPage: React.FC = () => {
                                         <h4 className="text-sm font-semibold mb-3 text-base-content/70">
                                             {t('discover.latestUserAdditions', 'Latest additions')}
                                         </h4>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                        <div className="flex overflow-x-auto pb-4 gap-3 sm:grid sm:grid-cols-3 md:grid-cols-5 sm:overflow-visible sm:pb-0 snap-x">
                                         {user.latestAlbums.map((item) => (
                                             <div
                                                 key={item._id}
                                                 onClick={() => navigate(`/shared/${user.publicShareId}`)}
-                                                className="card bg-base-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                                                className="card bg-base-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group shrink-0 w-32 sm:w-auto snap-start"
                                             >
                                                 <figure className="aspect-square relative overflow-hidden rounded-t-xl">
                                                     <img 
