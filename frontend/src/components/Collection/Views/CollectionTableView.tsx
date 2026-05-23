@@ -4,6 +4,7 @@ import type { CollectionItem, SortColumn } from '../../../types/collection.types
 import { getItemValue } from '../../../types/collection.types';
 import FormatVerificationBadge from '../FormatVerificationBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
+import { getFormatButtonStyle } from '../../../utils/formatColors';
 
 interface CollectionTableViewProps {
     items: CollectionItem[];
@@ -94,7 +95,15 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                     <FormatVerificationBadge verification={item.formatVerification} />
                                 </div>
                                 {item.format.text && item.format.text !== item.format.name && (
-                                    <div className="text-xs opacity-70 mt-1">{item.format.text}</div>
+                                    <div className="mt-1.5">
+                                        <span
+                                            className="badge border text-xs"
+                                            style={getFormatButtonStyle(item.format.text, [])}
+                                            title={item.format.text}
+                                        >
+                                            {item.format.text}
+                                        </span>
+                                    </div>
                                 )}
                             </td>
                             <td>{item.album.year || t('common.na')}</td>

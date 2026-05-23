@@ -5,6 +5,7 @@ import { getImageUrl } from '../../../utils/imageUrl';
 import { hasActiveFormatVerificationIssue } from '../../../utils/formatVerification';
 import FormatVerificationBadge from '../FormatVerificationBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
+import { getFormatButtonStyle } from '../../../utils/formatColors';
 
 interface CollectionGridViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -58,20 +59,31 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                         {item.album.title}
                                     </h2>
                                     <div className="card-actions justify-start mt-2 gap-1">
-                                        <div className="badge badge-secondary">{item.format.name}</div>
+                                        <div className="badge badge-secondary badge-sm">{item.format.name}</div>
                                         {(() => {
                                             const val = getItemValue(item);
                                             return val > 0 ? (
-                                                <div className="badge badge-warning badge-outline font-semibold">
+                                                <div className="badge badge-warning badge-outline badge-sm font-semibold">
                                                     {formatValue(val)}
                                                 </div>
                                             ) : (
-                                                <div className="badge badge-ghost badge-outline text-base-content/50">
+                                                <div className="badge badge-ghost badge-outline badge-sm text-base-content/50">
                                                     N/A
                                                 </div>
                                             );
                                         })()}
                                     </div>
+                                    {item.format.text && item.format.text !== item.format.name && (
+                                        <div className="mt-1.5 flex">
+                                            <span
+                                                className="badge border text-[10px] py-2 truncate max-w-full"
+                                                style={getFormatButtonStyle(item.format.text, [])}
+                                                title={item.format.text}
+                                            >
+                                                {item.format.text}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

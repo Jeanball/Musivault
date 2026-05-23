@@ -349,7 +349,7 @@ const AlbumDetailPage: React.FC = () => {
                             
                             if (val <= 0) {
                                 return (
-                                    <div className="stat bg-base-200 rounded-lg p-4 opacity-70">
+                                    <div className="stat bg-base-200 rounded-lg p-4 opacity-70 overflow-hidden">
                                         <div className="stat-title flex items-center justify-between">
                                             <span>{t('stats.value')}</span>
                                             <button 
@@ -361,10 +361,10 @@ const AlbumDetailPage: React.FC = () => {
                                                 <RefreshCw size={14} className={isSyncingPrice ? 'animate-spin' : ''} />
                                             </button>
                                         </div>
-                                        <div className="stat-value text-2xl text-base-content/30">
+                                        <div className="stat-value text-xl md:text-2xl text-base-content/30">
                                             N/A
                                         </div>
-                                        <div className="stat-desc">
+                                        <div className="stat-desc truncate">
                                             {conditionLabel} {lastUpdated && <span className="opacity-50 ml-1">• {lastUpdated}</span>}
                                         </div>
                                     </div>
@@ -372,7 +372,7 @@ const AlbumDetailPage: React.FC = () => {
                             }
 
                             return (
-                                <div className="stat bg-base-200 rounded-lg p-4">
+                                <div className="stat bg-base-200 rounded-lg p-4 overflow-hidden">
                                     <div className="stat-title flex items-center justify-between">
                                         <span>{t('stats.value')}</span>
                                         <button 
@@ -384,10 +384,10 @@ const AlbumDetailPage: React.FC = () => {
                                             <RefreshCw size={14} className={isSyncingPrice ? 'animate-spin' : ''} />
                                         </button>
                                     </div>
-                                    <div className="stat-value text-2xl text-warning">
+                                    <div className="stat-value text-xl md:text-2xl text-warning truncate">
                                         {formatValue(val)}
                                     </div>
-                                    <div className="stat-desc">
+                                    <div className="stat-desc truncate">
                                         {conditionLabel} {lastUpdated && <span className="opacity-50 ml-1">• {lastUpdated}</span>}
                                     </div>
                                 </div>

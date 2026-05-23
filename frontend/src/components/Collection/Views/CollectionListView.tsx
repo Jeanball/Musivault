@@ -5,6 +5,7 @@ import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
 import FormatVerificationBadge from '../FormatVerificationBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
+import { getFormatButtonStyle } from '../../../utils/formatColors';
 
 interface CollectionListViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -63,7 +64,15 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                                 <FormatVerificationBadge verification={item.formatVerification} />
                                             </div>
                                             {item.format.text && item.format.text !== item.format.name && (
-                                                <div className="text-xs opacity-70">{item.format.text}</div>
+                                                <div className="mt-1">
+                                                    <span
+                                                        className="badge border text-xs"
+                                                        style={getFormatButtonStyle(item.format.text, [])}
+                                                        title={item.format.text}
+                                                    >
+                                                        {item.format.text}
+                                                    </span>
+                                                </div>
                                             )}
                                         </td>
                                         <td>{item.album.year}</td>

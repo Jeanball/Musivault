@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Users, Music, Mic, Lock, Calendar, Ticket, AlertCircle } from 'lucide-react';
 import { getImageUrl } from '../utils/imageUrl';
+import PublicAlbumModal from '../components/Modal/PublicAlbumModal';
+import type { CollectionItem } from '../types/collection.types';
 
 interface PublicUser {
     username: string;
     publicShareId: string;
     albumCount: number;
     createdAt: string;
-    latestAlbums?: any[];
+    latestAlbums?: CollectionItem[];
 }
 
 const DiscoverPage: React.FC = () => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
     const [users, setUsers] = useState<PublicUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedAlbum, setSelectedAlbum] = useState<CollectionItem | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -118,7 +120,7 @@ const DiscoverPage: React.FC = () => {
                                         {user.latestAlbums.map((item) => (
                                             <div
                                                 key={item._id}
-                                                onClick={() => navigate(`/shared/${user.publicShareId}`)}
+                                                onClick={() => setSelectedAlbum(item)}
                                                 className="card bg-base-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group shrink-0 w-32 sm:w-auto snap-start"
                                             >
                                                 <figure className="aspect-square relative overflow-hidden rounded-t-xl">
@@ -194,6 +196,10 @@ const DiscoverPage: React.FC = () => {
                     </p>
                 </div>
             </section>
+            <PublicAlbumModal
+                item={selectedAlbum}
+                onClose={() => setSelectedAlbum(null)}
+            />
         </div>
     );
 };
