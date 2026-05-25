@@ -316,7 +316,7 @@
         "albumPlaceholder": "Titre de l'album...",
         "artistPlaceholder": "Nom de l'artiste...",
         "coverImage": "Image de couverture",
-        "uploadCover": "Télécharger la couverture",
+        "uploadCover": "Téléverser la couverture",
         "coverHint": "JPEG, PNG ou WebP, max 2 Mo",
         "optional": "Optionnel",
         "manualRequired": "Le titre de l'album et l'artiste sont requis",

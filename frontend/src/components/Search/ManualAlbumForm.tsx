@@ -108,7 +108,7 @@ const ManualAlbumForm: React.FC = () => {
                             <span className="label-text">{t('search.coverImage')}</span>
                             <span className="label-text-alt text-gray-500">{t('search.optional')}</span>
                         </label>
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
                             {/* Preview or Placeholder */}
                             <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-base-300 flex items-center justify-center">
                                 {coverPreview ? (
@@ -132,7 +132,7 @@ const ManualAlbumForm: React.FC = () => {
                             </div>
 
                             {/* Upload Button */}
-                            <div className="flex-1">
+                            <div className="flex-1 flex flex-col gap-1">
                                 <input
                                     ref={fileInputRef}
                                     type="file"
@@ -143,12 +143,12 @@ const ManualAlbumForm: React.FC = () => {
                                 />
                                 <label
                                     htmlFor="cover-upload"
-                                    className="btn btn-outline btn-sm gap-2 cursor-pointer"
+                                    className="btn btn-outline gap-2 cursor-pointer"
                                 >
                                     <Upload className="w-4 h-4" />
                                     {t('search.uploadCover')}
                                 </label>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-gray-500">
                                     {t('search.coverHint')}
                                 </p>
                             </div>
