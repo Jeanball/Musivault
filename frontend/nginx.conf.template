@@ -44,6 +44,9 @@ http {
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-XSS-Protection "1; mode=block" always;
 
+        # Allow larger request bodies (album covers, etc.)
+        client_max_body_size 10m;
+
         # API proxy
         location /api {
             proxy_pass http://${BACKEND_HOST}:${BACKEND_PORT};
