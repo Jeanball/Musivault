@@ -2,6 +2,21 @@
 
 Find all the new features and improvements added to the app right here!
 
+## [1.13.0] - 2026-06-06
+
+### What's New
+- **Discover Page Album Showcases**: You can now view the latest albums added by public users directly within their collection summary on the Discover page.
+- **Mobile-Friendly Layout**: Implemented a smooth horizontal scrolling carousel for the latest albums when viewing the Discover page on mobile devices.
+
+### Improvements
+- **Larger Artwork Uploads**: Increased the image upload size limit to 10MB to support higher-resolution album cover uploads.
+- **Redesigned Public Modals**: Refreshed the visual styling of format badges and redesigned the public album modal for a cleaner, more cohesive experience.
+- **Profile Synchronization**: The app now automatically populates and keeps your Display Name in sync with your full name from OIDC Identity Providers.
+
+### Bug Fixes
+- **OIDC Username Conflation**: Fixed an issue where signing in via OIDC incorrectly configured your full name as your username. It now correctly uses your shorthand preferred username, keeping full names reserved for your display name.
+
+---
 ## [1.12.0] - 2026-05-02
 
 ### What's New

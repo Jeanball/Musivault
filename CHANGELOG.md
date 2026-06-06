@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.13.0] - 2026-06-06
+
+### Added
+- feat: display latest user album additions on the Discover page and add backend API endpoint to retrieve them.
+- ui: implement horizontal scrolling layout for latest albums on mobile devices
+- feat: increase client_max_body_size to 10m in nginx configuration to support larger file uploads
+- ui: responsive layout adjustments for album cover upload and updated French translation label
+- feat: separate username and display name logic and sync display name on OIDC login
+
+### Changed
+- refactor: update format badge styling and redesign PublicAlbumModal layout
+
+---
+
 ## [1.12.0] - 2026-05-02
 
 ### Added
@@ -380,7 +394,8 @@ Once configured, you can fetch prices from the **Admin Task Center**.
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/Jeanball/Musivault/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/Jeanball/Musivault/compare/v1.11.1...v1.12.0
 [1.11.1]: https://github.com/Jeanball/Musivault/compare/v1.11.0...v1.11.1
 [1.11.0]: https://github.com/Jeanball/Musivault/compare/v1.10.0...v1.11.0
