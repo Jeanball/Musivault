@@ -111,7 +111,8 @@ export async function handleOIDCCallback(req: Request, res: Response) {
 
         const sub = claims.sub;
         const email = claims.email as string | undefined;
-        const name = (claims.name || claims.preferred_username || email?.split('@')[0] || 'User') as string;
+        const username = (claims.preferred_username || email?.split('@')[0] || 'User') as string;
+        const displayName = (claims.name || username) as string;
 
         if (!email) {
             res.status(400).json({ message: 'Email not provided by OIDC provider. Please ensure your IdP shares the email claim.' });
@@ -132,12 +133,15 @@ export async function handleOIDCCallback(req: Request, res: Response) {
                 user.authProvider = 'oidc';
                 user.authId = sub;
             }
+            // Keep display name in sync with IdP
+            user.displayName = displayName;
             user.lastLogin = new Date();
             await user.save();
         } else {
             // Create new OIDC user
             user = new User({
-                username: name,
+                username,
+                displayName,
                 email: email.toLowerCase(),
                 authProvider: 'oidc',
                 authId: sub,
