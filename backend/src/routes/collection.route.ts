@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -46,7 +46,7 @@ const coverStorage = multer.diskStorage({
 
 const coverUpload = multer({
     storage: coverStorage,
-    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (allowedTypes.includes(file.mimetype)) {
@@ -69,7 +69,23 @@ router.get('/styles', protectRoute, getStyles);
 router.get('/sync-info', protectRoute, getCollectionSyncInfo);
 
 // Manual album entry (must be before /:itemId to avoid route conflicts)
-router.post('/manual', protectRoute, coverUpload.single('cover'), addManualAlbum);
+// Wrap with error handler to catch MulterError (file too large, wrong type, etc.)
+router.post('/manual', protectRoute, (req: Request, res: Response, next: NextFunction) => {
+    coverUpload.single('cover')(req, res, (err: any) => {
+        if (err instanceof multer.MulterError) {
+            console.warn(`[ManualAlbum] Multer error: ${err.code} - ${err.message} (field: ${err.field})`);
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(413).json({ message: 'Cover image is too large. Maximum size is 5 MB.' });
+            }
+            return res.status(400).json({ message: `Upload error: ${err.message}` });
+        }
+        if (err) {
+            console.warn(`[ManualAlbum] Upload error: ${err.message}`);
+            return res.status(400).json({ message: err.message || 'Invalid file upload' });
+        }
+        next();
+    });
+}, addManualAlbum);
 
 // Collection CRUD
 // Collection CRUD
