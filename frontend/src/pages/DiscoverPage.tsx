@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Users, Music, Mic, Lock, Calendar, Ticket, AlertCircle } from 'lucide-react';
 import { getImageUrl } from '../utils/imageUrl';
 import PublicAlbumModal from '../components/Modal/PublicAlbumModal';
+import ShowsNearYou from '../components/Shows/ShowsNearYou';
 import type { CollectionItem } from '../types/collection.types';
 
 interface PublicUser {
@@ -177,24 +178,15 @@ const DiscoverPage: React.FC = () => {
                 </div>
             </section>
 
-            {/* Section 3: Shows Near You - Coming Soon */}
+            {/* Section 3: Shows Near You */}
             <section>
-                <div className="flex flex-wrap items-center gap-2 mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-6">
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                         <Mic size={24} />
                         {t('discover.showsNearYou')}
                     </h2>
-                    <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
                 </div>
-                <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
-                    <div className="flex justify-center mb-4">
-                        <Ticket size={48} />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">{t('discover.liveConcerts')}</h3>
-                    <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
-                        {t('discover.showsDescription')}
-                    </p>
-                </div>
+                <ShowsNearYou />
             </section>
             <PublicAlbumModal
                 item={selectedAlbum}

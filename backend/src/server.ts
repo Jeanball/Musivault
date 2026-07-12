@@ -18,6 +18,7 @@ import collectionRoute from './routes/collection.route'
 import publicRoute from './routes/public.route'
 import preferencesRoute from './routes/preferences.route'
 import adminRoute from './routes/admin.route'
+import showsRoute from './routes/shows.route'
 
 // Scripts
 import { seedAdminUser } from "./scripts/seed"
@@ -129,6 +130,7 @@ app.use('/api/collection', collectionRoute)
 app.use('/api/public', publicRoute)
 app.use('/api/preferences', preferencesRoute)
 app.use('/api/admin', adminRoute)
+app.use('/api/shows', showsRoute)
 
 // Serve uploaded files (cover images for manual albums)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

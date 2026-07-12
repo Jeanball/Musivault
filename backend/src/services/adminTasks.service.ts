@@ -5,6 +5,7 @@ import { executePriceSync } from '../controllers/collection.controller';
 import type { PopulatedCollectionItem } from '../controllers/collection.controller';
 import { getPriceTTLHours } from '../utils/price.utils';
 import ExchangeRates from '../models/ExchangeRates';
+import { refreshAllShowsCache } from './shows.service';
 
 // ===== Types =====
 
@@ -133,6 +134,18 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
       onProgress({ type: 'complete' });
 
       return 'Fetched and updated daily exchange rates from open.er-api.com.';
+    },
+  },
+  {
+    id: 'refresh-shows-cache',
+    intervalMs: 7 * 24 * 60 * 60 * 1000, // 7 days
+    get intervalLabel() { return '7 days'; },
+    getNextExecutionAt: async (lastExecution) => {
+      if (!lastExecution) return new Date();
+      return rollForward(lastExecution.executedAt, 7 * 24 * 60 * 60 * 1000);
+    },
+    runBackground: async (onProgress, options) => {
+      return refreshAllShowsCache(onProgress, { forceRefresh: options.forceRefresh });
     },
   },
 ];
