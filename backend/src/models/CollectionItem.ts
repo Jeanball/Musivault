@@ -34,6 +34,7 @@ export interface ICollectionItem extends Document {
   sleeveCondition?: string;
   priceCache?: IPriceCache;
   formatVerification?: IFormatVerification | null;
+  customFields?: Map<string, string>;
   addedAt: Date;
 }
 
@@ -93,6 +94,11 @@ const collectionItemSchema = new Schema<ICollectionItem>({
   formatVerification: {
     type: formatVerificationSchema,
     default: null,
+  },
+  customFields: {
+    type: Map,
+    of: String,
+    default: () => new Map(),
   },
   addedAt: {
     type: Date,

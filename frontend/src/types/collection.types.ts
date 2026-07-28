@@ -1,4 +1,5 @@
 import type { FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import type { CustomFieldValues } from './customFields.types';
 
 export interface Track {
     position: string;
@@ -75,6 +76,7 @@ export interface CollectionItem {
     sleeveCondition?: string | null;
     priceCache?: PriceCache | null;
     formatVerification?: FormatVerification | null;
+    customFields?: CustomFieldValues | null;
     addedAt: string;
 }
 

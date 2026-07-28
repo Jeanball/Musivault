@@ -566,5 +566,31 @@
             "noCover": "No Cover",
             "none": "Not Set"
         }
+    },
+    "customFields": {
+        "title": "Custom Fields",
+        "description": "Define custom fields for your collection items. For example, add a \"Shelf\" field to track where a vinyl is stored, or a \"Notes\" field for personal info.",
+        "itemSectionTitle": "Custom Fields",
+        "fieldName": "Field Name",
+        "fieldType": "Field Type",
+        "examplePlaceholder": "Example / Placeholder",
+        "typeText": "Short text",
+        "typeTextarea": "Long text (notes)",
+        "addField": "Add Custom Field",
+        "editField": "Edit Custom Field",
+        "namePlaceholder": "e.g. Shelf, Notes, Purchase Date",
+        "placeholderHint": "e.g. Shelf A, Row 3",
+        "placeholderDescription": "Shown as a hint when filling in this field on an album.",
+        "emptyState": "No custom fields yet. Create templates here, then fill them in on each album in your collection.",
+        "nameRequired": "Field name is required",
+        "created": "Custom field created!",
+        "updated": "Custom field updated!",
+        "deleted": "Custom field deleted",
+        "confirmDelete": "Delete this custom field? Values saved on your albums will also be removed.",
+        "failedLoad": "Failed to load custom fields",
+        "failedSave": "Failed to save custom field",
+        "failedDelete": "Failed to delete custom field",
+        "valueSaved": "Custom field saved",
+        "failedSaveValue": "Failed to save custom field value"
     }
 }

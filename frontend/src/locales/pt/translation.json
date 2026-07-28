@@ -542,5 +542,31 @@
             "noCover": "Sem Capa",
             "none": "Não Definido"
         }
+    },
+    "customFields": {
+        "title": "Campos personalizados",
+        "description": "Defina campos personalizados para os seus álbuns. Por exemplo um campo \"Prateleira\" ou \"Notas\".",
+        "itemSectionTitle": "Campos personalizados",
+        "fieldName": "Nome do campo",
+        "fieldType": "Tipo de campo",
+        "examplePlaceholder": "Exemplo / Placeholder",
+        "typeText": "Texto curto",
+        "typeTextarea": "Texto longo (notas)",
+        "addField": "Adicionar campo",
+        "editField": "Editar campo",
+        "namePlaceholder": "ex. Prateleira, Notas, Data de compra",
+        "placeholderHint": "ex. Prateleira A, Fila 3",
+        "placeholderDescription": "Mostrado como dica ao preencher este campo num álbum.",
+        "emptyState": "Ainda não há campos personalizados. Crie modelos aqui e preencha-os em cada álbum.",
+        "nameRequired": "O nome do campo é obrigatório",
+        "created": "Campo criado!",
+        "updated": "Campo atualizado!",
+        "deleted": "Campo eliminado",
+        "confirmDelete": "Eliminar este campo? Os valores guardados nos seus álbuns também serão removidos.",
+        "failedLoad": "Não foi possível carregar os campos",
+        "failedSave": "Não foi possível guardar o campo",
+        "failedDelete": "Não foi possível eliminar o campo",
+        "valueSaved": "Campo guardado",
+        "failedSaveValue": "Não foi possível guardar o valor"
     }
 }

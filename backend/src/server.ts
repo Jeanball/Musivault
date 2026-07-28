@@ -18,6 +18,7 @@ import collectionRoute from './routes/collection.route'
 import publicRoute from './routes/public.route'
 import preferencesRoute from './routes/preferences.route'
 import adminRoute from './routes/admin.route'
+import customFieldsRoute from './routes/customFields.route'
 
 // Scripts
 import { seedAdminUser } from "./scripts/seed"
@@ -128,6 +129,7 @@ app.use('/api/auth', rateLimit({
 app.use('/api/collection', collectionRoute)
 app.use('/api/public', publicRoute)
 app.use('/api/preferences', preferencesRoute)
+app.use('/api/custom-fields', customFieldsRoute)
 app.use('/api/admin', adminRoute)
 
 // Serve uploaded files (cover images for manual albums)

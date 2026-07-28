@@ -14,6 +14,7 @@ import { getImageUrl } from '../utils/imageUrl';
 import { getFormatButtonStyle } from '../utils/formatColors';
 import { getFormatVerificationMessage, hasActiveFormatVerificationIssue, hasIgnoredFormatVerificationIssue } from '../utils/formatVerification';
 import FormatVerificationBadge from '../components/Collection/FormatVerificationBadge';
+import CustomFieldsEditor from '../components/Collection/CustomFieldsEditor';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface PreferencesResponse {
@@ -480,6 +481,13 @@ const AlbumDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Custom Fields */}
+            <CustomFieldsEditor
+                itemId={item._id}
+                values={item.customFields}
+                onUpdate={(customFields) => setItem((prev) => (prev ? { ...prev, customFields } : null))}
+            />
 
             {/* Tracklist Section */}
             {tracklist.length > 0 && (

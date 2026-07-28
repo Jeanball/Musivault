@@ -542,5 +542,31 @@
             "noCover": "无封套",
             "none": "未设置"
         }
+    },
+    "customFields": {
+        "title": "自定义字段",
+        "description": "为收藏条目定义自定义字段。例如添加“书架”字段记录存放位置，或“备注”字段记录个人信息。",
+        "itemSectionTitle": "自定义字段",
+        "fieldName": "字段名称",
+        "fieldType": "字段类型",
+        "examplePlaceholder": "示例 / 占位符",
+        "typeText": "短文本",
+        "typeTextarea": "长文本（备注）",
+        "addField": "添加自定义字段",
+        "editField": "编辑自定义字段",
+        "namePlaceholder": "例如：书架、备注、购买日期",
+        "placeholderHint": "例如：A架第3行",
+        "placeholderDescription": "在专辑页面填写此字段时显示的提示。",
+        "emptyState": "还没有自定义字段。在此创建模板，然后在每张专辑上填写。",
+        "nameRequired": "字段名称为必填项",
+        "created": "字段已创建！",
+        "updated": "字段已更新！",
+        "deleted": "字段已删除",
+        "confirmDelete": "删除此字段？专辑上已保存的值也将被移除。",
+        "failedLoad": "加载字段失败",
+        "failedSave": "保存字段失败",
+        "failedDelete": "删除字段失败",
+        "valueSaved": "字段已保存",
+        "failedSaveValue": "保存字段值失败"
     }
 }
