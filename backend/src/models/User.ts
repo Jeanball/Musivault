@@ -11,7 +11,7 @@ export interface IUserPreferences {
   preferredCurrency: string
 }
 
-export interface IUser extends Document {
+export interface IUser extends Document<mongoose.Types.ObjectId> {
   username: string
   email: string
   displayName?: string

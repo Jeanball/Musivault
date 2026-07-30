@@ -538,5 +538,31 @@
             "noCover": "Ohne Cover",
             "none": "Nicht festgelegt"
         }
+    },
+    "customFields": {
+        "title": "Benutzerdefinierte Felder",
+        "description": "Definiere benutzerdefinierte Felder für deine Sammlung. Zum Beispiel ein \"Regal\"-Feld oder ein \"Notizen\"-Feld.",
+        "itemSectionTitle": "Benutzerdefinierte Felder",
+        "fieldName": "Feldname",
+        "fieldType": "Feldtyp",
+        "examplePlaceholder": "Beispiel / Platzhalter",
+        "typeText": "Kurzer Text",
+        "typeTextarea": "Langer Text (Notizen)",
+        "addField": "Feld hinzufügen",
+        "editField": "Feld bearbeiten",
+        "namePlaceholder": "z.B. Regal, Notizen, Kaufdatum",
+        "placeholderHint": "z.B. Regal A, Reihe 3",
+        "placeholderDescription": "Wird als Hinweis angezeigt, wenn du dieses Feld bei einem Album ausfüllst.",
+        "emptyState": "Noch keine benutzerdefinierten Felder. Erstelle Vorlagen hier und fülle sie bei jedem Album aus.",
+        "nameRequired": "Feldname ist erforderlich",
+        "created": "Feld erstellt!",
+        "updated": "Feld aktualisiert!",
+        "deleted": "Feld gelöscht",
+        "confirmDelete": "Dieses Feld löschen? Gespeicherte Werte auf deinen Alben werden ebenfalls entfernt.",
+        "failedLoad": "Felder konnten nicht geladen werden",
+        "failedSave": "Feld konnte nicht gespeichert werden",
+        "failedDelete": "Feld konnte nicht gelöscht werden",
+        "valueSaved": "Feld gespeichert",
+        "failedSaveValue": "Feldwert konnte nicht gespeichert werden"
     }
 }

@@ -565,5 +565,31 @@
             "noCover": "Sans pochette",
             "none": "Non défini"
         }
+    },
+    "customFields": {
+        "title": "Champs personnalisés",
+        "description": "Définissez des champs personnalisés pour vos albums. Par exemple un champ \"Étagère\" ou \"Notes\".",
+        "itemSectionTitle": "Champs personnalisés",
+        "fieldName": "Nom du champ",
+        "fieldType": "Type de champ",
+        "examplePlaceholder": "Exemple / Placeholder",
+        "typeText": "Texte court",
+        "typeTextarea": "Texte long (notes)",
+        "addField": "Ajouter un champ",
+        "editField": "Modifier le champ",
+        "namePlaceholder": "ex. Étagère, Notes, Date d'achat",
+        "placeholderHint": "ex. Étagère A, Rangée 3",
+        "placeholderDescription": "Affiché comme indication lors du remplissage de ce champ sur un album.",
+        "emptyState": "Aucun champ personnalisé. Créez des modèles ici, puis remplissez-les sur chaque album.",
+        "nameRequired": "Le nom du champ est requis",
+        "created": "Champ créé !",
+        "updated": "Champ mis à jour !",
+        "deleted": "Champ supprimé",
+        "confirmDelete": "Supprimer ce champ ? Les valeurs enregistrées sur vos albums seront également supprimées.",
+        "failedLoad": "Impossible de charger les champs",
+        "failedSave": "Impossible d'enregistrer le champ",
+        "failedDelete": "Impossible de supprimer le champ",
+        "valueSaved": "Champ enregistré",
+        "failedSaveValue": "Impossible d'enregistrer la valeur"
     }
 }

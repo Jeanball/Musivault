@@ -8,6 +8,7 @@ import { getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
 import type { DiscogsReleaseResponse } from '../types/discogs.types';
 import AdminTaskExecution from '../models/AdminTaskExecution';
+import { validateCustomFieldValues } from './customFields.controller';
 
 // ===== Types =====
 
@@ -512,7 +513,7 @@ export async function updateCollectionItem(req: Request, res: Response) {
     }
 
     const { itemId } = req.params;
-    const { format, mediaCondition, sleeveCondition } = req.body;
+    const { format, mediaCondition, sleeveCondition, customFields } = req.body;
 
     if (format !== undefined) {
       res.status(400).json({ message: 'Manual format updates are not supported. Please use rematch instead.' });
@@ -528,6 +529,25 @@ export async function updateCollectionItem(req: Request, res: Response) {
 
     if (sleeveCondition !== undefined) {
       updateFields["sleeveCondition"] = sleeveCondition;
+    }
+
+    if (customFields !== undefined) {
+      if (typeof customFields !== 'object' || customFields === null || Array.isArray(customFields)) {
+        res.status(400).json({ message: 'customFields must be an object' });
+        return;
+      }
+
+      const validation = await validateCustomFieldValues(
+        req.user._id.toString(),
+        customFields as Record<string, string>
+      );
+
+      if (!validation.valid) {
+        res.status(400).json({ message: validation.error });
+        return;
+      }
+
+      updateFields["customFields"] = validation.sanitized;
     }
 
     // Require at least one field to update
