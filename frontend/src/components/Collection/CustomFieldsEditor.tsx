@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { toastService } from '../../utils/toast';
@@ -20,11 +20,13 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
     const [definitions, setDefinitions] = useState<CustomFieldDefinition[]>([]);
     const [localValues, setLocalValues] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
-    const [savingFieldId, setSavingFieldId] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const initialValues = useMemo(() => normalizeCustomFieldValues(values), [values]);
 
     useEffect(() => {
-        setLocalValues(normalizeCustomFieldValues(values));
-    }, [values]);
+        setLocalValues(initialValues);
+    }, [initialValues]);
 
     useEffect(() => {
         axios
@@ -34,34 +36,44 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
             .finally(() => setIsLoading(false));
     }, []);
 
-    const saveField = async (fieldId: string, value: string) => {
-        const currentValues = normalizeCustomFieldValues(values);
-        if ((currentValues[fieldId] || '') === value) {
-            return;
+    const isDirty = useMemo(() => {
+        return definitions.some((field) => {
+            const initialVal = initialValues[field._id] || '';
+            const localVal = localValues[field._id] || '';
+            return initialVal !== localVal;
+        });
+    }, [definitions, initialValues, localValues]);
+
+    const handleSave = async (e?: React.FormEvent) => {
+        if (e) {
+            e.preventDefault();
         }
 
-        setSavingFieldId(fieldId);
-        try {
-            const updatedValues = {
-                ...currentValues,
-                [fieldId]: value,
-            };
+        setIsSaving(true);
+        const startTime = Date.now();
 
+        try {
             const response = await axios.put(
                 `/api/collection/${itemId}`,
-                { customFields: updatedValues },
+                { customFields: localValues },
                 { withCredentials: true }
             );
+
+            // Minimum loading duration of 400ms so the user sees the spinner feedback clearly
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 400) {
+                await new Promise((resolve) => setTimeout(resolve, 400 - elapsedTime));
+            }
 
             const savedValues = normalizeCustomFieldValues(response.data.customFields);
             onUpdate(savedValues);
             toastService.success(t('customFields.valueSaved'));
         } catch (error) {
-            console.error('Failed to save custom field value:', error);
+            console.error('Failed to save custom field values:', error);
             toastService.error(t('customFields.failedSaveValue'));
-            setLocalValues(normalizeCustomFieldValues(values));
+            setLocalValues(initialValues);
         } finally {
-            setSavingFieldId(null);
+            setIsSaving(false);
         }
     };
 
@@ -89,48 +101,64 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
                 {t('customFields.itemSectionTitle')}
             </summary>
             <div className="collapse-content">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    {definitions.map((field) => (
-                        <div key={field._id} className="form-control">
-                            <label className="label">
-                                <span className="label-text font-semibold">{field.name}</span>
-                                {savingFieldId === field._id && (
-                                    <span className="loading loading-spinner loading-xs"></span>
+                <form onSubmit={handleSave}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1 items-start">
+                        {definitions.map((field) => (
+                            <div key={field._id} className="form-control">
+                                <label className="label py-1">
+                                    <span className="label-text font-semibold text-sm">{field.name}</span>
+                                </label>
+                                {field.type === 'textarea' ? (
+                                    <textarea
+                                        className="textarea textarea-bordered h-20 text-sm"
+                                        value={localValues[field._id] || ''}
+                                        placeholder={field.placeholder || undefined}
+                                        onChange={(e) =>
+                                            setLocalValues((prev) => ({
+                                                ...prev,
+                                                [field._id]: e.target.value,
+                                            }))
+                                        }
+                                        disabled={isSaving}
+                                    />
+                                ) : (
+                                    <input
+                                        type="text"
+                                        className="input input-bordered h-10 text-sm"
+                                        value={localValues[field._id] || ''}
+                                        placeholder={field.placeholder || undefined}
+                                        onChange={(e) =>
+                                            setLocalValues((prev) => ({
+                                                ...prev,
+                                                [field._id]: e.target.value,
+                                            }))
+                                        }
+                                        disabled={isSaving}
+                                    />
                                 )}
-                            </label>
-                            {field.type === 'textarea' ? (
-                                <textarea
-                                    className="textarea textarea-bordered min-h-24"
-                                    value={localValues[field._id] || ''}
-                                    placeholder={field.placeholder || undefined}
-                                    onChange={(e) =>
-                                        setLocalValues((prev) => ({
-                                            ...prev,
-                                            [field._id]: e.target.value,
-                                        }))
-                                    }
-                                    onBlur={(e) => saveField(field._id, e.target.value)}
-                                    disabled={savingFieldId === field._id}
-                                />
-                            ) : (
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={localValues[field._id] || ''}
-                                    placeholder={field.placeholder || undefined}
-                                    onChange={(e) =>
-                                        setLocalValues((prev) => ({
-                                            ...prev,
-                                            [field._id]: e.target.value,
-                                        }))
-                                    }
-                                    onBlur={(e) => saveField(field._id, e.target.value)}
-                                    disabled={savingFieldId === field._id}
-                                />
-                            )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {isDirty && (
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                type="submit"
+                                className="btn btn-primary btn-sm flex items-center gap-2 min-w-28"
+                                disabled={isSaving}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <span className="loading loading-spinner loading-xs text-primary-content"></span>
+                                        <span>{t('common.save')}</span>
+                                    </>
+                                ) : (
+                                    <span>{t('common.save')}</span>
+                                )}
+                            </button>
                         </div>
-                    ))}
-                </div>
+                    )}
+                </form>
             </div>
         </details>
     );
