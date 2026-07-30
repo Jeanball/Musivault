@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export type CustomFieldType = "text" | "textarea";
 
-export interface ICustomFieldDefinition extends Document {
+export interface ICustomFieldDefinition extends Document<mongoose.Types.ObjectId> {
   user: mongoose.Types.ObjectId;
   name: string;
   type: CustomFieldType;
