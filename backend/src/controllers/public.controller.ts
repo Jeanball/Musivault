@@ -21,8 +21,9 @@ export async function getPublicCollection(req: Request, res: Response) {
             return;
         }
 
-        // Fetch collection items for this user
+        // Fetch collection items for this user (customFields is private, never exposed publicly)
         const collection = await CollectionItem.find({ user: user._id })
+            .select('-customFields')
             .populate<{ album: IAlbum }>('album');
 
         // Sort by artist
@@ -56,6 +57,7 @@ export async function getPublicUsers(req: Request, res: Response) {
                 const albumCount = await CollectionItem.countDocuments({ user: user._id });
                 
                 const latestAlbums = await CollectionItem.find({ user: user._id })
+                    .select('-customFields')
                     .sort({ addedAt: -1 })
                     .limit(5)
                     .populate<{ album: IAlbum }>('album');
@@ -86,8 +88,9 @@ export async function getLatestPublicAlbums(req: Request, res: Response) {
         const publicUsers = await User.find({ 'preferences.isPublic': true }).select('_id');
         const publicUserIds = publicUsers.map(u => u._id);
 
-        // Fetch latest collection items for these users
+        // Fetch latest collection items for these users (customFields is private, never exposed publicly)
         const latestItems = await CollectionItem.find({ user: { $in: publicUserIds } })
+            .select('-customFields')
             .sort({ addedAt: -1 })
             .limit(6)
             .populate<{ album: IAlbum }>('album')

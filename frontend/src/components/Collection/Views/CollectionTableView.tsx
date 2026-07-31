@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { CollectionItem, SortColumn } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import FormatVerificationBadge from '../FormatVerificationBadge';
+import FormatColorBadge from '../FormatColorBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
-import { getFormatButtonStyle } from '../../../utils/formatColors';
 
 interface CollectionTableViewProps {
     items: CollectionItem[];
@@ -96,13 +96,11 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                 </div>
                                 {item.format.text && item.format.text !== item.format.name && (
                                     <div className="mt-1.5">
-                                        <span
-                                            className="badge border text-xs"
-                                            style={getFormatButtonStyle(item.format.text, [])}
+                                        <FormatColorBadge
+                                            text={item.format.text}
+                                            className="text-xs min-h-5 py-0.5"
                                             title={item.format.text}
-                                        >
-                                            {item.format.text}
-                                        </span>
+                                        />
                                     </div>
                                 )}
                             </td>

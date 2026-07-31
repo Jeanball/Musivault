@@ -4,8 +4,8 @@ import type { CollectionItem } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
 import FormatVerificationBadge from '../FormatVerificationBadge';
+import FormatColorBadge from '../FormatColorBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
-import { getFormatButtonStyle } from '../../../utils/formatColors';
 
 interface CollectionListViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -65,13 +65,11 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                             </div>
                                             {item.format.text && item.format.text !== item.format.name && (
                                                 <div className="mt-1">
-                                                    <span
-                                                        className="badge border text-xs"
-                                                        style={getFormatButtonStyle(item.format.text, [])}
+                                                    <FormatColorBadge
+                                                        text={item.format.text}
+                                                        className="text-xs min-h-5 py-0.5"
                                                         title={item.format.text}
-                                                    >
-                                                        {item.format.text}
-                                                    </span>
+                                                    />
                                                 </div>
                                             )}
                                         </td>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toastService } from '../../utils/toast';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
 import { normalizeCustomFieldValues } from '../../types/customFields.types';
+import SpecRow from './SpecRow';
 
 interface CustomFieldsEditorProps {
     itemId: string;
@@ -79,15 +80,9 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
 
     if (isLoading) {
         return (
-            <div className="collapse collapse-arrow bg-base-200 shadow-xl mb-8">
-                <input type="checkbox" />
-                <div className="collapse-title text-2xl font-bold">
-                    {t('customFields.title')}
-                </div>
-                <div className="collapse-content">
-                    <span className="loading loading-spinner loading-md"></span>
-                </div>
-            </div>
+            <SpecRow label={t('customFields.title')}>
+                <span className="loading loading-spinner loading-xs"></span>
+            </SpecRow>
         );
     }
 
@@ -96,71 +91,59 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
     }
 
     return (
-        <details className="collapse collapse-arrow bg-base-200 shadow-xl mb-8" open>
-            <summary className="collapse-title text-2xl font-bold">
-                {t('customFields.itemSectionTitle')}
-            </summary>
-            <div className="collapse-content">
-                <form onSubmit={handleSave}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1 items-start">
-                        {definitions.map((field) => (
-                            <div key={field._id} className="form-control">
-                                <label className="label py-1">
-                                    <span className="label-text font-semibold text-sm">{field.name}</span>
-                                </label>
-                                {field.type === 'textarea' ? (
-                                    <textarea
-                                        className="textarea textarea-bordered h-20 text-sm"
-                                        value={localValues[field._id] || ''}
-                                        placeholder={field.placeholder || undefined}
-                                        onChange={(e) =>
-                                            setLocalValues((prev) => ({
-                                                ...prev,
-                                                [field._id]: e.target.value,
-                                            }))
-                                        }
-                                        disabled={isSaving}
-                                    />
-                                ) : (
-                                    <input
-                                        type="text"
-                                        className="input input-bordered h-10 text-sm"
-                                        value={localValues[field._id] || ''}
-                                        placeholder={field.placeholder || undefined}
-                                        onChange={(e) =>
-                                            setLocalValues((prev) => ({
-                                                ...prev,
-                                                [field._id]: e.target.value,
-                                            }))
-                                        }
-                                        disabled={isSaving}
-                                    />
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    {isDirty && (
-                        <div className="mt-4 flex justify-end">
-                            <button
-                                type="submit"
-                                className="btn btn-primary btn-sm flex items-center gap-2 min-w-28"
-                                disabled={isSaving}
-                            >
-                                {isSaving ? (
-                                    <>
-                                        <span className="loading loading-spinner loading-xs text-primary-content"></span>
-                                        <span>{t('common.save')}</span>
-                                    </>
-                                ) : (
-                                    <span>{t('common.save')}</span>
-                                )}
-                            </button>
-                        </div>
+        <form onSubmit={handleSave}>
+            {definitions.map((field) => (
+                <SpecRow key={field._id} label={field.name}>
+                    {field.type === 'textarea' ? (
+                        <textarea
+                            className="textarea textarea-bordered textarea-sm w-full h-16"
+                            value={localValues[field._id] || ''}
+                            placeholder={field.placeholder || undefined}
+                            onChange={(e) =>
+                                setLocalValues((prev) => ({
+                                    ...prev,
+                                    [field._id]: e.target.value,
+                                }))
+                            }
+                            disabled={isSaving}
+                        />
+                    ) : (
+                        <input
+                            type="text"
+                            className="input input-bordered input-sm w-full"
+                            value={localValues[field._id] || ''}
+                            placeholder={field.placeholder || undefined}
+                            onChange={(e) =>
+                                setLocalValues((prev) => ({
+                                    ...prev,
+                                    [field._id]: e.target.value,
+                                }))
+                            }
+                            disabled={isSaving}
+                        />
                     )}
-                </form>
-            </div>
-        </details>
+                </SpecRow>
+            ))}
+
+            {isDirty && (
+                <div className="flex justify-end py-2">
+                    <button
+                        type="submit"
+                        className="btn btn-primary btn-sm flex items-center gap-2 min-w-28"
+                        disabled={isSaving}
+                    >
+                        {isSaving ? (
+                            <>
+                                <span className="loading loading-spinner loading-xs text-primary-content"></span>
+                                <span>{t('common.save')}</span>
+                            </>
+                        ) : (
+                            <span>{t('common.save')}</span>
+                        )}
+                    </button>
+                </div>
+            )}
+        </form>
     );
 };
 

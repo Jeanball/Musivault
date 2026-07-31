@@ -4,8 +4,8 @@ import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
 import { hasActiveFormatVerificationIssue } from '../../../utils/formatVerification';
 import FormatVerificationBadge from '../FormatVerificationBadge';
+import FormatColorBadge from '../FormatColorBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
-import { getFormatButtonStyle } from '../../../utils/formatColors';
 
 interface CollectionGridViewProps {
     groupedItems: Record<string, CollectionItem[]>;
@@ -75,13 +75,11 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                     </div>
                                     {item.format.text && item.format.text !== item.format.name && (
                                         <div className="mt-1.5 flex">
-                                            <span
-                                                className="badge border text-[10px] py-2 truncate max-w-full"
-                                                style={getFormatButtonStyle(item.format.text, [])}
+                                            <FormatColorBadge
+                                                text={item.format.text}
+                                                className="text-[10px] py-1 min-h-4 max-w-full"
                                                 title={item.format.text}
-                                            >
-                                                {item.format.text}
-                                            </span>
+                                            />
                                         </div>
                                     )}
                                 </div>

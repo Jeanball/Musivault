@@ -11,10 +11,12 @@ import type { AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { getImageUrl } from '../utils/imageUrl';
-import { getFormatButtonStyle } from '../utils/formatColors';
 import { getFormatVerificationMessage, hasActiveFormatVerificationIssue, hasIgnoredFormatVerificationIssue } from '../utils/formatVerification';
+import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../utils/brandColors';
 import FormatVerificationBadge from '../components/Collection/FormatVerificationBadge';
+import FormatColorBadge from '../components/Collection/FormatColorBadge';
 import CustomFieldsEditor from '../components/Collection/CustomFieldsEditor';
+import SpecRow from '../components/Collection/SpecRow';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface PreferencesResponse {
@@ -182,6 +184,7 @@ const AlbumDetailPage: React.FC = () => {
     const album = item.album;
     const tracklist = album.tracklist || [];
     const labels = album.labels || [];
+    const genres = album.styles || [];
     const hasActiveFormatIssue = hasActiveFormatVerificationIssue(item.formatVerification);
     const hasIgnoredFormatIssue = hasIgnoredFormatVerificationIssue(item.formatVerification);
 
@@ -240,209 +243,122 @@ const AlbumDetailPage: React.FC = () => {
                 </button>
             </div>
 
-            {/* Header Section */}
-            <div className="flex flex-col lg:flex-row gap-8 mb-8">
-                {/* Album Cover */}
-                <div className="flex-shrink-0">
+            {/* Dossier */}
+            <div className="flex flex-col lg:flex-row gap-8 sm:border sm:border-base-300 sm:p-6">
+                {/* Cover column */}
+                <div className="flex-shrink-0 lg:w-60 flex flex-col gap-4">
                     <img
                         src={getImageUrl(album.cover_image || '/placeholder-album.svg')}
                         alt={album.title}
-                        className="w-full lg:w-96 h-auto rounded-xl shadow-2xl"
+                        className="w-full aspect-square object-cover border border-base-300"
                     />
-                </div>
 
-                {/* Album Information */}
-                <div className="flex-1">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-3">{album.title}</h1>
-                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-2">{stripArtistSuffix(album.artist)}</h2>
-                    {labels.length > 0 && (
-                        <p className="text-base text-base-content/60 mb-6">
-                            <span>{t('album.label')}: </span>
-                            <span className="text-base-content">{labels[0].name}</span>
-                        </p>
-                    )}
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                        <div className="stat bg-base-200 rounded-lg p-4">
-                            <div className="stat-title">{t('common.year')}</div>
-                            <div className="stat-value text-2xl">{album.year || '—'}</div>
-                        </div>
-                        <div className="stat bg-base-200 rounded-lg p-4">
-                            <div className="stat-title flex items-center gap-2">
-                                <span>{t('common.format')}</span>
-                                <FormatVerificationBadge verification={item.formatVerification} />
-                            </div>
-                            <div className="stat-value text-2xl flex items-center gap-2">
-                                <span>{item.format.name}</span>
-                            </div>
-                            {hasIgnoredFormatIssue && (
-                                <div className="mt-2 flex items-center gap-2 text-xs text-base-content/60">
-                                    <span>{t('formatVerification.ignoredLabel')}</span>
-                                    <button
-                                        onClick={handleRestoreFormatAlert}
-                                        className={`btn btn-ghost btn-xs min-h-0 h-auto px-1 normal-case ${isRestoringFormatAlert ? 'loading' : ''}`}
-                                        disabled={isRestoringFormatAlert}
-                                    >
-                                        {t('formatVerification.undoAction')}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        <div className="stat bg-base-200 rounded-lg p-4">
-                            <div className="stat-title">{t('collection.added')}</div>
-                            <div className="stat-value text-lg">
-                                {new Date(item.addedAt).toLocaleDateString()}
-                            </div>
-                        </div>
-                        {/* Condition selectors - only show when feature is enabled */}
-                        {conditionGradingEnabled && (
-                            <>
-                                <div className="stat bg-base-200 rounded-lg p-4 overflow-hidden">
-                                    <div className="stat-title">{t('condition.media')}</div>
-                                    <div className="stat-value text-2xl">
-                                        <select
-                                            className="select select-bordered select-sm bg-base-200 text-base-content font-bold w-full max-w-[130px]"
-                                            value={item.mediaCondition || ''}
-                                            onChange={(e) => updateCondition('mediaCondition', e.target.value || null)}
-                                        >
-                                            <option value="">{t('condition.grades.none')}</option>
-                                            {MEDIA_CONDITIONS.map((cond) => (
-                                                <option key={cond.value} value={cond.value}>
-                                                    {t(cond.labelKey)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="stat bg-base-200 rounded-lg p-4 overflow-hidden">
-                                    <div className="stat-title">{t('condition.sleeve')}</div>
-                                    <div className="stat-value text-2xl">
-                                        <select
-                                            className="select select-bordered select-sm bg-base-200 text-base-content font-bold w-full max-w-[130px]"
-                                            value={item.sleeveCondition || ''}
-                                            onChange={(e) => updateCondition('sleeveCondition', e.target.value || null)}
-                                        >
-                                            <option value="">{t('condition.grades.none')}</option>
-                                            {SLEEVE_CONDITIONS.map((cond) => (
-                                                <option key={cond.value} value={cond.value}>
-                                                    {t(cond.labelKey)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                        {/* Market Value */}
-                        {(() => {
-                            const val = getItemValue(item);
-                            const conditionLabel = item.mediaCondition || 'VG+';
-                            const lastUpdated = item.priceCache?.updatedAt 
-                                ? new Date(item.priceCache.updatedAt).toLocaleString(undefined, { 
-                                    month: 'short', 
-                                    day: 'numeric', 
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })
-                                : null;
-                            
-                            if (val <= 0) {
-                                return (
-                                    <div className="stat bg-base-200 rounded-lg p-4 opacity-70 overflow-hidden">
-                                        <div className="stat-title flex items-center justify-between">
-                                            <span>{t('stats.value')}</span>
-                                            <button 
-                                                onClick={syncPrice} 
-                                                disabled={isSyncingPrice}
-                                                className="btn btn-ghost btn-xs btn-circle tooltip tooltip-left" 
-                                                data-tip={t('album.syncPrice')}
-                                            >
-                                                <RefreshCw size={14} className={isSyncingPrice ? 'animate-spin' : ''} />
-                                            </button>
-                                        </div>
-                                        <div className="stat-value text-xl md:text-2xl text-base-content/30">
-                                            N/A
-                                        </div>
-                                        <div className="stat-desc truncate">
-                                            {conditionLabel} {lastUpdated && <span className="opacity-50 ml-1">• {lastUpdated}</span>}
-                                        </div>
-                                    </div>
-                                );
-                            }
-
-                            return (
-                                <div className="stat bg-base-200 rounded-lg p-4 overflow-hidden">
-                                    <div className="stat-title flex items-center justify-between">
-                                        <span>{t('stats.value')}</span>
-                                        <button 
-                                            onClick={syncPrice} 
-                                            disabled={isSyncingPrice}
-                                            className="btn btn-ghost btn-xs btn-circle tooltip tooltip-left" 
-                                            data-tip={t('album.syncPrice')}
-                                        >
-                                            <RefreshCw size={14} className={isSyncingPrice ? 'animate-spin' : ''} />
-                                        </button>
-                                    </div>
-                                    <div className="stat-value text-xl md:text-2xl text-warning truncate">
-                                        {formatValue(val)}
-                                    </div>
-                                    <div className="stat-desc truncate">
-                                        {conditionLabel} {lastUpdated && <span className="opacity-50 ml-1">• {lastUpdated}</span>}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-                    </div>
-
-                    {/* Genres & Format Details - Side by Side */}
-                    <div className="flex flex-wrap gap-8 mb-6">
-                        {(album.styles?.length ?? 0) > 0 && (
-                            <div>
-                                <h3 className="text-sm font-semibold text-base-content/60 mb-2">{t('album.genres')}</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {album.styles!.map((style, index) => (
-                                        <span key={index} className="badge badge-primary badge-lg">
-                                            {style}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {(item.format.text || (item.format.descriptions && item.format.descriptions.length > 0)) && (
-                            <div>
-                                <h3 className="text-sm font-semibold text-base-content/60 mb-2">{t('album.formatDetails')}</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {item.format.text && (
-                                        <span className="badge badge-accent badge-lg border" style={getFormatButtonStyle(item.format.text, [])}>{item.format.text}</span>
-                                    )}
-                                    {item.format.descriptions?.map((desc, index) => (
-                                        <span key={index} className="badge badge-lg border" style={getFormatButtonStyle(desc, [])}>{desc}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* External Links */}
-                    <div className="flex flex-wrap gap-3 mb-4">
+                    <div className="flex gap-2">
                         {spotifyUrl && (
-                            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="btn btn-success">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <a
+                                href={spotifyUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-sm flex-1"
+                                style={SPOTIFY_BUTTON_STYLE}
+                                aria-label={t('album.listenOnSpotify')}
+                            >
+                                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
                                 </svg>
-                                {t('album.listenOnSpotify')}
+                                Spotify
                             </a>
                         )}
                         {album.discogsId && (
-                            <a href={`https://www.discogs.com/release/${album.discogsId}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline">
-                                {t('album.viewOnDiscogs')}
+                            <a
+                                href={`https://www.discogs.com/release/${album.discogsId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-sm flex-1"
+                                style={DISCOGS_BUTTON_STYLE}
+                                aria-label={t('album.viewOnDiscogs')}
+                            >
+                                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M1.7422 11.982c0-5.6682 4.61-10.2782 10.2758-10.2782 1.8238 0 3.5372.48 5.0251 1.3175l.8135-1.4879C16.1768.588 14.2474.036 12.1908.0024h-.1944C5.4091.0144.072 5.3107 0 11.886v.1152c.0072 3.4389 1.4567 6.5345 3.7748 8.7207l1.1855-1.2814c-1.9798-1.8743-3.218-4.526-3.218-7.4585zM20.362 3.4053l-1.1543 1.2406c1.903 1.867 3.0885 4.4636 3.0885 7.3361 0 5.6658-4.61 10.2758-10.2758 10.2758-1.783 0-3.4605-.456-4.922-1.2575l-.8542 1.5214c1.7086.9384 3.6692 1.4735 5.7546 1.4759C18.6245 23.9976 24 18.6246 24 11.9988c-.0048-3.3717-1.399-6.4146-3.638-8.5935zM1.963 11.982c0 2.8701 1.2119 5.4619 3.146 7.2953l1.1808-1.2767c-1.591-1.5166-2.587-3.6524-2.587-6.0186 0-4.586 3.7293-8.3152 8.3152-8.3152 1.483 0 2.875.3912 4.082 1.0751l.8351-1.5262C15.481 2.395 13.8034 1.927 12.018 1.927 6.4746 1.9246 1.963 6.4362 1.963 11.982zm18.3702 0c0 4.586-3.7293 8.3152-8.3152 8.3152-1.4327 0-2.7837-.3648-3.962-1.0055l-.852 1.5166c1.4303.7823 3.0718 1.2287 4.814 1.2287 5.5434 0 10.055-4.5116 10.055-10.055 0-2.8077-1.1567-5.3467-3.0165-7.1729l-1.183 1.2743c1.519 1.507 2.4597 3.5924 2.4597 5.8986zm-1.9486 0c0 3.5109-2.8558 6.3642-6.3642 6.3642a6.3286 6.3286 0 01-3.0069-.756l-.8471 1.507c1.147.624 2.4597.9768 3.854.9768 4.4636 0 8.0944-3.6308 8.0944-8.0944 0-2.239-.9143-4.2692-2.3902-5.7378l-1.1783 1.267c1.1351 1.152 1.8383 2.731 1.8383 4.4732zm-14.4586 0c0 2.3014.9671 4.382 2.515 5.8578l1.1734-1.2695c-1.207-1.159-1.9606-2.786-1.9606-4.5883 0-3.5108 2.8557-6.3642 6.3642-6.3642 1.1423 0 2.215.3048 3.1437.8352l.8303-1.5167c-1.1759-.6647-2.5317-1.0487-3.974-1.0487-4.4612 0-8.092 3.6308-8.092 8.0944zm12.5292 0c0 2.4502-1.987 4.4372-4.4372 4.4372a4.4192 4.4192 0 01-2.0614-.5088l-.8351 1.4879a6.1135 6.1135 0 002.8965.727c3.3885 0 6.1434-2.7548 6.1434-6.1433 0-1.6774-.6767-3.1989-1.7686-4.3076l-1.1615 1.2503c.7559.7967 1.2239 1.8718 1.2239 3.0573zm-10.5806 0c0 1.7374.7247 3.3069 1.8886 4.4252L8.92 15.1569l.0144.0144c-.8351-.8063-1.3559-1.9366-1.3559-3.1869 0-2.4502 1.9846-4.4372 4.4372-4.4372.8087 0 1.5646.2184 2.2174.5976l.8207-1.4975a6.097 6.097 0 00-3.0381-.8063c-3.3837-.0048-6.141 2.7525-6.141 6.141zm6.681 0c0 .2952-.2424.5351-.5376.5351-.2952 0-.5375-.24-.5375-.5351 0-.2976.24-.5375.5375-.5375.2952 0 .5375.24.5375.5375zm-3.9405 0c0-1.879 1.5239-3.4029 3.4005-3.4029 1.879 0 3.4005 1.5215 3.4005 3.4029 0 1.879-1.5239 3.4005-3.4005 3.4005S8.6151 13.861 8.6151 11.982zm.1488 0c.0048 1.7974 1.4567 3.2493 3.2517 3.2517 1.795 0 3.254-1.4567 3.254-3.2517-.0023-1.7974-1.4566-3.2517-3.254-3.254-1.795 0-3.2517 1.4566-3.2517 3.254Z" />
+                                </svg>
+                                Discogs
                             </a>
                         )}
                     </div>
 
-                    {/* Management Actions */}
+                    {conditionGradingEnabled && (
+                        <div className="flex gap-2">
+                            <div className="flex-1 min-w-0 flex flex-col">
+                                <label className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
+                                    {t('condition.media')}
+                                </label>
+                                <select
+                                    className="select select-bordered select-sm w-full"
+                                    value={item.mediaCondition || ''}
+                                    onChange={(e) => updateCondition('mediaCondition', e.target.value || null)}
+                                >
+                                    <option value="">{t('condition.grades.none')}</option>
+                                    {MEDIA_CONDITIONS.map((cond) => (
+                                        <option key={cond.value} value={cond.value}>
+                                            {t(cond.labelKey)}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex-1 min-w-0 flex flex-col">
+                                <label className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
+                                    {t('condition.sleeve')}
+                                </label>
+                                <select
+                                    className="select select-bordered select-sm w-full"
+                                    value={item.sleeveCondition || ''}
+                                    onChange={(e) => updateCondition('sleeveCondition', e.target.value || null)}
+                                >
+                                    <option value="">{t('condition.grades.none')}</option>
+                                    {SLEEVE_CONDITIONS.map((cond) => (
+                                        <option key={cond.value} value={cond.value}>
+                                            {t(cond.labelKey)}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Info column */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-base-content/60">{item.format.name}</span>
+                        <FormatVerificationBadge verification={item.formatVerification} />
+                    </div>
+                    {hasIgnoredFormatIssue && (
+                        <div className="flex items-center gap-2 text-xs text-base-content/60 mb-2">
+                            <span>{t('formatVerification.ignoredLabel')}</span>
+                            <button
+                                onClick={handleRestoreFormatAlert}
+                                className={`btn btn-ghost btn-xs min-h-0 h-auto px-1 normal-case ${isRestoringFormatAlert ? 'loading' : ''}`}
+                                disabled={isRestoringFormatAlert}
+                            >
+                                {t('formatVerification.undoAction')}
+                            </button>
+                        </div>
+                    )}
+
+                    <h1 className="text-4xl md:text-5xl font-bold mb-2">{album.title}</h1>
+                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-3">{stripArtistSuffix(album.artist)}</h2>
+
+                    {(item.format.text || (item.format.descriptions && item.format.descriptions.length > 0)) && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {item.format.text && (
+                                <FormatColorBadge text={item.format.text} className="badge-accent badge-lg min-h-6 py-1" />
+                            )}
+                            {item.format.descriptions?.map((desc, index) => (
+                                <FormatColorBadge key={index} text={desc} className="badge-lg min-h-6 py-1" />
+                            ))}
+                        </div>
+                    )}
+
                     {hasActiveFormatIssue && item.formatVerification && (
                         <div className={`alert mb-4 items-start ${item.formatVerification.status === 'mismatch' ? 'alert-error' : 'alert-warning'}`}>
                             <CircleAlert size={18} className="mt-0.5 shrink-0" />
@@ -460,6 +376,78 @@ const AlbumDetailPage: React.FC = () => {
                             </div>
                         </div>
                     )}
+
+                    <div className="mb-5">
+                        {labels.length > 0 && (
+                            <SpecRow label={t('album.label')}>{labels[0].name}</SpecRow>
+                        )}
+                        <SpecRow label={t('common.year')}>{album.year || '—'}</SpecRow>
+                        {genres.length > 0 && (
+                            <SpecRow label={t('album.genres')}>{genres.join(' · ')}</SpecRow>
+                        )}
+                        <CustomFieldsEditor
+                            itemId={item._id}
+                            values={item.customFields}
+                            onUpdate={(customFields) => setItem((prev) => (prev ? { ...prev, customFields } : null))}
+                        />
+                        <SpecRow label={t('collection.added')}>
+                            {new Date(item.addedAt).toLocaleDateString()}
+                        </SpecRow>
+                        {(() => {
+                            const val = getItemValue(item);
+                            const conditionLabel = item.mediaCondition || 'VG+';
+                            const lastUpdated = item.priceCache?.updatedAt
+                                ? new Date(item.priceCache.updatedAt).toLocaleString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })
+                                : null;
+
+                            return (
+                                <SpecRow label={t('stats.value')}>
+                                    <span className={`font-mono text-xl font-bold tabular-nums ${val > 0 ? 'text-warning' : 'text-base-content/30'}`}>
+                                        {val > 0 ? formatValue(val) : 'N/A'}
+                                    </span>
+                                    <button
+                                        onClick={syncPrice}
+                                        disabled={isSyncingPrice}
+                                        className="btn btn-ghost btn-xs btn-circle tooltip tooltip-top"
+                                        data-tip={t('album.syncPrice')}
+                                    >
+                                        <RefreshCw size={13} className={isSyncingPrice ? 'animate-spin' : ''} />
+                                    </button>
+                                    <span className="text-xs text-base-content/50">
+                                        {conditionLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}
+                                    </span>
+                                </SpecRow>
+                            );
+                        })()}
+                    </div>
+
+                    {tracklist.length > 0 && (
+                        <div className="mb-5">
+                            <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/60 mb-1">
+                                {t('album.tracklist')}{' '}
+                                <span className="normal-case font-normal">({tracklist.length})</span>
+                            </h3>
+                            <div className="border-t border-base-300 sm:columns-2 sm:gap-x-8">
+                                {tracklist.map((track, index) => {
+                                    const fullTitle = track.artist ? `${track.title} — ${track.artist}` : track.title;
+                                    return (
+                                        <div key={index} className="flex items-baseline gap-2 py-1.5 border-b border-base-300 text-sm break-inside-avoid">
+                                            <span className="font-mono text-xs text-base-content/50 w-6 shrink-0">{track.position}</span>
+                                            <span className="flex-1 min-w-0 truncate" title={fullTitle}>{fullTitle}</span>
+                                            <span className="font-mono tabular-nums text-xs text-base-content/50 shrink-0">{track.duration || '—'}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={handleOpenRematchVersions}
@@ -481,55 +469,6 @@ const AlbumDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Custom Fields */}
-            <CustomFieldsEditor
-                itemId={item._id}
-                values={item.customFields}
-                onUpdate={(customFields) => setItem((prev) => (prev ? { ...prev, customFields } : null))}
-            />
-
-            {/* Tracklist Section */}
-            {tracklist.length > 0 && (
-                <details className="collapse collapse-arrow bg-base-200 shadow-xl mb-8">
-                    <summary className="collapse-title text-2xl font-bold">
-                        <div className="flex items-center gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 shrink-0 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                            </svg>
-                            <span>{t('album.tracklist')} ({t('album.trackCount', { count: tracklist.length })})</span>
-                        </div>
-                    </summary>
-                    <div className="collapse-content">
-                        <div className="overflow-x-auto">
-                            <table className="table table-zebra">
-                                <thead>
-                                    <tr>
-                                        <th className="w-20">#</th>
-                                        <th>{t('common.title')}</th>
-                                        <th className="w-32 text-right">{t('album.duration')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {tracklist.map((track, index) => (
-                                        <tr key={index} className="hover">
-                                            <td className="font-mono text-base">{track.position}</td>
-                                            <td>
-                                                <div className="font-medium">{track.title}</div>
-                                                {track.artist && (
-                                                    <div className="text-sm text-base-content/60">{track.artist}</div>
-                                                )}
-                                            </td>
-                                            <td className="text-right font-mono">{track.duration || '—'}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </details>
-            )}
-
         </div>
     );
 };
