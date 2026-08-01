@@ -310,6 +310,13 @@
         "failedSearch": "Échec de la recherche par code-barres.",
         "tooManyRequests": "Trop de requêtes ! Veuillez attendre environ 30 secondes avant de chercher à nouveau.",
         "showMore": "Afficher {{count}} de plus ({{remaining}} restants)",
+        "minChars": "Saisissez au moins {{min}} caractères pour lancer la recherche.",
+        "noResults": "Aucun résultat pour « {{query}} ».",
+        "noResultsHint": "Vérifiez l'orthographe, ou essayez les onglets ID / Catalogue ou Ajout manuel.",
+        "searchFailed": "La recherche a échoué. Veuillez réessayer.",
+        "networkError": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+        "searching": "Recherche en cours…",
+        "resultsCount": "{{albums}} albums et {{artists}} artistes trouvés.",
         "modeAlbumArtist": "Album / Artiste",
         "modeIdLookup": "ID / Catalogue",
         "modeManual": "Ajout manuel",
@@ -601,5 +608,11 @@
         "failedDelete": "Impossible de supprimer le champ",
         "valueSaved": "Champ enregistré",
         "failedSaveValue": "Impossible d'enregistrer la valeur"
+    },
+    "errors": {
+        "rateLimitedTitle": "Discogs nous limite",
+        "rateLimitedBody": "Trop de requêtes en peu de temps. Patientez quelques secondes, puis réessayez — rien n'est perdu.",
+        "loadFailedTitle": "Impossible de charger cette page",
+        "retry": "Réessayer"
     }
 }

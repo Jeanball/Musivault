@@ -291,6 +291,13 @@
         "failedSearch": "条码搜索失败。",
         "tooManyRequests": "请求过多！请等待约30秒可以再次搜索。",
         "showMore": "显示更多 {{count}} 个（剩余 {{remaining}}）",
+        "minChars": "请输入至少 {{min}} 个字符进行搜索。",
+        "noResults": "没有找到“{{query}}”的结果。",
+        "noResultsHint": "请检查拼写，或尝试“ID / 目录编号”或“手动添加”选项卡。",
+        "searchFailed": "搜索失败，请重试。",
+        "networkError": "无法连接服务器，请检查网络连接。",
+        "searching": "搜索中…",
+        "resultsCount": "找到 {{albums}} 张专辑和 {{artists}} 位艺术家。",
         "modeAlbumArtist": "专辑 / 艺术家",
         "modeIdLookup": "ID / 目录",
         "modeManual": "手动添加",
@@ -578,5 +585,11 @@
         "failedDelete": "删除字段失败",
         "valueSaved": "字段已保存",
         "failedSaveValue": "保存字段值失败"
+    },
+    "errors": {
+        "rateLimitedTitle": "Discogs 正在限制请求",
+        "rateLimitedBody": "短时间内请求过多。请等待几秒后重试——数据没有丢失。",
+        "loadFailedTitle": "无法加载此页面",
+        "retry": "重试"
     }
 }

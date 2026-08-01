@@ -291,6 +291,13 @@
         "failedSearch": "Fallo búsqueda código barras.",
         "tooManyRequests": "¡Demasiadas peticiones! Espera unos 30 segundos antes de buscar de nuevo.",
         "showMore": "Mostrar {{count}} más ({{remaining}} restantes)",
+        "minChars": "Escribe al menos {{min}} caracteres para buscar.",
+        "noResults": "Sin resultados para «{{query}}».",
+        "noResultsHint": "Revisa la ortografía o prueba las pestañas ID / Catálogo o Añadir manualmente.",
+        "searchFailed": "La búsqueda ha fallado. Inténtalo de nuevo.",
+        "networkError": "No se puede contactar con el servidor. Comprueba tu conexión.",
+        "searching": "Buscando…",
+        "resultsCount": "{{albums}} álbumes y {{artists}} artistas encontrados.",
         "modeAlbumArtist": "Álbum / Artista",
         "modeIdLookup": "ID / Catálogo",
         "modeManual": "Agregar manual",
@@ -578,5 +585,11 @@
         "failedDelete": "No se pudo eliminar el campo",
         "valueSaved": "Campo guardado",
         "failedSaveValue": "No se pudo guardar el valor"
+    },
+    "errors": {
+        "rateLimitedTitle": "Discogs nos está limitando",
+        "rateLimitedBody": "Demasiadas peticiones en poco tiempo. Espera unos segundos y vuelve a intentarlo: no se ha perdido nada.",
+        "loadFailedTitle": "No se ha podido cargar esta página",
+        "retry": "Reintentar"
     }
 }

@@ -16,8 +16,16 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, onShowDetai
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={() => onShowDetails(result.id)}
-      className="relative flex items-center p-4 bg-base-200 rounded-lg shadow-md transition-all duration-200 hover:shadow-xl hover:bg-base-300 cursor-pointer"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onShowDetails(result.id);
+        }
+      }}
+      className="relative flex items-center p-4 bg-base-200 rounded-lg shadow-md transition-all duration-200 hover:shadow-xl hover:bg-base-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       <img
         src={getImageUrl(result.thumb)}
@@ -26,19 +34,19 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, onShowDetai
         loading="lazy"
       />
       <div className="flex-grow min-w-0">
-        <h3 className="text-lg font-bold text-gray-100 truncate" title={album}>
+        <h3 className="text-lg font-bold truncate" title={album}>
           {album}
         </h3>
-        <p className="text-md text-gray-400 truncate" title={artist || t('common.unknownArtist')}>
+        <p className="text-md text-base-content/70 truncate" title={artist || t('common.unknownArtist')}>
           {artist || t('common.unknownArtist')}
         </p>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-base-content/50 mt-1">
           {t('common.year')}: {result.year || t('common.na')}
         </p>
       </div>
 
       {isLoadingDetails && (
-        <div className="absolute inset-0 bg-black bg-opacity-60 flex justify-center items-center rounded-lg">
+        <div className="absolute inset-0 bg-black/60 flex justify-center items-center rounded-lg">
           <span className="loading loading-spinner loading-md text-white"></span>
         </div>
       )}

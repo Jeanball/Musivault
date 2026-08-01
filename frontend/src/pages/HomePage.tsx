@@ -1,6 +1,6 @@
 import SearchBar from "../components/Search/SearchBar";
 import { useEffect, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router";
+import { Link, useNavigate, useOutletContext } from "react-router";
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from "../types/collection.types";
 import type { PrivateOutletContext } from "../types/auth.types";
@@ -8,11 +8,14 @@ import { getImageUrl } from "../utils/imageUrl";
 import { getCollection } from "../api/collection";
 
 
+/** Number of recent covers shown in the "Freshly Added" grid. */
+const LATEST_COUNT = 6;
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { username, displayName } = useOutletContext<PrivateOutletContext>();
-  const [collection, setCollection] = useState<CollectionItem[]>([]);
+  const [latestAdditions, setLatestAdditions] = useState<CollectionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const nameToDisplay = displayName || username;
 
@@ -24,13 +27,15 @@ const HomePage: React.FC = () => {
     return t('home.greetingEvening', 'Good evening');
   };
 
+  // Only the 6 covers shown below are fetched — pulling the whole collection
+  // here meant downloading hundreds of items to render six.
   useEffect(() => {
     const fetchCollection = async () => {
       try {
-        const data = await getCollection('latest');
+        const data = await getCollection('latest', LATEST_COUNT);
 
         if (Array.isArray(data)) {
-          setCollection(data);
+          setLatestAdditions(data);
         }
       } catch (error) {
         console.error("Impossible de charger la collection", error);
@@ -40,9 +45,6 @@ const HomePage: React.FC = () => {
     };
     fetchCollection();
   }, []);
-
-  // Get latest 6 for display
-  const latestAdditions = collection.slice(0, 6);
 
   const handleAlbumClick = (item: CollectionItem) => {
     navigate(`/app/album/${item._id}`, {
@@ -73,7 +75,7 @@ const HomePage: React.FC = () => {
       <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">{t('home.freshlyAdded', 'Freshly Added')}</h2>
-          <a href="/app/collection" className="btn btn-ghost btn-sm">{t('home.viewAll', 'View All')} &rarr;</a>
+          <Link to="/app/collection" className="btn btn-ghost btn-sm">{t('home.viewAll', 'View All')} &rarr;</Link>
         </div>
 
         {isLoading ? (

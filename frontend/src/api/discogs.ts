@@ -6,11 +6,12 @@ export type LookupType = 'discogsId' | 'catno';
 
 /** The search bar always needs both lists, so they are fetched together. */
 export async function searchAll(
-    query: string
+    query: string,
+    signal?: AbortSignal
 ): Promise<{ albums: DiscogsResult[]; artists: ArtistResult[] }> {
     const [albums, artists] = await Promise.all([
-        client.get<DiscogsResult[]>('/discogs/search', { params: { q: query } }),
-        client.get<ArtistResult[]>('/discogs/search/artists', { params: { q: query } })
+        client.get<DiscogsResult[]>('/discogs/search', { params: { q: query }, signal }),
+        client.get<ArtistResult[]>('/discogs/search/artists', { params: { q: query }, signal })
     ]);
     return {
         albums: Array.isArray(albums.data) ? albums.data : [],

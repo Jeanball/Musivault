@@ -10,9 +10,12 @@ export interface CollectionSyncInfo {
     ttlHours: number;
 }
 
-export async function getCollection(sort?: 'latest'): Promise<CollectionItem[]> {
+export async function getCollection(
+    sort?: 'latest',
+    limit?: number
+): Promise<CollectionItem[]> {
     const { data } = await client.get<CollectionItem[]>('/collection', {
-        params: sort ? { sort } : undefined
+        params: { ...(sort ? { sort } : {}), ...(limit ? { limit } : {}) }
     });
     return data;
 }

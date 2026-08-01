@@ -291,6 +291,13 @@
         "failedSearch": "Falha na busca de código de barras.",
         "tooManyRequests": "Muitas requisições! Aguarde 30 segundos antes de buscar novamente.",
         "showMore": "Mostrar {{count}} mais ({{remaining}} restantes)",
+        "minChars": "Escreva pelo menos {{min}} caracteres para pesquisar.",
+        "noResults": "Sem resultados para \"{{query}}\".",
+        "noResultsHint": "Verifique a ortografia ou experimente os separadores ID / Catálogo ou Adicionar manualmente.",
+        "searchFailed": "A pesquisa falhou. Tente novamente.",
+        "networkError": "Não foi possível contactar o servidor. Verifique a sua ligação.",
+        "searching": "A pesquisar…",
+        "resultsCount": "{{albums}} álbuns e {{artists}} artistas encontrados.",
         "modeAlbumArtist": "Álbum / Artista",
         "modeIdLookup": "ID / Catálogo",
         "modeManual": "Adicionar manual",
@@ -578,5 +585,11 @@
         "failedDelete": "Não foi possível eliminar o campo",
         "valueSaved": "Campo guardado",
         "failedSaveValue": "Não foi possível guardar o valor"
+    },
+    "errors": {
+        "rateLimitedTitle": "O Discogs está a limitar-nos",
+        "rateLimitedBody": "Demasiados pedidos em pouco tempo. Aguarde alguns segundos e tente novamente — não se perdeu nada.",
+        "loadFailedTitle": "Não foi possível carregar esta página",
+        "retry": "Tentar novamente"
     }
 }

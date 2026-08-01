@@ -310,6 +310,13 @@
         "failedSearch": "Failed to search barcode.",
         "tooManyRequests": "Too many requests! Please wait about 30 seconds before searching again.",
         "showMore": "Show {{count}} more ({{remaining}} remaining)",
+        "minChars": "Type at least {{min}} characters to search.",
+        "noResults": "No results for \"{{query}}\".",
+        "noResultsHint": "Check the spelling, or try the ID / Catalog or Manual Add tabs.",
+        "searchFailed": "Search failed. Please try again.",
+        "networkError": "Unable to reach the server. Check your connection.",
+        "searching": "Searching…",
+        "resultsCount": "{{albums}} albums and {{artists}} artists found.",
         "modeAlbumArtist": "Album / Artist",
         "modeIdLookup": "ID / Catalog",
         "modeManual": "Manual Add",
@@ -602,5 +609,11 @@
         "failedDelete": "Failed to delete custom field",
         "valueSaved": "Custom field saved",
         "failedSaveValue": "Failed to save custom field value"
+    },
+    "errors": {
+        "rateLimitedTitle": "Discogs is throttling us",
+        "rateLimitedBody": "Too many requests in a short time. Wait a few seconds, then retry — nothing was lost.",
+        "loadFailedTitle": "Couldn't load this page",
+        "retry": "Retry"
     }
 }

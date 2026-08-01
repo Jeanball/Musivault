@@ -288,6 +288,13 @@
         "failedSearch": "Barcode-Suche fehlgeschlagen.",
         "tooManyRequests": "Zu viele Anfragen! Bitte warten Sie etwa 30 Sekunden, bevor Sie erneut suchen.",
         "showMore": "Zeige {{count}} mehr ({{remaining}} verbleibend)",
+        "minChars": "Gib mindestens {{min}} Zeichen ein, um zu suchen.",
+        "noResults": "Keine Ergebnisse für „{{query}}“.",
+        "noResultsHint": "Prüfe die Schreibweise oder versuche die Tabs ID / Katalog oder Manuell hinzufügen.",
+        "searchFailed": "Suche fehlgeschlagen. Bitte versuche es erneut.",
+        "networkError": "Server nicht erreichbar. Prüfe deine Verbindung.",
+        "searching": "Suche läuft…",
+        "resultsCount": "{{albums}} Alben und {{artists}} Künstler gefunden.",
         "modeAlbumArtist": "Album / Künstler",
         "modeIdLookup": "ID / Katalog",
         "modeManual": "Manuell hinzufügen",
@@ -574,5 +581,11 @@
         "failedDelete": "Feld konnte nicht gelöscht werden",
         "valueSaved": "Feld gespeichert",
         "failedSaveValue": "Feldwert konnte nicht gespeichert werden"
+    },
+    "errors": {
+        "rateLimitedTitle": "Discogs drosselt uns",
+        "rateLimitedBody": "Zu viele Anfragen in kurzer Zeit. Warte ein paar Sekunden und versuche es erneut – es ging nichts verloren.",
+        "loadFailedTitle": "Diese Seite konnte nicht geladen werden",
+        "retry": "Erneut versuchen"
     }
 }

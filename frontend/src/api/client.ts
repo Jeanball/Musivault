@@ -33,6 +33,13 @@ client.interceptors.response.use(
             );
         }
 
+        // A request the caller aborted is not a failure: rethrow it untouched so
+        // callers can tell it apart from a real network error (which also has no
+        // response) and skip their error handling entirely.
+        if (axios.isCancel(error)) {
+            return Promise.reject(error);
+        }
+
         if (!error.response) {
             return Promise.reject(
                 new ApiError({

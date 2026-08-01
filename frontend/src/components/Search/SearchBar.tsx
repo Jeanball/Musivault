@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { searchAll, searchByBarcode, lookup, getRelease } from '../../api/discogs';
 import { addToCollection } from '../../api/collection';
-import { isApiError } from '../../api/errors';
+import { isApiError, isCanceledError, isRateLimitError } from '../../api/errors';
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../../utils/toast";
 import { stripArtistSuffix } from '../../utils/formatters';
@@ -18,8 +18,13 @@ import { getImageUrl } from '../../utils/imageUrl';
 
 type SearchMode = 'albumArtist' | 'idLookup' | 'manual';
 
-/** Discogs rate limit — the backend passes the 429 straight through. */
-const isRateLimited = (err: unknown): boolean => isApiError(err) && err.status === 429;
+type SearchResults = { albums: DiscogsResult[]; artists: ArtistResult[] };
+
+/** Matches the `lg:` breakpoint used to switch between tabs and the dropdown. */
+const MOBILE_QUERY = '(max-width: 1023px)';
+
+/** Below this, typing is treated as still in progress and no request is sent. */
+const MIN_QUERY_LENGTH = 3;
 
 const SearchBar: React.FC = () => {
     const { t } = useTranslation();
@@ -27,11 +32,23 @@ const SearchBar: React.FC = () => {
     // Search mode toggle
     const [searchMode, setSearchMode] = useState<SearchMode>('albumArtist');
 
-    // Album/Artist search state
-    const [searchQuery, setSearchQuery] = useState<string>('');
+    // Album/Artist search state — the query is mirrored into ?q= so going back
+    // from a release page restores the search instead of clearing it.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchQuery, setSearchQuery] = useState<string>(() => searchParams.get('q') || '');
+    const syncedQueryRef = useRef<string>(searchParams.get('q') || '');
     const [albumResults, setAlbumResults] = useState<DiscogsResult[]>([]);
     const [artistResults, setArtistResults] = useState<ArtistResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
+    const [hasSearched, setHasSearched] = useState<boolean>(false);
+
+    /**
+     * Every query costs four Discogs calls (masters + releases, albums + artists),
+     * so repeated and back-navigated searches are served from memory instead.
+     * Lives for the component's lifetime, which is the length of a search session.
+     */
+    const resultsCache = useRef<Map<string, SearchResults>>(new Map());
 
     // Incremental expansion: number of visible items
     const [visibleArtistCount, setVisibleArtistCount] = useState(3);
@@ -44,8 +61,9 @@ const SearchBar: React.FC = () => {
     const [lookupSearched, setLookupSearched] = useState<boolean>(false);
     const [lookupType, setLookupType] = useState<'discogsId' | 'catno'>('discogsId');
 
-    // Mobile detection for shorter placeholders
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+    // Mobile detection: drives the shorter placeholders, and suppresses autofocus
+    // so landing on the home page doesn't pop the keyboard over the content.
+    const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
 
     const navigate = useNavigate();
 
@@ -57,47 +75,97 @@ const SearchBar: React.FC = () => {
 
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-    // Listen for window resize to update isMobile
+    // Fires only when crossing the breakpoint, unlike a resize listener
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 1024);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        const mediaQuery = window.matchMedia(MOBILE_QUERY);
+        const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
 
+    // Keep ?q= in sync so the search survives navigating to a release and back.
+    // replace: true keeps typing out of the history stack, and the ref guard
+    // skips the redundant navigation setSearchParams' changing identity causes.
     useEffect(() => {
-        if (debouncedSearchQuery.length > 2) {
-            setIsLoading(true);
-            // Reset to initial counts on new search
-            setVisibleArtistCount(3);
-            setVisibleAlbumCount(5);
+        if (syncedQueryRef.current === debouncedSearchQuery) return;
+        syncedQueryRef.current = debouncedSearchQuery;
 
-            const search = async () => {
-                try {
-                    // Execute both searches in parallel
-                    const { albums, artists } = await searchAll(debouncedSearchQuery);
-                    setAlbumResults(albums);
-                    setArtistResults(artists);
-
-                } catch (err) {
-                    console.log(err)
-                    if (isRateLimited(err)) {
-                        toastService.error(t('search.tooManyRequests'));
-                    } else {
-                        // Don't show error toast on every keystroke/search, just log
-                        console.error("Search failed");
-                    }
-                    setAlbumResults([]);
-                    setArtistResults([]);
-                } finally {
-                    setIsLoading(false);
+        setSearchParams(
+            prev => {
+                const next = new URLSearchParams(prev);
+                if (debouncedSearchQuery) {
+                    next.set('q', debouncedSearchQuery);
+                } else {
+                    next.delete('q');
                 }
-            };
-            search();
-        } else {
+                return next;
+            },
+            { replace: true }
+        );
+    }, [debouncedSearchQuery, setSearchParams]);
+
+    useEffect(() => {
+        const query = debouncedSearchQuery.trim();
+
+        if (query.length < MIN_QUERY_LENGTH) {
             setAlbumResults([]);
             setArtistResults([]);
+            setSearchError(null);
+            setHasSearched(false);
+            return;
         }
-    }, [debouncedSearchQuery]); // Removed searchType dependency
+
+        // Reset to initial counts on new search
+        setVisibleArtistCount(3);
+        setVisibleAlbumCount(5);
+        setSearchError(null);
+
+        const cached = resultsCache.current.get(query);
+        if (cached) {
+            setAlbumResults(cached.albums);
+            setArtistResults(cached.artists);
+            setHasSearched(true);
+            setIsLoading(false);
+            return;
+        }
+
+        // Aborting on cleanup stops a slow earlier request from overwriting the
+        // results of a newer one when responses come back out of order.
+        const controller = new AbortController();
+        setIsLoading(true);
+
+        const search = async () => {
+            try {
+                // Execute both searches in parallel
+                const { albums, artists } = await searchAll(query, controller.signal);
+                resultsCache.current.set(query, { albums, artists });
+                setAlbumResults(albums);
+                setArtistResults(artists);
+                setHasSearched(true);
+            } catch (err) {
+                if (isCanceledError(err)) return;
+
+                console.error('Search failed:', err);
+                setAlbumResults([]);
+                setArtistResults([]);
+                setHasSearched(true);
+
+                if (isRateLimitError(err)) {
+                    setSearchError(t('search.tooManyRequests'));
+                    toastService.error(t('search.tooManyRequests'));
+                } else if (isApiError(err) && err.isNetworkError) {
+                    setSearchError(t('search.networkError'));
+                } else {
+                    setSearchError(t('search.searchFailed'));
+                }
+            } finally {
+                if (!controller.signal.aborted) setIsLoading(false);
+            }
+        };
+        search();
+
+        return () => controller.abort();
+    }, [debouncedSearchQuery, t]);
 
     const handleSelectAlbum = (result: DiscogsResult) => {
         if (result.type === 'master') {
@@ -132,7 +200,7 @@ const SearchBar: React.FC = () => {
             }
         } catch (err) {
             console.error('Barcode search error:', err);
-            if (isRateLimited(err)) {
+            if (isRateLimitError(err)) {
                 toastService.error(t('search.tooManyRequests'));
             } else if (isApiError(err) && err.serverMessage) {
                 toastService.error(err.serverMessage);
@@ -183,6 +251,8 @@ const SearchBar: React.FC = () => {
         setSearchQuery('');
         setAlbumResults([]);
         setArtistResults([]);
+        setSearchError(null);
+        setHasSearched(false);
         setVisibleArtistCount(3);
         setVisibleAlbumCount(5);
     };
@@ -206,7 +276,7 @@ const SearchBar: React.FC = () => {
             setLookupResults(Array.isArray(results) ? results : []);
         } catch (err) {
             console.error('Lookup failed:', err);
-            if (isRateLimited(err)) {
+            if (isRateLimitError(err)) {
                 toastService.error(t('search.tooManyRequests'));
             }
             setLookupResults([]);
@@ -271,7 +341,8 @@ const SearchBar: React.FC = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={isMobile ? t('search.placeholderShort') : t('search.placeholder')}
                                 className="input input-bordered w-full pr-10"
-                                autoFocus
+                                aria-label={t('search.placeholder')}
+                                autoFocus={!isMobile}
                             />
                             {isLoading && (
                                 <span className="loading loading-spinner loading-sm absolute top-1/2 right-3 -translate-y-1/2"></span>
@@ -301,18 +372,57 @@ const SearchBar: React.FC = () => {
                         </button>
                     </div>
 
+                    {/* Feedback: hint, error, or no results — one at a time */}
+                    {searchError ? (
+                        <div role="alert" className="alert alert-error mb-6">
+                            <span>{searchError}</span>
+                        </div>
+                    ) : searchQuery.trim().length > 0 &&
+                      searchQuery.trim().length < MIN_QUERY_LENGTH ? (
+                        <p className="text-center py-6 text-base-content/60">
+                            {t('search.minChars', { min: MIN_QUERY_LENGTH })}
+                        </p>
+                    ) : hasSearched && !isLoading && !hasResults ? (
+                        <div className="text-center py-10 text-base-content/60">
+                            <p className="text-lg">
+                                {t('search.noResults', { query: debouncedSearchQuery.trim() })}
+                            </p>
+                            <p className="text-sm mt-1">{t('search.noResultsHint')}</p>
+                        </div>
+                    ) : null}
+
+                    {/* Screen readers get told when results land */}
+                    <p className="sr-only" aria-live="polite">
+                        {isLoading
+                            ? t('search.searching')
+                            : hasResults
+                                ? t('search.resultsCount', {
+                                      albums: albumResults.length,
+                                      artists: artistResults.length
+                                  })
+                                : ''}
+                    </p>
+
                     {/* Side-by-side layout: Artists left, Albums right */}
                     <div className="flex flex-col md:flex-row gap-8">
                         {/* ARTISTS SECTION - Left side */}
                         {artistResults.length > 0 && (
                             <div className="md:w-1/3">
-                                <h3 className="text-xl font-bold mb-4 text-gray-200">{t('search.artists')}</h3>
+                                <h3 className="text-xl font-bold mb-4">{t('search.artists')}</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
                                     {visibleArtists.map((artist) => (
                                         <div
                                             key={artist.id}
-                                            className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
+                                            role="button"
+                                            tabIndex={0}
+                                            className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                             onClick={() => handleSelectArtist(artist)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    handleSelectArtist(artist);
+                                                }
+                                            }}
                                         >
                                             <figure className="px-4 pt-4">
                                                 <img
@@ -329,7 +439,7 @@ const SearchBar: React.FC = () => {
                                 </div>
                                 {visibleArtistCount < artistResults.length && (
                                     <button
-                                        className="btn btn-ghost btn-sm mt-2 w-full text-gray-400 hover:text-white"
+                                        className="btn btn-ghost btn-sm mt-2 w-full"
                                         onClick={() => setVisibleArtistCount(prev => prev + 3)}
                                     >
                                         {t('search.showMore', { count: 3, remaining: artistResults.length - visibleArtistCount })}
@@ -341,7 +451,7 @@ const SearchBar: React.FC = () => {
                         {/* ALBUMS SECTION - Right side */}
                         {albumResults.length > 0 && (
                             <div className="md:w-2/3">
-                                <h3 className="text-xl font-bold mb-4 text-gray-200">{t('common.albums')}</h3>
+                                <h3 className="text-xl font-bold mb-4">{t('common.albums')}</h3>
                                 <div className="space-y-4">
                                     {visibleAlbums.map((result) => (
                                         <SearchResultCard
@@ -354,7 +464,7 @@ const SearchBar: React.FC = () => {
                                 </div>
                                 {visibleAlbumCount < albumResults.length && (
                                     <button
-                                        className="btn btn-ghost btn-sm mt-2 w-full text-gray-400 hover:text-white"
+                                        className="btn btn-ghost btn-sm mt-2 w-full"
                                         onClick={() => setVisibleAlbumCount(prev => prev + 5)}
                                     >
                                         {t('search.showMore', { count: 5, remaining: albumResults.length - visibleAlbumCount })}
@@ -404,7 +514,7 @@ const SearchBar: React.FC = () => {
                                     ? (isMobile ? t('search.placeholderDiscogsIdShort') : t('search.placeholderDiscogsId'))
                                     : (isMobile ? t('search.placeholderCatnoShort') : t('search.placeholderCatno'))}
                                 className="input input-bordered w-full"
-                                autoFocus
+                                autoFocus={!isMobile}
                             />
                         </div>
                         {(lookupQuery || hasLookupResults) && (
@@ -435,7 +545,7 @@ const SearchBar: React.FC = () => {
                     {/* Lookup Results */}
                     {hasLookupResults && (
                         <div className="space-y-4">
-                            <h3 className="text-xl font-bold text-gray-200">{t('search.results')}</h3>
+                            <h3 className="text-xl font-bold">{t('search.results')}</h3>
                             {lookupResults.map((result) => (
                                 <SearchResultCard
                                     key={result.id}
@@ -449,7 +559,7 @@ const SearchBar: React.FC = () => {
 
                     {/* No results message */}
                     {lookupSearched && !isLookupLoading && !hasLookupResults && (
-                        <div className="text-center py-8 text-gray-400">
+                        <div className="text-center py-8 text-base-content/60">
                             <p>{t('search.noLookupResult')}</p>
                         </div>
                     )}
