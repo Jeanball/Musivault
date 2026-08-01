@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, CircleAlert, RefreshCw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
-import axios from 'axios';
 import { getPreferences } from '../api/preferences';
 import { isApiError } from '../api/errors';
+import { getRelease } from '../api/discogs';
 import {
     getCollectionItem,
     updateCollectionItem,
@@ -17,7 +17,6 @@ import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
 import { getItemValue } from '../utils/itemValue';
-import type { AlbumDetails } from '../types/album.types';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../utils/conditions';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { getImageUrl } from '../utils/imageUrl';
@@ -140,11 +139,9 @@ const AlbumDetailPage: React.FC = () => {
 
         setIsOpeningRematch(true);
         try {
-            const response = await axios.get<AlbumDetails>(`/api/discogs/release/${item.album.discogsId}`, {
-                withCredentials: true
-            });
+            const release = await getRelease(item.album.discogsId);
 
-            const masterId = response.data.master_id;
+            const masterId = release.master_id;
 
             if (masterId) {
                 navigate(`/app/master/${masterId}?rematchItemId=${item._id}&format=${encodeURIComponent(item.format.name)}`);

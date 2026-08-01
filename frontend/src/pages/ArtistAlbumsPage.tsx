@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
-import axios from 'axios';
+import { getArtistReleases } from '../api/discogs';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
@@ -57,11 +57,7 @@ const ArtistAlbumsPage: React.FC = () => {
         const fetchArtistAlbums = async () => {
             if (!artistId) return;
             try {
-                const { data } = await axios.get<ArtistPageData>(`/api/discogs/artist/${artistId}/releases`, {
-                    params: { sort: sortField, order: sortOrder },
-                    withCredentials: true
-                });
-                setPageData(data);
+                setPageData(await getArtistReleases(artistId, { sort: sortField, order: sortOrder }));
             } catch (error) {
                 console.log("Error loading artist albums:", error);
                 toastService.error(t('artist.errorLoading'));

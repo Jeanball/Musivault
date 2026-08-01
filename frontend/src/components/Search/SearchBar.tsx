@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import axios from 'axios';
+import { searchAll, searchByBarcode, lookup, getRelease } from '../../api/discogs';
+import { addToCollection } from '../../api/collection';
+import { isApiError } from '../../api/errors';
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../../utils/toast";
 import { stripArtistSuffix } from '../../utils/formatters';
@@ -14,16 +16,10 @@ import { Camera, X, Search } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUrl';
 
 
-interface ReleaseDetails {
-    discogsId: number;
-    title: string;
-    artist: string;
-    year: string;
-    cover_image: string;
-    availableFormats?: { name: string; descriptions: string[]; text: string }[];
-}
-
 type SearchMode = 'albumArtist' | 'idLookup' | 'manual';
+
+/** Discogs rate limit — the backend passes the 429 straight through. */
+const isRateLimited = (err: unknown): boolean => isApiError(err) && err.status === 429;
 
 const SearchBar: React.FC = () => {
     const { t } = useTranslation();
@@ -78,23 +74,13 @@ const SearchBar: React.FC = () => {
             const search = async () => {
                 try {
                     // Execute both searches in parallel
-                    const [albumsRes, artistsRes] = await Promise.all([
-                        axios.get<DiscogsResult[]>('/api/discogs/search', {
-                            params: { q: debouncedSearchQuery },
-                            withCredentials: true
-                        }),
-                        axios.get<ArtistResult[]>('/api/discogs/search/artists', {
-                            params: { q: debouncedSearchQuery },
-                            withCredentials: true
-                        })
-                    ]);
-
-                    setAlbumResults(Array.isArray(albumsRes.data) ? albumsRes.data : []);
-                    setArtistResults(Array.isArray(artistsRes.data) ? artistsRes.data : []);
+                    const { albums, artists } = await searchAll(debouncedSearchQuery);
+                    setAlbumResults(albums);
+                    setArtistResults(artists);
 
                 } catch (err) {
                     console.log(err)
-                    if (axios.isAxiosError(err) && err.response?.status === 429) {
+                    if (isRateLimited(err)) {
                         toastService.error(t('search.tooManyRequests'));
                     } else {
                         // Don't show error toast on every keystroke/search, just log
@@ -132,12 +118,7 @@ const SearchBar: React.FC = () => {
         toastService.info(t('search.searchingBarcode', { barcode }));
 
         try {
-            const response = await axios.get<DiscogsResult[]>('/api/discogs/search/barcode', {
-                params: { barcode },
-                withCredentials: true
-            });
-
-            const results = response.data;
+            const results = await searchByBarcode(barcode);
 
             if (results.length === 0) {
                 toastService.error(t('search.noBarcodeResults'));
@@ -151,10 +132,10 @@ const SearchBar: React.FC = () => {
             }
         } catch (err) {
             console.error('Barcode search error:', err);
-            if (axios.isAxiosError(err) && err.response?.status === 429) {
+            if (isRateLimited(err)) {
                 toastService.error(t('search.tooManyRequests'));
-            } else if (axios.isAxiosError(err) && err.response?.data?.message) {
-                toastService.error(err.response.data.message);
+            } else if (isApiError(err) && err.serverMessage) {
+                toastService.error(err.serverMessage);
             } else {
                 toastService.error(t('search.failedSearch'));
             }
@@ -167,10 +148,7 @@ const SearchBar: React.FC = () => {
         setIsAddingFromBarcode(true);
         try {
             // Fetch release details first
-            const { data: releaseDetails } = await axios.get<ReleaseDetails>(
-                `/api/discogs/release/${releaseId}`,
-                { withCredentials: true }
-            );
+            const releaseDetails = await getRelease(releaseId);
 
             // Use the first available format, or create a default
             const format = releaseDetails.availableFormats?.[0] || {
@@ -180,17 +158,13 @@ const SearchBar: React.FC = () => {
             };
 
             // Add to collection
-            await axios.post(
-                '/api/collection',
-                { ...releaseDetails, format },
-                { withCredentials: true }
-            );
+            await addToCollection({ ...releaseDetails, format });
 
             toastService.success(t('search.addedToCollection', { title: releaseDetails.title }));
         } catch (err: unknown) {
             console.error('Error adding to collection:', err);
-            if (axios.isAxiosError(err) && err.response?.data?.message) {
-                toastService.error(err.response.data.message);
+            if (isApiError(err) && err.serverMessage) {
+                toastService.error(err.serverMessage);
             } else {
                 toastService.error(t('search.failedAddToCollection'));
             }
@@ -228,14 +202,11 @@ const SearchBar: React.FC = () => {
         setLookupSearched(true);
 
         try {
-            const response = await axios.get<DiscogsResult[]>('/api/discogs/lookup', {
-                params: { ref: lookupQuery.trim(), type: lookupType },
-                withCredentials: true
-            });
-            setLookupResults(Array.isArray(response.data) ? response.data : []);
+            const results = await lookup(lookupQuery.trim(), lookupType);
+            setLookupResults(Array.isArray(results) ? results : []);
         } catch (err) {
             console.error('Lookup failed:', err);
-            if (axios.isAxiosError(err) && err.response?.status === 429) {
+            if (isRateLimited(err)) {
                 toastService.error(t('search.tooManyRequests'));
             }
             setLookupResults([]);

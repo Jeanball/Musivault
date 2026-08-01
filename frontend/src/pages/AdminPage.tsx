@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
+import { getUsers, updateUser, deleteUser } from '../api/users';
 import { verify } from '../api/auth';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -31,9 +31,7 @@ const AdminPage: React.FC = () => {
                 setIsAdmin(true);
 
                 // Get current user ID
-                const { data: allUsers } = await axios.get<AdminUser[]>('/api/users', {
-                    withCredentials: true,
-                });
+                const allUsers = await getUsers();
 
                 // Find current user by username
                 const currentUser = allUsers.find(
@@ -82,7 +80,7 @@ const AdminPage: React.FC = () => {
         }
 
         try {
-            await axios.delete(`/api/users/${userId}`, { withCredentials: true });
+            await deleteUser(userId);
             setUsers(users.filter((u) => u._id !== userId));
             toastService.success(t('admin.userDeleted', { username }));
         } catch (error) {
@@ -99,11 +97,7 @@ const AdminPage: React.FC = () => {
         }
 
         try {
-            await axios.put(
-                `/api/users/${userId}`,
-                { isAdmin: !currentIsAdmin },
-                { withCredentials: true }
-            );
+            await updateUser(userId, { isAdmin: !currentIsAdmin });
 
             setUsers(
                 users.map((u) =>
@@ -131,11 +125,7 @@ const AdminPage: React.FC = () => {
         }
 
         try {
-            await axios.put(
-                `/api/users/${userId}`,
-                { password: newPassword },
-                { withCredentials: true }
-            );
+            await updateUser(userId, { password: newPassword });
             toastService.success(t('admin.passwordUpdatedFor', { username }));
         } catch (error) {
             console.error('Error updating password:', error);

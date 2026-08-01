@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOutletContext } from 'react-router';
-import axios from 'axios';
+import { updateProfile, updatePassword } from '../../api/users';
+import { isApiError } from '../../api/errors';
 import { toastService } from '../../utils/toast';
 import type { PrivateOutletContext } from '../../types/auth.types';
 import { User, Mail, AtSign, Lock } from 'lucide-react';
@@ -32,12 +33,13 @@ const ProfileSettings: React.FC = () => {
         setIsProfileLoading(true);
 
         try {
-            await axios.put('/api/users/profile', profileForm, { withCredentials: true });
+            await updateProfile(profileForm);
             toastService.success(t('settings.profileUpdated'));
             // Refresh user data in context
             await refreshUser();
-        } catch (error: any) {
-            toastService.error(error.response?.data?.message || t('settings.profileUpdateFailed'));
+        } catch (error) {
+            const message = isApiError(error) ? error.serverMessage : undefined;
+            toastService.error(message || t('settings.profileUpdateFailed'));
         } finally {
             setIsProfileLoading(false);
         }
@@ -61,11 +63,12 @@ const ProfileSettings: React.FC = () => {
         }
 
         try {
-            await axios.put('/api/users/password', { currentPassword, newPassword }, { withCredentials: true });
+            await updatePassword({ currentPassword, newPassword });
             toastService.success(t('settings.passwordUpdated'));
             form.reset();
-        } catch (error: any) {
-            toastService.error(error.response?.data?.message || 'Failed to update password');
+        } catch (error) {
+            const message = isApiError(error) ? error.serverMessage : undefined;
+            toastService.error(message || 'Failed to update password');
         }
     };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { getTaskLogs } from '../api/admin';
 import { verify } from '../api/auth';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -30,11 +30,7 @@ const AdminTaskLogsPage: React.FC = () => {
         const params: Record<string, string> = { limit: '50' };
         if (taskId) params.taskId = taskId;
 
-        const { data } = await axios.get<AdminTaskLog[]>('/api/admin/tasks/logs', {
-            withCredentials: true,
-            params,
-        });
-        setLogs(data);
+        setLogs(await getTaskLogs(params as { limit: string; taskId?: string }));
     };
 
     useEffect(() => {

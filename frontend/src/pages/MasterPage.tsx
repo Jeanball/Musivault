@@ -2,7 +2,9 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
-import axios from 'axios';
+import { getRelease, getMasterVersions } from '../api/discogs';
+import { addToCollection as apiAddToCollection, rematchAlbum } from '../api/collection';
+import { isApiError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -89,10 +91,10 @@ const MasterPage: React.FC = () => {
             if (!masterId) return;
             try {
                 const [versionsRes, prefs] = await Promise.all([
-                    axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, { withCredentials: true }),
+                    getMasterVersions<VersionsPageData>(masterId),
                     getPreferences()
                 ]);
-                setPageData(versionsRes.data);
+                setPageData(versionsRes);
                 setConditionGradingEnabled(prefs.enableConditionGrading || false);
             } catch (error) {
                 console.log("Error charging versions on this album: ", error)
@@ -153,10 +155,10 @@ const MasterPage: React.FC = () => {
 
         setLoadingReleaseIds(prev => new Set(prev).add(releaseId));
         try {
-            const response = await axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, { withCredentials: true });
+            const release = await getRelease(releaseId);
             setReleaseDetailsCache(prev => {
                 const updated = new Map(prev);
-                updated.set(releaseId, response.data);
+                updated.set(releaseId, release);
                 return updated;
             });
         } catch (err) {
@@ -198,19 +200,16 @@ const MasterPage: React.FC = () => {
 
         setIsSubmitting(true);
         try {
-            await axios.post(
-                `/api/collection/${rematchItemId}/rematch`,
-                { newDiscogsId, format },
-                { withCredentials: true }
-            );
+            await rematchAlbum(rematchItemId, { newDiscogsId, format });
             toastService.success(t('rematch.success'));
             navigate(`/app/album/${rematchItemId}`, {
                 replace: true,
                 state: { backTo: '/app/collection' }
             });
-        } catch (error: any) {
+        } catch (error) {
             console.error('Rematch failed:', error);
-            toastService.error(error.response?.data?.message || t('rematch.failed'));
+            const message = isApiError(error) ? error.serverMessage : undefined;
+            toastService.error(message || t('rematch.failed'));
         } finally {
             setIsSubmitting(false);
         }
@@ -259,21 +258,22 @@ const MasterPage: React.FC = () => {
     ) => {
         setIsSubmitting(true);
         try {
-            const response = await axios.post('/api/collection', {
+            const { item } = await apiAddToCollection({
                 ...album,
                 format,
                 mediaCondition,
                 sleeveCondition
-            }, { withCredentials: true });
+            });
             toastService.success(t('common.addedSuccess', { title: album.title }));
             setAddedAlbum({
-                id: response.data.item._id,
+                id: item._id,
                 title: album.title
             });
             setPendingFormat(null);
             setPendingAlbum(null);
-        } catch (err: any) {
-            toastService.error(err.response?.data?.message || t('app.error'));
+        } catch (err) {
+            const message = isApiError(err) ? err.serverMessage : undefined;
+            toastService.error(message || t('app.error'));
         } finally {
             setIsSubmitting(false);
         }

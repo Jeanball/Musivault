@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
-import axios from 'axios';
+import { getRelease } from '../api/discogs';
+import { addToCollection as apiAddToCollection } from '../api/collection';
+import { isApiError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -40,11 +42,11 @@ const ReleasePage: React.FC = () => {
             if (!releaseId) return;
             try {
                 // Fetch release details and user preferences in parallel
-                const [releaseRes, prefs] = await Promise.all([
-                    axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, { withCredentials: true }),
+                const [release, prefs] = await Promise.all([
+                    getRelease(releaseId),
                     getPreferences()
                 ]);
-                setAlbumDetails(releaseRes.data);
+                setAlbumDetails(release);
                 setConditionGradingEnabled(prefs.enableConditionGrading || false);
             } catch (error) {
                 console.log("Error loading release details:", error);
@@ -102,20 +104,21 @@ const ReleasePage: React.FC = () => {
         if (!albumDetails) return;
         setIsSubmitting(true);
         try {
-            const response = await axios.post('/api/collection', {
+            const { item } = await apiAddToCollection({
                 ...albumDetails,
                 format,
                 mediaCondition,
                 sleeveCondition
-            }, { withCredentials: true });
+            });
             toastService.success(t('common.addedSuccess', { title: albumDetails.title }));
             setAddedAlbum({
-                id: response.data.item._id,
+                id: item._id,
                 title: albumDetails.title
             });
             setPendingFormat(null);
-        } catch (err: any) {
-            toastService.error(err.response?.data?.message || t('common.error'));
+        } catch (err) {
+            const message = isApiError(err) ? err.serverMessage : undefined;
+            toastService.error(message || t('common.error'));
         } finally {
             setIsSubmitting(false);
         }
