@@ -1,15 +1,11 @@
 import pino from 'pino';
 
-const isProduction = process.env.NODE_ENV === 'production';
-
 /**
  * Application logger.
  *
- * JSON on stdout in production, which is what `docker logs` and any aggregator
- * expect. In development it goes through pino-pretty for readability — that
- * package is a devDependency, and the production image installs with
- * `npm ci --only=production`, so the transport must stay disabled there or the
- * container would fail to boot on a missing module.
+ * Output always goes through pino-pretty so `docker logs` is readable in every
+ * environment; that means the package is a regular dependency, since the
+ * production image installs with `npm ci --only=production`.
  */
 export const logger = pino({
     level: process.env.LOG_LEVEL || 'info',
@@ -29,14 +25,12 @@ export const logger = pino({
         ],
         censor: '[redacted]'
     },
-    transport: isProduction
-        ? undefined
-        : {
-              target: 'pino-pretty',
-              options: {
-                  colorize: true,
-                  translateTime: 'HH:MM:ss.l',
-                  ignore: 'pid,hostname'
-              }
-          }
+    transport: {
+        target: 'pino-pretty',
+        options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss.l',
+            ignore: 'pid,hostname'
+        }
+    }
 });

@@ -9,6 +9,7 @@ import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
 import type { DiscogsReleaseResponse } from '../types/discogs.types';
 import AdminTaskExecution from '../models/AdminTaskExecution';
 import { validateCustomFieldValues } from './customFields.controller';
+import { logger } from '../config/logger.config';
 
 // ===== Types =====
 
@@ -102,7 +103,7 @@ export async function executePriceSync(
   let skippedNoData = 0;
   let releaseIdx = 0;
 
-  console.log(`[${logLabel}] Starting sync: ${totalItems} items, ${totalReleases} unique releases, ${noDiscogsItems.length} without discogsId, forceRefresh=${forceRefresh}`);
+  logger.info(`[${logLabel}] Starting sync: ${totalItems} items, ${totalReleases} unique releases, ${noDiscogsItems.length} without discogsId, forceRefresh=${forceRefresh}`);
 
   for (const [discogsId, releaseItems] of groupedByRelease) {
     releaseIdx++;
@@ -142,14 +143,14 @@ export async function executePriceSync(
 
       syncedReleases++;
       syncedItems += releaseItems.length;
-      console.log(`[${logLabel}] ${releaseIdx}/${totalReleases} SUCCESS - ${artist} - ${title} (${releaseItems.length} items) | VG+: ${stats.veryGoodPlus} ${stats.currency}`);
+      logger.debug(`[${logLabel}] ${releaseIdx}/${totalReleases} SUCCESS - ${artist} - ${title} (${releaseItems.length} items) | VG+: ${stats.veryGoodPlus} ${stats.currency}`);
     } else {
       skippedNoData += releaseItems.length;
-      console.log(`[${logLabel}] ${releaseIdx}/${totalReleases} NO DATA - ${artist} - ${title}`);
+      logger.debug(`[${logLabel}] ${releaseIdx}/${totalReleases} NO DATA - ${artist} - ${title}`);
     }
 
     if (shouldAbort()) {
-      console.log(`[${logLabel}] Aborted.`);
+      logger.info(`[${logLabel}] Aborted.`);
       break;
     }
   }
@@ -176,7 +177,7 @@ export async function executePriceSync(
     forceRefresh,
   };
 
-  console.log(`[${logLabel}] Complete: ${syncedReleases}/${totalReleases} releases synced (${syncedItems} items), ${skippedFresh} fresh, ${skippedNoData} no data, ${noDiscogsItems.length} no discogsId. Total value: ${totalValue.toFixed(2)} ${currency}`);
+  logger.info(`[${logLabel}] Complete: ${syncedReleases}/${totalReleases} releases synced (${syncedItems} items), ${skippedFresh} fresh, ${skippedNoData} no data, ${noDiscogsItems.length} no discogsId. Total value: ${totalValue.toFixed(2)} ${currency}`);
 
   return result;
 }
@@ -264,7 +265,7 @@ export async function importCollectionCSV(req: Request, res: Response) {
       status: 'processing'
     });
   } catch (error) {
-    console.error('Error starting CSV import:', error);
+    logger.error({ err: error }, 'Error starting CSV import');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -282,7 +283,7 @@ export async function getImportLogs(req: Request, res: Response) {
     const logs = await csvImportService.getImportLogs(req.user._id, limit);
     res.status(200).json(logs);
   } catch (error) {
-    console.error('Error fetching import logs:', error);
+    logger.error({ err: error }, 'Error fetching import logs');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -304,7 +305,7 @@ export async function getImportLogById(req: Request, res: Response) {
 
     res.status(200).json(log);
   } catch (error) {
-    console.error('Error fetching import log:', error);
+    logger.error({ err: error }, 'Error fetching import log');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -342,7 +343,7 @@ export async function downloadImportLog(req: Request, res: Response) {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.status(200).send(JSON.stringify(downloadData, null, 2));
   } catch (error) {
-    console.error('Error downloading import log:', error);
+    logger.error({ err: error }, 'Error downloading import log');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -392,7 +393,7 @@ export async function getMyCollection(req: Request, res: Response) {
 
     res.status(200).json(collection);
   } catch (error) {
-    console.error('Error fetching collection:', error);
+    logger.error({ err: error }, 'Error fetching collection');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -417,7 +418,7 @@ export async function getCollectionItemById(req: Request, res: Response) {
 
     res.status(200).json(item);
   } catch (error) {
-    console.error('Error fetching collection item:', error);
+    logger.error({ err: error }, 'Error fetching collection item');
     res.status(500).json({ error: 'Failed to fetch collection item' });
   }
 }
@@ -475,7 +476,7 @@ export async function addToCollection(req: Request, res: Response) {
 
     res.status(201).json({ message: 'Album added to your collection!', item: newItem });
   } catch (error) {
-    console.error('Error adding to collection:', error);
+    logger.error({ err: error }, 'Error adding to collection');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -500,7 +501,7 @@ export async function deleteFromCollection(req: Request, res: Response) {
 
     res.status(200).json({ message: 'Album removed from your collection.' });
   } catch (error) {
-    console.error('Error deleting from collection:', error);
+    logger.error({ err: error }, 'Error deleting from collection');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -569,7 +570,7 @@ export async function updateCollectionItem(req: Request, res: Response) {
 
     res.status(200).json(updatedItem);
   } catch (error) {
-    console.error('Error updating collection item:', error);
+    logger.error({ err: error }, 'Error updating collection item');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -602,7 +603,7 @@ export async function ignoreFormatVerificationAlert(req: Request, res: Response)
 
     res.status(200).json(item);
   } catch (error) {
-    console.error('Error ignoring format verification alert:', error);
+    logger.error({ err: error }, 'Error ignoring format verification alert');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -635,7 +636,7 @@ export async function restoreFormatVerificationAlert(req: Request, res: Response
 
     res.status(200).json(item);
   } catch (error) {
-    console.error('Error restoring format verification alert:', error);
+    logger.error({ err: error }, 'Error restoring format verification alert');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -711,7 +712,7 @@ export async function rematchAlbum(req: Request, res: Response) {
     const updatedItem = await CollectionItem.findById(itemId).populate('album');
     res.status(200).json(updatedItem);
   } catch (error: any) {
-    console.error('Error rematching album:', error);
+    logger.error({ err: error }, 'Error rematching album');
     if (error.response?.status === 404) {
       res.status(404).json({ message: 'Release not found on Discogs' });
       return;
@@ -756,7 +757,7 @@ export async function getStyles(req: Request, res: Response) {
 
     res.status(200).json(styles);
   } catch (error) {
-    console.error('Error fetching styles:', error);
+    logger.error({ err: error }, 'Error fetching styles');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -825,7 +826,7 @@ export async function addManualAlbum(req: Request, res: Response) {
       album: album
     });
   } catch (error) {
-    console.error('Error adding manual album:', error);
+    logger.error({ err: error }, 'Error adding manual album');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -879,7 +880,7 @@ async function fetchPriceForItem(itemId: string, discogsId: number): Promise<voi
       });
     }
   } catch (err) {
-    console.error(`[PriceSync] Error fetching price for item ${itemId}:`, err);
+    logger.error({ err }, `[PriceSync] Error fetching price for item ${itemId}`);
   }
 }
 
@@ -927,7 +928,7 @@ export async function getCollectionSyncInfo(req: Request, res: Response) {
       ttlHours: getPriceTTLHours(),
     });
   } catch (error) {
-    console.error('Error fetching collection sync info:', error);
+    logger.error({ err: error }, 'Error fetching collection sync info');
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -979,7 +980,7 @@ export async function syncItemPrice(req: Request, res: Response) {
       res.status(404).json({ message: 'No price data found for this album on Discogs' });
     }
   } catch (error) {
-    console.error(`Error syncing price for item ${req.params?.itemId}:`, error);
+    logger.error({ err: error }, `Error syncing price for item ${req.params?.itemId}`);
     res.status(500).json({ message: 'Internal server error while syncing price' });
   }
 }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import ExchangeRates from '../models/ExchangeRates';
+import { logger } from '../config/logger.config';
 
 export async function getExchangeRates(req: Request, res: Response) {
     try {
@@ -31,7 +32,7 @@ export async function getExchangeRates(req: Request, res: Response) {
             lastUpdated: exchangeRates.lastUpdated
         });
     } catch (error) {
-        console.error("Error in getExchangeRates:", error);
+        logger.error({ err: error }, "Error in getExchangeRates");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -54,7 +55,7 @@ export async function getPreferences(req: Request, res: Response) {
             publicShareId: user.preferences?.isPublic ? user.publicShareId : null
         });
     } catch (error) {
-        console.error("Error in getPreferences controller", error);
+        logger.error({ err: error }, "Error in getPreferences controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -102,7 +103,7 @@ export async function updatePreferences(req: Request, res: Response) {
             publicShareId: user.preferences.isPublic ? user.publicShareId : null
         });
     } catch (error) {
-        console.error("Error in updatePreferences controller", error);
+        logger.error({ err: error }, "Error in updatePreferences controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }

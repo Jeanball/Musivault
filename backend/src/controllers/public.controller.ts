@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import CollectionItem from '../models/CollectionItem';
 import { IAlbum } from '../models/Album';
+import { logger } from '../config/logger.config';
 
 export async function getPublicCollection(req: Request, res: Response) {
     try {
@@ -40,7 +41,7 @@ export async function getPublicCollection(req: Request, res: Response) {
             total: collection.length
         });
     } catch (error) {
-        console.error('Error fetching public collection:', error);
+        logger.error({ err: error }, 'Error fetching public collection');
         res.status(500).json({ message: 'Internal server error' });
     }
 }
@@ -77,7 +78,7 @@ export async function getPublicUsers(req: Request, res: Response) {
 
         res.status(200).json(usersWithCounts);
     } catch (error) {
-        console.error('Error fetching public users:', error);
+        logger.error({ err: error }, 'Error fetching public users');
         res.status(500).json({ message: 'Internal server error' });
     }
 }
@@ -98,7 +99,7 @@ export async function getLatestPublicAlbums(req: Request, res: Response) {
 
         res.status(200).json(latestItems);
     } catch (error) {
-        console.error('Error fetching latest public albums:', error);
+        logger.error({ err: error }, 'Error fetching latest public albums');
         res.status(500).json({ message: 'Internal server error' });
     }
 }

@@ -30,6 +30,8 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=5000
+      # Log verbosity: fatal | error | warn | info | debug | trace
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
       - MONGO_URI=${MONGO_URI:-mongodb://mongodb:27017/musivault}
       - SESSION_SECRET=${SESSION_SECRET}
       - JWT_SECRET=${JWT_SECRET:-${SESSION_SECRET}}

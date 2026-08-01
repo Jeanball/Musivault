@@ -8,14 +8,15 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Album from '../models/Album';
+import { logger } from '../config/logger.config';
 
 dotenv.config();
 
 async function connectDB() {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/musivault_db';
-    console.log('Connecting to MongoDB...');
+    logger.info('Connecting to MongoDB...');
     await mongoose.connect(mongoUri);
-    console.log('MongoDB connected.');
+    logger.info('MongoDB connected.');
 }
 
 export async function migrateIndexes(isStandalone = false) {
@@ -24,13 +25,13 @@ export async function migrateIndexes(isStandalone = false) {
     }
 
     try {
-        console.log('\n========== Database Index Migration ==========\n');
+        logger.info('\n========== Database Index Migration ==========\n');
 
         const collection = Album.collection;
         const indexes = await collection.indexes();
 
-        console.log('Current Indexes:');
-        indexes.forEach(idx => console.log(` - ${idx.name}: ${JSON.stringify(idx.key)} (sparse: ${idx.sparse || false}, unique: ${idx.unique || false})`));
+        logger.info('Current Indexes:');
+        indexes.forEach(idx => logger.info(` - ${idx.name}: ${JSON.stringify(idx.key)} (sparse: ${idx.sparse || false}, unique: ${idx.unique || false})`));
 
         // specific check for discogsId index
         const discogsIndexName = 'discogsId_1';
@@ -38,27 +39,27 @@ export async function migrateIndexes(isStandalone = false) {
 
         if (existingIndex) {
             if (existingIndex.sparse) {
-                console.log(`\n✅ Index '${discogsIndexName}' is already sparse. No action needed.`);
+                logger.info(`\n✅ Index '${discogsIndexName}' is already sparse. No action needed.`);
             } else {
-                console.log(`\n⚠️ Index '${discogsIndexName}' exists but is NOT sparse.`);
-                console.log(`   Dropping index '${discogsIndexName}'...`);
+                logger.info(`\n⚠️ Index '${discogsIndexName}' exists but is NOT sparse.`);
+                logger.info(`   Dropping index '${discogsIndexName}'...`);
 
                 await collection.dropIndex(discogsIndexName);
-                console.log(`   ✅ Index dropped.`);
+                logger.info(`   ✅ Index dropped.`);
 
-                console.log(`   Recreating '${discogsIndexName}' as sparse unique index...`);
+                logger.info(`   Recreating '${discogsIndexName}' as sparse unique index...`);
                 // Mongoose syncIndexes is one way, but explicit creation is safer/clearer here
                 await collection.createIndex({ discogsId: 1 }, { unique: true, sparse: true, background: true });
-                console.log(`   ✅ Index recreated successfully.`);
+                logger.info(`   ✅ Index recreated successfully.`);
             }
         } else {
-            console.log(`\nℹ️ Index '${discogsIndexName}' not found. Creating it...`);
+            logger.info(`\nℹ️ Index '${discogsIndexName}' not found. Creating it...`);
             await collection.createIndex({ discogsId: 1 }, { unique: true, sparse: true, background: true });
-            console.log(`   ✅ Index created successfully.`);
+            logger.info(`   ✅ Index created successfully.`);
         }
 
     } catch (error) {
-        console.error('\n❌ Migration failed:', error);
+        logger.error({ err: error }, '\n❌ Migration failed');
         if (isStandalone) process.exit(1);
         // If not standalone, we probably want to throw so the server knows something went wrong, 
         // or just log it and continue depending on criticality. 
@@ -66,10 +67,10 @@ export async function migrateIndexes(isStandalone = false) {
     } finally {
         if (isStandalone) {
             await mongoose.disconnect();
-            console.log('\nDisconnected from MongoDB');
+            logger.info('\nDisconnected from MongoDB');
             process.exit(0);
         }
-        console.log('==============================================\n');
+        logger.info('==============================================\n');
     }
 }
 

@@ -2,6 +2,7 @@ import AdminTaskExecution from '../models/AdminTaskExecution';
 import { getAdminTaskDefinitions } from './adminTasks.service';
 import { isTaskRunning, startTask } from './taskRunner.service';
 import { isBackgroundMigrationRunning } from '../scripts/migration-runner';
+import { logger } from '../config/logger.config';
 
 const SCHEDULER_INTERVAL_MS = 60_000; // Check every 60 seconds
 
@@ -13,7 +14,7 @@ let schedulerInterval: ReturnType<typeof setInterval> | null = null;
  */
 async function checkAndRunDueTasks() {
   if (isBackgroundMigrationRunning()) {
-    console.log('[Scheduler] Paused: Background migrations are currently running.');
+    logger.info('[Scheduler] Paused: Background migrations are currently running.');
     return;
   }
 
@@ -36,7 +37,7 @@ async function checkAndRunDueTasks() {
         (Date.now() - new Date(lastExecution.executedAt).getTime() >= task.intervalMs);
 
       if (isDue) {
-        console.log(
+        logger.info(
           `[Scheduler] Task "${task.id}" is due.` +
           (lastExecution
             ? ` Last run: ${new Date(lastExecution.executedAt).toISOString()}`
@@ -45,7 +46,7 @@ async function checkAndRunDueTasks() {
         startTask(task.id, { forceRefresh: false, trigger: 'auto' });
       }
     } catch (error) {
-      console.error(`[Scheduler] Error checking task "${task.id}":`, error);
+      logger.error({ err: error }, `[Scheduler] Error checking task "${task.id}"`);
     }
   }
 }
@@ -56,11 +57,11 @@ async function checkAndRunDueTasks() {
  */
 export function startTaskScheduler() {
   if (schedulerInterval) {
-    console.warn('[Scheduler] Scheduler is already running.');
+    logger.warn('[Scheduler] Scheduler is already running.');
     return;
   }
 
-  console.log('[Scheduler] Starting task scheduler (interval: 60s)');
+  logger.info('[Scheduler] Starting task scheduler (interval: 60s)');
 
   // Initial check after a short delay to let the server fully boot
   setTimeout(() => {
@@ -80,6 +81,6 @@ export function stopTaskScheduler() {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    console.log('[Scheduler] Scheduler stopped.');
+    logger.info('[Scheduler] Scheduler stopped.');
   }
 }

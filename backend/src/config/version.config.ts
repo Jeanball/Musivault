@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { logger } from './logger.config';
 
 // Read version from environment variable (Docker) or VERSION file (development)
 const getVersion = (): string => {
@@ -19,7 +20,7 @@ const getVersion = (): string => {
             const versionPath = path.join(__dirname, '../../..', 'VERSION');
             return fs.readFileSync(versionPath, 'utf-8').trim();
         } catch {
-            console.warn('Could not read VERSION file, using default');
+            logger.warn('Could not read VERSION file, using default');
             return '0.0.0-dev';
         }
     }

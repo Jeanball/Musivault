@@ -4,6 +4,7 @@ import {
   recordAdminTaskExecution,
 } from './adminTasks.service';
 import type { TaskProgressEvent } from './adminTasks.service';
+import { logger } from '../config/logger.config';
 
 // ===== Types =====
 
@@ -48,13 +49,13 @@ export function startTask(
 ): boolean {
   // Prevent duplicate runs
   if (isTaskRunning(taskId)) {
-    console.log(`[TaskRunner] Task "${taskId}" is already running. Skipping.`);
+    logger.warn(`[TaskRunner] Task "${taskId}" is already running. Skipping.`);
     return false;
   }
 
   const task = getAdminTaskDefinition(taskId);
   if (!task) {
-    console.log(`[TaskRunner] Task "${taskId}" not found.`);
+    logger.error(`[TaskRunner] Task "${taskId}" not found.`);
     return false;
   }
 
@@ -68,7 +69,7 @@ export function startTask(
   };
   runningTasks.set(taskId, state);
 
-  console.log(`[TaskRunner] Starting "${taskId}" (trigger: ${options.trigger}, forceRefresh: ${options.forceRefresh ?? false})`);
+  logger.info(`[TaskRunner] Starting "${taskId}" (trigger: ${options.trigger}, forceRefresh: ${options.forceRefresh ?? false})`);
 
   // Fire-and-forget background execution
   (async () => {
@@ -90,7 +91,7 @@ export function startTask(
 
       state.status = 'completed';
       state.result = result;
-      console.log(`[TaskRunner] Task "${taskId}" completed: ${result}`);
+      logger.info(`[TaskRunner] Task "${taskId}" completed: ${result}`);
 
       // Record execution
       try {
@@ -102,12 +103,12 @@ export function startTask(
           details: result,
         });
       } catch (recordError) {
-        console.error(`[TaskRunner] Failed to record "${taskId}" success:`, recordError);
+        logger.error({ err: recordError }, `[TaskRunner] Failed to record "${taskId}" success`);
       }
     } catch (error) {
       state.status = 'failed';
       state.error = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[TaskRunner] Task "${taskId}" failed:`, state.error);
+      logger.error({ err: state.error }, `[TaskRunner] Task "${taskId}" failed`);
 
       // Notify subscribers of error
       const errorEvent: TaskProgressEvent = { type: 'error', message: state.error };
@@ -130,7 +131,7 @@ export function startTask(
           details: state.error,
         });
       } catch (recordError) {
-        console.error(`[TaskRunner] Failed to record "${taskId}" failure:`, recordError);
+        logger.error({ err: recordError }, `[TaskRunner] Failed to record "${taskId}" failure`);
       }
     } finally {
       // Close all subscriber connections

@@ -5,6 +5,7 @@
 
 import axios, { AxiosError } from 'axios';
 import { Response } from 'express';
+import { logger } from '../config/logger.config';
 
 // ===== Constants =====
 
@@ -110,7 +111,7 @@ export function handleDiscogsError(
     res: Response,
     context: string
 ): void {
-    console.error(`Error ${context}:`, error);
+    logger.error({ err: error }, `Error ${context}`);
 
     if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;

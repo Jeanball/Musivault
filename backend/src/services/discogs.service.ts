@@ -31,6 +31,7 @@ import {
     calculateSimilarity,
     artistMatches
 } from '../utils/discogs.utils';
+import { logger } from '../config/logger.config';
 
 // ===== Search Functions (for Controller) =====
 
@@ -171,7 +172,7 @@ export async function lookupByReference(
                 type: 'release' as const
             }));
         } catch (err: any) {
-            console.log('[Discogs] Catalog number lookup error:', err.message);
+            logger.warn({ err }, '[Discogs] Catalog number lookup error');
             return [];
         }
     }
@@ -380,10 +381,10 @@ export async function searchByArtistAlbum(
     title: string,
     year?: string
 ): Promise<FoundAlbumInfo | null> {
-    console.log(`[Discogs] Searching for: "${artist}" - "${title}" (year: ${year || 'N/A'})`);
+    logger.debug(`[Discogs] Searching for: "${artist}" - "${title}" (year: ${year || 'N/A'})`);
 
     if (!hasCredentials()) {
-        console.log('[Discogs] ERROR: DISCOGS_KEY or DISCOGS_SECRET not set');
+        logger.error('[Discogs] DISCOGS_KEY or DISCOGS_SECRET not set');
         return null;
     }
 
@@ -401,7 +402,7 @@ export async function searchByArtistAlbum(
     );
     if (releaseResult) return releaseResult;
 
-    console.log('[Discogs] No results found');
+    logger.debug('[Discogs] No results found');
     return null;
 }
 
@@ -412,7 +413,7 @@ async function searchMastersInternal(
     year?: string
 ): Promise<FoundAlbumInfo | null> {
     try {
-        console.log('[Discogs] Trying masters...');
+        logger.debug('[Discogs] Trying masters...');
         await delay(RATE_LIMIT_MS);
 
         const response = await axios.get<{ results: any[] }>(`${DISCOGS_BASE_URL}/database/search`, {
@@ -421,7 +422,7 @@ async function searchMastersInternal(
         });
 
         const results = response.data.results || [];
-        console.log(`[Discogs] Found ${results.length} masters`);
+        logger.debug(`[Discogs] Found ${results.length} masters`);
 
         if (!results.length) return null;
 
@@ -432,17 +433,17 @@ async function searchMastersInternal(
         scored.sort((a, b) => b.score - a.score);
 
         if (scored[0].score < 30) {
-            console.log(`[Discogs] Best match score ${scored[0].score} too low, skipping`);
+            logger.debug(`[Discogs] Best match score ${scored[0].score} too low, skipping`);
             return null;
         }
 
         const r = scored[0].result;
         const cleanedTitle = cleanAlbumTitle(r.title);
-        console.log(`[Discogs] Selected master: ${r.title} -> ${cleanedTitle} (ID: ${r.id}, Score: ${scored[0].score})`);
+        logger.debug(`[Discogs] Selected master: ${r.title} -> ${cleanedTitle} (ID: ${r.id}, Score: ${scored[0].score})`);
 
         return await fetchMainRelease(r, authParams, searchArtist, cleanedTitle);
     } catch (err: any) {
-        console.log('[Discogs] Master search error:', err.message);
+        logger.warn({ err }, '[Discogs] Master search error');
         return null;
     }
 }
@@ -463,7 +464,7 @@ async function fetchMainRelease(
         const mainReleaseId = response.data.main_release;
         const coverImage = response.data.images?.[0]?.uri || master.cover_image || master.thumb || '';
 
-        console.log(`[Discogs] Got main_release ID: ${mainReleaseId}`);
+        logger.debug(`[Discogs] Got main_release ID: ${mainReleaseId}`);
         return {
             discogsId: mainReleaseId,
             title: cleanedTitle,
@@ -473,7 +474,7 @@ async function fetchMainRelease(
             cover_image: coverImage
         };
     } catch (err: any) {
-        console.log(`[Discogs] Failed to get main_release, using master ID: ${err.message}`);
+        logger.warn({ err }, '[Discogs] Failed to get main_release, falling back to master ID');
         return {
             discogsId: master.id,
             title: cleanedTitle,
@@ -492,7 +493,7 @@ async function searchReleasesInternal(
     year?: string
 ): Promise<FoundAlbumInfo | null> {
     try {
-        console.log('[Discogs] Trying releases...');
+        logger.debug('[Discogs] Trying releases...');
         await delay(RATE_LIMIT_MS);
 
         const response = await axios.get<{ results: any[] }>(`${DISCOGS_BASE_URL}/database/search`, {
@@ -501,7 +502,7 @@ async function searchReleasesInternal(
         });
 
         const results = response.data.results || [];
-        console.log(`[Discogs] Found ${results.length} releases`);
+        logger.debug(`[Discogs] Found ${results.length} releases`);
 
         if (!results.length) return null;
 
@@ -512,13 +513,13 @@ async function searchReleasesInternal(
         scored.sort((a, b) => b.score - a.score);
 
         if (scored[0].score < 30) {
-            console.log(`[Discogs] Best match score ${scored[0].score} too low, skipping`);
+            logger.debug(`[Discogs] Best match score ${scored[0].score} too low, skipping`);
             return null;
         }
 
         const r = scored[0].result;
         const cleanedTitle = cleanAlbumTitle(r.title);
-        console.log(`[Discogs] Selected release: ${r.title} -> ${cleanedTitle} (ID: ${r.id}, Score: ${scored[0].score})`);
+        logger.debug(`[Discogs] Selected release: ${r.title} -> ${cleanedTitle} (ID: ${r.id}, Score: ${scored[0].score})`);
 
         return {
             discogsId: r.id,
@@ -529,7 +530,7 @@ async function searchReleasesInternal(
             cover_image: r.cover_image || r.thumb || ''
         };
     } catch (err: any) {
-        console.log('[Discogs] Release search error:', err.message);
+        logger.warn({ err }, '[Discogs] Release search error');
         return null;
     }
 }
@@ -538,10 +539,10 @@ async function searchReleasesInternal(
  * Fetch release by ID (for CSV import)
  */
 export async function fetchByReleaseId(releaseId: string | number): Promise<FoundAlbumInfo | null> {
-    console.log(`[Discogs] Direct lookup for release ID: ${releaseId}`);
+    logger.debug(`[Discogs] Direct lookup for release ID: ${releaseId}`);
 
     if (!hasCredentials()) {
-        console.log('[Discogs] ERROR: DISCOGS_KEY or DISCOGS_SECRET not set');
+        logger.error('[Discogs] DISCOGS_KEY or DISCOGS_SECRET not set');
         return null;
     }
 
@@ -577,7 +578,7 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
             }
         }
 
-        console.log(`[Discogs] Found release: ${artist} - ${title} (ID: ${data.id}, Format: ${format || 'unknown'})`);
+        logger.debug(`[Discogs] Found release: ${artist} - ${title} (ID: ${data.id}, Format: ${format || 'unknown'})`);
 
         return {
             discogsId: data.id,
@@ -590,9 +591,9 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
         };
     } catch (err: any) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
-            console.log(`[Discogs] Release ID ${releaseId} not found`);
+            logger.debug(`[Discogs] Release ID ${releaseId} not found`);
         } else {
-            console.log('[Discogs] Fetch by release ID error:', err.message);
+            logger.warn({ err }, '[Discogs] Fetch by release ID error');
         }
         return null;
     }
@@ -606,10 +607,10 @@ export async function searchByCatalogNumber(
     artist?: string,
     title?: string
 ): Promise<FoundAlbumInfo | null> {
-    console.log(`[Discogs] Searching by catalog number: ${catalogNumber}`);
+    logger.debug(`[Discogs] Searching by catalog number: ${catalogNumber}`);
 
     if (!hasCredentials()) {
-        console.log('[Discogs] ERROR: DISCOGS_KEY or DISCOGS_SECRET not set');
+        logger.error('[Discogs] DISCOGS_KEY or DISCOGS_SECRET not set');
         return null;
     }
 
@@ -634,7 +635,7 @@ export async function searchByCatalogNumber(
         });
 
         const results = response.data.results || [];
-        console.log(`[Discogs] Found ${results.length} results for catalog number ${catalogNumber}`);
+        logger.debug(`[Discogs] Found ${results.length} results for catalog number ${catalogNumber}`);
 
         if (!results.length) return null;
 
@@ -647,7 +648,7 @@ export async function searchByCatalogNumber(
 
             const best = scored[0].result;
             const cleanedTitle = cleanAlbumTitle(best.title);
-            console.log(`[Discogs] Selected: ${best.title} (ID: ${best.id}, Score: ${scored[0].score})`);
+            logger.debug(`[Discogs] Selected: ${best.title} (ID: ${best.id}, Score: ${scored[0].score})`);
 
             return {
                 discogsId: best.id,
@@ -664,7 +665,7 @@ export async function searchByCatalogNumber(
         const titleParts = first.title.split(' - ');
         const artistName = titleParts.length > 1 ? titleParts[0].replace(/\(\d+\)/g, '').trim() : 'Unknown Artist';
 
-        console.log(`[Discogs] Selected first result: ${first.title} (ID: ${first.id})`);
+        logger.debug(`[Discogs] Selected first result: ${first.title} (ID: ${first.id})`);
 
         return {
             discogsId: first.id,
@@ -675,7 +676,7 @@ export async function searchByCatalogNumber(
             cover_image: first.cover_image || first.thumb || ''
         };
     } catch (err: any) {
-        console.log('[Discogs] Catalog number search error:', err.message);
+        logger.warn({ err }, '[Discogs] Catalog number search error');
         return null;
     }
 }
@@ -732,7 +733,7 @@ export async function getMarketplaceStats(releaseId: number): Promise<Marketplac
             currency,
         };
     } catch (err: any) {
-        console.log(`[Discogs] Price suggestions error for release ${releaseId}:`, err.message);
+        logger.warn({ err }, `[Discogs] Price suggestions error for release ${releaseId}`);
         return null;
     }
 }

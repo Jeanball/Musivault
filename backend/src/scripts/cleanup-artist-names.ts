@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import Album from '../models/Album';
+import { logger } from '../config/logger.config';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env') });
@@ -18,9 +19,9 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/musivault'
 // ... imports
 
 async function connectDB() {
-    console.log('Connecting to MongoDB...');
+    logger.info('Connecting to MongoDB...');
     await mongoose.connect(MONGO_URI);
-    console.log('✅ Connected to MongoDB');
+    logger.info('✅ Connected to MongoDB');
 }
 
 export async function cleanupArtistNames(isStandalone = false) {
@@ -30,7 +31,7 @@ export async function cleanupArtistNames(isStandalone = false) {
 
     try {
         const albums = await Album.find({});
-        console.log(`Checking ${albums.length} albums for artist name suffixes...`);
+        logger.info(`Checking ${albums.length} albums for artist name suffixes...`);
 
         let updatedCount = 0;
         const suffixRegex = /\s\(\d+\)$/;
@@ -43,27 +44,27 @@ export async function cleanupArtistNames(isStandalone = false) {
                 album.artist = newName;
                 await album.save();
 
-                console.log(`Updated: "${oldName}" -> "${newName}"`);
+                logger.info(`Updated: "${oldName}" -> "${newName}"`);
                 updatedCount++;
             }
         }
 
         if (updatedCount > 0) {
-            console.log('\n========== Cleanup Summary ==========');
-            console.log(`Total Albums Scanned: ${albums.length}`);
-            console.log(`Albums Updated: ${updatedCount}`);
-            console.log('======================================');
+            logger.info('\n========== Cleanup Summary ==========');
+            logger.info(`Total Albums Scanned: ${albums.length}`);
+            logger.info(`Albums Updated: ${updatedCount}`);
+            logger.info('======================================');
         } else {
-            console.log('✅ Artist names are clean.');
+            logger.info('✅ Artist names are clean.');
         }
 
     } catch (error) {
-        console.error('❌ Migration failed:', error);
+        logger.error({ err: error }, '❌ Migration failed');
         if (isStandalone) process.exit(1);
     } finally {
         if (isStandalone) {
             await mongoose.disconnect();
-            console.log('Disconnected from MongoDB');
+            logger.info('Disconnected from MongoDB');
             process.exit(0);
         }
     }

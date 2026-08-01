@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import User from '../models/User';
 import CollectionItem from '../models/CollectionItem';
+import { logger } from '../config/logger.config';
 
 export async function getAllUsers(req: Request, res: Response) {
     try {
@@ -29,7 +30,7 @@ export async function getAllUsers(req: Request, res: Response) {
 
         res.status(200).json(usersWithStats);
     } catch (error) {
-        console.error("Error in getAllUsers controller", error)
+        logger.error({ err: error }, "Error in getAllUsers controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -39,7 +40,7 @@ export async function getUserById(req: Request, res: Response) {
         const user = await User.findById(req.params.id)
         res.json(user)
     } catch (error) {
-        console.error("Error in getUserById controller", error)
+        logger.error({ err: error }, "Error in getUserById controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -65,7 +66,7 @@ export async function updateUser(req: Request, res: Response) {
         res.status(200).json({ message: "User updated successfully" });
 
     } catch (error) {
-        console.error("Error in updateUser controller", error)
+        logger.error({ err: error }, "Error in updateUser controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -75,7 +76,7 @@ export async function deleteUser(req: Request, res: Response) {
         await User.findByIdAndDelete(req.params.id)
         res.json({ message: "User deleted successfully" });
     } catch (error) {
-        console.error("Error in deleteNote controller");
+        logger.error({ err: error }, "Error in deleteUser controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -131,7 +132,7 @@ export async function updatePassword(req: Request, res: Response) {
         res.status(200).json({ message: "Password updated successfully" });
 
     } catch (error) {
-        console.error("Error in updatePassword controller", error);
+        logger.error({ err: error }, "Error in updatePassword controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -188,7 +189,7 @@ export async function updateProfile(req: Request, res: Response) {
         });
 
     } catch (error) {
-        console.error("Error in updateProfile controller", error);
+        logger.error({ err: error }, "Error in updateProfile controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }

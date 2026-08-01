@@ -1,13 +1,14 @@
 import { Request, Response } from 'express';
 import { listAdminTasks, getAdminTaskLogs } from '../services/adminTasks.service';
 import { startTask, subscribeToTask, isTaskRunning } from '../services/taskRunner.service';
+import { logger } from '../config/logger.config';
 
 export async function getAdminTasks(req: Request, res: Response) {
     try {
         const tasks = await listAdminTasks((taskId) => isTaskRunning(taskId));
         res.status(200).json(tasks);
     } catch (error) {
-        console.error('Error fetching admin tasks:', error);
+        logger.error({ err: error }, 'Error fetching admin tasks');
         res.status(500).json({ message: 'Internal server error' });
     }
 }
@@ -47,7 +48,7 @@ export async function getTaskLogs(req: Request, res: Response) {
         const logs = await getAdminTaskLogs(limit, taskId);
         res.status(200).json(logs);
     } catch (error) {
-        console.error('Error fetching task logs:', error);
+        logger.error({ err: error }, 'Error fetching task logs');
         res.status(500).json({ message: 'Internal server error' });
     }
 }

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { COVERS_DIR } from '../config/uploads.config';
+import { logger } from '../config/logger.config';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -43,14 +44,14 @@ const coverUpload = multer({
 export const uploadCover = (req: Request, res: Response, next: NextFunction) => {
     coverUpload.single('cover')(req, res, (err: any) => {
         if (err instanceof multer.MulterError) {
-            console.warn(`[ManualAlbum] Multer error: ${err.code} - ${err.message} (field: ${err.field})`);
+            logger.warn({ err }, `[ManualAlbum] Multer error: ${err.code} (field: ${err.field})`);
             if (err.code === 'LIMIT_FILE_SIZE') {
                 return res.status(413).json({ message: 'Cover image is too large. Maximum size is 5 MB.' });
             }
             return res.status(400).json({ message: `Upload error: ${err.message}` });
         }
         if (err) {
-            console.warn(`[ManualAlbum] Upload error: ${err.message}`);
+            logger.warn({ err }, "[ManualAlbum] Upload error");
             return res.status(400).json({ message: err.message || 'Invalid file upload' });
         }
         next();

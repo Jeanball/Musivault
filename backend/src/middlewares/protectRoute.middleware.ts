@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import User, { IUser } from '../models/User';
+import { logger } from '../config/logger.config';
 
 declare global {
     namespace Express {
@@ -39,7 +40,7 @@ const protectRoute = async (req: Request, res: Response, next: NextFunction) => 
         next();
 
     } catch (error) {
-        console.error("Error in protectRoute middleware:", error);
+        logger.error({ err: error }, "Error in protectRoute middleware");
         res.status(401).json({ message: "Unauthorized, invalid token" });
     }
 };

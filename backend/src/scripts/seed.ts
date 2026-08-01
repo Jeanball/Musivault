@@ -1,4 +1,5 @@
 import User from '../models/User';
+import { logger } from '../config/logger.config';
 
 /**
  * Seeds an initial admin user if:
@@ -15,7 +16,7 @@ export async function seedAdminUser(): Promise<void> {
 
     // Check if admin credentials are provided
     if (!adminEmail || !adminUsername || !adminPassword) {
-        console.log('Admin seed: no ADMIN_* environment variables set, skipping.');
+        logger.info('Admin seed: no ADMIN_* environment variables set, skipping.');
         return;
     }
 
@@ -23,7 +24,7 @@ export async function seedAdminUser(): Promise<void> {
         // Check if any admin already exists
         const existingAdmin = await User.findOne({ isAdmin: true });
         if (existingAdmin) {
-            console.log('Admin seed: an admin user already exists, skipping.');
+            logger.info('Admin seed: an admin user already exists, skipping.');
             return;
         }
 
@@ -33,7 +34,7 @@ export async function seedAdminUser(): Promise<void> {
             // Promote existing user to admin
             existingUser.isAdmin = true;
             await existingUser.save();
-            console.log(`Admin seed: promoted existing user "${adminUsername}" to admin.`);
+            logger.info(`Admin seed: promoted existing user "${adminUsername}" to admin.`);
             return;
         }
 
@@ -46,10 +47,10 @@ export async function seedAdminUser(): Promise<void> {
         });
 
         await adminUser.save();
-        console.log(`Admin seed: created admin user "${adminUsername}" (${adminEmail})`);
-        console.log('SECURITY: remove the ADMIN_* variables from .env after this first run.');
+        logger.info(`Admin seed: created admin user "${adminUsername}" (${adminEmail})`);
+        logger.info('SECURITY: remove the ADMIN_* variables from .env after this first run.');
 
     } catch (error) {
-        console.error('Admin seed: failed to create admin user:', error);
+        logger.error({ err: error }, 'Admin seed: failed to create admin user');
     }
 }
