@@ -4,8 +4,8 @@ import { useNavigate, useOutletContext } from "react-router";
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from "../types/collection.types";
 import type { PrivateOutletContext } from "../types/auth.types";
-import axios from "axios";
 import { getImageUrl } from "../utils/imageUrl";
+import { getCollection } from "../api/collection";
 
 
 const HomePage: React.FC = () => {
@@ -27,10 +27,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const fetchCollection = async () => {
       try {
-        const { data } = await axios.get<CollectionItem[]>(
-          '/api/collection?sort=latest',
-          { withCredentials: true }
-        );
+        const data = await getCollection('latest');
 
         if (Array.isArray(data)) {
           setCollection(data);

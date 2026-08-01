@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react';
-import axios from 'axios';
+import { getCollection, removeFromCollection } from '../api/collection';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import type { CollectionItem } from '../types/collection.types';
@@ -23,10 +23,7 @@ export const CollectionProvider: React.FC<{ children: ReactNode }> = ({ children
     const fetchCollection = useCallback(async () => {
         setIsLoading(true);
         try {
-            const { data } = await axios.get<CollectionItem[]>('/api/collection', {
-                withCredentials: true,
-            });
-            setCollection(data);
+            setCollection(await getCollection());
         } catch (error) {
             console.error("Error loading collection: ", error);
             // Optional: Show toast if not a 401 (auth handled by layout)
@@ -43,7 +40,7 @@ export const CollectionProvider: React.FC<{ children: ReactNode }> = ({ children
     const handleDeleteItem = async (itemId: string) => {
         setIsDeleting(true);
         try {
-            await axios.delete(`/api/collection/${itemId}`, { withCredentials: true });
+            await removeFromCollection(itemId);
             setCollection(currentCollection => currentCollection.filter(item => item._id !== itemId));
             toastService.success(t('album.removed'));
         } catch (error) {

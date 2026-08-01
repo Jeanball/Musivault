@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import { addManualAlbum } from '../../api/collection';
+import { isApiError } from '../../api/errors';
 import { toastService } from '../../utils/toast';
 import { Upload, X, Music } from 'lucide-react';
 
@@ -61,12 +62,7 @@ const ManualAlbumForm: React.FC = () => {
                 formData.append('cover', coverFile);
             }
 
-            await axios.post('/api/collection/manual', formData, {
-                withCredentials: true,
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            await addManualAlbum(formData);
 
             toastService.success(t('search.manualSuccess', { title: title.trim() }));
 
@@ -82,8 +78,9 @@ const ManualAlbumForm: React.FC = () => {
             }
         } catch (err) {
             console.error('Error adding manual album:', err);
-            if (axios.isAxiosError(err) && err.response?.data?.message) {
-                toastService.error(err.response.data.message);
+            // Covers the 413 the upload middleware returns for oversized files.
+            if (isApiError(err) && err.serverMessage) {
+                toastService.error(err.serverMessage);
             } else {
                 toastService.error(t('search.manualError'));
             }

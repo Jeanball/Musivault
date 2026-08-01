@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
@@ -7,12 +6,8 @@ import { useCollectionStats } from '../hooks/collection/useCollectionStats';
 import CollectionStats from '../components/Collection/CollectionStats';
 import { getItemValue } from '../utils/itemValue';
 import { useCurrency } from '../hooks/useCurrency';
-
-interface CollectionSyncInfo {
-    nextAutoSyncAt: string | null;
-    lastSyncedAt: string | null;
-    ttlHours: number;
-}
+import { getSyncInfo } from '../api/collection';
+import type { CollectionSyncInfo } from '../api/collection';
 
 const StatsPage: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -24,10 +19,7 @@ const StatsPage: React.FC = () => {
     useEffect(() => {
         const loadSyncInfo = async () => {
             try {
-                const { data } = await axios.get<CollectionSyncInfo>('/api/collection/sync-info', {
-                    withCredentials: true,
-                });
-                setSyncInfo(data);
+                setSyncInfo(await getSyncInfo());
             } catch (error) {
                 console.error('Failed to load collection sync info:', error);
                 setSyncInfo(null);

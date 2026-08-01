@@ -3,6 +3,15 @@ import { ArrowLeft, CircleAlert, RefreshCw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import axios from 'axios';
 import { getPreferences } from '../api/preferences';
+import { isApiError } from '../api/errors';
+import {
+    getCollectionItem,
+    updateCollectionItem,
+    syncItemPrice,
+    removeFromCollection,
+    ignoreFormatAlert,
+    restoreFormatAlert
+} from '../api/collection';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
@@ -61,10 +70,10 @@ const AlbumDetailPage: React.FC = () => {
     const fetchData = async (id: string) => {
         try {
             const [itemRes, prefs] = await Promise.all([
-                axios.get(`/api/collection/${id}`, { withCredentials: true }),
+                getCollectionItem(id),
                 getPreferences()
             ]);
-            setItem(itemRes.data);
+            setItem(itemRes);
             setConditionGradingEnabled(prefs.enableConditionGrading || false);
         } catch (error) {
             console.error('Failed to fetch collection item:', error);
@@ -75,9 +84,7 @@ const AlbumDetailPage: React.FC = () => {
     const updateCondition = async (field: 'mediaCondition' | 'sleeveCondition', value: string | null) => {
         if (!item) return;
         try {
-            await axios.put(`/api/collection/${item._id}`, {
-                [field]: value
-            }, { withCredentials: true });
+            await updateCollectionItem(item._id, { [field]: value });
             setItem(prev => prev ? { ...prev, [field]: value } : null);
             toastService.success(t('condition.updated'));
         } catch (error) {
@@ -90,12 +97,12 @@ const AlbumDetailPage: React.FC = () => {
         if (!item) return;
         setIsSyncingPrice(true);
         try {
-            const res = await axios.post(`/api/collection/${item._id}/sync-price`, {}, { withCredentials: true });
-            setItem({ ...item, priceCache: res.data.priceCache });
+            const updated = await syncItemPrice(item._id);
+            setItem({ ...item, priceCache: updated.priceCache });
             toastService.success(t('album.priceUpdated'));
-        } catch (error: any) {
+        } catch (error) {
             console.error('Failed to sync price:', error);
-            if (error.response?.status === 404) {
+            if (isApiError(error) && error.status === 404) {
                toastService.error(t('album.priceUnavailable'));
             } else {
                toastService.error(t('album.failedSyncPrice'));
@@ -116,7 +123,7 @@ const AlbumDetailPage: React.FC = () => {
         }
 
         try {
-            await axios.delete(`/api/collection/${item?._id}`, { withCredentials: true });
+            await removeFromCollection(item!._id);
             toastService.success(t('album.removed'));
             navigate('/app');
         } catch (error) {
@@ -192,12 +199,7 @@ const AlbumDetailPage: React.FC = () => {
 
         setIsIgnoringFormatAlert(true);
         try {
-            const response = await axios.post<CollectionItem>(
-                `/api/collection/${item._id}/ignore-format-alert`,
-                {},
-                { withCredentials: true }
-            );
-            setItem(response.data);
+            setItem(await ignoreFormatAlert(item._id));
             await refreshCollection();
             toastService.success(t('formatVerification.ignoreSuccess'));
         } catch (error) {
@@ -215,12 +217,7 @@ const AlbumDetailPage: React.FC = () => {
 
         setIsRestoringFormatAlert(true);
         try {
-            const response = await axios.post<CollectionItem>(
-                `/api/collection/${item._id}/restore-format-alert`,
-                {},
-                { withCredentials: true }
-            );
-            setItem(response.data);
+            setItem(await restoreFormatAlert(item._id));
             await refreshCollection();
             toastService.success(t('formatVerification.undoSuccess'));
         } catch (error) {

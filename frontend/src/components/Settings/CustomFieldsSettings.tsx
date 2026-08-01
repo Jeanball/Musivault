@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import {
+    getCustomFields,
+    createCustomField,
+    updateCustomField,
+    deleteCustomField
+} from '../../api/customFields';
+import { isApiError } from '../../api/errors';
 import { ListPlus, Pencil, Trash2 } from 'lucide-react';
 import { toastService } from '../../utils/toast';
 import type { CustomFieldDefinition, CustomFieldType } from '../../types/customFields.types';
@@ -28,10 +34,7 @@ const CustomFieldsSettings: React.FC = () => {
 
     const fetchFields = async () => {
         try {
-            const response = await axios.get<CustomFieldDefinition[]>('/api/custom-fields', {
-                withCredentials: true,
-            });
-            setFields(response.data);
+            setFields(await getCustomFields());
         } catch (error) {
             console.error('Failed to fetch custom fields:', error);
             toastService.error(t('customFields.failedLoad'));
@@ -77,29 +80,21 @@ const CustomFieldsSettings: React.FC = () => {
             };
 
             if (editingId) {
-                const response = await axios.put<CustomFieldDefinition>(
-                    `/api/custom-fields/${editingId}`,
-                    payload,
-                    { withCredentials: true }
-                );
+                const updated = await updateCustomField(editingId, payload);
                 setFields((prev) =>
-                    prev.map((field) => (field._id === editingId ? response.data : field))
+                    prev.map((field) => (field._id === editingId ? updated : field))
                 );
                 toastService.success(t('customFields.updated'));
             } else {
-                const response = await axios.post<CustomFieldDefinition>(
-                    '/api/custom-fields',
-                    payload,
-                    { withCredentials: true }
-                );
-                setFields((prev) => [...prev, response.data]);
+                const created = await createCustomField(payload);
+                setFields((prev) => [...prev, created]);
                 toastService.success(t('customFields.created'));
             }
 
             resetForm();
-        } catch (error: any) {
+        } catch (error) {
             console.error('Failed to save custom field:', error);
-            const message = error.response?.data?.message;
+            const message = isApiError(error) ? error.serverMessage : undefined;
             toastService.error(message || t('customFields.failedSave'));
         } finally {
             setIsSaving(false);
@@ -113,7 +108,7 @@ const CustomFieldsSettings: React.FC = () => {
 
         setIsSaving(true);
         try {
-            await axios.delete(`/api/custom-fields/${fieldId}`, { withCredentials: true });
+            await deleteCustomField(fieldId);
             setFields((prev) => prev.filter((field) => field._id !== fieldId));
             toastService.success(t('customFields.deleted'));
         } catch (error) {

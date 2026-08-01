@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import { getCustomFields } from '../../api/customFields';
+import { updateCollectionItem } from '../../api/collection';
 import { toastService } from '../../utils/toast';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
 import { normalizeCustomFieldValues } from '../../utils/customFields';
@@ -30,9 +31,8 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
     }, [initialValues]);
 
     useEffect(() => {
-        axios
-            .get<CustomFieldDefinition[]>('/api/custom-fields', { withCredentials: true })
-            .then((response) => setDefinitions(response.data))
+        getCustomFields()
+            .then(setDefinitions)
             .catch((error) => console.error('Failed to fetch custom field definitions:', error))
             .finally(() => setIsLoading(false));
     }, []);
@@ -54,11 +54,7 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
         const startTime = Date.now();
 
         try {
-            const response = await axios.put(
-                `/api/collection/${itemId}`,
-                { customFields: localValues },
-                { withCredentials: true }
-            );
+            const updated = await updateCollectionItem(itemId, { customFields: localValues });
 
             // Minimum loading duration of 400ms so the user sees the spinner feedback clearly
             const elapsedTime = Date.now() - startTime;
@@ -66,7 +62,7 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
                 await new Promise((resolve) => setTimeout(resolve, 400 - elapsedTime));
             }
 
-            const savedValues = normalizeCustomFieldValues(response.data.customFields);
+            const savedValues = normalizeCustomFieldValues(updated.customFields);
             onUpdate(savedValues);
             toastService.success(t('customFields.valueSaved'));
         } catch (error) {
