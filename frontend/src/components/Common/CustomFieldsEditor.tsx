@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toastService } from '../../utils/toast';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
 import { normalizeCustomFieldValues } from '../../types/customFields.types';
-import FieldRow from '../Common/FieldRow';
+import FieldRow from './FieldRow';
 
 interface CustomFieldsEditorProps {
     itemId: string;

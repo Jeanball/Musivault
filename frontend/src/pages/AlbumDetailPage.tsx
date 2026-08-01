@@ -15,7 +15,7 @@ import { getFormatVerificationMessage, hasActiveFormatVerificationIssue, hasIgno
 import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../utils/brandColors';
 import FormatVerificationBadge from '../components/Common/FormatVerificationBadge';
 import FormatColorBadge from '../components/Common/FormatColorBadge';
-import CustomFieldsEditor from '../components/Collection/CustomFieldsEditor';
+import CustomFieldsEditor from '../components/Common/CustomFieldsEditor';
 import FieldRow from '../components/Common/FieldRow';
 import { useCurrency } from '../hooks/useCurrency';
 

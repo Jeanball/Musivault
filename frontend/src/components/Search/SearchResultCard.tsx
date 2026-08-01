@@ -2,21 +2,15 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { parseTitle } from '../../utils/formatters';
 import { getImageUrl } from '../../utils/imageUrl';
+import type { DiscogsResult } from '../../types';
 
-export interface DiscogsResult {
-  id: number;
-  thumb: string;
-  title: string;
-  year: string;
-}
-
-interface AlbumCardProps {
+interface SearchResultCardProps {
   result: DiscogsResult;
   onShowDetails: (releaseId: number) => void;
   isLoadingDetails: boolean;
 }
 
-const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingDetails }) => {
+const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, onShowDetails, isLoadingDetails }) => {
   const { t } = useTranslation();
   const { artist, album } = parseTitle(result.title);
 
@@ -52,4 +46,4 @@ const AlbumCard: React.FC<AlbumCardProps> = ({ result, onShowDetails, isLoadingD
   );
 };
 
-export default AlbumCard;
+export default SearchResultCard;

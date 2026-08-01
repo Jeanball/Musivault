@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../../utils/toast";
 import { stripArtistSuffix } from '../../utils/formatters';
-import AlbumCard from '../Collection/AlbumCard';
+import SearchResultCard from './SearchResultCard';
 import BarcodeScannerModal from '../Modal/BarcodeScannerModal';
 import SelectReleaseModal from '../Modal/SelectReleaseModal';
 import ManualAlbumForm from './ManualAlbumForm';
@@ -374,7 +374,7 @@ const SearchBar: React.FC = () => {
                                 <h3 className="text-xl font-bold mb-4 text-gray-200">{t('common.albums')}</h3>
                                 <div className="space-y-4">
                                     {visibleAlbums.map((result) => (
-                                        <AlbumCard
+                                        <SearchResultCard
                                             key={result.id}
                                             result={result}
                                             onShowDetails={() => handleSelectAlbum(result)}
@@ -467,7 +467,7 @@ const SearchBar: React.FC = () => {
                         <div className="space-y-4">
                             <h3 className="text-xl font-bold text-gray-200">{t('search.results')}</h3>
                             {lookupResults.map((result) => (
-                                <AlbumCard
+                                <SearchResultCard
                                     key={result.id}
                                     result={result}
                                     onShowDetails={() => handleSelectAlbum(result)}
