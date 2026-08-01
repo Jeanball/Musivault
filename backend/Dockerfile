@@ -45,8 +45,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Install su-exec
-RUN apk add --no-cache su-exec
+# Install su-exec, and tzdata so the TZ env var actually resolves
+RUN apk add --no-cache su-exec tzdata
 
 
 # Copy built files from builder

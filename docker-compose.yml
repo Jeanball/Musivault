@@ -26,6 +26,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5000
+      # Timezone used for log timestamps, e.g. America/Montreal
+      - TZ=${TZ:-UTC}
       # Log verbosity: fatal | error | warn | info | debug | trace
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - MONGO_URI=${MONGO_URI:-mongodb://mongodb:27017/musivault}
