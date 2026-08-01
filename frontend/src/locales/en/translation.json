@@ -146,7 +146,7 @@
         "saveProfile": "Save Profile",
         "profileUpdated": "Profile updated successfully",
         "profileUpdateFailed": "Failed to update profile",
-        "import": "Import",
+        "import": "Import / Export",
         "about": "About Musivault",
         "version": "Version",
         "currentRelease": "Current release",
@@ -160,9 +160,11 @@
     },
     "csvImport": {
         "title": "Import Collection (CSV)",
-        "columns": "Columns: Artist, Album, Format, Year, Release ID, Catalog Number",
-        "hint": "Use Release ID for exact Discogs matches. All columns except Artist+Album or Release ID are optional.",
+        "columns": "Columns: Artist, Album, Format, Year, Release ID, Catalog Number, Media Condition, Sleeve Condition.",
+        "required": "Required: a Release ID, or Artist + Album. Every other column is optional.",
+        "matching": "Albums are matched on Discogs in this order: Release ID (exact), then Catalog Number, then an Artist/Album search. Format accepts Vinyl or CD; if left empty the Discogs format is used. Albums already in your collection in the same format are skipped.",
         "downloadTemplate": "Download CSV template",
+        "failedDownloadTemplate": "Failed to download the template. Try again in a moment.",
         "chooseFile": "Choose a CSV file",
         "importing": "Importing {{processed}} of {{total}} albums...",
         "success": "Success",
@@ -177,6 +179,14 @@
         "importFinished": "Import finished: {{count}} added",
         "importStoppedErrors": "Import stopped with errors",
         "reason": "Reason"
+    },
+    "csvExport": {
+        "title": "Export Collection (CSV)",
+        "description": "Download a CSV backup of your full collection.",
+        "hint": "The file uses the same columns as the import, so albums can be re-imported later. Custom fields are included for backup only and are not restored on import.",
+        "downloadCsv": "Download CSV backup",
+        "exportFinished": "Collection exported",
+        "failedExport": "Failed to export collection."
     },
     "collection": {
         "title": "Collection",

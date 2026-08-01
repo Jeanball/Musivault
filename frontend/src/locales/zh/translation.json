@@ -142,9 +142,11 @@
     },
     "csvImport": {
         "title": "导入收藏 (CSV)",
-        "columns": "列：艺术家，专辑，格式，年份，发行ID，目录号",
-        "hint": "使用发行ID进行精确的Discogs匹配。除艺术家+专辑或发行ID外，所有列均可选。",
+        "columns": "列：Artist、Album、Format、Year、Release ID、Catalog Number、Media Condition、Sleeve Condition。",
+        "required": "必填：Release ID，或者 Artist + Album。其他列均为可选。",
+        "matching": "专辑按以下顺序在 Discogs 上匹配：Release ID（精确），然后 Catalog Number，最后按 Artist/Album 搜索。Format 接受 Vinyl 或 CD；留空则使用 Discogs 的格式。收藏中已存在且格式相同的专辑会被跳过。",
         "downloadTemplate": "下载CSV模板",
+        "failedDownloadTemplate": "下载模板失败，请稍后重试。",
         "chooseFile": "选择CSV文件",
         "importing": "正在导入 {{processed}} / {{total}} 张专辑...",
         "success": "成功",
@@ -159,6 +161,14 @@
         "importFinished": "导入完成：添加了 {{count}} 个",
         "importStoppedErrors": "导入因错误停止",
         "reason": "原因"
+    },
+    "csvExport": {
+        "title": "导出收藏（CSV）",
+        "description": "下载整个收藏的 CSV 备份。",
+        "hint": "文件使用与导入相同的列，因此专辑稍后可以重新导入。自定义字段仅用于备份，导入时不会恢复。",
+        "downloadCsv": "下载 CSV 备份",
+        "exportFinished": "收藏已导出",
+        "failedExport": "导出收藏失败。"
     },
     "collection": {
         "title": "收藏",

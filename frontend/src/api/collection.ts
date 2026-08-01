@@ -88,6 +88,22 @@ export async function startCsvImport(file: File): Promise<ImportStarted> {
     return data;
 }
 
+/** Blank CSV template with the columns the importer understands. */
+export async function downloadCsvTemplate(): Promise<Blob> {
+    const { data } = await client.get<Blob>('/collection/template', {
+        responseType: 'blob'
+    });
+    return data;
+}
+
+/** CSV backup of the whole collection, ready to be saved as a file. */
+export async function exportCollection(): Promise<Blob> {
+    const { data } = await client.get<Blob>('/collection/export', {
+        responseType: 'blob'
+    });
+    return data;
+}
+
 export async function getImportLog(logId: string): Promise<ImportLog> {
     const { data } = await client.get<ImportLog>(`/collection/import/logs/${logId}`);
     return data;

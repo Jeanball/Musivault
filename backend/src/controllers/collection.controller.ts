@@ -3,6 +3,7 @@ import type { Express } from 'express';
 import Album, { IAlbum, ITrack, ILabel } from '../models/Album';
 import CollectionItem, { ICollectionItem } from '../models/CollectionItem';
 import { csvImportService } from '../services/import.service';
+import { csvExportService } from '../services/export.service';
 import { getMarketplaceStats } from '../services/discogs.service';
 import { getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
@@ -228,15 +229,37 @@ export async function streamPriceSync(
 
 export async function downloadTemplate(req: Request, res: Response) {
   const csvContent = [
-    'Artist,Album,Year (Optional),Format (Vinyl or CD),Release ID (Optional),Catalog Number (Optional)',
-    'Daft Punk,Discovery,2001,Vinyl,,',
-    'Radiohead,OK Computer,1997,CD,1252837,CDNODATA 29',
-    'Pink Floyd,The Dark Side Of The Moon,1973,Vinyl,249504,'
+    'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional),Media Condition (Optional),Sleeve Condition (Optional)',
+    'Daft Punk,Discovery,Vinyl,2001,,,,',
+    'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29,NM,VG+',
+    'Pink Floyd,The Dark Side Of The Moon,Vinyl,1973,249504,,,'
   ].join('\n');
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="musivault_import_template.csv"');
   res.status(200).send(csvContent);
+}
+
+export async function exportCollectionCSV(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const csvContent = await csvExportService.buildCollectionCsv(req.user._id);
+    const date = new Date().toISOString().slice(0, 10);
+    const safeUsername = String(req.user.username || 'collection').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `musivault_${safeUsername}_${date}.csv`;
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    // BOM so Excel opens accented artist names correctly.
+    res.status(200).send('﻿' + csvContent);
+  } catch (error) {
+    logger.error({ err: error }, 'Error exporting collection CSV');
+    res.status(500).json({ message: 'Internal server error' });
+  }
 }
 
 export async function importCollectionCSV(req: Request, res: Response) {

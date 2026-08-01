@@ -142,9 +142,11 @@
     },
     "csvImport": {
         "title": "Importar Coleção (CSV)",
-        "columns": "Colunas: Artista, Álbum, Formato, Ano, ID Release, Número Catálogo",
-        "hint": "Use ID Release para correspondências exatas no Discogs. Todas colunas exceto Artista+Álbum ou ID Release são opcionais.",
+        "columns": "Colunas: Artist, Album, Format, Year, Release ID, Catalog Number, Media Condition, Sleeve Condition.",
+        "required": "Obrigatório: um Release ID, ou Artist + Album. As demais colunas são opcionais.",
+        "matching": "Os álbuns são buscados no Discogs nesta ordem: Release ID (exato), depois Catalog Number e, por fim, uma busca por Artist/Album. Format aceita Vinyl ou CD; se ficar vazio, o formato do Discogs é usado. Álbuns já presentes na sua coleção no mesmo formato são ignorados.",
         "downloadTemplate": "Baixar modelo CSV",
+        "failedDownloadTemplate": "Falha ao baixar o modelo. Tente novamente em instantes.",
         "chooseFile": "Escolher arquivo CSV",
         "importing": "Importando {{processed}} de {{total}} álbuns...",
         "success": "Sucesso",
@@ -159,6 +161,14 @@
         "importFinished": "Importação finalizada: {{count}} adicionados",
         "importStoppedErrors": "Importação parada com erros",
         "reason": "Razão"
+    },
+    "csvExport": {
+        "title": "Exportar coleção (CSV)",
+        "description": "Baixe um backup CSV de toda a sua coleção.",
+        "hint": "O arquivo usa as mesmas colunas da importação, então os álbuns podem ser reimportados depois. Campos personalizados são incluídos apenas como backup e não são restaurados na importação.",
+        "downloadCsv": "Baixar backup CSV",
+        "exportFinished": "Coleção exportada",
+        "failedExport": "Falha ao exportar a coleção."
     },
     "collection": {
         "title": "Coleção",

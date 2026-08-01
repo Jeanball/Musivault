@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../../utils/toast';
-import { startCsvImport, getImportLog, downloadImportLog } from '../../api/collection';
+import { startCsvImport, getImportLog, downloadImportLog, downloadCsvTemplate } from '../../api/collection';
 
 interface ImportResult {
     imported: number;
@@ -24,19 +24,27 @@ const ImportSettings: React.FC = () => {
         status: string;
     } | null>(null);
 
-    const downloadTemplate = () => {
-        const csv = [
-            'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional),Media Condition (Optional),Sleeve Condition (Optional)',
-            'Daft Punk,Discovery,Vinyl,2001,,,,',
-            'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29,NM,VG+'
-        ].join('\n');
-        const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        const link = document.createElement('a');
-        link.href = dataUri;
-        link.setAttribute('download', 'musivault_import_template.csv');
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+    const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+
+    // The template is served by the API so its columns stay in sync with the parser.
+    const downloadTemplate = async () => {
+        setIsLoadingTemplate(true);
+        try {
+            const blob = await downloadCsvTemplate();
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'musivault_import_template.csv');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch {
+            toastService.error(t('csvImport.failedDownloadTemplate'));
+        } finally {
+            setIsLoadingTemplate(false);
+        }
     };
 
     const [isDownloading, setIsDownloading] = useState(false);
@@ -166,12 +174,16 @@ const ImportSettings: React.FC = () => {
                 <p className="text-sm text-base-content/70">
                     {t('csvImport.columns')}
                 </p>
+                <p className="text-sm text-base-content/70">
+                    {t('csvImport.required')}
+                </p>
                 <p className="text-xs text-base-content/50 mt-1">
-                    {t('csvImport.hint')}
+                    {t('csvImport.matching')}
                 </p>
 
                 <div className="mt-3 flex flex-wrap gap-3 items-center">
-                    <button className="btn btn-outline btn-sm" onClick={downloadTemplate}>
+                    <button className="btn btn-outline btn-sm" onClick={downloadTemplate} disabled={isLoadingTemplate}>
+                        {isLoadingTemplate && <span className="loading loading-spinner loading-xs"></span>}
                         {t('csvImport.downloadTemplate')}
                     </button>
                     {!isImporting && (

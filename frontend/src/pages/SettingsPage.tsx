@@ -6,6 +6,7 @@ import ProfileSettings from '../components/Settings/ProfileSettings';
 import PreferencesSettings from '../components/Settings/PreferencesSettings';
 import AboutSettings from '../components/Settings/AboutSettings';
 import ImportSettings from '../components/Settings/ImportSettings';
+import ExportSettings from '../components/Settings/ExportSettings';
 
 type SettingsSection = 'profile' | 'preferences' | 'import' | 'about';
 
@@ -35,7 +36,12 @@ const SettingsPage: React.FC = () => {
             case 'preferences':
                 return <PreferencesSettings />;
             case 'import':
-                return <ImportSettings />;
+                return (
+                    <div className="flex flex-col gap-6">
+                        <ImportSettings />
+                        <ExportSettings />
+                    </div>
+                );
             case 'about':
                 return <AboutSettings />;
             default:

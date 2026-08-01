@@ -146,7 +146,7 @@
         "saveProfile": "Sauvegarder le profil",
         "profileUpdated": "Profil mis à jour avec succès",
         "profileUpdateFailed": "Échec de la mise à jour du profil",
-        "import": "Importer",
+        "import": "Importer / Exporter",
         "about": "À propos de Musivault",
         "version": "Version",
         "currentRelease": "Version actuelle",
@@ -160,9 +160,11 @@
     },
     "csvImport": {
         "title": "Importer une collection (CSV)",
-        "columns": "Colonnes : Artiste, Album, Format, Année, ID de sortie, Numéro de catalogue",
-        "hint": "Utilisez l'ID de sortie pour des correspondances exactes Discogs. Toutes les colonnes sauf Artiste+Album ou ID de sortie sont optionnelles.",
+        "columns": "Colonnes : Artist, Album, Format, Year, Release ID, Catalog Number, Media Condition, Sleeve Condition.",
+        "required": "Obligatoire : un Release ID, ou Artist + Album. Toutes les autres colonnes sont facultatives.",
+        "matching": "Les albums sont recherchés sur Discogs dans cet ordre : Release ID (exact), puis Catalog Number, puis une recherche Artist/Album. Format accepte Vinyl ou CD ; si la colonne est vide, le format Discogs est utilisé. Les albums déjà présents dans votre collection dans le même format sont ignorés.",
         "downloadTemplate": "Télécharger le modèle CSV",
+        "failedDownloadTemplate": "Échec du téléchargement du modèle. Réessayez dans un instant.",
         "chooseFile": "Choisir un fichier CSV",
         "importing": "Import de {{processed}} sur {{total}} albums...",
         "success": "Succès",
@@ -177,6 +179,14 @@
         "importFinished": "Import terminé : {{count}} ajouté(s)",
         "importStoppedErrors": "Import arrêté avec des erreurs",
         "reason": "Raison"
+    },
+    "csvExport": {
+        "title": "Exporter la collection (CSV)",
+        "description": "Téléchargez une sauvegarde CSV de toute votre collection.",
+        "hint": "Le fichier utilise les mêmes colonnes que l'import, les albums peuvent donc être réimportés plus tard. Les champs personnalisés sont inclus uniquement pour la sauvegarde et ne sont pas restaurés à l'import.",
+        "downloadCsv": "Télécharger la sauvegarde CSV",
+        "exportFinished": "Collection exportée",
+        "failedExport": "Échec de l'export de la collection."
     },
     "collection": {
         "title": "Collection",

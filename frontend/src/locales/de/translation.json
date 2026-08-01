@@ -139,9 +139,11 @@
     },
     "csvImport": {
         "title": "Sammlung importieren (CSV)",
-        "columns": "Spalten: Künstler, Album, Format, Jahr, Release-ID, Katalognummer",
-        "hint": "Verwenden Sie die Release-ID für exakte Discogs-Übereinstimmungen. Alle Spalten außer Künstler+Album oder Release-ID sind optional.",
+        "columns": "Spalten: Artist, Album, Format, Year, Release ID, Catalog Number, Media Condition, Sleeve Condition.",
+        "required": "Erforderlich: eine Release ID oder Artist + Album. Alle anderen Spalten sind optional.",
+        "matching": "Alben werden auf Discogs in dieser Reihenfolge gesucht: Release ID (exakt), dann Catalog Number, dann eine Artist/Album-Suche. Format akzeptiert Vinyl oder CD; bleibt die Spalte leer, wird das Discogs-Format verwendet. Alben, die bereits im selben Format in Ihrer Sammlung sind, werden übersprungen.",
         "downloadTemplate": "CSV-Vorlage herunterladen",
+        "failedDownloadTemplate": "Vorlage konnte nicht heruntergeladen werden. Bitte gleich noch einmal versuchen.",
         "chooseFile": "Wählen Sie eine CSV-Datei",
         "importing": "Importiere {{processed}} von {{total}} Alben...",
         "success": "Erfolg",
@@ -156,6 +158,14 @@
         "importFinished": "Import abgeschlossen: {{count}} hinzugefügt",
         "importStoppedErrors": "Import mit Fehlern gestoppt",
         "reason": "Grund"
+    },
+    "csvExport": {
+        "title": "Sammlung exportieren (CSV)",
+        "description": "Laden Sie eine CSV-Sicherung Ihrer gesamten Sammlung herunter.",
+        "hint": "Die Datei verwendet dieselben Spalten wie der Import, Alben können also später wieder importiert werden. Benutzerdefinierte Felder dienen nur der Sicherung und werden beim Import nicht wiederhergestellt.",
+        "downloadCsv": "CSV-Sicherung herunterladen",
+        "exportFinished": "Sammlung exportiert",
+        "failedExport": "Export der Sammlung fehlgeschlagen."
     },
     "collection": {
         "title": "Sammlung",

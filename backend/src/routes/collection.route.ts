@@ -5,6 +5,7 @@ import {
     getCollectionItemById,
     deleteFromCollection,
     importCollectionCSV,
+    exportCollectionCSV,
     downloadTemplate,
     getImportLogs,
     getImportLogById,
@@ -26,6 +27,7 @@ const router = Router();
 // CSV import endpoints (must be before /:itemId to avoid route conflicts)
 router.get('/template', protectRoute, downloadTemplate);
 router.post('/import', protectRoute, csvUpload.single('file'), importCollectionCSV);
+router.get('/export', protectRoute, exportCollectionCSV);
 router.get('/import/logs', protectRoute, getImportLogs);
 router.get('/import/logs/:logId', protectRoute, getImportLogById);
 router.get('/import/logs/:logId/download', protectRoute, downloadImportLog);
