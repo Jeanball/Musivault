@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.14.0] - 2026-07-31
+
+### Added
+- feat: increase cover image upload limit to 5MB and add Multer error handling for manual album uploads
+- feat: add PWA manifest and apple-touch-icon configuration for mobile web support
+- feat: Add the possibility to create custom fields by user (Thanks to @EnjoyJazz for his first contribution)
+- feat: enhance AlbumDetailPage with format and condition features
+- feat: enhance sorting functionality with SortIcon component and update getSortIcon logic
+
+### Changed
+- refactor: update mongoose Document interfaces to include explicit ObjectId type parameters
+- refactor: enhance custom fields UX with manual save button and top grid alignment
+
+---
+
 ## [1.13.0] - 2026-06-06
 
 ### Added
@@ -394,7 +409,8 @@ Once configured, you can fetch prices from the **Admin Task Center**.
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.13.0...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/Jeanball/Musivault/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/Jeanball/Musivault/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/Jeanball/Musivault/compare/v1.11.1...v1.12.0
 [1.11.1]: https://github.com/Jeanball/Musivault/compare/v1.11.0...v1.11.1

@@ -2,6 +2,20 @@
 
 Find all the new features and improvements added to the app right here!
 
+## [1.14.0] - 2026-07-31
+
+### What's New
+- **Custom Fields**: Create your own custom fields to track whatever extra details matter to you on your albums You need to go in Settings and Preferences to add your first custom field.
+*Thanks to @EnjoyJazz for this first community contribution!*
+- **Enhanced Album Detail Page**: Format and condition information is now easier to view directly on the album detail page.
+
+### Improvements
+- **Refined Sorting Controls**: Polished the collection sorting indicators for clearer at-a-glance feedback on sort direction.
+
+### Bug Fixes
+- **Larger Manual Uploads**: Increased the cover image upload limit to 5MB for manually added albums, with clearer error messages if an upload fails.
+
+---
 ## [1.13.0] - 2026-06-06
 
 ### What's New
