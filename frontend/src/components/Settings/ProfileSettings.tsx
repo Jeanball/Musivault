@@ -18,6 +18,7 @@ const ProfileSettings: React.FC = () => {
         email: email || ''
     });
     const [isProfileLoading, setIsProfileLoading] = useState(false);
+    const [isPasswordOpen, setIsPasswordOpen] = useState(false);
 
     // Update form when context changes
     React.useEffect(() => {
@@ -66,6 +67,7 @@ const ProfileSettings: React.FC = () => {
             await updatePassword({ currentPassword, newPassword });
             toastService.success(t('settings.passwordUpdated'));
             form.reset();
+            setIsPasswordOpen(false);
         } catch (error) {
             const message = isApiError(error) ? error.serverMessage : undefined;
             toastService.error(message || 'Failed to update password');
@@ -154,63 +156,70 @@ const ProfileSettings: React.FC = () => {
                     </div>
                 </form>
 
-                {/* Divider */}
-                <div className="divider">
-                    <Lock className="h-4 w-4" />
-                    {t('settings.changePassword')}
+                {/* Password Change Form (collapsed by default) */}
+                <div className="collapse collapse-arrow border border-base-300 bg-base-100">
+                    <input
+                        type="checkbox"
+                        checked={isPasswordOpen}
+                        onChange={(e) => setIsPasswordOpen(e.target.checked)}
+                    />
+                    <div className="collapse-title flex items-center gap-2 font-medium">
+                        <Lock className="h-4 w-4" />
+                        {t('settings.changePassword')}
+                    </div>
+                    <div className="collapse-content">
+                        <form onSubmit={handlePasswordSubmit}>
+                            <div className="space-y-4">
+                                <div className="form-control w-full">
+                                    <label className="label">
+                                        <span className="label-text">{t('settings.currentPassword')}</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="currentPassword"
+                                        placeholder={t('settings.enterCurrentPassword')}
+                                        className="input input-bordered w-full"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="form-control w-full">
+                                        <label className="label">
+                                            <span className="label-text">{t('settings.newPassword')}</span>
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="newPassword"
+                                            placeholder={t('settings.enterNewPassword')}
+                                            className="input input-bordered w-full"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label">
+                                            <span className="label-text">{t('settings.confirmNewPassword')}</span>
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="confirmPassword"
+                                            placeholder={t('settings.confirmPassword')}
+                                            className="input input-bordered w-full"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="card-actions justify-end mt-6">
+                                <button type="submit" className="btn btn-primary">
+                                    {t('settings.updatePassword')}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-
-                {/* Password Change Form */}
-                <form onSubmit={handlePasswordSubmit}>
-                    <div className="space-y-4">
-                        <div className="form-control w-full">
-                            <label className="label">
-                                <span className="label-text">{t('settings.currentPassword')}</span>
-                            </label>
-                            <input
-                                type="password"
-                                name="currentPassword"
-                                placeholder={t('settings.enterCurrentPassword')}
-                                className="input input-bordered w-full"
-                                required
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">{t('settings.newPassword')}</span>
-                                </label>
-                                <input
-                                    type="password"
-                                    name="newPassword"
-                                    placeholder={t('settings.enterNewPassword')}
-                                    className="input input-bordered w-full"
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">{t('settings.confirmNewPassword')}</span>
-                                </label>
-                                <input
-                                    type="password"
-                                    name="confirmPassword"
-                                    placeholder={t('settings.confirmPassword')}
-                                    className="input input-bordered w-full"
-                                    required
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="card-actions justify-end mt-6">
-                        <button type="submit" className="btn btn-primary">
-                            {t('settings.updatePassword')}
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     );
