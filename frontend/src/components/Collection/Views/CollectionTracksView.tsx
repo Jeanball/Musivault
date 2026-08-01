@@ -5,11 +5,11 @@ import { useTrackAggregation, type AggregatedTrack } from '../../../hooks/collec
 import type { CollectionItem } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
 
-interface TracksViewProps {
+interface CollectionTracksViewProps {
     collection: CollectionItem[];
 }
 
-const TracksView: React.FC<TracksViewProps> = ({ collection }) => {
+const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection }) => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const aggregatedTracks = useTrackAggregation(collection);
@@ -131,4 +131,4 @@ const TracksView: React.FC<TracksViewProps> = ({ collection }) => {
     );
 };
 
-export default TracksView;
+export default CollectionTracksView;

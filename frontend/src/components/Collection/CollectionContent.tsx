@@ -1,11 +1,11 @@
 import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import CollectionFilters from '../Collection/CollectionFilters';
-import CollectionTableView from '../Collection/Views/CollectionTableView';
-import CollectionGridView from '../Collection/Views/CollectionGridView';
-import CollectionListView from '../Collection/Views/CollectionListView';
-import TracksView from '../Collection/Views/TracksView';
+import CollectionFilters from './CollectionFilters';
+import CollectionTableView from './Views/CollectionTableView';
+import CollectionGridView from './Views/CollectionGridView';
+import CollectionListView from './Views/CollectionListView';
+import CollectionTracksView from './Views/CollectionTracksView';
 import PublicAlbumModal from '../Modal/PublicAlbumModal';
 import { useCollectionFilters } from '../../hooks/collection/useCollectionFilters';
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
@@ -145,7 +145,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
 
             {/* Tracks View */}
             {viewMode === 'tracks' && !readOnly ? (
-                <TracksView collection={filteredCollection} />
+                <CollectionTracksView collection={filteredCollection} />
             ) : (
                 <>
                     <div className="form-control mb-4">
