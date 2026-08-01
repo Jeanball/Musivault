@@ -8,7 +8,8 @@ import path from 'path';
 
 // Config
 import { connectDB } from "./config/database.config"
-import { VERSION, NODE_ENV, COMMIT_SHA } from "./config/version.config"
+import { VERSION, NODE_ENV, COMMIT_SHA, IMAGE_TAG } from "./config/version.config"
+import { logger } from "./config/logger.config"
 import { ensureUploadDirs } from "./config/uploads.config"
 
 // Routes
@@ -29,16 +30,24 @@ import { startTaskScheduler } from "./services/taskScheduler.service"
 
 dotenv.config()
 
+const bootStartedAt = Date.now();
+
 // ============================================================================
 // EXPRESS APP SETUP
 // ============================================================================
 
 const app = express()
 
+// Identity first: this is what you look for when opening a container's logs.
+logger.info(`Musivault API v${VERSION} (channel: ${IMAGE_TAG})`);
+logger.info(`env=${NODE_ENV} commit=${COMMIT_SHA.substring(0, 7)} node=${process.version}`);
+
 // Trust proxy setting for Docker environments (behind Nginx)
-if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
+const trustProxy = process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true';
+if (trustProxy) {
     app.set('trust proxy', 1);
 }
+logger.info(`trust proxy: ${trustProxy ? 'enabled' : 'disabled'}`);
 
 const PORT = parseInt(process.env.PORT || '5001', 10);
 
@@ -60,6 +69,9 @@ const getCorsOrigins = (): string[] | true => {
 };
 
 const corsOrigins = getCorsOrigins();
+// Resolved rather than raw: getCorsOrigins branches on NODE_ENV, and this is
+// the first thing worth checking when the frontend hits a CORS block.
+logger.info(`cors origins: ${corsOrigins === true ? 'any' : corsOrigins.join(', ')}`);
 
 app.use(cors({
     origin: corsOrigins === true
@@ -115,23 +127,20 @@ ensureUploadDirs();
 
 connectDB().then(async () => {
     // 1. Run all pending migrations automatically
-    console.log('Running startup migrations...');
+    logger.info('running startup migrations...');
     await runPendingMigrations();
 
     // 2. Seeding
     await seedAdminUser();
 
-    // 3. Start Server
+    // 3. Start the background scheduler before listening. It logs on start, and
+    //    doing it after app.listen() would print it *before* the ready line
+    //    below, since that one runs in an async callback.
+    startTaskScheduler();
+
+    // 4. Accept traffic
     const server = app.listen(PORT, '0.0.0.0', () => {
-        console.log("=================================");
-        console.log(`🚀 Musivault API v${VERSION}`);
-        console.log(`📡 Server running on PORT: ${PORT}`);
-        console.log(`🌍 Environment: ${NODE_ENV}`);
-        console.log(`📦 Commit: ${COMMIT_SHA.substring(0, 7)}`);
-        console.log("=================================");
+        logger.info(`listening on 0.0.0.0:${PORT} - ready in ${Date.now() - bootStartedAt}ms`);
     });
     server.setTimeout(3600000); // 1 hour timeout for long imports
-
-    // 4. Start background task scheduler
-    startTaskScheduler();
 });
