@@ -7,7 +7,6 @@ import type { PrivateOutletContext } from "../types/auth.types";
 import axios from "axios";
 import { getImageUrl } from "../utils/imageUrl";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +28,7 @@ const HomePage: React.FC = () => {
     const fetchCollection = async () => {
       try {
         const { data } = await axios.get<CollectionItem[]>(
-          `${API_BASE_URL}/api/collection?sort=latest`,
+          '/api/collection?sort=latest',
           { withCredentials: true }
         );
 

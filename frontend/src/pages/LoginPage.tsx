@@ -17,7 +17,6 @@ interface LoginApiResponse {
     username: string;
     email: string;
 }
-const API_BASE_URL = import.meta.env.API_URL || '';
 
 
 const LoginPage: React.FC = () => {
@@ -31,7 +30,7 @@ const LoginPage: React.FC = () => {
 
     useEffect(() => {
         // Check if OIDC is enabled and get provider name
-        axios.get<{ enabled: boolean; providerName: string }>(`${API_BASE_URL}/api/auth/oidc/status`)
+        axios.get<{ enabled: boolean; providerName: string }>('/api/auth/oidc/status')
             .then(res => {
                 setOidcEnabled(res.data.enabled);
                 setOidcProviderName(res.data.providerName || 'SSO');
@@ -57,7 +56,7 @@ const LoginPage: React.FC = () => {
         e.preventDefault();
         try {
             await axios.post<LoginApiResponse>(
-                `${API_BASE_URL}/api/auth/login`,
+                '/api/auth/login',
                 { ...inputValue },
                 { withCredentials: true }
             );
@@ -75,7 +74,7 @@ const LoginPage: React.FC = () => {
     };
 
     const handleSSOLogin = () => {
-        window.location.href = `${API_BASE_URL}/api/auth/oidc/login`;
+        window.location.href = '/api/auth/oidc/login';
     };
 
     return (

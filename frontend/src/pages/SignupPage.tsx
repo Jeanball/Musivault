@@ -17,7 +17,6 @@ interface ApiResponse {
     message: string;
 }
 
-const API_BASE_URL = import.meta.env.API_URL || '';
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -29,7 +28,7 @@ const SignupPage: React.FC = () => {
 
     useEffect(() => {
         // Check if OIDC is enabled and get provider name
-        axios.get<{ enabled: boolean; providerName: string }>(`${API_BASE_URL}/api/auth/oidc/status`)
+        axios.get<{ enabled: boolean; providerName: string }>('/api/auth/oidc/status')
             .then(res => {
                 setOidcEnabled(res.data.enabled);
                 setOidcProviderName(res.data.providerName || 'SSO');
@@ -49,7 +48,7 @@ const SignupPage: React.FC = () => {
         e.preventDefault();
         try {
             const { data } = await axios.post<ApiResponse>(
-                `${API_BASE_URL}/api/auth/signup`,
+                '/api/auth/signup',
                 { ...inputValue },
                 { withCredentials: true }
             );
@@ -78,7 +77,7 @@ const SignupPage: React.FC = () => {
     };
 
     const handleSSOSignup = () => {
-        window.location.href = `${API_BASE_URL}/api/auth/oidc/login`;
+        window.location.href = '/api/auth/oidc/login';
     };
 
     return (

@@ -13,7 +13,6 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { Camera, X, Search } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUrl';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 interface ReleaseDetails {
     discogsId: number;
@@ -80,11 +79,11 @@ const SearchBar: React.FC = () => {
                 try {
                     // Execute both searches in parallel
                     const [albumsRes, artistsRes] = await Promise.all([
-                        axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/search`, {
+                        axios.get<DiscogsResult[]>('/api/discogs/search', {
                             params: { q: debouncedSearchQuery },
                             withCredentials: true
                         }),
-                        axios.get<ArtistResult[]>(`${API_BASE_URL}/api/discogs/search/artists`, {
+                        axios.get<ArtistResult[]>('/api/discogs/search/artists', {
                             params: { q: debouncedSearchQuery },
                             withCredentials: true
                         })
@@ -133,7 +132,7 @@ const SearchBar: React.FC = () => {
         toastService.info(t('search.searchingBarcode', { barcode }));
 
         try {
-            const response = await axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/search/barcode`, {
+            const response = await axios.get<DiscogsResult[]>('/api/discogs/search/barcode', {
                 params: { barcode },
                 withCredentials: true
             });
@@ -169,7 +168,7 @@ const SearchBar: React.FC = () => {
         try {
             // Fetch release details first
             const { data: releaseDetails } = await axios.get<ReleaseDetails>(
-                `${API_BASE_URL}/api/discogs/release/${releaseId}`,
+                `/api/discogs/release/${releaseId}`,
                 { withCredentials: true }
             );
 
@@ -182,7 +181,7 @@ const SearchBar: React.FC = () => {
 
             // Add to collection
             await axios.post(
-                `${API_BASE_URL}/api/collection`,
+                '/api/collection',
                 { ...releaseDetails, format },
                 { withCredentials: true }
             );
@@ -229,7 +228,7 @@ const SearchBar: React.FC = () => {
         setLookupSearched(true);
 
         try {
-            const response = await axios.get<DiscogsResult[]>(`${API_BASE_URL}/api/discogs/lookup`, {
+            const response = await axios.get<DiscogsResult[]>('/api/discogs/lookup', {
                 params: { ref: lookupQuery.trim(), type: lookupType },
                 withCredentials: true
             });

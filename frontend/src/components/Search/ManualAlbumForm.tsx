@@ -4,7 +4,6 @@ import axios from 'axios';
 import { toastService } from '../../utils/toast';
 import { Upload, X, Music } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 const FORMATS = ['Vinyl', 'CD', 'Cassette'];
 
@@ -62,7 +61,7 @@ const ManualAlbumForm: React.FC = () => {
                 formData.append('cover', coverFile);
             }
 
-            await axios.post(`${API_BASE_URL}/api/collection/manual`, formData, {
+            await axios.post('/api/collection/manual', formData, {
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'multipart/form-data'
