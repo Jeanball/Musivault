@@ -1,42 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useTheme } from '../context/ThemeContext';
-
-// Module-level cache to prevent multiple fetches across components
-let cachedRates: Record<string, number> | null = null;
-let fetchPromise: Promise<Record<string, number>> | null = null;
+import { getExchangeRates } from '../api/preferences';
 
 export const useCurrency = () => {
     const { preferredCurrency } = useTheme();
-    const [rates, setRates] = useState<Record<string, number> | null>(cachedRates);
-    const [isLoading, setIsLoading] = useState<boolean>(!cachedRates);
+    const [rates, setRates] = useState<Record<string, number> | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        if (cachedRates) {
-            setRates(cachedRates);
-            setIsLoading(false);
-            return;
-        }
-
-        if (!fetchPromise) {
-            fetchPromise = axios.get('/api/preferences/exchange-rates', { withCredentials: true })
-                .then(res => {
-                    cachedRates = res.data.rates || { USD: 1 };
-                    return cachedRates as Record<string, number>;
-                })
-                .catch(err => {
-                    console.error('Failed to fetch exchange rates:', err);
-                    // Fallback to basic rates if it fails
-                    const fallback = { USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.35 };
-                    cachedRates = fallback;
-                    return fallback;
-                });
-        }
-
-        fetchPromise.then(resolvedRates => {
+        let active = true;
+        // Caching and in-flight deduplication live in api/preferences.
+        getExchangeRates().then(resolvedRates => {
+            if (!active) return;
             setRates(resolvedRates);
             setIsLoading(false);
         });
+        return () => { active = false; };
     }, []);
 
     const formatValue = useCallback((value: number, inputCurrency: string = 'USD') => {

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../Navigation/Navbar';
 import Footer from '../Navigation/Footer';
@@ -37,17 +36,12 @@ const PrivateLayout: React.FC = () => {
                 setDisplayName(data.displayName || '');
                 setUserId(data.userId);
                 setIsAdmin(data.isAdmin);
-                // Sync preferences from server once user is verified
-                await syncPreferencesFromServer();
-
-                // Explicitly sync language preference
-                try {
-                    const { data } = await axios.get('/api/preferences', { withCredentials: true });
-                    if (data.language && data.language !== i18n.language) {
-                        i18n.changeLanguage(data.language);
-                    }
-                } catch (error) {
-                    console.error('Failed to sync language', error);
+                // Sync preferences from server once user is verified. The
+                // returned value also carries the language, which this layout
+                // owns rather than the theme context.
+                const preferences = await syncPreferencesFromServer();
+                if (preferences?.language && preferences.language !== i18n.language) {
+                    i18n.changeLanguage(preferences.language);
                 }
 
                 // Show login success toast AFTER theme sync (only once)

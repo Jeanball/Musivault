@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
+import { getPreferences } from '../api/preferences';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
@@ -14,10 +15,6 @@ import { getFormatButtonStyle } from '../utils/formatColors';
 interface AddedAlbumInfo {
     id: string;
     title: string;
-}
-
-interface PreferencesResponse {
-    enableConditionGrading: boolean;
 }
 
 const ReleasePage: React.FC = () => {
@@ -43,12 +40,12 @@ const ReleasePage: React.FC = () => {
             if (!releaseId) return;
             try {
                 // Fetch release details and user preferences in parallel
-                const [releaseRes, prefsRes] = await Promise.all([
+                const [releaseRes, prefs] = await Promise.all([
                     axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, { withCredentials: true }),
-                    axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
+                    getPreferences()
                 ]);
                 setAlbumDetails(releaseRes.data);
-                setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
+                setConditionGradingEnabled(prefs.enableConditionGrading || false);
             } catch (error) {
                 console.log("Error loading release details:", error);
                 toastService.error(t('release.errorLoading'));

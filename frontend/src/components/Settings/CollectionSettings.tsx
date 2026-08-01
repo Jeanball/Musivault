@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import { toastService } from '../../utils/toast';
-
-interface PreferencesResponse {
-    theme: string;
-    isPublic: boolean;
-    publicShareId: string | null;
-    language: string;
-}
+import { getPreferences, updatePreferences } from '../../api/preferences';
 
 const CollectionSettings: React.FC = () => {
     const { t } = useTranslation();
@@ -18,10 +11,10 @@ const CollectionSettings: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
-            .then(res => {
-                setIsPublic(res.data.isPublic || false);
-                setPublicShareId(res.data.publicShareId || null);
+        getPreferences()
+            .then(prefs => {
+                setIsPublic(prefs.isPublic || false);
+                setPublicShareId(prefs.publicShareId || null);
             })
             .catch(err => console.error('Failed to fetch preferences:', err))
             .finally(() => setIsLoading(false));
@@ -32,13 +25,9 @@ const CollectionSettings: React.FC = () => {
         setIsSaving(true);
 
         try {
-            const response = await axios.put<{ preferences: PreferencesResponse; publicShareId: string | null }>(
-                '/api/preferences',
-                { isPublic: newValue },
-                { withCredentials: true }
-            );
+            const prefs = await updatePreferences({ isPublic: newValue });
             setIsPublic(newValue);
-            setPublicShareId(response.data.publicShareId);
+            setPublicShareId(prefs.publicShareId);
             toastService.success(newValue ? t('settings.collectionNowPublic') : t('settings.collectionNowPrivate'));
         } catch (error) {
             console.error('Failed to update public setting:', error);

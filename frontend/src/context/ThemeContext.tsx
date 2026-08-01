@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import axios from 'axios';
+import { getPreferences } from '../api/preferences';
+import type { Preferences } from '../types/preferences.types';
 
 type Theme = string;
 
@@ -10,7 +11,7 @@ interface ThemeContextType {
     setWideScreenMode: (enabled: boolean) => void;
     preferredCurrency: string;
     setPreferredCurrency: (currency: string) => void;
-    syncPreferencesFromServer: () => Promise<void>;
+    syncPreferencesFromServer: () => Promise<Preferences | null>;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -42,10 +43,14 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('preferredCurrency', preferredCurrency);
     }, [preferredCurrency]);
 
-    // Function to sync preferences from server (called after login)
-    const syncPreferencesFromServer = useCallback(async () => {
+    /**
+     * Called after login, so it bypasses the cache in case it still holds the
+     * previous user's values. Returns the preferences so callers don't need a
+     * second request to read the fields this context doesn't track.
+     */
+    const syncPreferencesFromServer = useCallback(async (): Promise<Preferences | null> => {
         try {
-            const { data } = await axios.get('/api/preferences', { withCredentials: true });
+            const data = await getPreferences(true);
             if (data.theme && data.theme !== theme) {
                 setTheme(data.theme);
             }
@@ -55,8 +60,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             if (data.preferredCurrency && data.preferredCurrency !== preferredCurrency) {
                 setPreferredCurrency(data.preferredCurrency);
             }
+            return data;
         } catch {
             // Silent if not logged in or error - keep local preferences
+            return null;
         }
     }, [theme, wideScreenMode, preferredCurrency]);
 

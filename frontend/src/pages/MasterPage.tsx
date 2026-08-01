@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
+import { getPreferences } from '../api/preferences';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { type AlbumDetails, type FormatDetails } from '../types/album.types';
@@ -33,10 +34,6 @@ type FormatFilter = 'all' | 'CD' | 'Vinyl' | 'Cassette';
 interface AddedAlbumInfo {
     id: string;
     title: string;
-}
-
-interface PreferencesResponse {
-    enableConditionGrading: boolean;
 }
 
 const VERSIONS_PER_PAGE = 5;
@@ -91,12 +88,12 @@ const MasterPage: React.FC = () => {
         const fetchData = async () => {
             if (!masterId) return;
             try {
-                const [versionsRes, prefsRes] = await Promise.all([
+                const [versionsRes, prefs] = await Promise.all([
                     axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, { withCredentials: true }),
-                    axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
+                    getPreferences()
                 ]);
                 setPageData(versionsRes.data);
-                setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
+                setConditionGradingEnabled(prefs.enableConditionGrading || false);
             } catch (error) {
                 console.log("Error charging versions on this album: ", error)
                 toastService.error(t('versions.errorLoadingVersions'));

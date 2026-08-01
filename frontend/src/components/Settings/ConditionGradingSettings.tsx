@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import { toastService } from '../../utils/toast';
 import { Star } from 'lucide-react';
-
-interface PreferencesResponse {
-    enableConditionGrading: boolean;
-}
+import { getPreferences, updatePreferences } from '../../api/preferences';
 
 const ConditionGradingSettings: React.FC = () => {
     const { t } = useTranslation();
@@ -15,9 +11,9 @@ const ConditionGradingSettings: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
-            .then(res => {
-                setIsEnabled(res.data.enableConditionGrading || false);
+        getPreferences()
+            .then(prefs => {
+                setIsEnabled(prefs.enableConditionGrading || false);
             })
             .catch(err => console.error('Failed to fetch preferences:', err))
             .finally(() => setIsLoading(false));
@@ -28,11 +24,7 @@ const ConditionGradingSettings: React.FC = () => {
         setIsSaving(true);
 
         try {
-            await axios.put(
-                '/api/preferences',
-                { enableConditionGrading: newValue },
-                { withCredentials: true }
-            );
+            await updatePreferences({ enableConditionGrading: newValue });
             setIsEnabled(newValue);
             toastService.success(
                 newValue

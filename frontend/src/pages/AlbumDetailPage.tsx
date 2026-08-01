@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, CircleAlert, RefreshCw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import axios from 'axios';
+import { getPreferences } from '../api/preferences';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
@@ -18,10 +19,6 @@ import FormatColorBadge from '../components/Common/FormatColorBadge';
 import CustomFieldsEditor from '../components/Common/CustomFieldsEditor';
 import FieldRow from '../components/Common/FieldRow';
 import { useCurrency } from '../hooks/useCurrency';
-
-interface PreferencesResponse {
-    enableConditionGrading: boolean;
-}
 
 interface AlbumDetailLocationState {
     backTo?: string;
@@ -63,12 +60,12 @@ const AlbumDetailPage: React.FC = () => {
 
     const fetchData = async (id: string) => {
         try {
-            const [itemRes, prefsRes] = await Promise.all([
+            const [itemRes, prefs] = await Promise.all([
                 axios.get(`/api/collection/${id}`, { withCredentials: true }),
-                axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
+                getPreferences()
             ]);
             setItem(itemRes.data);
-            setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
+            setConditionGradingEnabled(prefs.enableConditionGrading || false);
         } catch (error) {
             console.error('Failed to fetch collection item:', error);
             setLoading(false);

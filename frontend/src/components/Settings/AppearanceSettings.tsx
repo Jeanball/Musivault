@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import { toastService } from '../../utils/toast';
+import { updatePreferences } from '../../api/preferences';
 import { useTheme } from '../../context/ThemeContext';
 
 const themes = ["light", "dark"];
@@ -25,7 +25,7 @@ const AppearanceSettings: React.FC = () => {
         setIsSaving(true);
 
         try {
-            await axios.put('/api/preferences', { theme: newTheme }, { withCredentials: true });
+            await updatePreferences({ theme: newTheme });
             toastService.success(t('settings.themeSaved'));
         } catch (error) {
             console.error('Failed to save theme to server:', error);
@@ -39,7 +39,7 @@ const AppearanceSettings: React.FC = () => {
         localStorage.setItem('i18nextLng', lng);
         setIsSaving(true);
         try {
-            await axios.put('/api/preferences', { language: lng }, { withCredentials: true });
+            await updatePreferences({ language: lng });
             const tNew = i18n.getFixedT(lng);
             toastService.success(tNew('settings.languageSaved', 'Language saved!'));
         } catch (error) {
@@ -55,7 +55,7 @@ const AppearanceSettings: React.FC = () => {
         setIsSaving(true);
 
         try {
-            await axios.put('/api/preferences', { wideScreenMode: newValue }, { withCredentials: true });
+            await updatePreferences({ wideScreenMode: newValue });
             toastService.success(newValue ? t('settings.wideScreenModeEnabled') : t('settings.wideScreenModeDisabled'));
         } catch (error) {
             console.error('Failed to save wide screen mode to server:', error);
@@ -68,7 +68,7 @@ const AppearanceSettings: React.FC = () => {
         setPreferredCurrency(currency);
         setIsSaving(true);
         try {
-            await axios.put('/api/preferences', { preferredCurrency: currency }, { withCredentials: true });
+            await updatePreferences({ preferredCurrency: currency });
             toastService.success(t('settings.currencySaved', 'Currency updated!'));
         } catch (error) {
             console.error('Failed to save preferred currency:', error);
