@@ -4,11 +4,11 @@ import type { CollectionItem } from '../../types/collection.types';
 import { getItemValue } from '../../types/collection.types';
 import { getImageUrl } from '../../utils/imageUrl';
 import { stripArtistSuffix } from '../../utils/formatters';
-import FormatColorBadge from '../Collection/FormatColorBadge';
-import SpecRow from '../Collection/SpecRow';
+import FormatColorBadge from '../Common/FormatColorBadge';
+import FieldRow from '../Common/FieldRow';
 import { useCurrency } from '../../hooks/useCurrency';
 import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../../utils/brandColors';
-import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from './ConditionModal';
+import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../../utils/conditions';
 
 interface PublicAlbumModalProps {
     item: CollectionItem | null;
@@ -76,34 +76,34 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
 
                     <div className="mb-4">
                         {labels.length > 0 && (
-                            <SpecRow label={t('album.label')}>
+                            <FieldRow label={t('album.label')}>
                                 {labels[0].name}
                                 {labels[0].catno && labels[0].catno !== 'none' && (
                                     <span className="text-base-content/50"> · {labels[0].catno}</span>
                                 )}
-                            </SpecRow>
+                            </FieldRow>
                         )}
                         {album.year && (
-                            <SpecRow label={t('common.year')}>{album.year}</SpecRow>
+                            <FieldRow label={t('common.year')}>{album.year}</FieldRow>
                         )}
                         {styles.length > 0 && (
-                            <SpecRow label={t('album.genres')}>{styles.join(' · ')}</SpecRow>
+                            <FieldRow label={t('album.genres')}>{styles.join(' · ')}</FieldRow>
                         )}
                         {item.mediaCondition && mediaLabel && (
-                            <SpecRow label={t('condition.media')}>{t(mediaLabel.labelKey)}</SpecRow>
+                            <FieldRow label={t('condition.media')}>{t(mediaLabel.labelKey)}</FieldRow>
                         )}
                         {item.sleeveCondition && sleeveLabel && (
-                            <SpecRow label={t('condition.sleeve')}>{t(sleeveLabel.labelKey)}</SpecRow>
+                            <FieldRow label={t('condition.sleeve')}>{t(sleeveLabel.labelKey)}</FieldRow>
                         )}
                         {item.addedAt && (
-                            <SpecRow label={t('collection.added')}>{new Date(item.addedAt).toLocaleDateString()}</SpecRow>
+                            <FieldRow label={t('collection.added')}>{new Date(item.addedAt).toLocaleDateString()}</FieldRow>
                         )}
                         {value > 0 && (
-                            <SpecRow label={t('stats.value')}>
+                            <FieldRow label={t('stats.value')}>
                                 <span className="font-mono text-lg font-bold tabular-nums text-warning">
                                     {formatValue(value, item.priceCache?.currency || 'USD')}
                                 </span>
-                            </SpecRow>
+                            </FieldRow>
                         )}
                     </div>
 

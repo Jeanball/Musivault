@@ -8,15 +8,15 @@ import { stripArtistSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
 import { getItemValue } from '../types/collection.types';
 import type { AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
-import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
+import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../utils/conditions';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { getImageUrl } from '../utils/imageUrl';
 import { getFormatVerificationMessage, hasActiveFormatVerificationIssue, hasIgnoredFormatVerificationIssue } from '../utils/formatVerification';
 import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../utils/brandColors';
-import FormatVerificationBadge from '../components/Collection/FormatVerificationBadge';
-import FormatColorBadge from '../components/Collection/FormatColorBadge';
+import FormatVerificationBadge from '../components/Common/FormatVerificationBadge';
+import FormatColorBadge from '../components/Common/FormatColorBadge';
 import CustomFieldsEditor from '../components/Collection/CustomFieldsEditor';
-import SpecRow from '../components/Collection/SpecRow';
+import FieldRow from '../components/Common/FieldRow';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface PreferencesResponse {
@@ -379,20 +379,20 @@ const AlbumDetailPage: React.FC = () => {
 
                     <div className="mb-5">
                         {labels.length > 0 && (
-                            <SpecRow label={t('album.label')}>{labels[0].name}</SpecRow>
+                            <FieldRow label={t('album.label')}>{labels[0].name}</FieldRow>
                         )}
-                        <SpecRow label={t('common.year')}>{album.year || '—'}</SpecRow>
+                        <FieldRow label={t('common.year')}>{album.year || '—'}</FieldRow>
                         {genres.length > 0 && (
-                            <SpecRow label={t('album.genres')}>{genres.join(' · ')}</SpecRow>
+                            <FieldRow label={t('album.genres')}>{genres.join(' · ')}</FieldRow>
                         )}
                         <CustomFieldsEditor
                             itemId={item._id}
                             values={item.customFields}
                             onUpdate={(customFields) => setItem((prev) => (prev ? { ...prev, customFields } : null))}
                         />
-                        <SpecRow label={t('collection.added')}>
+                        <FieldRow label={t('collection.added')}>
                             {new Date(item.addedAt).toLocaleDateString()}
-                        </SpecRow>
+                        </FieldRow>
                         {(() => {
                             const val = getItemValue(item);
                             const conditionLabel = item.mediaCondition || 'VG+';
@@ -407,7 +407,7 @@ const AlbumDetailPage: React.FC = () => {
                                 : null;
 
                             return (
-                                <SpecRow label={t('stats.value')}>
+                                <FieldRow label={t('stats.value')}>
                                     <span className={`font-mono text-xl font-bold tabular-nums ${val > 0 ? 'text-warning' : 'text-base-content/30'}`}>
                                         {val > 0 ? formatValue(val) : 'N/A'}
                                     </span>
@@ -422,7 +422,7 @@ const AlbumDetailPage: React.FC = () => {
                                     <span className="text-xs text-base-content/50">
                                         {conditionLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}
                                     </span>
-                                </SpecRow>
+                                </FieldRow>
                             );
                         })()}
                     </div>

@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
-import FormatVerificationBadge from '../FormatVerificationBadge';
-import FormatColorBadge from '../FormatColorBadge';
+import FormatVerificationBadge from '../../Common/FormatVerificationBadge';
+import FormatColorBadge from '../../Common/FormatColorBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
 
 interface CollectionListViewProps {

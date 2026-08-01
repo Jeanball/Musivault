@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toastService } from '../../utils/toast';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
 import { normalizeCustomFieldValues } from '../../types/customFields.types';
-import SpecRow from './SpecRow';
+import FieldRow from '../Common/FieldRow';
 
 interface CustomFieldsEditorProps {
     itemId: string;
@@ -80,9 +80,9 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
 
     if (isLoading) {
         return (
-            <SpecRow label={t('customFields.title')}>
+            <FieldRow label={t('customFields.title')}>
                 <span className="loading loading-spinner loading-xs"></span>
-            </SpecRow>
+            </FieldRow>
         );
     }
 
@@ -93,7 +93,7 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
     return (
         <form onSubmit={handleSave}>
             {definitions.map((field) => (
-                <SpecRow key={field._id} label={field.name}>
+                <FieldRow key={field._id} label={field.name}>
                     {field.type === 'textarea' ? (
                         <textarea
                             className="textarea textarea-bordered textarea-sm w-full h-16"
@@ -122,7 +122,7 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
                             disabled={isSaving}
                         />
                     )}
-                </SpecRow>
+                </FieldRow>
             ))}
 
             {isDirty && (
