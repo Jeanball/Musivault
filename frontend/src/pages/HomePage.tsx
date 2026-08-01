@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from "../types/collection.types";
-import type { PrivateOutletContext } from "../components/Layout/PrivateLayout";
+import type { PrivateOutletContext } from "../types/auth.types";
 import axios from "axios";
 import { getImageUrl } from "../utils/imageUrl";
 

@@ -5,7 +5,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useCollectionStats } from '../hooks/collection/useCollectionStats';
 import CollectionStats from '../components/Collection/CollectionStats';
-import { getItemValue } from '../types/collection.types';
+import { getItemValue } from '../utils/itemValue';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface CollectionSyncInfo {

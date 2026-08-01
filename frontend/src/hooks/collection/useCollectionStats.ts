@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { CollectionItem, CollectionStats } from '../../types/collection.types';
-import { getItemValue } from '../../types/collection.types';
+import { getItemValue } from '../../utils/itemValue';
 
 const getTopEntry = (counts: Record<string, number>) => {
     let topName: string | null = null;

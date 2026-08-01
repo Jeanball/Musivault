@@ -8,7 +8,7 @@ import SearchResultCard from './SearchResultCard';
 import BarcodeScannerModal from '../Modal/BarcodeScannerModal';
 import SelectReleaseModal from '../Modal/SelectReleaseModal';
 import ManualAlbumForm from './ManualAlbumForm';
-import type { DiscogsResult, ArtistResult } from '../../types';
+import type { DiscogsResult, ArtistResult } from '../../types/discogs.types';
 import { useDebounce } from '../../hooks/useDebounce';
 import { Camera, X, Search } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUrl';

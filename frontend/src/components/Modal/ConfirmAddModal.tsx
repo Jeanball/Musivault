@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { type FormatDetails } from './AddAlbumVersionModal';
+import { type FormatDetails } from '../../types/album.types';
 import { getImageUrl } from '../../utils/imageUrl';
 
 interface ConfirmAddModalProps {

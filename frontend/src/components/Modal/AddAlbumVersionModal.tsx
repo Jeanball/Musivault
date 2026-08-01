@@ -1,23 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getImageUrl } from '../../utils/imageUrl';
-
-export interface FormatDetails {
-    name: string;
-    descriptions: string[];
-    text: string;
-}
-
-export interface AlbumDetails {
-    discogsId: number;
-    master_id?: number;
-    title: string;
-    artist: string;
-    year: string;
-    thumb: string;
-    cover_image: string;
-    availableFormats?: FormatDetails[];
-}
+import type { AlbumDetails, FormatDetails } from '../../types/album.types';
 
 interface AlbumDetailModalProps {
     album: AlbumDetails | null;

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { toastService } from '../../utils/toast';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
-import { normalizeCustomFieldValues } from '../../types/customFields.types';
+import { normalizeCustomFieldValues } from '../../utils/customFields';
 import FieldRow from './FieldRow';
 
 interface CustomFieldsEditorProps {

@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { parseTitle } from '../../utils/formatters';
 import { getImageUrl } from '../../utils/imageUrl';
-import type { DiscogsResult } from '../../types';
+import type { DiscogsResult } from '../../types/discogs.types';
 
 interface SearchResultCardProps {
   result: DiscogsResult;

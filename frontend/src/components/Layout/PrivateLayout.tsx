@@ -7,6 +7,7 @@ import Footer from '../Navigation/Footer';
 import { useTheme } from '../../context/ThemeContext';
 import { toastService } from '../../utils/toast';
 import { CollectionProvider } from '../../context/CollectionContext';
+import type { PrivateOutletContext } from '../../types/auth.types';
 
 interface VerificationResponse {
     status: boolean;
@@ -17,14 +18,6 @@ interface VerificationResponse {
     isAdmin: boolean;
 }
 
-export interface PrivateOutletContext {
-    username: string;
-    email: string;
-    displayName: string;
-    userId: string;
-    isAdmin: boolean;
-    refreshUser: () => Promise<void>;
-}
 
 interface LocationState {
     showLoginSuccess?: boolean;

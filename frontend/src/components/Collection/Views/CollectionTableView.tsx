@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem, SortColumn, SortOrder } from '../../../types/collection.types';
-import { getItemValue } from '../../../types/collection.types';
+import { getItemValue } from '../../../utils/itemValue';
 import FormatVerificationBadge from '../../Common/FormatVerificationBadge';
 import FormatColorBadge from '../../Common/FormatColorBadge';
 import { useCurrency } from '../../../hooks/useCurrency';

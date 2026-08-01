@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
-import { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import { type AlbumDetails, type FormatDetails } from '../types/album.types';
 import ConditionModal from '../components/Modal/ConditionModal';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
 import { getImageUrl } from '../utils/imageUrl';

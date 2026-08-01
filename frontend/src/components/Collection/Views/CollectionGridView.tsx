@@ -1,6 +1,6 @@
 import React from 'react';
 import type { CollectionItem } from '../../../types/collection.types';
-import { getItemValue } from '../../../types/collection.types';
+import { getItemValue } from '../../../utils/itemValue';
 import { getImageUrl } from '../../../utils/imageUrl';
 import { hasActiveFormatVerificationIssue } from '../../../utils/formatVerification';
 import FormatVerificationBadge from '../../Common/FormatVerificationBadge';

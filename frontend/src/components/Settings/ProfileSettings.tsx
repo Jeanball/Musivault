@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useOutletContext } from 'react-router';
 import axios from 'axios';
 import { toastService } from '../../utils/toast';
-import type { PrivateOutletContext } from '../Layout/PrivateLayout';
+import type { PrivateOutletContext } from '../../types/auth.types';
 import { User, Mail, AtSign, Lock } from 'lucide-react';
 
 const ProfileSettings: React.FC = () => {

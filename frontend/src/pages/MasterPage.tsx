@@ -5,7 +5,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import { type AlbumDetails, type FormatDetails } from '../types/album.types';
 import ConditionModal from '../components/Modal/ConditionModal';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
 import { getFormatButtonStyle } from '../utils/formatColors';

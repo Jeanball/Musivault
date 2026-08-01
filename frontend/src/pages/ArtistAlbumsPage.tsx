@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripArtistSuffix } from '../utils/formatters';
-import type { ArtistPageData, ArtistAlbum } from '../types';
+import type { ArtistPageData, ArtistAlbum } from '../types/discogs.types';
 import { getImageUrl } from '../utils/imageUrl';
 
 type SortField = 'title' | 'year';
