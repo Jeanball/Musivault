@@ -40,9 +40,9 @@ export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
         }
     };
 
-    const getSortIcon = (column: SortColumn) => {
-        if (sortBy !== column) return '↕️';
-        return sortOrder === 'asc' ? '↑' : '↓';
+    const getSortIcon = (column: SortColumn): SortOrder | 'none' => {
+        if (sortBy !== column) return 'none';
+        return sortOrder;
     };
 
     const sortedCollection = useMemo(() => {

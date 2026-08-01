@@ -108,7 +108,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
     }, [collection, filters, normalizedSearchTerm]);
 
     const groupedByArtist = useMemo(() => {
-        return filteredCollection.reduce((acc, item) => {
+        const grouped = filteredCollection.reduce((acc, item) => {
             const artist = item.album.artist;
             if (!acc[artist]) {
                 acc[artist] = [];
@@ -116,6 +116,12 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
             acc[artist].push(item);
             return acc;
         }, {} as Record<string, CollectionItem[]>);
+
+        Object.values(grouped).forEach((items) => {
+            items.sort((a, b) => a.album.title.localeCompare(b.album.title));
+        });
+
+        return grouped;
     }, [filteredCollection]);
 
     const clearFilters = () => {

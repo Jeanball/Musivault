@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CollectionItem, SortColumn } from '../../../types/collection.types';
+import type { CollectionItem, SortColumn, SortOrder } from '../../../types/collection.types';
 import { getItemValue } from '../../../types/collection.types';
 import FormatVerificationBadge from '../FormatVerificationBadge';
 import FormatColorBadge from '../FormatColorBadge';
@@ -10,8 +10,33 @@ interface CollectionTableViewProps {
     items: CollectionItem[];
     onItemClick: (item: CollectionItem) => void;
     onSort: (column: SortColumn) => void;
-    getSortIcon: (column: SortColumn) => string;
+    getSortIcon: (column: SortColumn) => SortOrder | 'none';
 }
+
+const SortIcon: React.FC<{ state: SortOrder | 'none' }> = ({ state }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="inline-block h-3.5 w-3.5 ml-0.5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+    >
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8.25 9L12 5.25 15.75 9"
+            className={state === 'asc' ? 'opacity-100' : 'opacity-30'}
+        />
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8.25 15L12 18.75 15.75 15"
+            className={state === 'desc' ? 'opacity-100' : 'opacity-30'}
+        />
+    </svg>
+);
 
 const CollectionTableView: React.FC<CollectionTableViewProps> = ({
     items,
@@ -31,37 +56,37 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('artist')}
                         >
-                            {t('common.artist')} {getSortIcon('artist')}
+                            {t('common.artist')} <SortIcon state={getSortIcon('artist')} />
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('album')}
                         >
-                            {t('common.album')} {getSortIcon('album')}
+                            {t('common.album')} <SortIcon state={getSortIcon('album')} />
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('format')}
                         >
-                            {t('common.format')} {getSortIcon('format')}
+                            {t('common.format')} <SortIcon state={getSortIcon('format')} />
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('year')}
                         >
-                            {t('common.year')} {getSortIcon('year')}
+                            {t('common.year')} <SortIcon state={getSortIcon('year')} />
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('addedAt')}
                         >
-                            {t('collection.added')} {getSortIcon('addedAt')}
+                            {t('collection.added')} <SortIcon state={getSortIcon('addedAt')} />
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('price')}
                         >
-                            {t('stats.value')} {getSortIcon('price')}
+                            {t('stats.value')} <SortIcon state={getSortIcon('price')} />
                         </th>
                     </tr>
                 </thead>
