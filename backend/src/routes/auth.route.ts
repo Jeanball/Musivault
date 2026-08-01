@@ -1,8 +1,7 @@
 
 import { Router } from 'express';
 import { loginUser, logoutUser, signupUser, userVerification } from '../controllers/auth.controller';
-import { initiateOIDCLogin, handleOIDCCallback, getOIDCStatus } from '../controllers/oidc.controller';
-import protectRoute from '../middlewares/protectRoute.middleware';
+import oidcRoute from './oidc.route';
 
 const router = Router();
 
@@ -11,9 +10,6 @@ router.post('/login', loginUser);
 router.post('/signup', signupUser);
 router.post('/logout', logoutUser);
 
-// OIDC routes
-router.get('/oidc/status', getOIDCStatus);
-router.get('/oidc/login', initiateOIDCLogin);
-router.get('/oidc/callback', handleOIDCCallback);
+router.use('/oidc', oidcRoute);
 
 export default router;

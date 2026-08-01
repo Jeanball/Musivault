@@ -4,11 +4,12 @@ import cors from "cors"
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import fs from 'fs';
 import path from 'path';
 
 // Config
 import { connectDB } from "./config/database.config"
+import { VERSION, NODE_ENV, COMMIT_SHA } from "./config/version.config"
+import { ensureUploadDirs } from "./config/uploads.config"
 
 // Routes
 import usersRoute from "./routes/users.route"
@@ -19,6 +20,7 @@ import publicRoute from './routes/public.route'
 import preferencesRoute from './routes/preferences.route'
 import adminRoute from './routes/admin.route'
 import customFieldsRoute from './routes/customFields.route'
+import systemRoute from './routes/system.route'
 
 // Scripts
 import { seedAdminUser } from "./scripts/seed"
@@ -26,39 +28,6 @@ import { runPendingMigrations } from "./scripts/migration-runner"
 import { startTaskScheduler } from "./services/taskScheduler.service"
 
 dotenv.config()
-
-// ============================================================================
-// APP VERSION & CONFIGURATION
-// ============================================================================
-
-// Read version from environment variable (Docker) or VERSION file (development)
-const getVersion = (): string => {
-    // In Docker, APP_VERSION is set as an environment variable during build
-    if (process.env.APP_VERSION) {
-        return process.env.APP_VERSION;
-    }
-
-    // In development, read from VERSION file
-    try {
-        const versionPath = path.join(__dirname, '..', 'VERSION');
-        return fs.readFileSync(versionPath, 'utf-8').trim();
-    } catch {
-        try {
-            // Try one more level up (from src/server.ts)
-            const versionPath = path.join(__dirname, '../..', 'VERSION');
-            return fs.readFileSync(versionPath, 'utf-8').trim();
-        } catch {
-            console.warn('Could not read VERSION file, using default');
-            return '0.0.0-dev';
-        }
-    }
-};
-
-const VERSION = getVersion();
-const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString();
-const COMMIT_SHA = process.env.COMMIT_SHA || 'dev';
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const IMAGE_TAG = process.env.IMAGE_TAG || 'dev'; // Release channel: nightly, beta, latest, or dev
 
 // ============================================================================
 // EXPRESS APP SETUP
@@ -135,30 +104,14 @@ app.use('/api/admin', adminRoute)
 // Serve uploaded files (cover images for manual albums)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-
-// Version endpoint
-app.get('/api/version', (req, res) => {
-    res.status(200).json({
-        version: VERSION,
-        channel: IMAGE_TAG,
-        buildDate: BUILD_DATE,
-        commitSha: COMMIT_SHA,
-        environment: NODE_ENV
-    });
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.status(200).json({
-        status: 'ok',
-        version: VERSION,
-        timestamp: new Date().toISOString()
-    });
-});
+// Version & health endpoints
+app.use('/api', systemRoute);
 
 // ============================================================================
 // SERVER STARTUP & MIGRATIONS
 // ============================================================================
+
+ensureUploadDirs();
 
 connectDB().then(async () => {
     // 1. Run all pending migrations automatically
