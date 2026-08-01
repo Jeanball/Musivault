@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import axios from "axios";
 import { useTranslation } from 'react-i18next';
 import Footer from "../components/Navigation/Footer";
 import { toastService } from "../utils/toast";
+import { login, getOidcStatus, OIDC_LOGIN_URL } from "../api/auth";
+import { isApiError } from "../api/errors";
 
 // Interface for the form state
 interface LoginFormState {
     identifier: string;
     password: string;
-}
-
-// Interface for the login API response
-interface LoginApiResponse {
-    _id: string;
-    username: string;
-    email: string;
 }
 
 
@@ -30,10 +24,10 @@ const LoginPage: React.FC = () => {
 
     useEffect(() => {
         // Check if OIDC is enabled and get provider name
-        axios.get<{ enabled: boolean; providerName: string }>('/api/auth/oidc/status')
-            .then(res => {
-                setOidcEnabled(res.data.enabled);
-                setOidcProviderName(res.data.providerName || 'SSO');
+        getOidcStatus()
+            .then(status => {
+                setOidcEnabled(status.enabled);
+                setOidcProviderName(status.providerName || 'SSO');
             })
             .catch(() => setOidcEnabled(false));
 
@@ -55,16 +49,13 @@ const LoginPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            await axios.post<LoginApiResponse>(
-                '/api/auth/login',
-                { ...inputValue },
-                { withCredentials: true }
-            );
+            await login(inputValue);
             navigate("/app", { state: { showLoginSuccess: true } });
 
-        } catch (error: any) {
+        } catch (error) {
             console.log(error);
-            toastService.error(error.response?.data?.message || t('auth.loginError', 'Invalid credentials'));
+            const serverMessage = isApiError(error) ? error.serverMessage : undefined;
+            toastService.error(serverMessage || t('auth.loginError', 'Invalid credentials'));
         }
 
         setInputValue({
@@ -74,7 +65,7 @@ const LoginPage: React.FC = () => {
     };
 
     const handleSSOLogin = () => {
-        window.location.href = '/api/auth/oidc/login';
+        window.location.href = OIDC_LOGIN_URL;
     };
 
     return (

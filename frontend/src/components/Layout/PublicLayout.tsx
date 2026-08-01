@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { verify } from '../../api/auth';
 
 const PublicLayout = () => {
     const navigate = useNavigate();
@@ -9,16 +9,12 @@ const PublicLayout = () => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const { data } = await axios.post(
-                    "/api/auth/verify",
-                    {},
-                    { withCredentials: true }
-                );
+                const data = await verify();
 
                 if (data.status) {
                     navigate("/app");
                 }
-            } catch (error) {
+            } catch {
                 // If verification fails, user is not logged in, which is fine for public layout
                 // We don't need to do anything, just let them see the public page
             } finally {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { verify } from '../api/auth';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { AdminTaskLog } from '../types/admin.types';
@@ -39,11 +40,7 @@ const AdminTaskLogsPage: React.FC = () => {
     useEffect(() => {
         const verifyAndLoad = async () => {
             try {
-                const { data: verifyData } = await axios.post(
-                    '/api/auth/verify',
-                    {},
-                    { withCredentials: true }
-                );
+                const verifyData = await verify();
 
                 if (!verifyData.status || !verifyData.isAdmin) {
                     navigate('/app');

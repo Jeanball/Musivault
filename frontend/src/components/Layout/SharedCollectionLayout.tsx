@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import axios from 'axios';
+import { verify, logout } from '../../api/auth';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../Navigation/Navbar';
 import Footer from '../Navigation/Footer';
@@ -27,11 +27,7 @@ const SharedCollectionLayout: React.FC = () => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const { data } = await axios.post(
-                    '/api/auth/verify',
-                    {},
-                    { withCredentials: true }
-                );
+                const data = await verify();
                 if (data.status) {
                     setAuthState({
                         isAuthenticated: true,
@@ -51,7 +47,7 @@ const SharedCollectionLayout: React.FC = () => {
 
     const handleLogout = async () => {
         try {
-            await axios.post('/api/auth/logout', {}, { withCredentials: true });
+            await logout();
             setAuthState({ isAuthenticated: false, username: '', isAdmin: false });
             navigate('/');
         } catch (error) {

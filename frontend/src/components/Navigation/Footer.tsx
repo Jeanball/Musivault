@@ -1,20 +1,15 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-interface VersionInfo {
-    version: string;
-    channel?: string;
-}
+import { getVersion } from '../../api/system';
 
 const Footer = () => {
     const [version, setVersion] = useState<string>('');
     const [channel, setChannel] = useState<string>('');
 
     useEffect(() => {
-        axios.get<VersionInfo>('/api/version')
-            .then(res => {
-                setVersion(res.data.version);
-                setChannel(res.data.channel || '');
+        getVersion()
+            .then(info => {
+                setVersion(info.version);
+                setChannel(info.channel || '');
             })
             .catch(() => setVersion(''));
     }, []);

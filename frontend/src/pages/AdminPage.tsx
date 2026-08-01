@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
+import { verify } from '../api/auth';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { AdminUser } from '../types/admin.types';
@@ -20,11 +21,7 @@ const AdminPage: React.FC = () => {
         const verifyAndFetch = async () => {
             try {
                 // Verify current user is admin
-                const { data: verifyData } = await axios.post(
-                    '/api/auth/verify',
-                    {},
-                    { withCredentials: true }
-                );
+                const verifyData = await verify();
 
                 if (!verifyData.status || !verifyData.isAdmin) {
                     navigate('/app');

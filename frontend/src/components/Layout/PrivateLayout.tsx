@@ -8,15 +8,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { toastService } from '../../utils/toast';
 import { CollectionProvider } from '../../context/CollectionContext';
 import type { PrivateOutletContext } from '../../types/auth.types';
-
-interface VerificationResponse {
-    status: boolean;
-    user: string;
-    userId: string;
-    email: string;
-    displayName: string;
-    isAdmin: boolean;
-}
+import { verify, logout } from '../../api/auth';
 
 
 interface LocationState {
@@ -38,9 +30,7 @@ const PrivateLayout: React.FC = () => {
 
     const verifyUser = async () => {
         try {
-            const { data } = await axios.post<VerificationResponse>(
-                "/api/auth/verify", {}, { withCredentials: true }
-            );
+            const data = await verify();
             if (data.status) {
                 setUsername(data.user);
                 setEmail(data.email);
@@ -87,7 +77,7 @@ const PrivateLayout: React.FC = () => {
 
     const handleLogout = async () => {
         try {
-            await axios.post("/api/auth/logout", {}, { withCredentials: true });
+            await logout();
             navigate("/");
         } catch (error) {
             console.error("Disconnection failed.", error);

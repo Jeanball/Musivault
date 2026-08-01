@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
-import axios from "axios";
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../utils/toast";
+import { signup, getOidcStatus, OIDC_LOGIN_URL } from "../api/auth";
+import { isApiError } from "../api/errors";
 
 // Interface for the form state, now with 'username'
 interface SignupFormState {
     email: string;
     password: string;
     username: string;
-}
-
-// Interface for the expected API response
-interface ApiResponse {
-    success: boolean;
-    message: string;
 }
 
 
@@ -28,10 +23,10 @@ const SignupPage: React.FC = () => {
 
     useEffect(() => {
         // Check if OIDC is enabled and get provider name
-        axios.get<{ enabled: boolean; providerName: string }>('/api/auth/oidc/status')
-            .then(res => {
-                setOidcEnabled(res.data.enabled);
-                setOidcProviderName(res.data.providerName || 'SSO');
+        getOidcStatus()
+            .then(status => {
+                setOidcEnabled(status.enabled);
+                setOidcProviderName(status.providerName || 'SSO');
             })
             .catch(() => setOidcEnabled(false));
     }, []);
@@ -47,13 +42,7 @@ const SignupPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            const { data } = await axios.post<ApiResponse>(
-                '/api/auth/signup',
-                { ...inputValue },
-                { withCredentials: true }
-            );
-
-            const { success, message } = data;
+            const { success, message } = await signup(inputValue);
             if (success) {
                 toastService.success(message);
                 setTimeout(() => {
@@ -62,10 +51,10 @@ const SignupPage: React.FC = () => {
             } else {
                 toastService.error(message);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
+        } catch (error) {
             console.log(error);
-            toastService.error(error.response?.data?.message || t('auth.signupError', 'Registration failed'));
+            const serverMessage = isApiError(error) ? error.serverMessage : undefined;
+            toastService.error(serverMessage || t('auth.signupError', 'Registration failed'));
         }
 
         setInputValue({
@@ -77,7 +66,7 @@ const SignupPage: React.FC = () => {
     };
 
     const handleSSOSignup = () => {
-        window.location.href = '/api/auth/oidc/login';
+        window.location.href = OIDC_LOGIN_URL;
     };
 
     return (

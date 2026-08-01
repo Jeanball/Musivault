@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Lock, ArrowLeft } from 'lucide-react';
 import CollectionContent from '../components/Collection/CollectionContent';
 import type { CollectionItem } from '../types/collection.types';
-
-interface PublicCollectionResponse {
-    username: string;
-    collection: CollectionItem[];
-    total: number;
-}
+import { getSharedCollection } from '../api/public';
+import { isApiError } from '../api/errors';
 
 interface PublicCollectionPageProps {
     isAuthenticated?: boolean;
@@ -29,11 +24,11 @@ const PublicCollectionPage: React.FC<PublicCollectionPageProps> = ({ isAuthentic
             if (!shareId) return;
 
             try {
-                const response = await axios.get<PublicCollectionResponse>(`/api/public/${shareId}`);
-                setCollection(response.data.collection);
-                setUsername(response.data.username);
-            } catch (err: any) {
-                if (err.response?.status === 404) {
+                const data = await getSharedCollection(shareId);
+                setCollection(data.collection);
+                setUsername(data.username);
+            } catch (err) {
+                if (isApiError(err) && err.status === 404) {
                     setError(t('publicCollection.notFound'));
                 } else {
                     setError(t('publicCollection.failedLoad'));

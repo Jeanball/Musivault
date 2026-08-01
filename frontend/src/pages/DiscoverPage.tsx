@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Users, Music, Mic, Lock, Calendar, Ticket, AlertCircle } from 'lucide-react';
 import { getImageUrl } from '../utils/imageUrl';
 import PublicAlbumModal from '../components/Modal/PublicAlbumModal';
 import type { CollectionItem } from '../types/collection.types';
-
-interface PublicUser {
-    username: string;
-    publicShareId: string;
-    albumCount: number;
-    createdAt: string;
-    latestAlbums?: CollectionItem[];
-}
+import type { PublicUser } from '../types/public.types';
+import { getPublicUsers } from '../api/public';
 
 const DiscoverPage: React.FC = () => {
     const { t } = useTranslation();
@@ -29,8 +22,7 @@ const DiscoverPage: React.FC = () => {
     useEffect(() => {
         const fetchPublicUsers = async () => {
             try {
-                const response = await axios.get('/api/public/users');
-                setUsers(response.data);
+                setUsers(await getPublicUsers());
             } catch (err) {
                 console.error('Failed to fetch public users:', err);
                 setError(t('discover.failedLoadCollections'));

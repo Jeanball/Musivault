@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-
-interface VersionInfo {
-    version: string;
-    channel?: string;
-    buildDate: string;
-    commitSha: string;
-    environment: string;
-}
+import { getVersion } from '../../api/system';
+import type { VersionInfo } from '../../types/system.types';
 
 const AboutSettings: React.FC = () => {
     const { t, i18n } = useTranslation();
     const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
 
     useEffect(() => {
-        axios.get<VersionInfo>('/api/version')
-            .then(res => setVersionInfo(res.data))
+        getVersion()
+            .then(setVersionInfo)
             .catch(err => console.error('Failed to fetch version:', err));
     }, []);
 
