@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import { getRelease } from '../api/discogs';
 import { addToCollection as apiAddToCollection } from '../api/collection';
-import { isApiError } from '../api/errors';
+import { isApiError, isRateLimitError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -11,6 +10,8 @@ import { stripArtistSuffix } from '../utils/formatters';
 import { type AlbumDetails, type FormatDetails } from '../types/album.types';
 import ConditionModal from '../components/Modal/ConditionModal';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
+import BackButton from '../components/Common/BackButton';
+import PageLoadError from '../components/Common/PageLoadError';
 import { getImageUrl } from '../utils/imageUrl';
 import { getFormatButtonStyle } from '../utils/formatColors';
 
@@ -25,6 +26,9 @@ const ReleasePage: React.FC = () => {
     const { t } = useTranslation();
     const [albumDetails, setAlbumDetails] = useState<AlbumDetails | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loadError, setLoadError] = useState<unknown>(null);
+    /** Bumped by the retry button to re-run the fetch effect. */
+    const [retryCount, setRetryCount] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
@@ -40,6 +44,8 @@ const ReleasePage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             if (!releaseId) return;
+            setIsLoading(true);
+            setLoadError(null);
             try {
                 // Fetch release details and user preferences in parallel
                 const [release, prefs] = await Promise.all([
@@ -49,15 +55,14 @@ const ReleasePage: React.FC = () => {
                 setAlbumDetails(release);
                 setConditionGradingEnabled(prefs.enableConditionGrading || false);
             } catch (error) {
-                console.log("Error loading release details:", error);
-                toastService.error(t('release.errorLoading'));
-                navigate('/app');
+                console.error('Error loading release details:', error);
+                setLoadError(error);
             } finally {
                 setIsLoading(false);
             }
         };
         fetchData();
-    }, [releaseId, navigate, t]);
+    }, [releaseId, retryCount]);
 
     const handleFormatClick = (format: FormatDetails) => {
         setConfirmFormat(format);
@@ -143,6 +148,16 @@ const ReleasePage: React.FC = () => {
         );
     }
 
+    if (loadError) {
+        return (
+            <PageLoadError
+                isRateLimited={isRateLimitError(loadError)}
+                message={t('release.errorLoading')}
+                onRetry={() => setRetryCount(c => c + 1)}
+            />
+        );
+    }
+
     if (!albumDetails) {
         return <div className="text-center p-8">{t('release.noData')}</div>;
     }
@@ -151,6 +166,8 @@ const ReleasePage: React.FC = () => {
 
     return (
         <div className="p-4 md:p-8">
+            <BackButton className="max-w-4xl mx-auto" />
+
             <div className="flex flex-col md:flex-row gap-8 max-w-4xl mx-auto">
 
                 {/* Cover Image */}
@@ -199,12 +216,6 @@ const ReleasePage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Back button */}
-                    <div className="mt-8">
-                        <button onClick={() => navigate(-1)} className="btn btn-outline gap-2">
-                            <ArrowLeft size={16} /> {t('common.back')}
-                        </button>
-                    </div>
                 </div>
             </div>
 

@@ -104,30 +104,42 @@ export async function discogsRequest<T>(
 // ===== Error Handling =====
 
 /**
- * Standard error handler for Discogs API errors in controllers
+ * Standard error handler for Discogs API errors in controllers.
+ *
+ * The log level matches what actually happened: being throttled or asking for
+ * something that doesn't exist are expected outcomes, not application errors, so
+ * they are logged as one readable line instead of an axios stack dump. Only
+ * genuine failures are logged at error level with the full error attached.
  */
 export function handleDiscogsError(
     error: unknown,
     res: Response,
     context: string
 ): void {
-    logger.error({ err: error }, `Error ${context}`);
-
     if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
+        const status = axiosError.response?.status;
+        const url = axiosError.config?.url;
 
-        if (axiosError.response?.status === 429) {
+        if (status === 429) {
+            logger.warn(
+                { status, url },
+                `Discogs rate limit reached (429) while ${context} — request rejected`
+            );
             res.status(429).json({
                 message: 'Too many requests! Please wait about 30 seconds before trying again.'
             });
             return;
         }
 
-        if (axiosError.response?.status === 404) {
+        if (status === 404) {
+            logger.info({ status, url }, `Not found on Discogs while ${context}`);
             res.status(404).json({ message: 'Not found on Discogs.' });
             return;
         }
     }
+
+    logger.error({ err: error }, `Error ${context}`);
 
     if (error instanceof Error && error.message.includes('not configured')) {
         res.status(500).json({ message: 'Server configuration error.' });

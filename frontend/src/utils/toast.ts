@@ -46,13 +46,21 @@ const getInfoOptions = (): ToastOptions => ({
   }
 });
 
+/**
+ * Deriving the toast id from the message collapses duplicates: an effect that
+ * runs twice under StrictMode, or two components reacting to the same failure,
+ * shows one toast instead of a stack of identical ones.
+ */
+const toastId = (message: string) => `toast-${message}`;
+
 export const toastService = {
-  success: (message: string) => toast.success(message, getSuccessOptions()),
-  error: (message: string) => toast.error(message, getErrorOptions()),
-  info: (message: string) => toast.info(message, getInfoOptions()),
+  success: (message: string) => toast.success(message, { ...getSuccessOptions(), toastId: toastId(message) }),
+  error: (message: string) => toast.error(message, { ...getErrorOptions(), toastId: toastId(message) }),
+  info: (message: string) => toast.info(message, { ...getInfoOptions(), toastId: toastId(message) }),
   warning: (message: string) => toast.warning(message, {
     ...baseToastOptions,
     position: getPosition(),
+    toastId: toastId(message),
     style: {
       ...baseToastOptions.style,
       background: 'var(--fallback-wa,oklch(var(--wa)))',

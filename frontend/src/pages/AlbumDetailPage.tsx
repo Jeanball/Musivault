@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, CircleAlert, RefreshCw } from 'lucide-react';
+import { CircleAlert, RefreshCw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { getPreferences } from '../api/preferences';
 import { isApiError } from '../api/errors';
@@ -26,6 +26,7 @@ import FormatVerificationBadge from '../components/Common/FormatVerificationBadg
 import FormatColorBadge from '../components/Common/FormatColorBadge';
 import CustomFieldsEditor from '../components/Common/CustomFieldsEditor';
 import FieldRow from '../components/Common/FieldRow';
+import BackButton from '../components/Common/BackButton';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface AlbumDetailLocationState {
@@ -227,12 +228,7 @@ const AlbumDetailPage: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto p-4">
-            {/* Header Actions */}
-            <div className="flex justify-start items-center mb-6">
-                <button onClick={handleBack} className="btn btn-ghost btn-sm gap-2">
-                    <ArrowLeft size={16} /> {t('common.back')}
-                </button>
-            </div>
+            <BackButton onClick={handleBack} />
 
             {/* Dossier */}
             <div className="flex flex-col lg:flex-row gap-8 sm:border sm:border-base-300 sm:p-6">

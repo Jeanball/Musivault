@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { getRelease, getMasterVersions } from '../api/discogs';
 import { addToCollection as apiAddToCollection, rematchAlbum } from '../api/collection';
-import { isApiError } from '../api/errors';
+import { isApiError, isRateLimitError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { type AlbumDetails, type FormatDetails } from '../types/album.types';
 import ConditionModal from '../components/Modal/ConditionModal';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
+import BackButton from '../components/Common/BackButton';
+import PageLoadError from '../components/Common/PageLoadError';
 import { getFormatButtonStyle } from '../utils/formatColors';
 import { getImageUrl } from '../utils/imageUrl';
 
@@ -47,6 +49,9 @@ const MasterPage: React.FC = () => {
     const { t } = useTranslation();
     const [pageData, setPageData] = useState<VersionsPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loadError, setLoadError] = useState<unknown>(null);
+    /** Bumped by the retry button to re-run the fetch effect. */
+    const [retryCount, setRetryCount] = useState<number>(0);
     const rematchItemId = searchParams.get('rematchItemId');
     const requestedFormat = searchParams.get('format');
     const isRematchMode = !!rematchItemId;
@@ -89,6 +94,8 @@ const MasterPage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             if (!masterId) return;
+            setIsLoading(true);
+            setLoadError(null);
             try {
                 const [versionsRes, prefs] = await Promise.all([
                     getMasterVersions<VersionsPageData>(masterId),
@@ -97,15 +104,14 @@ const MasterPage: React.FC = () => {
                 setPageData(versionsRes);
                 setConditionGradingEnabled(prefs.enableConditionGrading || false);
             } catch (error) {
-                console.log("Error charging versions on this album: ", error)
-                toastService.error(t('versions.errorLoadingVersions'));
-                navigate('/');
+                console.error('Error loading versions for this album:', error);
+                setLoadError(error);
             } finally {
                 setIsLoading(false);
             }
         };
         fetchData();
-    }, [masterId, navigate, t]);
+    }, [masterId, retryCount]);
 
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
@@ -295,6 +301,16 @@ const MasterPage: React.FC = () => {
         return <div className="flex justify-center items-center min-h-screen"><span className="loading loading-spinner loading-lg"></span></div>;
     }
 
+    if (loadError) {
+        return (
+            <PageLoadError
+                isRateLimited={isRateLimitError(loadError)}
+                message={t('versions.errorLoadingVersions')}
+                onRetry={() => setRetryCount(c => c + 1)}
+            />
+        );
+    }
+
     if (!pageData) {
         return <div className="text-center p-8">{t('versions.noData')}</div>
     }
@@ -304,6 +320,8 @@ const MasterPage: React.FC = () => {
 
     return (
         <div className="p-4 md:p-8" >
+            <BackButton />
+
             <div className="flex flex-col md:flex-row gap-8">
 
                 <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
@@ -373,9 +391,6 @@ const MasterPage: React.FC = () => {
                                 </select>
                             )}
                         </div>
-                        <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline gap-2">
-                            <ArrowLeft size={16} /> {t('common.back')}
-                        </button>
                     </div>
 
                     {filteredVersions.length === 0 ? (

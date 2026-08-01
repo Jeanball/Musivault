@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import { getArtistReleases } from '../api/discogs';
 import { useTranslation } from 'react-i18next';
-import { toastService } from '../utils/toast';
+import { isRateLimitError } from '../api/errors';
 import { stripArtistSuffix } from '../utils/formatters';
 import type { ArtistPageData, ArtistAlbum } from '../types/discogs.types';
 import { getImageUrl } from '../utils/imageUrl';
+import BackButton from '../components/Common/BackButton';
+import PageLoadError from '../components/Common/PageLoadError';
 
 type SortField = 'title' | 'year';
 type SortOrder = 'asc' | 'desc';
@@ -36,6 +38,9 @@ const ArtistAlbumsPage: React.FC = () => {
     const { t } = useTranslation();
     const [pageData, setPageData] = useState<ArtistPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loadError, setLoadError] = useState<unknown>(null);
+    /** Bumped by the retry button to re-run the fetch effect. */
+    const [retryCount, setRetryCount] = useState<number>(0);
 
     // Initialize state from sessionStorage if available
     const storedState = artistId ? getStoredState(artistId) : null;
@@ -56,18 +61,19 @@ const ArtistAlbumsPage: React.FC = () => {
     useEffect(() => {
         const fetchArtistAlbums = async () => {
             if (!artistId) return;
+            setIsLoading(true);
+            setLoadError(null);
             try {
                 setPageData(await getArtistReleases(artistId, { sort: sortField, order: sortOrder }));
             } catch (error) {
-                console.log("Error loading artist albums:", error);
-                toastService.error(t('artist.errorLoading'));
-                navigate('/app');
+                console.error('Error loading artist albums:', error);
+                setLoadError(error);
             } finally {
                 setIsLoading(false);
             }
         };
         fetchArtistAlbums();
-    }, [artistId, sortField, sortOrder, navigate]);
+    }, [artistId, sortField, sortOrder, retryCount]);
 
     const sortedAlbums = useMemo(() => {
         if (!pageData) return [];
@@ -110,12 +116,24 @@ const ArtistAlbumsPage: React.FC = () => {
         );
     }
 
+    if (loadError) {
+        return (
+            <PageLoadError
+                isRateLimited={isRateLimitError(loadError)}
+                message={t('artist.errorLoading')}
+                onRetry={() => setRetryCount(c => c + 1)}
+            />
+        );
+    }
+
     if (!pageData) {
         return <div className="text-center p-8">{t('artist.noData')}</div>;
     }
 
     return (
         <div className="p-4 md:p-8">
+            <BackButton />
+
             {/* Header with artist info */}
             <div className="flex flex-col md:flex-row gap-6 mb-8">
                 {pageData.artist.image && (
@@ -128,9 +146,6 @@ const ArtistAlbumsPage: React.FC = () => {
                 <div className="flex flex-col justify-center text-center md:text-left">
                     <h1 className="text-3xl md:text-4xl font-bold">{stripArtistSuffix(pageData.artist.name)}</h1>
                     <p className="text-gray-400 mt-2">{pageData.albums.length} {t('common.albums')}</p>
-                    <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm mt-4 w-fit mx-auto md:mx-0 gap-2">
-                        <ArrowLeft size={16} /> {t('common.back')}
-                    </button>
                 </div>
             </div>
 

@@ -21,7 +21,20 @@ export const logger = pino({
             'ADMIN_PASSWORD',
             'password',
             'req.headers.cookie',
-            'req.headers.authorization'
+            'req.headers.authorization',
+            // Axios serializes the whole request config onto the error, so a
+            // failed Discogs call would otherwise print the PAT in the headers
+            // and the key/secret in the query params on every 429.
+            'err.config.headers.Authorization',
+            'err.config.headers.authorization',
+            'err.config.params.key',
+            'err.config.params.secret',
+            'err.config.params.token',
+            '*.config.headers.Authorization',
+            '*.config.headers.authorization',
+            '*.config.params.key',
+            '*.config.params.secret',
+            '*.config.params.token'
         ],
         censor: '[redacted]'
     },
