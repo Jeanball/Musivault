@@ -57,7 +57,7 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection 
             {filteredTracks.length === 0 ? (
                 <div className="text-center py-20">
                     <h2 className="text-2xl font-semibold">{t('tracks.noTracksFound')}</h2>
-                    <p className="mt-2 text-gray-400">{t('tracks.tryDifferent')}</p>
+                    <p className="mt-2 text-base-content/70">{t('tracks.tryDifferent')}</p>
                 </div>
             ) : (
                 <div className="space-y-2">

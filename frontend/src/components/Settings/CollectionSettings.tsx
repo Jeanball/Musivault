@@ -73,7 +73,7 @@ const CollectionSettings: React.FC = () => {
                     {t('settings.publicCollection')}
                     {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                 </h2>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-base-content/50 mb-4">
                     {t('settings.publicCollectionDescription')}
                 </p>
 

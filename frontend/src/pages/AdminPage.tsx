@@ -424,7 +424,7 @@ const AdminPage: React.FC = () => {
                                             )}
                                         </td>
                                         <td>
-                                            {user.lastAlbumAdded ? formatDate(user.lastAlbumAdded) : <span className="text-gray-400 italic">{t('admin.none')}</span>}
+                                            {user.lastAlbumAdded ? formatDate(user.lastAlbumAdded) : <span className="text-base-content/70 italic">{t('admin.none')}</span>}
                                         </td>
                                         <td>{formatDate(user.createdAt)}</td>
                                         <td>

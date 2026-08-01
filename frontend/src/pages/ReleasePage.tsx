@@ -184,13 +184,13 @@ const ReleasePage: React.FC = () => {
                 {/* Album Info */}
                 <div className="flex-1">
                     <h1 className="text-3xl font-bold">{albumDetails.title}</h1>
-                    <p className="text-xl text-gray-400 mt-2">{stripArtistSuffix(albumDetails.artist)}</p>
-                    <p className="text-gray-500 mt-1">{albumDetails.year}</p>
+                    <p className="text-xl text-base-content/70 mt-2">{stripArtistSuffix(albumDetails.artist)}</p>
+                    <p className="text-base-content/50 mt-1">{albumDetails.year}</p>
 
                     {/* Format selection - direct click to add */}
                     {formats.length > 0 && (
                         <div className="mt-6">
-                            <h3 className="text-sm font-semibold text-gray-400 mb-3">{t('versions.selectFormat')}</h3>
+                            <h3 className="text-sm font-semibold text-base-content/70 mb-3">{t('versions.selectFormat')}</h3>
                             <div className="flex flex-col gap-2">
                                 {formats.map((format, index) => (
                                     <button

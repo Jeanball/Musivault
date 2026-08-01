@@ -329,7 +329,7 @@ const MasterPage: React.FC = () => {
                         <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-lg shadow-2xl" />
                     )}
                     <h1 className="text-2xl font-bold mt-4">{pageData.masterTitle}</h1>
-                    <p className="text-gray-400">
+                    <p className="text-base-content/70">
                         {isRematchMode ? t('rematch.instructions') : t('versions.chooseVersion')}
                     </p>
                 </div>
@@ -398,14 +398,14 @@ const MasterPage: React.FC = () => {
                             <div className="text-center py-12">
                                 <div className="text-4xl mb-4">📁</div>
                                 <h3 className="text-lg font-semibold mb-2">{t('versions.noPhysicalVersions')}</h3>
-                                <p className="text-gray-400">{t('versions.digitalOnly')}</p>
+                                <p className="text-base-content/70">{t('versions.digitalOnly')}</p>
                                 <button onClick={() => navigate(-1)} className="btn btn-primary btn-sm mt-4">{t('versions.goBack')}</button>
                             </div>
                         ) : (
                             <div className="text-center py-12">
                                 <div className="text-4xl mb-4">🔍</div>
                                 <h3 className="text-lg font-semibold mb-2">{t('versions.noVersionsMatch')}</h3>
-                                <p className="text-gray-400">{t('versions.adjustFilters')}</p>
+                                <p className="text-base-content/70">{t('versions.adjustFilters')}</p>
                                 <button
                                     onClick={() => { setFilter('all'); setCountryFilter('all'); }}
                                     className="btn btn-outline btn-sm mt-4"

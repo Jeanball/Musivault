@@ -145,7 +145,7 @@ const ArtistAlbumsPage: React.FC = () => {
                 )}
                 <div className="flex flex-col justify-center text-center md:text-left">
                     <h1 className="text-3xl md:text-4xl font-bold">{stripArtistSuffix(pageData.artist.name)}</h1>
-                    <p className="text-gray-400 mt-2">{pageData.albums.length} {t('common.albums')}</p>
+                    <p className="text-base-content/70 mt-2">{pageData.albums.length} {t('common.albums')}</p>
                 </div>
             </div>
 
@@ -217,7 +217,7 @@ const ArtistAlbumsPage: React.FC = () => {
             </div>
 
             {sortedAlbums.length === 0 && (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-base-content/70">
                     {t('artist.noAlbums')}
                 </div>
             )}

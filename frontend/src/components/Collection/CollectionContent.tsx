@@ -162,7 +162,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                     {(layout === 'table' ? sortedCollection.length === 0 : Object.keys(groupedByArtist).length === 0) ? (
                         <div className="text-center py-20">
                             <h2 className="text-2xl font-semibold">{t('collection.noResults')}</h2>
-                            <p className="mt-2 text-gray-400">{t('collection.tryAgain')}</p>
+                            <p className="mt-2 text-base-content/70">{t('collection.tryAgain')}</p>
                         </div>
                     ) : (
                         <>

@@ -102,7 +102,7 @@ const ManualAlbumForm: React.FC = () => {
                     <div className="form-control mb-4">
                         <label className="label">
                             <span className="label-text">{t('search.coverImage')}</span>
-                            <span className="label-text-alt text-gray-500">{t('search.optional')}</span>
+                            <span className="label-text-alt text-base-content/50">{t('search.optional')}</span>
                         </label>
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                             {/* Preview or Placeholder */}
@@ -123,7 +123,7 @@ const ManualAlbumForm: React.FC = () => {
                                         </button>
                                     </>
                                 ) : (
-                                    <Music className="w-8 h-8 text-gray-500" />
+                                    <Music className="w-8 h-8 text-base-content/50" />
                                 )}
                             </div>
 
@@ -144,7 +144,7 @@ const ManualAlbumForm: React.FC = () => {
                                     <Upload className="w-4 h-4" />
                                     {t('search.uploadCover')}
                                 </label>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-base-content/50">
                                     {t('search.coverHint')}
                                 </p>
                             </div>
@@ -185,7 +185,7 @@ const ManualAlbumForm: React.FC = () => {
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">{t('common.year')}</span>
-                            <span className="label-text-alt text-gray-500">{t('search.optional')}</span>
+                            <span className="label-text-alt text-base-content/50">{t('search.optional')}</span>
                         </label>
                         <input
                             type="text"

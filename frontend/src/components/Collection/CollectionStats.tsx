@@ -70,9 +70,9 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({
                         <div className="text-primary mb-2 flex justify-center">
                             <Disc size={32} />
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.total')}</div>
+                        <div className="text-xs text-base-content/50 uppercase tracking-wide">{t('stats.total')}</div>
                         <div className="text-2xl font-bold text-primary">{stats.total}</div>
-                        <div className="text-xs text-gray-500 mt-1 truncate">
+                        <div className="text-xs text-base-content/50 mt-1 truncate">
                             {stats.topArtist && `${stats.topArtist.name} (${stats.topArtist.count})`}
                         </div>
                     </div>
@@ -82,9 +82,9 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({
                         <div className="text-secondary mb-2 flex justify-center">
                             <Layers size={32} />
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('common.formats')}</div>
+                        <div className="text-xs text-base-content/50 uppercase tracking-wide">{t('common.formats')}</div>
                         <div className="text-2xl font-bold text-secondary">{Object.keys(stats.formatCounts).length}</div>
-                        <div className="text-xs text-gray-500 mt-1 truncate">
+                        <div className="text-xs text-base-content/50 mt-1 truncate">
                             {Object.entries(stats.formatCounts)
                                 .sort(([, a], [, b]) => b - a)
                                 .slice(0, 2)
@@ -98,9 +98,9 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({
                         <div className="text-accent mb-2 flex justify-center">
                             <Calendar size={32} />
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.decades')}</div>
+                        <div className="text-xs text-base-content/50 uppercase tracking-wide">{t('stats.decades')}</div>
                         <div className="text-2xl font-bold text-accent">{Object.keys(stats.decadeCounts).length}</div>
-                        <div className="text-xs text-gray-500 mt-1 truncate">
+                        <div className="text-xs text-base-content/50 mt-1 truncate">
                             {Object.entries(stats.decadeCounts)
                                 .sort(([, a], [, b]) => b - a)
                                 .slice(0, 2)
@@ -114,9 +114,9 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({
                         <div className="text-success mb-2 flex justify-center">
                             <Clock size={32} />
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.recent')}</div>
+                        <div className="text-xs text-base-content/50 uppercase tracking-wide">{t('stats.recent')}</div>
                         <div className="text-2xl font-bold text-success">{stats.recentAdds.thisWeek}</div>
-                        <div className="text-xs text-gray-500 mt-1 truncate">
+                        <div className="text-xs text-base-content/50 mt-1 truncate">
                             {t('stats.thisWeek')} • {stats.recentAdds.thisMonth} {t('stats.thisMonth')}
                         </div>
                     </div>
@@ -126,9 +126,9 @@ const CollectionStats: React.FC<CollectionStatsProps> = ({
                         <div className="text-info mb-2 flex justify-center">
                             <Tag size={32} />
                         </div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('stats.styles')}</div>
+                        <div className="text-xs text-base-content/50 uppercase tracking-wide">{t('stats.styles')}</div>
                         <div className="text-2xl font-bold text-info">{Object.keys(stats.styleCounts).length}</div>
-                        <div className="text-xs text-gray-500 mt-1 truncate">
+                        <div className="text-xs text-base-content/50 mt-1 truncate">
                             {stats.topStyle && `${stats.topStyle.name} (${stats.topStyle.count})`}
                         </div>
                     </div>

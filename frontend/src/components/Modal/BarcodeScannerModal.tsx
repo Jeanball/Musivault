@@ -153,7 +153,7 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ isOpen, onClo
                 )}
 
                 {/* Instructions */}
-                <div className="p-4 text-center text-sm text-gray-400">
+                <div className="p-4 text-center text-sm text-base-content/70">
                     {t('barcodeScanner.instructions')}
                 </div>
             </div>

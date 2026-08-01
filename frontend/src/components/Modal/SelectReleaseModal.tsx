@@ -35,7 +35,7 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
                     </button>
                 </div>
 
-                <p className="text-sm text-gray-400 mb-4">
+                <p className="text-sm text-base-content/70 mb-4">
                     {t('selectRelease.description')}
                 </p>
 
@@ -56,8 +56,8 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
                                 />
                                 <div className="flex-grow min-w-0">
                                     <h4 className="font-semibold truncate">{album}</h4>
-                                    <p className="text-sm text-gray-400 truncate">{artist || t('common.unknownArtist')}</p>
-                                    <p className="text-xs text-gray-500">{result.year || t('common.na')}</p>
+                                    <p className="text-sm text-base-content/70 truncate">{artist || t('common.unknownArtist')}</p>
+                                    <p className="text-xs text-base-content/50">{result.year || t('common.na')}</p>
                                 </div>
                             </div>
                         );

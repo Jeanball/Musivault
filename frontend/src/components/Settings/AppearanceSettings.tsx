@@ -89,7 +89,7 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.theme')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-base-content/50 mb-4">
                         {t('settings.themeDescription')}
                     </p>
 
@@ -125,7 +125,7 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.language')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-base-content/50 mb-4">
                         {t('settings.languageDescription')}
                     </p>
 
@@ -154,7 +154,7 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.currency')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-base-content/50 mb-4">
                         {t('settings.currencyDescription')}
                     </p>
 
@@ -185,7 +185,7 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.display')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-base-content/50 mb-4">
                         {t('settings.displayDescription')}
                     </p>
 
@@ -200,7 +200,7 @@ const AppearanceSettings: React.FC = () => {
                             />
                             <div>
                                 <span className="label-text font-medium">{t('settings.wideScreenMode')}</span>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-base-content/50 mt-1">
                                     {wideScreenMode
                                         ? t('settings.wideScreenEnabled')
                                         : t('settings.wideScreenDisabled')}

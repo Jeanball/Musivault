@@ -81,7 +81,7 @@ const ProfileSettings: React.FC = () => {
                     <User className="h-5 w-5" />
                     {t('settings.profile')}
                 </h2>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-base-content/50 mb-4">
                     {t('settings.profileDescription')}
                 </p>
 
@@ -104,7 +104,7 @@ const ProfileSettings: React.FC = () => {
                                 className="input input-bordered w-full"
                             />
                             <label className="label">
-                                <span className="label-text-alt text-gray-500">{t('settings.displayNameHint')}</span>
+                                <span className="label-text-alt text-base-content/50">{t('settings.displayNameHint')}</span>
                             </label>
                         </div>
 

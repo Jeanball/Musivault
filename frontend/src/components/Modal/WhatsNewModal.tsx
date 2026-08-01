@@ -42,7 +42,7 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, 
                     </div>
                     <div>
                         <h3 className="font-bold text-xl">{t('whatsNew.title')}</h3>
-                        <p className="text-sm text-gray-400">{t('whatsNew.version', { version: currentVersion })}</p>
+                        <p className="text-sm text-base-content/70">{t('whatsNew.version', { version: currentVersion })}</p>
                     </div>
                 </div>
 
@@ -53,7 +53,7 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, 
                             <div className="flex items-baseline gap-2 mb-3">
                                 <span className="font-bold text-lg">v{entry.version}</span>
                                 {entry.date && (
-                                    <span className="text-sm text-gray-500">{entry.date}</span>
+                                    <span className="text-sm text-base-content/50">{entry.date}</span>
                                 )}
                             </div>
 
@@ -63,7 +63,7 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, 
                                         {sectionIcons[section.type] || <AlertTriangle className="w-4 h-4 text-red-400" />}
                                         <span>{section.type}</span>
                                     </div>
-                                    <div className="text-sm text-gray-300 ml-6 [&>ul]:list-disc [&>ul]:list-inside [&>ul>li]:mb-1 [&>p]:mb-2 [&>p>a]:text-primary [&>p>a]:underline">
+                                    <div className="text-sm text-base-content/80 ml-6 [&>ul]:list-disc [&>ul]:list-inside [&>ul>li]:mb-1 [&>p]:mb-2 [&>p>a]:text-primary [&>p>a]:underline">
                                         <ReactMarkdown>
                                             {section.content}
                                         </ReactMarkdown>
