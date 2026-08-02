@@ -27,17 +27,19 @@ export const client = axios.create({
 client.interceptors.response.use(
     response => response,
     error => {
+        // A request the caller aborted is not a failure: rethrow it untouched so
+        // callers can tell it apart from a real network error (which also has no
+        // response) and skip their error handling entirely. Checked before
+        // isAxiosError: isCancel's guard type ({ message?: string }) swallows
+        // AxiosError, so testing it second narrows `error` to never.
+        if (axios.isCancel(error)) {
+            return Promise.reject(error);
+        }
+
         if (!axios.isAxiosError(error)) {
             return Promise.reject(
                 new ApiError({ status: 0, message: String(error) })
             );
-        }
-
-        // A request the caller aborted is not a failure: rethrow it untouched so
-        // callers can tell it apart from a real network error (which also has no
-        // response) and skip their error handling entirely.
-        if (axios.isCancel(error)) {
-            return Promise.reject(error);
         }
 
         if (!error.response) {
