@@ -1,5 +1,6 @@
 import { client } from './client';
 import type { UpcomingRelease } from '../types/discover.types';
+import { parseLocalDate, startOfWeek } from '../utils/date';
 
 export async function getUpcomingReleases(): Promise<UpcomingRelease[]> {
     const { data } = await client.get<UpcomingRelease[]>('/discover/upcoming-releases');
@@ -30,4 +31,74 @@ export function splitReleasesByToday(releases: UpcomingRelease[]): {
     upcoming.sort((a, b) => comparableDate(a.firstReleaseDate).localeCompare(comparableDate(b.firstReleaseDate)));
 
     return { recent, upcoming };
+}
+
+/**
+ * A chronological section of the releases list: either an ISO week, or — for
+ * releases MusicBrainz only dates to the month — a whole-month bucket.
+ */
+export interface ReleaseWeekGroup {
+    key: string;
+    kind: 'week' | 'month';
+    /** Sorts the group among the others; also the week start for `kind: 'week'`. */
+    sortDate: Date;
+    /** Monday of the week, for `kind: 'week'`. */
+    weekStart?: Date;
+    /** "YYYY-MM", for `kind: 'month'`. */
+    month?: string;
+    releases: UpcomingRelease[];
+}
+
+const localeCompareByDate = (a: UpcomingRelease, b: UpcomingRelease): number =>
+    comparableDate(a.firstReleaseDate).localeCompare(comparableDate(b.firstReleaseDate));
+
+/**
+ * Bucket releases into weeks (Monday-based). Month-precision releases can't be
+ * placed in a week, so they get a per-month bucket sorted at the end of that
+ * month — after every week it contains.
+ */
+export function groupReleasesByWeek(
+    releases: UpcomingRelease[],
+    direction: 'asc' | 'desc'
+): ReleaseWeekGroup[] {
+    const groups = new Map<string, ReleaseWeekGroup>();
+
+    for (const release of releases) {
+        let group: ReleaseWeekGroup;
+
+        if (release.datePrecision === 'month') {
+            const month = release.firstReleaseDate.slice(0, 7);
+            const [year, monthNumber] = month.split('-').map(Number);
+            group = groups.get(`month:${month}`) ?? {
+                key: `month:${month}`,
+                kind: 'month',
+                // Last day of the month, so the bucket trails that month's weeks.
+                sortDate: new Date(year, monthNumber, 0),
+                month,
+                releases: [],
+            };
+        } else {
+            const weekStart = startOfWeek(parseLocalDate(release.firstReleaseDate));
+            const key = `week:${weekStart.getFullYear()}-${weekStart.getMonth() + 1}-${weekStart.getDate()}`;
+            group = groups.get(key) ?? {
+                key,
+                kind: 'week',
+                sortDate: weekStart,
+                weekStart,
+                releases: [],
+            };
+        }
+
+        group.releases.push(release);
+        groups.set(group.key, group);
+    }
+
+    const sign = direction === 'asc' ? 1 : -1;
+    const sorted = Array.from(groups.values()).sort(
+        (a, b) => sign * (a.sortDate.getTime() - b.sortDate.getTime())
+    );
+    for (const group of sorted) {
+        group.releases.sort((a, b) => sign * localeCompareByDate(a, b));
+    }
+    return sorted;
 }

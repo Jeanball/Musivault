@@ -89,12 +89,14 @@ const PreferredGenresDropdown: React.FC<PreferredGenresDropdownProps> = ({ onSav
 
     if (collectionStyles.length === 0) return null;
 
+    // Full width on mobile: dropdown-end would anchor the 18rem panel to the
+    // button's right edge and push it off the left of a narrow screen.
     return (
-        <div ref={containerRef} className={`dropdown dropdown-end ${isOpen ? 'dropdown-open' : ''}`}>
+        <div ref={containerRef} className={`dropdown w-full sm:w-auto sm:dropdown-end ${isOpen ? 'dropdown-open' : ''}`}>
             <button
                 type="button"
                 onClick={() => setIsOpen((open) => !open)}
-                className="btn btn-outline btn-sm gap-2"
+                className="btn btn-outline btn-sm gap-2 w-full sm:w-auto"
                 aria-expanded={isOpen}
             >
                 <SlidersHorizontal size={16} />
@@ -106,7 +108,7 @@ const PreferredGenresDropdown: React.FC<PreferredGenresDropdownProps> = ({ onSav
                 )}
             </button>
             {isOpen && (
-            <div className="dropdown-content z-20 mt-2 p-3 shadow-lg bg-base-200 border border-base-300 rounded-box w-72">
+            <div className="dropdown-content z-50 mt-2 p-3 shadow-lg bg-base-200 border border-base-300 rounded-box w-full sm:w-72">
                 <p className="text-xs text-base-content/60 mb-2">
                     {t('discover.preferredGenresHint')}
                 </p>

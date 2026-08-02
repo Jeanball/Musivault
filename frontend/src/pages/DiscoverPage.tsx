@@ -128,12 +128,12 @@ const DiscoverPage: React.FC = () => {
                 )}
             </section>
 
-            {/* Section 2: Upcoming Releases (summary — full list on the dedicated page) */}
+            {/* Section 2: On Your Radar — recent + upcoming summary; full list on the dedicated page */}
             <section>
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                         <Music size={24} />
-                        {t('discover.upcomingReleases')}
+                        {t('discover.onYourRadar')}
                     </h2>
                     <div className="flex items-center gap-2">
                         <PreferredGenresDropdown onSaved={fetchUpcomingReleases} />

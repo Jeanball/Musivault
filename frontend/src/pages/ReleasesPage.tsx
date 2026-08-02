@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Music, CalendarClock, History, Search, AlertCircle } from 'lucide-react';
 import BackButton from '../components/Common/BackButton';
 import UpcomingReleaseCard from '../components/Discover/UpcomingReleaseCard';
+import ReleaseWeekHeader from '../components/Discover/ReleaseWeekHeader';
 import PreferredGenresDropdown from '../components/Discover/PreferredGenresDropdown';
 import type { UpcomingRelease } from '../types/discover.types';
-import { getUpcomingReleases, splitReleasesByToday } from '../api/discover';
+import { getUpcomingReleases, groupReleasesByWeek, splitReleasesByToday } from '../api/discover';
 
 type ReleaseTab = 'upcoming' | 'recent';
 
@@ -68,6 +69,12 @@ const ReleasesPage: React.FC = () => {
     const { recent, upcoming } = useMemo(() => splitReleasesByToday(filtered), [filtered]);
     const visible = activeTab === 'upcoming' ? upcoming : recent;
 
+    // Upcoming reads forwards in time, recent backwards from today.
+    const groups = useMemo(
+        () => groupReleasesByWeek(visible, activeTab === 'upcoming' ? 'asc' : 'desc'),
+        [visible, activeTab]
+    );
+
     return (
         <div className="max-w-6xl mx-auto">
             <BackButton />
@@ -82,20 +89,20 @@ const ReleasesPage: React.FC = () => {
 
             {/* Tabs + search */}
             <div className="flex flex-wrap items-center gap-4 mb-8">
-                <div className="tabs tabs-boxed bg-base-200 inline-flex">
+                <div className="tabs tabs-boxed bg-base-200 inline-flex max-w-full overflow-x-auto">
                     <button
                         onClick={() => setActiveTab('upcoming')}
-                        className={`tab px-4 gap-2 ${activeTab === 'upcoming' ? 'tab-active' : ''}`}
+                        className={`tab h-auto min-h-8 py-1.5 px-3 gap-2 flex-nowrap whitespace-nowrap ${activeTab === 'upcoming' ? 'tab-active' : ''}`}
                     >
-                        <CalendarClock size={16} />
+                        <CalendarClock size={16} className="shrink-0" />
                         {t('discover.upcomingSection')}
                         <span className="badge badge-sm badge-neutral">{upcoming.length}</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('recent')}
-                        className={`tab px-4 gap-2 ${activeTab === 'recent' ? 'tab-active' : ''}`}
+                        className={`tab h-auto min-h-8 py-1.5 px-3 gap-2 flex-nowrap whitespace-nowrap ${activeTab === 'recent' ? 'tab-active' : ''}`}
                     >
-                        <History size={16} />
+                        <History size={16} className="shrink-0" />
                         {t('discover.recentSection')}
                         <span className="badge badge-sm badge-neutral">{recent.length}</span>
                     </button>
@@ -147,9 +154,16 @@ const ReleasesPage: React.FC = () => {
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                    {visible.map((release) => (
-                        <UpcomingReleaseCard key={release.mbid} release={release} />
+                <div className="space-y-8">
+                    {groups.map((group) => (
+                        <section key={group.key}>
+                            <ReleaseWeekHeader group={group} />
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                {group.releases.map((release) => (
+                                    <UpcomingReleaseCard key={release.mbid} release={release} />
+                                ))}
+                            </div>
+                        </section>
                     ))}
                 </div>
             )}
