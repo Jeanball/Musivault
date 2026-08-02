@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useUserLocation } from './useUserLocation';
 import { useDebounce } from './useDebounce';
 import { getPreferences, updatePreferences } from '../api/preferences';
+import { isApiError } from '../api/errors';
 import { MIN_RADIUS_KM, MAX_RADIUS_KM } from '../components/Discover/constants';
 
 export const DEFAULT_RADIUS_KM = 25;
@@ -87,7 +88,7 @@ export function useNearbySearch<T>(
                 // an instance-wide configuration state, not a failure the user
                 // can act on. Callers hide the section rather than shout at
                 // everyone who never set the key up.
-                if (err?.response?.status === 503) {
+                if (isApiError(err) && err.status === 503) {
                     setUnavailable(true);
                     setError(null);
                     return;
