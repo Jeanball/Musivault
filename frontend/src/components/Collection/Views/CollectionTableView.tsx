@@ -72,6 +72,12 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                         </th>
                         <th
                             className="cursor-pointer hover:bg-base-200"
+                            onClick={() => onSort('label')}
+                        >
+                            {t('album.label')} <SortIcon state={getSortIcon('label')} />
+                        </th>
+                        <th
+                            className="cursor-pointer hover:bg-base-200"
                             onClick={() => onSort('year')}
                         >
                             {t('common.year')} <SortIcon state={getSortIcon('year')} />
@@ -127,6 +133,13 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                             title={item.format.text}
                                         />
                                     </div>
+                                )}
+                            </td>
+                            <td>
+                                {item.album.labels?.[0]?.name ? (
+                                    <span className="text-sm">{item.album.labels[0].name}</span>
+                                ) : (
+                                    <span className="text-base-content/30">—</span>
                                 )}
                             </td>
                             <td>{item.album.year || t('common.na')}</td>

@@ -11,9 +11,14 @@ interface LabelModalProps {
     onClose: () => void;
 }
 
-/** Strips the http(s):// and trailing slash so links read like a brand, not a URL. */
-const prettyUrl = (url: string): string =>
-    url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+/**
+ * Strips the http(s):// and trailing slash so links read like a brand, not a URL,
+ * and caps the length: archived links carry a full nested URL in their path.
+ */
+const prettyUrl = (url: string, maxLength = 42): string => {
+    const stripped = url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+    return stripped.length > maxLength ? `${stripped.slice(0, maxLength - 1)}…` : stripped;
+};
 
 /**
  * Discogs profiles are written in BBCode: `[a=Carl Craig]` references keep their
@@ -63,7 +68,7 @@ const LabelModal: React.FC<LabelModalProps> = ({ label, onClose }) => {
 
     return (
         <dialog className="modal modal-middle px-2 sm:px-4" open>
-            <div className="modal-box max-w-md w-full">
+            <div className="modal-box max-w-md w-full max-h-[85vh] overflow-y-auto">
                 <div className="flex items-start gap-4">
                     {info?.image && (
                         <img
@@ -108,10 +113,10 @@ const LabelModal: React.FC<LabelModalProps> = ({ label, onClose }) => {
                                     href={info.officialUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="btn btn-primary btn-sm w-full"
+                                    className="btn btn-primary btn-sm w-full h-auto min-h-8 flex-col gap-0 py-1.5 leading-tight"
                                 >
-                                    {t('label.visitOfficialSite')}
-                                    <span className="opacity-70 truncate">
+                                    <span>{t('label.visitOfficialSite')}</span>
+                                    <span className="block w-full truncate text-[0.7rem] font-normal opacity-70">
                                         {prettyUrl(info.officialUrl)}
                                     </span>
                                 </a>
@@ -142,9 +147,10 @@ const LabelModal: React.FC<LabelModalProps> = ({ label, onClose }) => {
                                             href={url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="badge badge-outline badge-sm hover:badge-primary max-w-full truncate"
+                                            className="badge badge-outline badge-sm hover:badge-primary max-w-full overflow-hidden"
+                                            title={url}
                                         >
-                                            {prettyUrl(url)}
+                                            <span className="truncate">{prettyUrl(url, 30)}</span>
                                         </a>
                                     ))}
                                 </div>

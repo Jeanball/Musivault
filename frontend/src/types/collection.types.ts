@@ -61,7 +61,7 @@ export interface CollectionItem {
     addedAt: string;
 }
 
-export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'addedAt' | 'price';
+export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'label' | 'addedAt' | 'price';
 export type SortOrder = 'asc' | 'desc';
 export type LayoutType = 'grid' | 'list' | 'table';
 
@@ -70,6 +70,7 @@ export interface FilterState {
     decade: string;
     addedPeriod: string;
     style: string;
+    label: string;
     issueStatus: string;
 }
 
@@ -78,6 +79,7 @@ export interface CollectionStats {
     formatCounts: Record<string, number>;
     decadeCounts: Record<string, number>;
     styleCounts: Record<string, number>;
+    labelCounts: Record<string, number>;
     recentAdds: {
         thisWeek: number;
         thisMonth: number;
@@ -93,6 +95,11 @@ export interface CollectionStats {
     availableFormats: string[];
     availableDecades: string[];
     availableStyles: string[];
+    availableLabels: string[];
+    topLabel: {
+        name: string;
+        count: number;
+    } | null;
     totalValue: number;
     valueCurrency: string;
     itemsWithValue: number;

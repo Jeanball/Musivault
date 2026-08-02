@@ -121,6 +121,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         filters.decade !== 'all' ||
         filters.addedPeriod !== 'all' ||
         filters.style !== 'all' ||
+        filters.label !== 'all' ||
         filters.issueStatus !== 'all';
 
     return (
@@ -133,6 +134,8 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 availableDecades={stats.availableDecades}
                 availableStyles={stats.availableStyles}
                 styleCounts={stats.styleCounts}
+                availableLabels={stats.availableLabels}
+                labelCounts={stats.labelCounts}
                 totalResults={collection.length}
                 filteredResults={filteredCollection.length}
                 onClearAll={hasAnyFilters ? handleClearAll : undefined}

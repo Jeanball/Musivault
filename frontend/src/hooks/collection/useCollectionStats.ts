@@ -25,6 +25,7 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
         const formatCounts: Record<string, number> = {};
         const decadeCounts: Record<string, number> = {};
         const styleCounts: Record<string, number> = {};
+        const labelCounts: Record<string, number> = {};
         const artistCounts: Record<string, number> = {};
         const recentAdds = {
             thisWeek: 0,
@@ -62,6 +63,13 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
                 }
             }
 
+            // A release can be co-issued by several labels, each one counts
+            for (const label of item.album.labels || []) {
+                if (label.name) {
+                    labelCounts[label.name] = (labelCounts[label.name] || 0) + 1;
+                }
+            }
+
             const val = getItemValue(item);
             if (val > 0) {
                 totalValue += val;
@@ -73,20 +81,25 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
         const availableFormats = Object.keys(formatCounts).sort();
         const availableDecades = Object.keys(decadeCounts).sort();
         const availableStyles = Object.keys(styleCounts).sort();
+        const availableLabels = Object.keys(labelCounts).sort((a, b) => a.localeCompare(b));
         const topArtist = getTopEntry(artistCounts);
         const topStyle = getTopEntry(styleCounts);
+        const topLabel = getTopEntry(labelCounts);
 
         return {
             total,
             formatCounts,
             decadeCounts,
             styleCounts,
+            labelCounts,
             recentAdds,
             topArtist,
             topStyle,
+            topLabel,
             availableFormats,
             availableDecades,
             availableStyles,
+            availableLabels,
             totalValue: Math.round(totalValue * 100) / 100,
             valueCurrency,
             itemsWithValue

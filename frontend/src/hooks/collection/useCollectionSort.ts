@@ -67,6 +67,11 @@ export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
                     aValue = a.format.name.toLowerCase();
                     bValue = b.format.name.toLowerCase();
                     break;
+                case 'label':
+                    // Albums without a label sort last in ascending order
+                    aValue = a.album.labels?.[0]?.name.toLowerCase() || '￿';
+                    bValue = b.album.labels?.[0]?.name.toLowerCase() || '￿';
+                    break;
                 case 'addedAt':
                     aValue = new Date(a.addedAt).getTime();
                     bValue = new Date(b.addedAt).getTime();

@@ -8,6 +8,7 @@ const DEFAULT_FILTERS: FilterState = {
     decade: 'all',
     addedPeriod: 'all',
     style: 'all',
+    label: 'all',
     issueStatus: 'all'
 };
 
@@ -77,6 +78,10 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
             }
 
             if (filters.style !== 'all' && (!item.album.styles || !item.album.styles.includes(filters.style))) {
+                return false;
+            }
+
+            if (filters.label !== 'all' && !item.album.labels?.some(l => l.name === filters.label)) {
                 return false;
             }
 

@@ -10,6 +10,8 @@ interface CollectionFiltersProps {
     availableDecades: string[];
     availableStyles: string[];
     styleCounts: Record<string, number>;
+    availableLabels: string[];
+    labelCounts: Record<string, number>;
     totalResults: number;
     filteredResults: number;
     onClearAll?: () => void;
@@ -27,6 +29,8 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     availableDecades,
     availableStyles,
     styleCounts,
+    availableLabels,
+    labelCounts,
     totalResults,
     filteredResults,
     onClearAll,
@@ -167,7 +171,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
             )}
 
             {/* Bottom row: Filter dropdowns */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
                 {/* Filter by Format */}
                 <div className="form-control">
                     <label className="label py-0.5 md:py-1">
@@ -236,10 +240,27 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                         ))}
                     </select>
                 </div>
+
+                {/* Filter by Label */}
+                <div className="form-control">
+                    <label className="label py-0.5 md:py-1">
+                        <span className="label-text text-xs">{t('album.label')}</span>
+                    </label>
+                    <select
+                        className="select select-bordered select-sm w-full"
+                        value={filters.label}
+                        onChange={(e) => handleFilterChange('label', e.target.value)}
+                    >
+                        <option value="all">{t('collection.allLabels')}</option>
+                        {availableLabels.map(label => (
+                            <option key={label} value={label}>{label} ({labelCounts[label] || 0})</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {/* Active filters indicators */}
-            {(filters.format !== 'all' || filters.decade !== 'all' || filters.addedPeriod !== 'all' || filters.style !== 'all' || filters.issueStatus !== 'all') && (
+            {(filters.format !== 'all' || filters.decade !== 'all' || filters.addedPeriod !== 'all' || filters.style !== 'all' || filters.label !== 'all' || filters.issueStatus !== 'all') && (
                 <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-base-300">
                     {filters.format !== 'all' && (
                         <div className="badge badge-primary gap-1">
@@ -282,6 +303,17 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <button
                                 className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
                                 onClick={() => handleFilterChange('style', 'all')}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
+                    {filters.label !== 'all' && (
+                        <div className="badge badge-neutral gap-1">
+                            {t('album.label')}: {filters.label}
+                            <button
+                                className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
+                                onClick={() => handleFilterChange('label', 'all')}
                             >
                                 ×
                             </button>

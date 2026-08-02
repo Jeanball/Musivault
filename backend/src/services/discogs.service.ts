@@ -221,8 +221,12 @@ export async function getReleaseDetails(releaseId: string): Promise<CleanedRelea
 
 // ===== Labels =====
 
-/** Labels barely ever change, so a long-lived in-memory cache keeps us far from the rate limit. */
-const LABEL_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+/**
+ * A label's name and website change once in a lifetime, so the cache lasts a month:
+ * in practice the process restarts (deploy) long before an entry expires. The TTL is
+ * only there so a label that moves its domain eventually gets picked up.
+ */
+const LABEL_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const labelCache = new Map<string, { info: CleanedLabelInfo | null; expiresAt: number }>();
 
 /**
@@ -235,7 +239,10 @@ const NON_OFFICIAL_URL_HOSTS = [
     'soundcloud.com', 'bandcamp.com', 'discogs.com', 'wikipedia.org',
     'myspace.com', 'last.fm', 'spotify.com', 'linktr.ee', 'tiktok.com',
     'apple.com', 'amazon.com', 'ebay.com', 'mixcloud.com', 'vk.com',
-    'flickr.com', 'vimeo.com', 'residentadvisor.net', 'ra.co', 'juno.co.uk'
+    'flickr.com', 'vimeo.com', 'residentadvisor.net', 'ra.co', 'juno.co.uk',
+    // Wayback snapshots of a dead label site: still worth listing, but calling one
+    // "the official site" would send people to a frozen copy of a defunct page.
+    'archive.org', 'web.archive.org'
 ];
 
 function isOfficialSite(url: string): boolean {
