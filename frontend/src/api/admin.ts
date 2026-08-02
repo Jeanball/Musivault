@@ -18,8 +18,11 @@ export interface TaskProgressEvent {
     type: 'progress';
     current: number;
     total: number;
-    artist: string;
-    title: string;
+    /** refresh-prices reports the item being synced… */
+    artist?: string;
+    title?: string;
+    /** …other tasks report a phase label instead. */
+    label?: string;
 }
 
 /** Fields vary per task, so everything past `type` is optional. */

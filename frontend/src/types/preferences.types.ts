@@ -9,6 +9,8 @@ export interface Preferences {
     language: string;
     enableConditionGrading: boolean;
     preferredCurrency: string;
+    /** Styles unchecked in Discover's upcoming releases. Empty = show all. */
+    discoverExcludedStyles: string[];
     publicShareId: string | null;
 }
 

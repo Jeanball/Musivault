@@ -16,6 +16,7 @@ import AdminTaskLogsPage from './pages/AdminTaskLogsPage';
 import HomePage from './pages/HomePage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import DiscoverPage from './pages/DiscoverPage';
+import ReleasesPage from './pages/ReleasesPage';
 import StatsPage from './pages/StatsPage';
 import SharedCollectionLayout from './components/Layout/SharedCollectionLayout';
 import { ThemeProvider } from './context/ThemeContext';
@@ -68,6 +69,7 @@ const App = () => {
               <Route path="admin/tasks" element={<AdminTasksPage />} />
               <Route path="admin/tasks/logs" element={<AdminTaskLogsPage />} />
               <Route path="discover" element={<DiscoverPage />} />
+              <Route path="discover/releases" element={<ReleasesPage />} />
             </Route>
           </Routes>
         </div>

@@ -35,7 +35,11 @@ const AdminTasksPage: React.FC = () => {
         try {
             for await (const event of events) {
                 if (event.type === 'progress') {
-                    setActiveTaskProgress(`${event.current}/${event.total} - ${event.artist} - ${event.title}`);
+                    setActiveTaskProgress(
+                        event.label
+                            ? `${event.current}/${event.total} - ${event.label}`
+                            : `${event.current}/${event.total} - ${event.artist} - ${event.title}`
+                    );
                 } else if (event.type === 'complete') {
                     let summary = '';
                     if (taskId === 'refresh-prices') {

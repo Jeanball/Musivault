@@ -118,3 +118,9 @@ export async function downloadImportLog(logId: string): Promise<Blob> {
     });
     return data;
 }
+
+/** Distinct styles across the user's collection, sorted alphabetically. */
+export async function getCollectionStyles(): Promise<string[]> {
+    const { data } = await client.get<string[]>('/collection/styles');
+    return data;
+}

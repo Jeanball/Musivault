@@ -22,6 +22,7 @@ import preferencesRoute from './routes/preferences.route'
 import adminRoute from './routes/admin.route'
 import customFieldsRoute from './routes/customFields.route'
 import systemRoute from './routes/system.route'
+import discoverRoute from './routes/discover.route'
 
 // Scripts
 import { seedAdminUser } from "./scripts/seed"
@@ -109,6 +110,7 @@ app.use('/api/auth', rateLimit({
 }), authRoute);
 app.use('/api/collection', collectionRoute)
 app.use('/api/public', publicRoute)
+app.use('/api/discover', discoverRoute)
 app.use('/api/preferences', preferencesRoute)
 app.use('/api/custom-fields', customFieldsRoute)
 app.use('/api/admin', adminRoute)

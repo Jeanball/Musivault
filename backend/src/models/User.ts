@@ -9,6 +9,8 @@ export interface IUserPreferences {
   language: string
   enableConditionGrading: boolean
   preferredCurrency: string
+  /** Styles the user unchecked in Discover's upcoming releases. Empty = show all. */
+  discoverExcludedStyles: string[]
 }
 
 export interface IUser extends Document<mongoose.Types.ObjectId> {
@@ -75,6 +77,10 @@ const userSchema = new Schema<IUser>({
     preferredCurrency: {
       type: String,
       default: 'USD'
+    },
+    discoverExcludedStyles: {
+      type: [String],
+      default: []
     }
   },
   publicShareId: {

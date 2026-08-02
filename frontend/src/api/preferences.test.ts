@@ -14,6 +14,7 @@ const serverPreferences: Preferences = {
     language: 'fr',
     enableConditionGrading: true,
     preferredCurrency: 'CAD',
+    discoverExcludedStyles: [],
     publicShareId: null
 };
 

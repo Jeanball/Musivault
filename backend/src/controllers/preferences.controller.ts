@@ -67,7 +67,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency } = req.body;
+        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, discoverExcludedStyles } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -93,6 +93,13 @@ export async function updatePreferences(req: Request, res: Response) {
         }
         if (preferredCurrency !== undefined) {
             user.preferences = { ...user.preferences, preferredCurrency };
+        }
+        if (discoverExcludedStyles !== undefined) {
+            if (!Array.isArray(discoverExcludedStyles) || discoverExcludedStyles.some((s) => typeof s !== 'string')) {
+                res.status(400).json({ message: "discoverExcludedStyles must be an array of strings" });
+                return;
+            }
+            user.preferences = { ...user.preferences, discoverExcludedStyles };
         }
 
         await user.save();

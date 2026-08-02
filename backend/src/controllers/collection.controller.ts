@@ -6,6 +6,7 @@ import { csvImportService } from '../services/import.service';
 import { csvExportService } from '../services/export.service';
 import { getMarketplaceStats } from '../services/discogs.service';
 import { getPriceTTLHours, isPriceStale } from '../utils/price.utils';
+import { getUserStyles } from '../services/collection.service';
 import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
 import type { DiscogsReleaseResponse } from '../types/discogs.types';
 import AdminTaskExecution from '../models/AdminTaskExecution';
@@ -762,21 +763,7 @@ export async function getStyles(req: Request, res: Response) {
       return;
     }
 
-    // Get all collection items for the user
-    const collectionItems = await CollectionItem.find({ user: req.user._id }).populate<{ album: IAlbum }>('album');
-
-    // Extract all unique styles
-    const stylesSet = new Set<string>();
-    for (const item of collectionItems) {
-      if (item.album && item.album.styles) {
-        for (const style of item.album.styles) {
-          stylesSet.add(style);
-        }
-      }
-    }
-
-    // Convert to sorted array
-    const styles = Array.from(stylesSet).sort();
+    const styles = await getUserStyles(req.user._id);
 
     res.status(200).json(styles);
   } catch (error) {

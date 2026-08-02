@@ -5,6 +5,14 @@ import { executePriceSync } from '../controllers/collection.controller';
 import type { PopulatedCollectionItem } from '../controllers/collection.controller';
 import { getPriceTTLHours } from '../utils/price.utils';
 import ExchangeRates from '../models/ExchangeRates';
+import UpcomingRelease from '../models/UpcomingRelease';
+import { getAllDistinctStyles } from './collection.service';
+import {
+  fetchReleaseGroupsInWindow,
+  fetchArtistTagsBatch,
+  normalizeStyle,
+  buildCoverArtUrl,
+} from './musicbrainz.service';
 
 // ===== Types =====
 
@@ -133,6 +141,93 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
       onProgress({ type: 'complete' });
 
       return 'Fetched and updated daily exchange rates from open.er-api.com.';
+    },
+  },
+  {
+    id: 'refresh-upcoming-releases',
+    intervalMs: 7 * 24 * 60 * 60 * 1000,
+    get intervalLabel() { return '7 days'; },
+    getNextExecutionAt: async (lastExecution) => {
+      if (!lastExecution) return new Date();
+      return rollForward(lastExecution.executedAt, 7 * 24 * 60 * 60 * 1000);
+    },
+    runBackground: async (onProgress) => {
+      const styles = await getAllDistinctStyles();
+      if (styles.length === 0) {
+        onProgress({ type: 'complete' });
+        return 'No styles found across any collection — nothing to fetch.';
+      }
+
+      const now = new Date();
+      const dateFrom = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const dateTo = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+      const releaseGroups = (
+        await fetchReleaseGroupsInWindow(dateFrom, dateTo, (pass, maxPasses, current, total) =>
+          onProgress({
+            type: 'progress',
+            current,
+            total,
+            label: `Release groups (pass ${pass}/${maxPasses})`,
+          })
+        )
+      ).filter(
+        (rg) =>
+          rg.datePrecision !== 'year' &&
+          (rg.primaryType === 'Album' || rg.primaryType === 'EP')
+      );
+
+      const uniqueArtistIds = Array.from(new Set(releaseGroups.flatMap((rg) => rg.artistIds)));
+
+      const tagsByArtist = await fetchArtistTagsBatch(uniqueArtistIds, (current, total) =>
+        onProgress({
+          type: 'progress',
+          current,
+          total,
+          label: `Artist tags (${uniqueArtistIds.length} artists)`,
+        })
+      );
+
+      let matchedCount = 0;
+      for (const rg of releaseGroups) {
+        const artistTags = new Set<string>();
+        for (const artistId of rg.artistIds) {
+          for (const tag of tagsByArtist.get(artistId) || []) {
+            artistTags.add(tag);
+          }
+        }
+        if (artistTags.size === 0) continue;
+
+        const matchedStyles = styles.filter((style) => artistTags.has(normalizeStyle(style)));
+        if (matchedStyles.length === 0) continue;
+
+        for (const style of matchedStyles) {
+          await UpcomingRelease.findOneAndUpdate(
+            { mbid: rg.mbid, style },
+            {
+              mbid: rg.mbid,
+              title: rg.title,
+              artist: rg.artist,
+              style,
+              firstReleaseDate: rg.firstReleaseDate,
+              datePrecision: rg.datePrecision,
+              primaryType: rg.primaryType,
+              secondaryTypes: rg.secondaryTypes,
+              coverArtUrl: buildCoverArtUrl(rg.mbid),
+              fetchedAt: new Date(),
+            },
+            { upsert: true, new: true }
+          );
+          matchedCount++;
+        }
+      }
+
+      // Clean up entries that fell out of the display window (dates before dateFrom).
+      const staleResult = await UpcomingRelease.deleteMany({ firstReleaseDate: { $lt: dateFrom } });
+
+      onProgress({ type: 'complete' });
+
+      return `Matched ${matchedCount} (release, style) pairs from ${releaseGroups.length} release groups and ${uniqueArtistIds.length} artists. Removed ${staleResult.deletedCount} stale entries.`;
     },
   },
 ];
