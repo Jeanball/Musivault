@@ -405,6 +405,7 @@
         "noConcertsHint": "Try widening the radius or switching to All shows. Listings come from Ticketmaster, so coverage varies by country.",
         "noConcertsMatchSearch": "No show matches \"{{query}}\".",
         "failedLoadConcerts": "Failed to load nearby shows.",
+        "concertsNotConfigured": "Nearby shows are not set up on this server: no Ticketmaster API key is configured.",
         "ticketmasterAttribution": "Event data from",
         "failedLoadCollections": "Failed to load public collections.",
         "failedLoadUpcoming": "Failed to load upcoming releases.",

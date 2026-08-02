@@ -29,6 +29,7 @@
 - **Condition Grading** - Track the media and sleeve condition of your albums. **(You need to opt-in in settings to use this feature)**
 - **ID Lookup** - Quickly find releases by Discogs ID or Barcode.
 - **Price Tracking** - Automatically track item values based on Discogs marketplace data (requires a personal access token and seller account).
+- **Near You** - Find independent record shops around you (via OpenStreetMap, no key needed) and upcoming concerts matching the artists and styles in your collection (requires a free Ticketmaster API key).
 - **Responsive Design** - Optimized for desktop, tablet, and mobile usage.
 - **Dark/Light Mode** - Toggle between aesthetic themes.
 - **Admin Dashboard** - Manage users and settings.
@@ -104,6 +105,7 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `DISCOGS_KEY` | Discogs API consumer key | - | Yes |
 | `DISCOGS_SECRET` | Discogs API consumer secret | - | Yes |
 | `DISCOGS_PAT` | Discogs Personal Access Token | - | No |
+| `TICKETMASTER_API_KEY` | Ticketmaster Consumer Key, for nearby concerts | - | No |
 | `MONGO_URI` | MongoDB connection string | mongodb://mongodb:27017/musivault | No |
 | `PORT` | Application port | 3000 | No |
 | `JWT_SECRET` | JWT signing secret | ${SESSION_SECRET} | No |
@@ -131,6 +133,18 @@ If you want to use the **price tracking** feature to track your collection's val
 4. **Configure Musivault**: Add the generated token as `DISCOGS_PAT` in your `.env` file or `docker-compose.yml`.
 
 Once configured, prices can be fetched immediately from the **Admin Task Center**, or by restarting the backend server until the `2026-03-28_album-data-backfill` migration has succeeded.
+
+### Optional Setup: Nearby Concerts
+
+The **Shows Near You** section of Discover lists upcoming concerts around you, ranked by how well they fit your collection — acts you already own records from first, then anything in a matching genre. It needs a free Ticketmaster API key:
+
+1. **Create an account**: Register at [developer.ticketmaster.com](https://developer.ticketmaster.com) — approval is instant.
+2. **Copy the Consumer Key**: Your default app is created automatically. Take its **Consumer Key**; the Consumer Secret issued alongside it belongs to the Commerce APIs and is *not* used here.
+3. **Configure Musivault**: Add it as `TICKETMASTER_API_KEY` in your `.env` file or `docker-compose.yml`, then restart the backend.
+
+The free tier allows 5000 calls a day. Results are cached per geographic area for 6 hours and only refreshed when someone actually opens the page, so a typical instance uses a few dozen calls a day. Leave the variable empty to hide the section entirely.
+
+> **Coverage note:** Ticketmaster's catalogue is strongest in North America, the UK, Ireland and Australia, and thinner elsewhere. Record shops are unaffected — they come from OpenStreetMap and need no key.
 
 ## Tech Stack
 

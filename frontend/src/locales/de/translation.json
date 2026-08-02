@@ -382,6 +382,7 @@
         "noConcertsHint": "Versuchen Sie, den Radius zu vergrößern oder zu Alle Konzerte zu wechseln. Die Daten stammen von Ticketmaster, dessen Abdeckung je nach Land variiert.",
         "noConcertsMatchSearch": "Kein Konzert passt zu „{{query}}\".",
         "failedLoadConcerts": "Konzerte in der Nähe konnten nicht geladen werden.",
+        "concertsNotConfigured": "Konzerte in der Nähe sind auf diesem Server nicht eingerichtet: Es ist kein Ticketmaster-API-Schlüssel konfiguriert.",
         "ticketmasterAttribution": "Veranstaltungsdaten von",
         "failedLoadCollections": "Öffentliche Sammlungen konnten nicht geladen werden.",
         "failedLoadUpcoming": "Kommende Veröffentlichungen konnten nicht geladen werden.",

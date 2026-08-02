@@ -34,7 +34,7 @@ const ConcertsPage: React.FC = () => {
         (lat: number, lon: number, radiusKm: number) => getConcerts(lat, lon, radiusKm, days || undefined, scope),
         [days, scope]
     );
-    const { items: concerts, isLoading, error } = useNearbySearch<Concert>(
+    const { items: concerts, isLoading, error, unavailable } = useNearbySearch<Concert>(
         nearby,
         fetcher,
         'discover.failedLoadConcerts',
@@ -137,6 +137,8 @@ const ConcertsPage: React.FC = () => {
                 <div className={RESULTS_GRID_CLASS}>
                     <CardSkeleton count={9} variant="media" />
                 </div>
+            ) : unavailable ? (
+                <EmptyState icon={Mic} description={t('discover.concertsNotConfigured')} />
             ) : error ? (
                 <div className="alert alert-error">
                     <AlertCircle className="shrink-0 h-6 w-6" />

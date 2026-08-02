@@ -386,6 +386,7 @@
         "noConcertsHint": "Tente ampliar o raio ou mudar para Todos os shows. Os dados vêm do Ticketmaster, cuja cobertura varia conforme o país.",
         "noConcertsMatchSearch": "Nenhum show corresponde a \"{{query}}\".",
         "failedLoadConcerts": "Falha ao carregar os shows próximos.",
+        "concertsNotConfigured": "Os shows próximos não estão configurados neste servidor: nenhuma chave de API do Ticketmaster foi definida.",
         "ticketmasterAttribution": "Dados de eventos de",
         "failedLoadCollections": "Falha ao carregar coleções públicas.",
         "failedLoadUpcoming": "Falha ao carregar os próximos lançamentos.",

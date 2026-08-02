@@ -75,7 +75,7 @@ const DiscoverPage: React.FC = () => {
     const nearby = useNearby();
     const { items: shops, isLoading: isShopsLoading, error: shopsError } =
         useNearbySearch<RecordShop>(nearby, getRecordShops, 'discover.failedLoadShops');
-    const { items: concerts, isLoading: isConcertsLoading, error: concertsError } =
+    const { items: concerts, isLoading: isConcertsLoading, error: concertsError, unavailable: concertsUnavailable } =
         useNearbySearch<Concert>(nearby, getConcerts, 'discover.failedLoadConcerts');
 
     const toggleUserExpanded = (publicShareId: string) => {
@@ -288,8 +288,9 @@ const DiscoverPage: React.FC = () => {
                     )}
                 </section>
 
-                {/* Section 4: Shows Near You */}
-                <section>
+                {/* Section 4: Shows Near You — absent entirely on instances
+                    with no Ticketmaster key, rather than a standing error. */}
+                {!concertsUnavailable && <section>
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <h3 className="text-xl font-bold flex items-center gap-2">
                             <Mic size={22} />
@@ -348,7 +349,7 @@ const DiscoverPage: React.FC = () => {
                             <TicketmasterAttribution />
                         </>
                     )}
-                </section>
+                </section>}
             </div>
             <PublicAlbumModal
                 item={selectedAlbum}

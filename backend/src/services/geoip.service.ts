@@ -3,7 +3,8 @@
  * API is unavailable or refused. Accuracy is city-level at best and wrong
  * behind a VPN, so the result is always presented as approximate.
  *
- * ipapi.co allows 1000 requests/day without a key; IPAPI_KEY raises that.
+ * ipapi.co is used without an API key: its free tier allows 1000 lookups a day,
+ * and there is one lookup per visitor per session at most.
  */
 
 import axios from 'axios';
@@ -38,7 +39,6 @@ export async function lookupIp(ip?: string | null): Promise<IpLocation | null> {
 
   try {
     const { data } = await axios.get<IpapiResponse>(`https://ipapi.co/${ip}/json/`, {
-      params: process.env.IPAPI_KEY ? { key: process.env.IPAPI_KEY } : undefined,
       timeout: IPAPI_TIMEOUT_MS,
       headers: { 'User-Agent': 'Musivault/1.0' },
     });

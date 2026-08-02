@@ -384,6 +384,7 @@
         "noConcertsHint": "请尝试扩大半径或切换到「所有演出」。数据来自 Ticketmaster，各国覆盖范围有所不同。",
         "noConcertsMatchSearch": "没有演出匹配\"{{query}}\"。",
         "failedLoadConcerts": "加载附近演出失败。",
+        "concertsNotConfigured": "此服务器未设置附近演出功能：未配置 Ticketmaster API 密钥。",
         "ticketmasterAttribution": "活动数据来自",
         "failedLoadCollections": "加载公开收藏失败。",
         "failedLoadUpcoming": "加载即将发行的专辑失败。",

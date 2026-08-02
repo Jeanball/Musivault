@@ -66,6 +66,8 @@ export function useNearbySearch<T>(
     // the empty state for a frame before the fetch effect gets to run.
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    /** The feature needs configuration this instance doesn't have (503). */
+    const [unavailable, setUnavailable] = useState(false);
 
     useEffect(() => {
         if (!location) return;
@@ -77,9 +79,19 @@ export function useNearbySearch<T>(
                 if (!active) return;
                 setItems(found);
                 setError(null);
+                setUnavailable(false);
             })
             .catch((err) => {
                 if (!active) return;
+                // 503 means the server is missing an API key for this feature —
+                // an instance-wide configuration state, not a failure the user
+                // can act on. Callers hide the section rather than shout at
+                // everyone who never set the key up.
+                if (err?.response?.status === 503) {
+                    setUnavailable(true);
+                    setError(null);
+                    return;
+                }
                 console.error(`Failed to fetch ${errorKey}:`, err);
                 setError(t(errorKey));
             })
@@ -93,5 +105,5 @@ export function useNearbySearch<T>(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location, debouncedRadiusKm, ...deps]);
 
-    return { items, isLoading, error };
+    return { items, isLoading, error, unavailable };
 }
