@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { MIN_RADIUS_KM, MAX_RADIUS_KM } from './constants';
 
 interface RadiusSliderProps {
     value: number;
@@ -8,9 +9,6 @@ interface RadiusSliderProps {
     /** Fires once the user lets go, for persisting the choice. */
     onCommit?: (radiusKm: number) => void;
 }
-
-const MIN_RADIUS_KM = 1;
-const MAX_RADIUS_KM = 1000;
 
 /** Coarser steps past 100 km, where single kilometres stop being meaningful. */
 const STEP_KM = 5;

@@ -30,11 +30,14 @@ export const logger = pino({
             'err.config.params.key',
             'err.config.params.secret',
             'err.config.params.token',
+            // Ticketmaster takes its key as `apikey`, which none of the above match.
+            'err.config.params.apikey',
             '*.config.headers.Authorization',
             '*.config.headers.authorization',
             '*.config.params.key',
             '*.config.params.secret',
-            '*.config.params.token'
+            '*.config.params.token',
+            '*.config.params.apikey'
         ],
         censor: '[redacted]'
     },

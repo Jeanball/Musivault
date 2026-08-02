@@ -21,6 +21,29 @@ export async function getUserStyles(userId: mongoose.Types.ObjectId | string): P
 }
 
 /**
+ * Get the sorted list of unique artists in a single user's collection.
+ * Used to spot concerts by acts the user already owns records from.
+ */
+export async function getUserArtists(userId: mongoose.Types.ObjectId | string): Promise<string[]> {
+  const result = await CollectionItem.aggregate<{ _id: string }>([
+    { $match: { user: new mongoose.Types.ObjectId(userId) } },
+    {
+      $lookup: {
+        from: 'albums',
+        localField: 'album',
+        foreignField: '_id',
+        as: 'albumDoc',
+      },
+    },
+    { $unwind: '$albumDoc' },
+    { $group: { _id: '$albumDoc.artist' } },
+    { $sort: { _id: 1 } },
+  ]);
+
+  return result.map((r) => r._id).filter(Boolean);
+}
+
+/**
  * Get the sorted list of unique album styles present across every user's collection.
  * Used to build the set of styles worth querying upstream for upcoming releases.
  */

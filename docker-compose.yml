@@ -38,6 +38,8 @@ services:
       # Discogs Personal Access Token (optional - required for collection value estimation)
       # Requires a Discogs seller account. Get your token at https://www.discogs.com/settings/developers
       - DISCOGS_PAT=${DISCOGS_PAT:-}
+      # Ticketmaster Discovery API Consumer Key (optional - required for nearby concerts)
+      - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY:-}
       # Initial admin (optional - remove after first run)
       - ADMIN_EMAIL=${ADMIN_EMAIL:-}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-}

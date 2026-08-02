@@ -12,7 +12,7 @@
 
 import axios from 'axios';
 import RecordShopCache, { ICachedShop } from '../models/RecordShopCache';
-import { roundToTile } from '../utils/geo.utils';
+import { roundToTile, bandFor, RADIUS_BANDS_KM } from '../utils/geo.utils';
 import { logger } from '../config/logger.config';
 
 // ===== Constants =====
@@ -23,16 +23,6 @@ export const OSM_HEADERS = {
   'User-Agent': 'Musivault/1.0 (https://github.com/musivault)',
   'Accept': 'application/json',
 };
-
-/**
- * Tiles are fetched at one of two radii, then the user's own radius filters the
- * result — so moving the slider within a band never refetches. Two bands rather
- * than one because a 1000 km Overpass query is dramatically more expensive, and
- * making everyone pay it just so the rare wide search is instant is a bad trade.
- * Each includes 10 km of slack for the ~7.9 km a user can sit from their tile
- * centre, which would otherwise clip results at the top of the band.
- */
-const RADIUS_BANDS_KM = [110, 1010] as const;
 
 const KM_PER_DEGREE_LAT = 111.32;
 
@@ -111,16 +101,11 @@ export interface GeocodeResult {
 
 // ===== Overpass =====
 
-/** Smallest band that fully covers the requested radius. */
-function bandFor(radiusKm: number): number {
-  return RADIUS_BANDS_KM.find((band) => radiusKm + 10 <= band) ?? RADIUS_BANDS_KM[RADIUS_BANDS_KM.length - 1];
-}
-
 /**
  * A bounding box around the point, sized to contain the band's circle.
  *
  * Overpass evaluates a bbox far more cheaply than `around:` at large radii —
- * `around:1010000` reliably blows its own time budget. The box is a superset of
+ * a wide `around:` reliably blows its own time budget. The box is a superset of
  * the circle, and callers filter by true distance anyway, so nothing is lost.
  */
 function boundingBox(lat: number, lon: number, bandKm: number): string {

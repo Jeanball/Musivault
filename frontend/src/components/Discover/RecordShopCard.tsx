@@ -2,16 +2,11 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Store, MapPin, Globe, Phone, Navigation, Clock } from 'lucide-react';
 import type { RecordShop } from '../../types/discover.types';
+import { formatDistance } from '../../utils/formatters';
 
 interface RecordShopCardProps {
     shop: RecordShop;
 }
-
-/** Under 10 km a decimal is meaningful; beyond that it is noise. */
-const formatDistance = (km: number, locale: string): string => {
-    const value = km < 10 ? km.toFixed(1) : Math.round(km).toString();
-    return new Intl.NumberFormat(locale).format(Number(value));
-};
 
 const RecordShopCard: React.FC<RecordShopCardProps> = ({ shop }) => {
     const { t, i18n } = useTranslation();

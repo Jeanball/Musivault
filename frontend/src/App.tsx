@@ -18,6 +18,7 @@ import AlbumDetailPage from './pages/AlbumDetailPage';
 import DiscoverPage from './pages/DiscoverPage';
 import ReleasesPage from './pages/ReleasesPage';
 import RecordShopsPage from './pages/RecordShopsPage';
+import ConcertsPage from './pages/ConcertsPage';
 import StatsPage from './pages/StatsPage';
 import SharedCollectionLayout from './components/Layout/SharedCollectionLayout';
 import { ThemeProvider } from './context/ThemeContext';
@@ -72,6 +73,7 @@ const App = () => {
               <Route path="discover" element={<DiscoverPage />} />
               <Route path="discover/releases" element={<ReleasesPage />} />
               <Route path="discover/shops" element={<RecordShopsPage />} />
+              <Route path="discover/concerts" element={<ConcertsPage />} />
             </Route>
           </Routes>
         </div>

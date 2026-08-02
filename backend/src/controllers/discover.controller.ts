@@ -1,9 +1,16 @@
 import { Request, Response } from 'express';
 import UpcomingRelease from '../models/UpcomingRelease';
-import { getUserStyles } from '../services/collection.service';
+import { getUserStyles, getUserArtists } from '../services/collection.service';
 import { getShopsForPosition, geocodePlace } from '../services/overpass.service';
+import {
+  getConcertsForPosition,
+  MissingTicketmasterKeyError,
+  MAX_CONCERT_DAYS,
+} from '../services/ticketmaster.service';
 import { lookupIp } from '../services/geoip.service';
-import { haversineKm } from '../utils/geo.utils';
+import { haversineKm, MIN_RADIUS_KM, MAX_RADIUS_KM } from '../utils/geo.utils';
+import { discogsStylesToTmGenres } from '../utils/genreMap.utils';
+import { normalizeArtistName, isPlaceholderArtist } from '../utils/artist.utils';
 import { logger } from '../config/logger.config';
 
 export async function getUpcomingReleases(req: Request, res: Response) {
@@ -63,9 +70,6 @@ export async function getUpcomingReleases(req: Request, res: Response) {
   }
 }
 
-export const MIN_SHOP_RADIUS_KM = 1;
-export const MAX_SHOP_RADIUS_KM = 1000;
-
 /**
  * Approximate position derived from the caller's IP, so the record shops
  * section can render something before asking for the browser permission.
@@ -91,6 +95,26 @@ export async function getApproximateLocation(req: Request, res: Response) {
   }
 }
 
+/**
+ * The `lat`/`lon`/`radius` triplet every "near you" endpoint takes, validated
+ * once. Returns the message to send with a 400 rather than writing the response
+ * itself, so the caller keeps its own error shape.
+ */
+function parseSearchArea(req: Request): { lat: number; lon: number; radius: number } | { error: string } {
+  const lat = parseFloat(String(req.query.lat));
+  const lon = parseFloat(String(req.query.lon));
+  const radius = parseInt(String(req.query.radius ?? 25), 10);
+
+  if (isNaN(lat) || lat < -90 || lat > 90 || isNaN(lon) || lon < -180 || lon > 180) {
+    return { error: 'lat and lon must be valid coordinates' };
+  }
+  if (isNaN(radius) || radius < MIN_RADIUS_KM || radius > MAX_RADIUS_KM) {
+    return { error: `radius must be between ${MIN_RADIUS_KM} and ${MAX_RADIUS_KM} km` };
+  }
+
+  return { lat, lon, radius };
+}
+
 export async function getRecordShops(req: Request, res: Response) {
   try {
     if (!req.user) {
@@ -98,18 +122,12 @@ export async function getRecordShops(req: Request, res: Response) {
       return;
     }
 
-    const lat = parseFloat(String(req.query.lat));
-    const lon = parseFloat(String(req.query.lon));
-    const radius = parseInt(String(req.query.radius ?? 25), 10);
-
-    if (isNaN(lat) || lat < -90 || lat > 90 || isNaN(lon) || lon < -180 || lon > 180) {
-      res.status(400).json({ message: 'lat and lon must be valid coordinates' });
+    const area = parseSearchArea(req);
+    if ('error' in area) {
+      res.status(400).json({ message: area.error });
       return;
     }
-    if (isNaN(radius) || radius < MIN_SHOP_RADIUS_KM || radius > MAX_SHOP_RADIUS_KM) {
-      res.status(400).json({ message: `radius must be between ${MIN_SHOP_RADIUS_KM} and ${MAX_SHOP_RADIUS_KM} km` });
-      return;
-    }
+    const { lat, lon, radius } = area;
 
     // A whole band is cached at once, so narrowing the radius is a local filter.
     const shops = await getShopsForPosition(lat, lon, radius);
@@ -122,6 +140,93 @@ export async function getRecordShops(req: Request, res: Response) {
   } catch (error) {
     logger.error({ err: error }, 'Error fetching record shops');
     res.status(502).json({ message: 'Could not reach the OpenStreetMap service' });
+  }
+}
+
+/** Ranks a concert's relevance to the user; `other` is dropped unless asked for. */
+const MATCH_RANK: Record<string, number> = { artist: 0, genre: 1, other: 2 };
+
+/**
+ * Music events around the user, ranked by how well they fit their collection:
+ * an act they already own records from first, then anything in a genre their
+ * styles map to.
+ */
+export async function getConcerts(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const area = parseSearchArea(req);
+    if ('error' in area) {
+      res.status(400).json({ message: area.error });
+      return;
+    }
+    const { lat, lon, radius } = area;
+
+    // Omitting `days` means "everything Ticketmaster lists", which is often a
+    // year or more out — the sweep has no horizon of its own.
+    const hasWindow = req.query.days !== undefined && String(req.query.days) !== '';
+    const days = hasWindow ? parseInt(String(req.query.days), 10) : null;
+    if (days !== null && (isNaN(days) || days < 1 || days > MAX_CONCERT_DAYS)) {
+      res.status(400).json({ message: `days must be between 1 and ${MAX_CONCERT_DAYS}` });
+      return;
+    }
+    const includeUnmatched = String(req.query.scope) === 'all';
+
+    const excluded = new Set(req.user.preferences?.discoverExcludedStyles || []);
+    const [styles, artists] = await Promise.all([
+      getUserStyles(req.user._id),
+      getUserArtists(req.user._id),
+    ]);
+    const stylesByGenre = discogsStylesToTmGenres(styles.filter((s) => !excluded.has(s)));
+    const ownedArtists = new Set(
+      artists.filter((artist) => !isPlaceholderArtist(artist)).map(normalizeArtistName)
+    );
+
+    // The whole future is cached at once, so a shorter window is a local filter.
+    const today = new Date().toISOString().slice(0, 10);
+    const cutoff = days === null
+      ? null
+      : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const events = await getConcertsForPosition(lat, lon, radius);
+    const matched = events
+      // Cancelled shows stay in Ticketmaster's listing long after the fact —
+      // roughly 2% of a sweep — and must never be offered as something to attend.
+      // "rescheduled" is kept: it is still happening, on the date shown.
+      .filter((event) => event.status !== 'cancelled')
+      .filter((event) => event.startLocalDate >= today && (cutoff === null || event.startLocalDate <= cutoff))
+      .map((event) => {
+        const matchedArtists = event.attractions.filter((attraction) =>
+          ownedArtists.has(normalizeArtistName(attraction))
+        );
+        const matchedStyles = event.genre ? stylesByGenre.get(event.genre) ?? [] : [];
+        return {
+          ...event,
+          distanceKm: haversineKm(lat, lon, event.lat, event.lon),
+          matchedArtists,
+          matchedStyles,
+          matchType: matchedArtists.length ? 'artist' : matchedStyles.length ? 'genre' : 'other',
+        };
+      })
+      .filter((event) => event.distanceKm <= radius)
+      .filter((event) => includeUnmatched || event.matchType !== 'other')
+      .sort((a, b) =>
+        MATCH_RANK[a.matchType] - MATCH_RANK[b.matchType] ||
+        a.startLocalDate.localeCompare(b.startLocalDate)
+      );
+
+    res.status(200).json(matched);
+  } catch (error) {
+    if (error instanceof MissingTicketmasterKeyError) {
+      logger.warn('Concert search requested but TICKETMASTER_API_KEY is not configured');
+      res.status(503).json({ message: 'Concert search is not configured' });
+      return;
+    }
+    logger.error({ err: error }, 'Error fetching concerts');
+    res.status(502).json({ message: 'Could not reach the Ticketmaster service' });
   }
 }
 

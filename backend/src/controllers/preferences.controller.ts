@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import ExchangeRates from '../models/ExchangeRates';
 import { logger } from '../config/logger.config';
+import { MIN_RADIUS_KM, MAX_RADIUS_KM } from '../utils/geo.utils';
 
 export async function getExchangeRates(req: Request, res: Response) {
     try {
@@ -67,7 +68,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, discoverExcludedStyles, discoverLocation, discoverShopRadiusKm } = req.body;
+        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, discoverExcludedStyles, discoverLocation, discoverRadiusKm } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -119,12 +120,12 @@ export async function updatePreferences(req: Request, res: Response) {
                 };
             }
         }
-        if (discoverShopRadiusKm !== undefined) {
-            if (!Number.isInteger(discoverShopRadiusKm) || discoverShopRadiusKm < 1 || discoverShopRadiusKm > 1000) {
-                res.status(400).json({ message: "discoverShopRadiusKm must be an integer between 1 and 1000" });
+        if (discoverRadiusKm !== undefined) {
+            if (!Number.isInteger(discoverRadiusKm) || discoverRadiusKm < MIN_RADIUS_KM || discoverRadiusKm > MAX_RADIUS_KM) {
+                res.status(400).json({ message: `discoverRadiusKm must be an integer between ${MIN_RADIUS_KM} and ${MAX_RADIUS_KM}` });
                 return;
             }
-            user.preferences = { ...user.preferences, discoverShopRadiusKm };
+            user.preferences = { ...user.preferences, discoverRadiusKm };
         }
 
         await user.save();

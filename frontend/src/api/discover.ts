@@ -1,5 +1,5 @@
 import { client } from './client';
-import type { UpcomingRelease, RecordShop, ApproximateLocation, GeocodeResult } from '../types/discover.types';
+import type { UpcomingRelease, RecordShop, Concert, ApproximateLocation, GeocodeResult } from '../types/discover.types';
 import { parseLocalDate, startOfWeek } from '../utils/date';
 
 export async function getUpcomingReleases(): Promise<UpcomingRelease[]> {
@@ -16,6 +16,23 @@ export async function getApproximateLocation(): Promise<ApproximateLocation> {
 export async function getRecordShops(lat: number, lon: number, radiusKm: number): Promise<RecordShop[]> {
     const { data } = await client.get<RecordShop[]>('/discover/record-shops', {
         params: { lat, lon, radius: radiusKm },
+    });
+    return data;
+}
+
+/**
+ * Music events around a position. `scope` defaults to the ones matching the
+ * user's collection; `all` also returns everything else Ticketmaster lists.
+ */
+export async function getConcerts(
+    lat: number,
+    lon: number,
+    radiusKm: number,
+    days?: number,
+    scope: 'for-you' | 'all' = 'for-you'
+): Promise<Concert[]> {
+    const { data } = await client.get<Concert[]>('/discover/concerts', {
+        params: { lat, lon, radius: radiusKm, days, scope },
     });
     return data;
 }

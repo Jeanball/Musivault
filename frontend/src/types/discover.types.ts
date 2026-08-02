@@ -27,6 +27,39 @@ export interface RecordShop {
     openingHours?: string;
 }
 
+/** Why a concert was surfaced: an act the user owns, a genre they collect, or neither. */
+export type ConcertMatchType = 'artist' | 'genre' | 'other';
+
+/** A Ticketmaster music event, with its distance and its fit to the collection. */
+export interface Concert {
+    tmId: string;
+    name: string;
+    url: string;
+    imageUrl?: string;
+    /** "YYYY-MM-DD" in the venue's timezone. */
+    startLocalDate: string;
+    startLocalTime?: string;
+    dateTBA: boolean;
+    timeTBA: boolean;
+    status?: string;
+    genre?: string;
+    subGenre?: string;
+    priceMin?: number;
+    priceMax?: number;
+    priceCurrency?: string;
+    venueName: string;
+    venueCity?: string;
+    lat: number;
+    lon: number;
+    distanceKm: number;
+    attractions: string[];
+    matchType: ConcertMatchType;
+    /** Acts on the bill the user already owns records from. */
+    matchedArtists: string[];
+    /** The user's own styles that led to this event's genre. */
+    matchedStyles: string[];
+}
+
 /**
  * Position guessed from the caller's IP. City-level at best and wrong behind a
  * VPN, so it is always presented as approximate.

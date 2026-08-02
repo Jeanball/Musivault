@@ -19,9 +19,10 @@ export interface IUserPreferences {
   preferredCurrency: string
   /** Styles the user unchecked in Discover's upcoming releases. Empty = show all. */
   discoverExcludedStyles: string[]
-  /** Last position used for the nearby record shops, so we don't re-prompt on every visit. */
+  /** Last position used by the "near you" sections, so we don't re-prompt on every visit. */
   discoverLocation?: IDiscoverLocation
-  discoverShopRadiusKm: number
+  /** Search radius shared by every "near you" section — shops and concerts alike. */
+  discoverRadiusKm: number
 }
 
 export interface IUser extends Document<mongoose.Types.ObjectId> {
@@ -102,7 +103,7 @@ const userSchema = new Schema<IUser>({
       }, { _id: false }),
       default: undefined
     },
-    discoverShopRadiusKm: {
+    discoverRadiusKm: {
       type: Number,
       default: 25
     }

@@ -15,7 +15,7 @@ const serverPreferences: Preferences = {
     enableConditionGrading: true,
     preferredCurrency: 'CAD',
     discoverExcludedStyles: [],
-    discoverShopRadiusKm: 25,
+    discoverRadiusKm: 25,
     publicShareId: null
 };
 

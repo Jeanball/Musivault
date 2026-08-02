@@ -11,9 +11,10 @@ export interface Preferences {
     preferredCurrency: string;
     /** Styles unchecked in Discover's upcoming releases. Empty = show all. */
     discoverExcludedStyles: string[];
-    /** Last position used for nearby record shops, so we don't re-prompt every visit. */
+    /** Last position used by the "near you" sections, so we don't re-prompt every visit. */
     discoverLocation?: UserLocation | null;
-    discoverShopRadiusKm: number;
+    /** Search radius shared by every "near you" section — shops and concerts alike. */
+    discoverRadiusKm: number;
     publicShareId: string | null;
 }
 
