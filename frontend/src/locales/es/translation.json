@@ -440,6 +440,10 @@
                     "name": "Actualizar tipos de cambio",
                     "description": "Obtén los últimos tipos de cambio de la API externa para asegurar valoraciones de colección precisas.",
                     "success": "Tipos de cambio actualizados con éxito."
+                },
+                "refreshUpcomingReleases": {
+                    "name": "Actualizar próximos lanzamientos",
+                    "description": "Obtiene todos los álbumes y EP que MusicBrainz anuncia para las próximas semanas y almacena en caché solo aquellos cuyos artistas coinciden con un estilo ya presente en alguna colección, para que cada miembro vea los lanzamientos que coinciden con sus propios géneros."
                 }
             }
         },

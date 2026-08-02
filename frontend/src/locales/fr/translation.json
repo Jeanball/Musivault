@@ -464,6 +464,10 @@
                     "name": "Mettre à jour les taux de change",
                     "description": "Récupérer les derniers taux de change auprès de l'API externe pour assurer des valorisations de collection précises.",
                     "success": "Taux de change mis à jour avec succès."
+                },
+                "refreshUpcomingReleases": {
+                    "name": "Actualiser les sorties à venir",
+                    "description": "Récupérer tous les albums et EP que MusicBrainz annonce pour les prochaines semaines, puis ne mettre en cache que ceux dont les artistes correspondent à un style déjà présent dans une collection, afin que chaque membre voie les sorties correspondant à ses propres genres."
                 }
             }
         },

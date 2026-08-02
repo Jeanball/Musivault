@@ -441,6 +441,10 @@
                     "name": "更新汇率",
                     "description": "从外部 API 获取最新汇率，以确保准确的收藏估值。",
                     "success": "汇率更新成功。"
+                },
+                "refreshUpcomingReleases": {
+                    "name": "刷新即将发行",
+                    "description": "获取 MusicBrainz 列出的未来数周内所有专辑和 EP，仅缓存其艺人风格与某个收藏中已有风格相符的条目，让每位成员都能看到与自己收藏风格相符的新作。"
                 }
             }
         },

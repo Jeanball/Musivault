@@ -465,6 +465,10 @@
                     "name": "Update Exchange Rates",
                     "description": "Fetch the latest currency exchange rates from the external API to ensure accurate collection valuations.",
                     "success": "Successfully refreshed exchange rates."
+                },
+                "refreshUpcomingReleases": {
+                    "name": "Refresh Upcoming Releases",
+                    "description": "Fetch every album and EP MusicBrainz lists for the coming weeks, then cache only those whose artists match a style already present in a collection, so each member sees the releases matching their own genres."
                 }
             }
         },

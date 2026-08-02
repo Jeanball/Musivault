@@ -441,6 +441,10 @@
                     "name": "Atualizar Taxas de Câmbio",
                     "description": "Obtenha as taxas de câmbio mais recentes da API externa para garantir avaliações de coleção precisas.",
                     "success": "Taxas de câmbio atualizadas com sucesso."
+                },
+                "refreshUpcomingReleases": {
+                    "name": "Atualizar próximos lançamentos",
+                    "description": "Obtém todos os álbuns e EPs que o MusicBrainz anuncia para as próximas semanas e armazena em cache apenas aqueles cujos artistas correspondem a um estilo já presente numa coleção, para que cada membro veja os lançamentos que correspondem aos seus próprios géneros."
                 }
             }
         },

@@ -127,6 +127,8 @@ const AdminTasksPage: React.FC = () => {
                 return t('admin.tasks.items.refreshPrices.name', 'Refresh Prices');
             case 'refresh-exchange-rates':
                 return t('admin.tasks.items.refreshExchangeRates.name', 'Update Exchange Rates');
+            case 'refresh-upcoming-releases':
+                return t('admin.tasks.items.refreshUpcomingReleases.name', 'Refresh Upcoming Releases');
             default:
                 return taskId;
         }
@@ -143,6 +145,11 @@ const AdminTasksPage: React.FC = () => {
                 return t(
                     'admin.tasks.items.refreshExchangeRates.description',
                     'Fetch the latest currency exchange rates from the external API to ensure accurate collection valuations.'
+                );
+            case 'refresh-upcoming-releases':
+                return t(
+                    'admin.tasks.items.refreshUpcomingReleases.description',
+                    'Fetch every album and EP MusicBrainz lists for the coming weeks, then cache only those whose artists match a style already present in a collection, so each member sees the releases matching their own genres.'
                 );
             default:
                 return t('admin.tasks.defaultDescription', 'No description available yet.');

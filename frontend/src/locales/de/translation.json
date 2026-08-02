@@ -437,6 +437,10 @@
                     "name": "Wechselkurse aktualisieren",
                     "description": "Aktualisieren Sie die neuesten Wechselkurse von der externen API, um genaue Sammlungsbewertungen zu gewährleisten.",
                     "success": "Wechselkurse erfolgreich aktualisiert."
+                },
+                "refreshUpcomingReleases": {
+                    "name": "Kommende Veröffentlichungen aktualisieren",
+                    "description": "Ruft alle von MusicBrainz für die kommenden Wochen gelisteten Alben und EPs ab und speichert nur diejenigen zwischen, deren Künstler zu einem bereits in einer Sammlung vorhandenen Stil passen, sodass jedes Mitglied die zu seinen eigenen Genres passenden Veröffentlichungen sieht."
                 }
             }
         },
