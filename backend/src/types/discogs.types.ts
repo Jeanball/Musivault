@@ -35,8 +35,34 @@ export interface DiscogsTrack {
 }
 
 export interface DiscogsLabel {
+    id?: number;
     name: string;
     catno?: string;
+}
+
+/** Raw response of GET /labels/{id} */
+export interface DiscogsLabelResponse {
+    id: number;
+    name: string;
+    profile?: string;
+    /** Official websites of the label, most relevant first */
+    urls?: string[];
+    /** Discogs page of the label */
+    uri?: string;
+    images?: { type: string; uri: string; uri150?: string }[];
+}
+
+/** Label info exposed to the frontend */
+export interface CleanedLabelInfo {
+    discogsId: number;
+    name: string;
+    profile: string;
+    /** Best guess at the label's own website, empty when unknown */
+    officialUrl: string;
+    /** Every external link Discogs knows about (socials, Bandcamp, ...) */
+    urls: string[];
+    discogsUrl: string;
+    image: string;
 }
 
 export interface DiscogsReleaseResponse {
@@ -128,6 +154,7 @@ export interface CleanedReleaseDetails {
         artist: string;
     }[];
     labels: {
+        discogsId?: number;
         name: string;
         catno: string;
     }[];

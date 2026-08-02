@@ -232,6 +232,14 @@
         "duration": "Dauer",
         "cover": "Cover"
     },
+    "label": {
+        "title": "Label",
+        "notFound": "Keine Informationen zu diesem Label auf Discogs gefunden.",
+        "visitOfficialSite": "Offizielle Website",
+        "noOfficialSite": "Discogs führt keine Website für dieses Label.",
+        "viewOnDiscogs": "Auf Discogs ansehen",
+        "otherLinks": "Weitere Links"
+    },
     "formatVerification": {
         "mismatch": {
             "message": "Das Musivault-Format stimmt nicht mit der verknüpften Discogs-Veröffentlichung überein. Verwenden Sie Rematch oder ignorieren Sie diesen Hinweis."

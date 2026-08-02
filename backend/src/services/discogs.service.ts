@@ -9,6 +9,8 @@ import {
     DiscogsMasterDetailsResponse,
     DiscogsMasterVersionsResponse,
     DiscogsReleaseResponse,
+    DiscogsLabelResponse,
+    CleanedLabelInfo,
     DiscogsArtistResponse,
     DiscogsArtistReleasesResponse,
     CleanedSearchResult,
@@ -210,10 +212,102 @@ export async function getReleaseDetails(releaseId: string): Promise<CleanedRelea
             artist: t.artists?.map(a => a.name).join(', ') || ''
         })) || [],
         labels: data.labels?.map(l => ({
+            discogsId: l.id,
             name: l.name,
             catno: l.catno || ''
         })) || []
     };
+}
+
+// ===== Labels =====
+
+/** Labels barely ever change, so a long-lived in-memory cache keeps us far from the rate limit. */
+const LABEL_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const labelCache = new Map<string, { info: CleanedLabelInfo | null; expiresAt: number }>();
+
+/**
+ * Hosts that are not the label's own website. Discogs stores socials, shops and
+ * wikis in the same `urls` array, so we push them down instead of linking them
+ * as "the official site".
+ */
+const NON_OFFICIAL_URL_HOSTS = [
+    'facebook.com', 'twitter.com', 'x.com', 'instagram.com', 'youtube.com',
+    'soundcloud.com', 'bandcamp.com', 'discogs.com', 'wikipedia.org',
+    'myspace.com', 'last.fm', 'spotify.com', 'linktr.ee', 'tiktok.com',
+    'apple.com', 'amazon.com', 'ebay.com', 'mixcloud.com', 'vk.com',
+    'flickr.com', 'vimeo.com', 'residentadvisor.net', 'ra.co', 'juno.co.uk'
+];
+
+function isOfficialSite(url: string): boolean {
+    try {
+        const host = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+        return !NON_OFFICIAL_URL_HOSTS.some(h => host === h || host.endsWith(`.${h}`));
+    } catch {
+        return false;
+    }
+}
+
+function cleanLabelInfo(data: DiscogsLabelResponse): CleanedLabelInfo {
+    const urls = (data.urls || []).filter(u => /^https?:\/\//i.test(u));
+
+    return {
+        discogsId: data.id,
+        name: data.name,
+        profile: data.profile || '',
+        officialUrl: urls.find(isOfficialSite) || '',
+        urls,
+        discogsUrl: data.uri || `https://www.discogs.com/label/${data.id}`,
+        image: data.images?.find(img => img.type === 'primary')?.uri || data.images?.[0]?.uri || ''
+    };
+}
+
+/**
+ * Fetch a label by its Discogs id. Returns null when the label is unknown.
+ */
+export async function getLabelDetails(labelId: string | number): Promise<CleanedLabelInfo | null> {
+    const cacheKey = `id:${labelId}`;
+    const cached = labelCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.info;
+
+    try {
+        const data = await discogsRequest<DiscogsLabelResponse>(`/labels/${labelId}`);
+        const info = cleanLabelInfo(data);
+        labelCache.set(cacheKey, { info, expiresAt: Date.now() + LABEL_CACHE_TTL_MS });
+        return info;
+    } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+            labelCache.set(cacheKey, { info: null, expiresAt: Date.now() + LABEL_CACHE_TTL_MS });
+            return null;
+        }
+        throw err;
+    }
+}
+
+/**
+ * Resolve a label from its name only. Used for albums saved before we started
+ * storing the Discogs label id.
+ */
+export async function getLabelByName(name: string): Promise<CleanedLabelInfo | null> {
+    const cacheKey = `name:${normalizeString(name)}`;
+    const cached = labelCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.info;
+
+    const auth = getAuthParams();
+    const response = await axios.get<{ results: { id: number; title: string }[] }>(
+        `${DISCOGS_BASE_URL}/database/search`,
+        {
+            headers: DISCOGS_HEADERS,
+            params: { key: auth.key, secret: auth.secret, q: name, type: 'label', per_page: 5 }
+        }
+    );
+
+    const results = response.data.results || [];
+    const normalized = normalizeString(name);
+    const match = results.find(r => normalizeString(r.title) === normalized) || results[0];
+
+    const info = match ? await getLabelDetails(match.id) : null;
+    labelCache.set(cacheKey, { info, expiresAt: Date.now() + LABEL_CACHE_TTL_MS });
+    return info;
 }
 
 /**

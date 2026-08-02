@@ -57,6 +57,15 @@ const MIGRATIONS: MigrationDefinition[] = [
       return 'Album data backfill complete';
     }
   },
+  {
+    id: '2026-08-01_label-discogs-ids',
+    description: 'Backfill Discogs label ids so albums can link to the label official website',
+    type: 'background',
+    run: async () => {
+      await migrateAlbumData();
+      return 'Label ids backfill complete';
+    }
+  },
 ];
 
 /**

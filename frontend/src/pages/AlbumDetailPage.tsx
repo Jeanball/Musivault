@@ -25,6 +25,7 @@ import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../utils/brandColors
 import FormatVerificationBadge from '../components/Common/FormatVerificationBadge';
 import FormatColorBadge from '../components/Common/FormatColorBadge';
 import CustomFieldsEditor from '../components/Common/CustomFieldsEditor';
+import LabelLink from '../components/Common/LabelLink';
 import FieldRow from '../components/Common/FieldRow';
 import BackButton from '../components/Common/BackButton';
 import { useCurrency } from '../hooks/useCurrency';
@@ -366,7 +367,12 @@ const AlbumDetailPage: React.FC = () => {
 
                     <div className="mb-5">
                         {labels.length > 0 && (
-                            <FieldRow label={t('album.label')}>{labels[0].name}</FieldRow>
+                            <FieldRow label={t('album.label')}>
+                                <LabelLink label={labels[0]} />
+                                {labels[0].catno && labels[0].catno !== 'none' && (
+                                    <span className="text-base-content/50">· {labels[0].catno}</span>
+                                )}
+                            </FieldRow>
                         )}
                         <FieldRow label={t('common.year')}>{album.year || '—'}</FieldRow>
                         {genres.length > 0 && (

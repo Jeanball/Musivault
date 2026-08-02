@@ -253,6 +253,14 @@
         "duration": "Durée",
         "cover": "Pochette"
     },
+    "label": {
+        "title": "Label",
+        "notFound": "Aucune information trouvée pour ce label sur Discogs.",
+        "visitOfficialSite": "Site officiel",
+        "noOfficialSite": "Discogs ne référence aucun site pour ce label.",
+        "viewOnDiscogs": "Voir sur Discogs",
+        "otherLinks": "Autres liens"
+    },
     "formatVerification": {
         "mismatch": {
             "message": "Le format Musivault ne correspond pas à la sortie Discogs liée. Utilisez Rematch ou ignorez cette alerte."

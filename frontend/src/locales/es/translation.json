@@ -235,6 +235,14 @@
         "duration": "Duración",
         "cover": "Portada"
     },
+    "label": {
+        "title": "Sello",
+        "notFound": "No se encontró información de este sello en Discogs.",
+        "visitOfficialSite": "Sitio oficial",
+        "noOfficialSite": "Discogs no indica ningún sitio web para este sello.",
+        "viewOnDiscogs": "Ver en Discogs",
+        "otherLinks": "Otros enlaces"
+    },
     "formatVerification": {
         "mismatch": {
             "message": "El formato de Musivault no coincide con la edición de Discogs vinculada. Usa Rematch o ignora esta alerta."

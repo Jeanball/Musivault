@@ -11,6 +11,8 @@ export interface Track {
 export interface Label {
     name: string;
     catno: string;
+    /** Discogs label id, used to resolve the label's official website */
+    discogsId?: number;
 }
 
 export interface Album {

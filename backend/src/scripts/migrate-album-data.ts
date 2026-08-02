@@ -4,7 +4,7 @@
  * This script checks all albums in the database and fetches any missing fields:
  * - styles
  * - tracklist
- * - labels
+ * - labels (including the Discogs label id used to link to the label's own site)
  * - cover_image
  * - year
  * 
@@ -57,7 +57,7 @@ interface DiscogsRelease {
     images?: { type: string; uri: string }[];
     styles?: string[];
     tracklist?: { position: string; title: string; duration: string; artists?: { name: string }[] }[];
-    labels?: { name: string; catno: string }[];
+    labels?: { id?: number; name: string; catno: string }[];
     formats?: DiscogsFormat[];
 }
 
@@ -126,22 +126,27 @@ interface MissingFields {
     styles: boolean;
     tracklist: boolean;
     labels: boolean;
+    /** Labels are stored but predate the Discogs label id, so they can't link to the label's site */
+    labelIds: boolean;
     cover_image: boolean;
     year: boolean;
 }
 
 function checkMissingFields(album: any): MissingFields {
+    const hasLabels = !!album.labels?.length;
+
     return {
         styles: !album.styles || album.styles.length === 0,
         tracklist: !album.tracklist || album.tracklist.length === 0,
-        labels: !album.labels || album.labels.length === 0,
+        labels: !hasLabels,
+        labelIds: hasLabels && album.labels.some((l: any) => !l.discogsId),
         cover_image: !album.cover_image || album.cover_image === '',
         year: !album.year || album.year === '',
     };
 }
 
 function hasMissingFields(missing: MissingFields): boolean {
-    return missing.styles || missing.tracklist || missing.labels || missing.cover_image || missing.year;
+    return Object.values(missing).some(Boolean);
 }
 
 function formatMissingFields(missing: MissingFields): string {
@@ -149,6 +154,7 @@ function formatMissingFields(missing: MissingFields): string {
     if (missing.styles) fields.push('styles');
     if (missing.tracklist) fields.push('tracklist');
     if (missing.labels) fields.push('labels');
+    if (missing.labelIds) fields.push('label ids');
     if (missing.cover_image) fields.push('cover_image');
     if (missing.year) fields.push('year');
     return fields.join(', ');
@@ -240,10 +246,33 @@ export async function migrateAlbumData(isStandalone = false) {
                         if (missingAlbumFields.labels && data.labels?.length) {
                             album.labels = data.labels.map(l => ({
                                 name: l.name || '',
-                                catno: l.catno || ''
+                                catno: l.catno || '',
+                                discogsId: l.id
                             }));
                             albumChanged = true;
                             logger.info(`  ✅ labels added`);
+                        } else if (missingAlbumFields.labelIds && data.labels?.length) {
+                            // Labels are already there, only the Discogs id is missing: match on
+                            // name (then position) so manually edited catalog numbers survive.
+                            let idsAdded = 0;
+                            album.labels = album.labels.map((label: any, index: number) => {
+                                if (label.discogsId) return label;
+
+                                const match = data.labels!.find(
+                                    l => l.name?.toLowerCase() === label.name?.toLowerCase()
+                                ) || data.labels![index];
+
+                                if (!match?.id) return label;
+
+                                idsAdded++;
+                                return { name: label.name, catno: label.catno, discogsId: match.id };
+                            });
+
+                            if (idsAdded > 0) {
+                                album.markModified('labels');
+                                albumChanged = true;
+                                logger.info(`  ✅ label ids added: ${idsAdded}`);
+                            }
                         }
 
                         // Update cover_image

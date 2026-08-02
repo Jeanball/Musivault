@@ -10,6 +10,8 @@ export interface ITrack {
 export interface ILabel {
   name: string;
   catno: string;
+  /** Discogs label id, used to link back to the label's own website */
+  discogsId?: number;
 }
 
 export interface IAlbum extends Document {
@@ -35,6 +37,7 @@ const trackSchema = new Schema<ITrack>({
 const labelSchema = new Schema<ILabel>({
   name: { type: String, default: '' },
   catno: { type: String, default: '' },
+  discogsId: { type: Number },
 }, { _id: false });
 
 const albumSchema = new Schema<IAlbum>({

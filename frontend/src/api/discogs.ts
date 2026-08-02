@@ -1,5 +1,5 @@
 import { client } from './client';
-import type { DiscogsResult, ArtistResult, ArtistPageData } from '../types/discogs.types';
+import type { DiscogsResult, ArtistResult, ArtistPageData, LabelInfo } from '../types/discogs.types';
 import type { AlbumDetails } from '../types/album.types';
 
 export type LookupType = 'discogsId' | 'catno';
@@ -35,6 +35,14 @@ export async function lookup(ref: string, type: LookupType): Promise<DiscogsResu
 
 export async function getRelease(releaseId: number | string): Promise<AlbumDetails> {
     const { data } = await client.get<AlbumDetails>(`/discogs/release/${releaseId}`);
+    return data;
+}
+
+/** Resolve a label by Discogs id, or by name for albums saved before ids were stored. */
+export async function getLabelInfo(params: { id?: number; name?: string }): Promise<LabelInfo> {
+    const { data } = await client.get<LabelInfo>('/discogs/label', {
+        params: params.id ? { id: params.id } : { name: params.name }
+    });
     return data;
 }
 

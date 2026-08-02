@@ -103,6 +103,34 @@ export async function getReleaseDetails(req: Request, res: Response) {
 }
 
 /**
+ * Get label info (official website, profile, Discogs page)
+ * GET /api/discogs/label?id=<discogsId> or GET /api/discogs/label?name=<label name>
+ */
+export async function getLabelInfo(req: Request, res: Response) {
+    const { id, name } = req.query;
+
+    if (!id && !name) {
+        res.status(400).json({ message: "Either the 'id' or the 'name' query parameter is required." });
+        return;
+    }
+
+    try {
+        const result = id
+            ? await discogsService.getLabelDetails(String(id))
+            : await discogsService.getLabelByName(String(name));
+
+        if (!result) {
+            res.status(404).json({ message: 'Label not found on Discogs' });
+            return;
+        }
+
+        res.status(200).json(result);
+    } catch (error) {
+        handleDiscogsError(error, res, 'fetching label details from Discogs');
+    }
+}
+
+/**
  * Get master versions with format filtering
  * GET /api/discogs/master/:masterId/versions
  */

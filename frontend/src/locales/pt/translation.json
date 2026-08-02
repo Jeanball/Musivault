@@ -235,6 +235,14 @@
         "duration": "Duração",
         "cover": "Capa"
     },
+    "label": {
+        "title": "Editora",
+        "notFound": "Nenhuma informação encontrada para esta editora no Discogs.",
+        "visitOfficialSite": "Site oficial",
+        "noOfficialSite": "O Discogs não indica nenhum site para esta editora.",
+        "viewOnDiscogs": "Ver no Discogs",
+        "otherLinks": "Outros links"
+    },
     "formatVerification": {
         "mismatch": {
             "message": "O formato do Musivault não corresponde ao lançamento vinculado no Discogs. Use Rematch ou ignore este alerta."

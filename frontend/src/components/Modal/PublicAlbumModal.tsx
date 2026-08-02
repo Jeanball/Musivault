@@ -6,6 +6,7 @@ import { getImageUrl } from '../../utils/imageUrl';
 import { stripArtistSuffix } from '../../utils/formatters';
 import FormatColorBadge from '../Common/FormatColorBadge';
 import FieldRow from '../Common/FieldRow';
+import LabelLink from '../Common/LabelLink';
 import { useCurrency } from '../../hooks/useCurrency';
 import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../../utils/brandColors';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../../utils/conditions';
@@ -77,7 +78,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                     <div className="mb-4">
                         {labels.length > 0 && (
                             <FieldRow label={t('album.label')}>
-                                {labels[0].name}
+                                <LabelLink label={labels[0]} />
                                 {labels[0].catno && labels[0].catno !== 'none' && (
                                     <span className="text-base-content/50"> · {labels[0].catno}</span>
                                 )}

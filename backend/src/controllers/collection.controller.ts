@@ -715,7 +715,8 @@ export async function rematchAlbum(req: Request, res: Response) {
     })) || [];
     album.labels = releaseData.labels?.map((l: any) => ({
       name: l.name || '',
-      catno: l.catno || ''
+      catno: l.catno || '',
+      discogsId: l.id
     })) || [];
 
     if (format?.name) {

@@ -235,6 +235,14 @@
         "duration": "时长",
         "cover": "封面"
     },
+    "label": {
+        "title": "厂牌",
+        "notFound": "在 Discogs 上未找到该厂牌的信息。",
+        "visitOfficialSite": "官方网站",
+        "noOfficialSite": "Discogs 未收录该厂牌的网站。",
+        "viewOnDiscogs": "在 Discogs 上查看",
+        "otherLinks": "其他链接"
+    },
     "formatVerification": {
         "mismatch": {
             "message": "Musivault 中的格式与已关联的 Discogs 发行版本不一致。请使用 Rematch 或忽略此提醒。"
