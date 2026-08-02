@@ -67,7 +67,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, discoverExcludedStyles } = req.body;
+        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, discoverExcludedStyles, discoverLocation, discoverShopRadiusKm } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -100,6 +100,31 @@ export async function updatePreferences(req: Request, res: Response) {
                 return;
             }
             user.preferences = { ...user.preferences, discoverExcludedStyles };
+        }
+        if (discoverLocation !== undefined) {
+            // null clears a stored position (e.g. the user revokes the browser permission).
+            if (discoverLocation === null) {
+                user.preferences = { ...user.preferences, discoverLocation: undefined };
+            } else {
+                const { lat, lon, label, source } = discoverLocation || {};
+                const validCoords = typeof lat === 'number' && lat >= -90 && lat <= 90
+                    && typeof lon === 'number' && lon >= -180 && lon <= 180;
+                if (!validCoords || !['browser', 'ip', 'manual'].includes(source)) {
+                    res.status(400).json({ message: "discoverLocation must have valid lat, lon and source" });
+                    return;
+                }
+                user.preferences = {
+                    ...user.preferences,
+                    discoverLocation: { lat, lon, label: typeof label === 'string' ? label : undefined, source }
+                };
+            }
+        }
+        if (discoverShopRadiusKm !== undefined) {
+            if (!Number.isInteger(discoverShopRadiusKm) || discoverShopRadiusKm < 1 || discoverShopRadiusKm > 1000) {
+                res.status(400).json({ message: "discoverShopRadiusKm must be an integer between 1 and 1000" });
+                return;
+            }
+            user.preferences = { ...user.preferences, discoverShopRadiusKm };
         }
 
         await user.save();

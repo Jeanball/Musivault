@@ -1,9 +1,28 @@
 import { client } from './client';
-import type { UpcomingRelease } from '../types/discover.types';
+import type { UpcomingRelease, RecordShop, ApproximateLocation, GeocodeResult } from '../types/discover.types';
 import { parseLocalDate, startOfWeek } from '../utils/date';
 
 export async function getUpcomingReleases(): Promise<UpcomingRelease[]> {
     const { data } = await client.get<UpcomingRelease[]>('/discover/upcoming-releases');
+    return data;
+}
+
+/** Position guessed from the request IP — no browser permission involved. */
+export async function getApproximateLocation(): Promise<ApproximateLocation> {
+    const { data } = await client.get<ApproximateLocation>('/discover/location');
+    return data;
+}
+
+export async function getRecordShops(lat: number, lon: number, radiusKm: number): Promise<RecordShop[]> {
+    const { data } = await client.get<RecordShop[]>('/discover/record-shops', {
+        params: { lat, lon, radius: radiusKm },
+    });
+    return data;
+}
+
+/** Free-text place search, proxied through the backend (Nominatim needs a User-Agent). */
+export async function geocodePlace(query: string): Promise<GeocodeResult[]> {
+    const { data } = await client.get<GeocodeResult[]>('/discover/geocode', { params: { q: query } });
     return data;
 }
 

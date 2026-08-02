@@ -11,7 +11,19 @@ export interface Preferences {
     preferredCurrency: string;
     /** Styles unchecked in Discover's upcoming releases. Empty = show all. */
     discoverExcludedStyles: string[];
+    /** Last position used for nearby record shops, so we don't re-prompt every visit. */
+    discoverLocation?: UserLocation | null;
+    discoverShopRadiusKm: number;
     publicShareId: string | null;
+}
+
+export type LocationSource = 'browser' | 'ip' | 'manual';
+
+export interface UserLocation {
+    lat: number;
+    lon: number;
+    label?: string;
+    source: LocationSource;
 }
 
 export interface ExchangeRates {

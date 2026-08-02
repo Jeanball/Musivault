@@ -2,6 +2,14 @@ import mongoose, { Schema, Document } from "mongoose"
 import bcrypt from "bcryptjs"
 import { v4 as uuidv4 } from 'uuid'
 
+export interface IDiscoverLocation {
+  lat: number
+  lon: number
+  /** Human-readable place name, shown so the user can tell where the results are centred. */
+  label?: string
+  source: 'browser' | 'ip' | 'manual'
+}
+
 export interface IUserPreferences {
   theme: string
   isPublic: boolean
@@ -11,6 +19,9 @@ export interface IUserPreferences {
   preferredCurrency: string
   /** Styles the user unchecked in Discover's upcoming releases. Empty = show all. */
   discoverExcludedStyles: string[]
+  /** Last position used for the nearby record shops, so we don't re-prompt on every visit. */
+  discoverLocation?: IDiscoverLocation
+  discoverShopRadiusKm: number
 }
 
 export interface IUser extends Document<mongoose.Types.ObjectId> {
@@ -81,6 +92,19 @@ const userSchema = new Schema<IUser>({
     discoverExcludedStyles: {
       type: [String],
       default: []
+    },
+    discoverLocation: {
+      type: new Schema<IDiscoverLocation>({
+        lat: { type: Number, required: true },
+        lon: { type: Number, required: true },
+        label: { type: String },
+        source: { type: String, enum: ['browser', 'ip', 'manual'], required: true }
+      }, { _id: false }),
+      default: undefined
+    },
+    discoverShopRadiusKm: {
+      type: Number,
+      default: 25
     }
   },
   publicShareId: {
