@@ -4,10 +4,11 @@
   "description": "A beautiful web application to manage and explore your music collection",
   "private": true,
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "wait-on": "^9.1.0"
   },
   "scripts": {
-    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev": "concurrently -n backend,frontend \"cd backend && npm run dev\" \"wait-on -t 60000 tcp:127.0.0.1:5001 && cd frontend && npm run dev\"",
     "version:patch": "./scripts/bump-version.sh patch",
     "version:minor": "./scripts/bump-version.sh minor",
     "version:major": "./scripts/bump-version.sh major",
