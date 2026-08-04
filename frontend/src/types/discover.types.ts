@@ -60,6 +60,89 @@ export interface Concert {
     matchedStyles: string[];
 }
 
+/** An act on the bill, as returned by the event detail endpoint. */
+export interface ConcertAct {
+    tmId: string;
+    name: string;
+    imageUrl?: string;
+    genre?: string;
+    subGenre?: string;
+    url?: string;
+    /** Only the links Ticketmaster actually carried for this act. */
+    links: Partial<Record<
+        'spotify' | 'musicbrainz' | 'lastfm' | 'itunes' | 'youtube' | 'instagram' | 'facebook' | 'twitter' | 'wiki' | 'homepage',
+        string
+    >>;
+    /** True when the user already owns records from this act. */
+    owned: boolean;
+}
+
+export interface ConcertPresale {
+    name?: string;
+    url?: string;
+    startDateTime?: string;
+    endDateTime?: string;
+}
+
+export interface ConcertPriceRange {
+    type?: string;
+    currency?: string;
+    min?: number;
+    max?: number;
+}
+
+export interface ConcertVenueDetails {
+    name: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+    lat?: number;
+    lon?: number;
+    url?: string;
+    boxOfficeInfo?: string;
+    openHours?: string;
+    acceptedPayment?: string;
+    willCall?: string;
+    parkingDetail?: string;
+    accessibleSeatingDetail?: string;
+    generalRule?: string;
+    childRule?: string;
+}
+
+/**
+ * The long form of a concert, fetched only when its modal opens: everything too
+ * bulky to carry in the list, plus the full bill with per-act links.
+ */
+export interface ConcertDetails {
+    tmId: string;
+    name: string;
+    url: string;
+    imageUrl?: string;
+    info?: string;
+    pleaseNote?: string;
+    ticketLimit?: string;
+    accessibility?: string;
+    seatmapUrl?: string;
+    ageRestricted?: boolean;
+    startLocalDate?: string;
+    startLocalTime?: string;
+    dateTBA: boolean;
+    timeTBA: boolean;
+    timezone?: string;
+    status?: string;
+    endLocalDate?: string;
+    doorsLocalTime?: string;
+    onSaleStart?: string;
+    onSaleEnd?: string;
+    presales: ConcertPresale[];
+    priceRanges: ConcertPriceRange[];
+    promoters: string[];
+    venue?: ConcertVenueDetails;
+    lineup: ConcertAct[];
+}
+
 /**
  * Position guessed from the caller's IP. City-level at best and wrong behind a
  * VPN, so it is always presented as approximate.

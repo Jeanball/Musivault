@@ -1,5 +1,5 @@
 import { client } from './client';
-import type { UpcomingRelease, RecordShop, Concert, ApproximateLocation, GeocodeResult } from '../types/discover.types';
+import type { UpcomingRelease, RecordShop, Concert, ConcertDetails, ApproximateLocation, GeocodeResult } from '../types/discover.types';
 import { parseLocalDate, startOfWeek } from '../utils/date';
 
 export async function getUpcomingReleases(): Promise<UpcomingRelease[]> {
@@ -34,6 +34,15 @@ export async function getConcerts(
     const { data } = await client.get<Concert[]>('/discover/concerts', {
         params: { lat, lon, radius: radiusKm, days, scope },
     });
+    return data;
+}
+
+/**
+ * The long form of one event, for its detail modal. Fetched on open rather than
+ * with the list: it is a Ticketmaster call per event, and the list runs long.
+ */
+export async function getConcertDetails(tmId: string): Promise<ConcertDetails> {
+    const { data } = await client.get<ConcertDetails>(`/discover/concerts/${encodeURIComponent(tmId)}`);
     return data;
 }
 

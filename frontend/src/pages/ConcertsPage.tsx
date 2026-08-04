@@ -11,6 +11,7 @@ import { RESULTS_GRID_CLASS } from '../components/Discover/constants';
 import { useNearby, useNearbySearch } from '../hooks/useNearbySearch';
 import type { Concert } from '../types/discover.types';
 import { getConcerts } from '../api/discover';
+import { foldForSearch } from '../utils/search';
 
 /** Windows offered by the date filter; 0 means "everything Ticketmaster lists". */
 const DAY_WINDOWS = [30, 90, 180, 365, 0] as const;
@@ -52,14 +53,17 @@ const ConcertsPage: React.FC = () => {
     );
 
     const filtered = useMemo(() => {
-        const q = query.toLowerCase().trim();
+        // Folded rather than lowercased: an act is searched for the way the user
+        // spells it, not the way Ticketmaster happens to have keyed it in.
+        const q = foldForSearch(query);
         return concerts.filter((concert) => {
             if (genre && concert.genre !== genre) return false;
             if (!q) return true;
-            return concert.name.toLowerCase().includes(q) ||
-                concert.venueName.toLowerCase().includes(q) ||
-                concert.venueCity?.toLowerCase().includes(q) ||
-                concert.attractions.some((attraction) => attraction.toLowerCase().includes(q));
+            return foldForSearch(concert.name).includes(q) ||
+                foldForSearch(concert.venueName).includes(q) ||
+                foldForSearch(concert.venueCity ?? '').includes(q) ||
+                // The whole bill, so a support slot finds its show too.
+                concert.attractions.some((attraction) => foldForSearch(attraction).includes(q));
         });
     }, [concerts, query, genre]);
 
@@ -157,10 +161,20 @@ const ConcertsPage: React.FC = () => {
                         ? t('discover.noConcertsMatchSearch', { query })
                         : t('discover.noConcertsInRadius', { radius: nearby.radiusKm })}
                 >
-                    {!query && (
+                    {!query ? (
                         <p className="text-base-content/60 text-sm max-w-md mx-auto">
                             {t('discover.noConcertsHint')}
                         </p>
+                    ) : scope === 'for-you' && (
+                        // The search only ever sees what the server sent, and in
+                        // this tab that is the collection's own shows — an act
+                        // the user owns nothing by can only be found in All shows.
+                        <div className="max-w-md mx-auto">
+                            <p className="text-base-content/60 text-sm">{t('discover.searchForYouHint')}</p>
+                            <button className="btn btn-sm btn-outline mt-3" onClick={() => setScope('all')}>
+                                {t('discover.searchAllShows')}
+                            </button>
+                        </div>
                     )}
                 </EmptyState>
             ) : (

@@ -44,6 +44,14 @@ export class MissingTicketmasterKeyError extends Error {
   }
 }
 
+/** Thrown when Discovery no longer knows an event id, so callers can answer 404. */
+export class ConcertNotFoundError extends Error {
+  constructor(tmId: string) {
+    super(`Ticketmaster event ${tmId} not found`);
+    this.name = 'ConcertNotFoundError';
+  }
+}
+
 const delay = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -94,7 +102,7 @@ interface TmEvent {
     genre?: { name?: string };
     subGenre?: { name?: string };
   }>;
-  priceRanges?: Array<{ currency?: string; min?: number; max?: number }>;
+  priceRanges?: Array<{ type?: string; currency?: string; min?: number; max?: number }>;
   _embedded?: {
     venues?: Array<{
       name?: string;
@@ -324,4 +332,307 @@ export async function getConcertsForPosition(lat: number, lon: number, radiusKm:
 
   inFlight.set(cacheKey, request);
   return request;
+}
+
+// ===== Event details =====
+
+/**
+ * Everything the detail modal shows beyond a card: the full bill, the venue's
+ * practical information, onsales and presales, prices per ticket type.
+ *
+ * Deliberately not folded into ICachedEvent: one ConcertCache document holds
+ * every event of a whole radius band, and Mongo caps a document at 16 MB. A
+ * dense metro already stores thousands of events there, so carrying presales
+ * and venue prose for each of them would eventually blow the limit — for data
+ * only ever read one event at a time.
+ */
+export interface ConcertLineupEntry {
+  tmId: string;
+  name: string;
+  imageUrl?: string;
+  genre?: string;
+  subGenre?: string;
+  url?: string;
+  /** Only the links Discovery actually carried, so the UI can render what exists. */
+  links: Partial<Record<'spotify' | 'musicbrainz' | 'lastfm' | 'itunes' | 'youtube' | 'instagram' | 'facebook' | 'twitter' | 'wiki' | 'homepage', string>>;
+}
+
+export interface ConcertPresale {
+  name?: string;
+  url?: string;
+  startDateTime?: string;
+  endDateTime?: string;
+}
+
+export interface ConcertPriceRange {
+  type?: string;
+  currency?: string;
+  min?: number;
+  max?: number;
+}
+
+export interface ConcertVenueDetails {
+  name: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  lat?: number;
+  lon?: number;
+  url?: string;
+  boxOfficeInfo?: string;
+  openHours?: string;
+  acceptedPayment?: string;
+  willCall?: string;
+  parkingDetail?: string;
+  accessibleSeatingDetail?: string;
+  generalRule?: string;
+  childRule?: string;
+}
+
+export interface ConcertDetails {
+  tmId: string;
+  name: string;
+  url: string;
+  imageUrl?: string;
+  info?: string;
+  pleaseNote?: string;
+  ticketLimit?: string;
+  accessibility?: string;
+  seatmapUrl?: string;
+  ageRestricted?: boolean;
+  startLocalDate?: string;
+  startLocalTime?: string;
+  dateTBA: boolean;
+  timeTBA: boolean;
+  timezone?: string;
+  status?: string;
+  endLocalDate?: string;
+  doorsLocalTime?: string;
+  onSaleStart?: string;
+  onSaleEnd?: string;
+  presales: ConcertPresale[];
+  priceRanges: ConcertPriceRange[];
+  promoters: string[];
+  venue?: ConcertVenueDetails;
+  /** The whole bill, headliner and support alike, in Discovery's own order. */
+  lineup: ConcertLineupEntry[];
+}
+
+const TM_EVENT_URL = 'https://app.ticketmaster.com/discovery/v2/events';
+
+/**
+ * Details are read one event at a time, only when a modal opens — a handful of
+ * calls a day against a 5000 quota. An in-process map is enough: losing it on
+ * restart costs one request, which is not worth a collection and a migration.
+ */
+const DETAIL_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const DETAIL_CACHE_MAX_ENTRIES = 500;
+const detailCache = new Map<string, { fetchedAt: number; details: ConcertDetails }>();
+
+interface TmLink { url?: string }
+
+interface TmAttraction {
+  id: string;
+  name?: string;
+  url?: string;
+  images?: TmImage[];
+  classifications?: Array<{ genre?: { name?: string }; subGenre?: { name?: string } }>;
+  externalLinks?: Record<string, TmLink[] | undefined>;
+}
+
+interface TmEventDetail extends TmEvent {
+  info?: string;
+  pleaseNote?: string;
+  seatmap?: { staticUrl?: string };
+  accessibility?: { info?: string };
+  ticketLimit?: { info?: string };
+  ageRestrictions?: { legalAgeEnforced?: boolean };
+  doorsTimes?: { localTime?: string };
+  promoters?: Array<{ name?: string }>;
+  promoter?: { name?: string };
+  sales?: {
+    public?: { startDateTime?: string; endDateTime?: string; startTBD?: boolean };
+    presales?: Array<{ name?: string; url?: string; startDateTime?: string; endDateTime?: string }>;
+  };
+  dates?: TmEvent['dates'] & {
+    end?: { localDate?: string };
+    timezone?: string;
+  };
+  _embedded?: {
+    venues?: Array<{
+      name?: string;
+      url?: string;
+      postalCode?: string;
+      city?: { name?: string };
+      state?: { name?: string };
+      country?: { name?: string };
+      address?: { line1?: string; line2?: string; line3?: string };
+      location?: { latitude?: string; longitude?: string };
+      boxOfficeInfo?: {
+        phoneNumberDetail?: string;
+        openHoursDetail?: string;
+        acceptedPaymentDetail?: string;
+        willCallDetail?: string;
+      };
+      parkingDetail?: string;
+      accessibleSeatingDetail?: string;
+      generalInfo?: { generalRule?: string; childRule?: string };
+    }>;
+    attractions?: TmAttraction[];
+  };
+}
+
+/** Widest 16_9 shot, falling back to whatever is there — same rule as the cards. */
+function pickImage(images?: TmImage[]): string | undefined {
+  const best = (images || [])
+    .filter((img) => img.ratio === '16_9' && img.url)
+    .sort((a, b) => (b.width ?? 0) - (a.width ?? 0))[0];
+  return (best ?? images?.[0])?.url;
+}
+
+const LINEUP_LINKS = ['spotify', 'musicbrainz', 'lastfm', 'itunes', 'youtube', 'instagram', 'facebook', 'twitter', 'wiki', 'homepage'] as const;
+
+function normalizeLineup(attractions: TmAttraction[] = []): ConcertLineupEntry[] {
+  return attractions.flatMap((attraction) => {
+    const name = attraction.name?.trim();
+    if (!name) return [];
+
+    const links: ConcertLineupEntry['links'] = {};
+    for (const key of LINEUP_LINKS) {
+      const url = attraction.externalLinks?.[key]?.[0]?.url;
+      if (url) links[key] = url;
+    }
+
+    const classification = attraction.classifications?.[0];
+    return [{
+      tmId: attraction.id,
+      name,
+      imageUrl: pickImage(attraction.images),
+      genre: classification?.genre?.name,
+      subGenre: classification?.subGenre?.name,
+      url: attraction.url,
+      links,
+    }];
+  });
+}
+
+function normalizeDetails(event: TmEventDetail): ConcertDetails {
+  const venue = event._embedded?.venues?.[0];
+  const lat = Number(venue?.location?.latitude);
+  const lon = Number(venue?.location?.longitude);
+
+  const address = [venue?.address?.line1, venue?.address?.line2, venue?.address?.line3]
+    .map((line) => line?.trim())
+    .filter(Boolean)
+    .join(', ');
+
+  return {
+    tmId: event.id,
+    name: event.name?.trim() || '',
+    url: event.url || '',
+    imageUrl: pickImage(event.images),
+    info: event.info?.trim() || undefined,
+    pleaseNote: event.pleaseNote?.trim() || undefined,
+    ticketLimit: event.ticketLimit?.info?.trim() || undefined,
+    accessibility: event.accessibility?.info?.trim() || undefined,
+    seatmapUrl: event.seatmap?.staticUrl,
+    ageRestricted: event.ageRestrictions?.legalAgeEnforced || undefined,
+    startLocalDate: event.dates?.start?.localDate,
+    startLocalTime: event.dates?.start?.localTime,
+    dateTBA: event.dates?.start?.dateTBA ?? false,
+    timeTBA: event.dates?.start?.timeTBA ?? false,
+    timezone: event.dates?.timezone,
+    status: event.dates?.status?.code,
+    endLocalDate: event.dates?.end?.localDate,
+    doorsLocalTime: event.doorsTimes?.localTime,
+    onSaleStart: event.sales?.public?.startTBD ? undefined : event.sales?.public?.startDateTime,
+    onSaleEnd: event.sales?.public?.endDateTime,
+    presales: (event.sales?.presales || []).map((presale) => ({
+      name: presale.name,
+      url: presale.url,
+      startDateTime: presale.startDateTime,
+      endDateTime: presale.endDateTime,
+    })),
+    priceRanges: (event.priceRanges || []).map((price) => ({
+      type: price.type,
+      currency: price.currency,
+      min: price.min,
+      max: price.max,
+    })),
+    // `promoters` repeats `promoter`, and both are frequently the same name
+    // twice over — dedupe rather than printing it side by side with itself.
+    promoters: Array.from(new Set(
+      [event.promoter?.name, ...(event.promoters || []).map((promoter) => promoter.name)]
+        .map((name) => name?.trim())
+        .filter((name): name is string => Boolean(name))
+    )),
+    venue: venue?.name
+      ? {
+        name: venue.name,
+        address: address || undefined,
+        city: venue.city?.name,
+        state: venue.state?.name,
+        postalCode: venue.postalCode,
+        country: venue.country?.name,
+        lat: isNaN(lat) ? undefined : lat,
+        lon: isNaN(lon) ? undefined : lon,
+        url: venue.url,
+        boxOfficeInfo: venue.boxOfficeInfo?.phoneNumberDetail,
+        openHours: venue.boxOfficeInfo?.openHoursDetail,
+        acceptedPayment: venue.boxOfficeInfo?.acceptedPaymentDetail,
+        willCall: venue.boxOfficeInfo?.willCallDetail,
+        parkingDetail: venue.parkingDetail,
+        accessibleSeatingDetail: venue.accessibleSeatingDetail,
+        generalRule: venue.generalInfo?.generalRule,
+        childRule: venue.generalInfo?.childRule,
+      }
+      : undefined,
+    lineup: normalizeLineup(event._embedded?.attractions),
+  };
+}
+
+/**
+ * One event in full, for the detail modal.
+ *
+ * The tile sweep already returns attractions, so the bill is known before this
+ * call; what it adds is everything too bulky to cache per event — presales,
+ * venue practicalities, per-attraction images and streaming links.
+ */
+export async function getConcertDetails(tmId: string): Promise<ConcertDetails> {
+  const apikey = process.env.TICKETMASTER_API_KEY;
+  if (!apikey) throw new MissingTicketmasterKeyError();
+
+  const cached = detailCache.get(tmId);
+  if (cached && Date.now() - cached.fetchedAt < DETAIL_CACHE_TTL_MS) return cached.details;
+
+  let data: TmEventDetail;
+  try {
+    await delay(TM_RATE_LIMIT_MS);
+    ({ data } = await requestWithRetry(() =>
+      axios.get<TmEventDetail>(`${TM_EVENT_URL}/${encodeURIComponent(tmId)}.json`, {
+        params: { apikey },
+        timeout: TM_TIMEOUT_MS,
+      })
+    ));
+  } catch (error) {
+    // Listings are pulled once an event is over or cancelled, and our tile
+    // cache can still be serving it for a few hours.
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      throw new ConcertNotFoundError(tmId);
+    }
+    throw error;
+  }
+
+  const details = normalizeDetails(data);
+
+  // Oldest first, so re-inserting on hit is unnecessary: entries age out anyway.
+  if (detailCache.size >= DETAIL_CACHE_MAX_ENTRIES) {
+    const oldest = detailCache.keys().next().value;
+    if (oldest) detailCache.delete(oldest);
+  }
+  detailCache.set(tmId, { fetchedAt: Date.now(), details });
+
+  return details;
 }

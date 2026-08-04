@@ -4,7 +4,9 @@ import { getUserStyles, getUserArtists } from '../services/collection.service';
 import { getShopsForPosition, geocodePlace } from '../services/overpass.service';
 import {
   getConcertsForPosition,
+  getConcertDetails as fetchConcertDetails,
   MissingTicketmasterKeyError,
+  ConcertNotFoundError,
   MAX_CONCERT_DAYS,
 } from '../services/ticketmaster.service';
 import { lookupIp } from '../services/geoip.service';
@@ -226,6 +228,56 @@ export async function getConcerts(req: Request, res: Response) {
       return;
     }
     logger.error({ err: error }, 'Error fetching concerts');
+    res.status(502).json({ message: 'Could not reach the Ticketmaster service' });
+  }
+}
+
+/**
+ * One event in full, for the detail modal — fetched lazily on open rather than
+ * carried in the list, which already runs to thousands of events per tile.
+ */
+export async function getConcert(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const tmId = String(req.params.tmId ?? '').trim();
+    if (!tmId) {
+      res.status(400).json({ message: 'tmId is required' });
+      return;
+    }
+
+    const [details, artists] = await Promise.all([
+      fetchConcertDetails(tmId),
+      getUserArtists(req.user._id),
+    ]);
+
+    // Same rule as the list, applied act by act: the modal is where a support
+    // slot the user collects is worth pointing out.
+    const ownedArtists = new Set(
+      artists.filter((artist) => !isPlaceholderArtist(artist)).map(normalizeArtistName)
+    );
+
+    res.status(200).json({
+      ...details,
+      lineup: details.lineup.map((act) => ({
+        ...act,
+        owned: ownedArtists.has(normalizeArtistName(act.name)),
+      })),
+    });
+  } catch (error) {
+    if (error instanceof MissingTicketmasterKeyError) {
+      logger.warn('Concert details requested but TICKETMASTER_API_KEY is not configured');
+      res.status(503).json({ message: 'Concert search is not configured' });
+      return;
+    }
+    if (error instanceof ConcertNotFoundError) {
+      res.status(404).json({ message: 'This event is no longer listed' });
+      return;
+    }
+    logger.error({ err: error }, 'Error fetching concert details');
     res.status(502).json({ message: 'Could not reach the Ticketmaster service' });
   }
 }
