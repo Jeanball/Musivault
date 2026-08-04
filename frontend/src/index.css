@@ -1,10 +1,114 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-@layer components {
-  .modal-box {
-    background-color: oklch(var(--b1) / 0.75) !important;
-    backdrop-filter: blur(8px) !important;
+@plugin "daisyui" {
+  themes: false;
+}
+
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+
+  --color-primary: #0d0d0d; /* lofi primary */
+  --color-primary-content: #ffffff;
+  --color-secondary: #1a1919; /* lofi secondary */
+  --color-secondary-content: #ffffff;
+  --color-accent: #262626; /* lofi accent */
+  --color-accent-content: #ffffff;
+  --color-neutral: #000000; /* lofi neutral */
+  --color-neutral-content: #ffffff;
+  --color-base-100: #ffffff; /* lofi base-100 */
+  --color-base-200: #f9fafb;
+  --color-base-300: #d1d5db;
+  --color-base-content: #000000;
+  --color-info: #00b5ff;
+  --color-info-content: #001019;
+  --color-success: #00a96e;
+  --color-success-content: #000f08;
+  --color-warning: #ffbe00;
+  --color-warning-content: #190f00;
+  --color-error: #ff5861;
+  --color-error-content: #190002;
+
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  color-scheme: dark;
+
+  --color-primary: #7aa2f7;
+  --color-primary-content: #1a1b26;
+  --color-secondary: #bb9af7;
+  --color-secondary-content: #1a1b26;
+  --color-accent: #7dcfff;
+  --color-accent-content: #1a1b26;
+  --color-neutral: #414868;
+  --color-neutral-content: #c0caf5;
+  --color-base-100: #1a1b26;
+  --color-base-200: #24283b;
+  --color-base-300: #414868;
+  --color-base-content: #c0caf5;
+  --color-info: #7aa2f7;
+  --color-info-content: #1a1b26;
+  --color-success: #9ece6a;
+  --color-success-content: #1a1b26;
+  --color-warning: #e0af68;
+  --color-warning-content: #1a1b26;
+  --color-error: #f7768e;
+  --color-error-content: #1a1b26;
+
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
   }
+}
+
+/*
+  daisyUI 5 focuses inputs with a full-contrast `base-content` outline, which
+  reads as a hard white frame on the dark theme. Keep the softer v4 ring.
+*/
+.input:focus,
+.input:focus-within,
+.select:focus,
+.select:focus-within,
+.textarea:focus,
+.textarea:focus-within,
+.file-input:focus,
+.file-input:focus-within {
+  outline-color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+}
+
+.modal-box {
+  background-color: color-mix(in oklab, var(--color-base-100) 75%, transparent) !important;
+  backdrop-filter: blur(8px) !important;
 }

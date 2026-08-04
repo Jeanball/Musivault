@@ -78,9 +78,9 @@ const SignupPage: React.FC = () => {
                         <h1 className="text-3xl font-bold">Musivault</h1>
                     </div>
                     <h2 className="card-title text-xl font-semibold self-center">{t('auth.createAccount')}</h2>
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label" htmlFor="email">
-                            <span className="label-text">{t('auth.email')}</span>
+                            <span className="text-sm">{t('auth.email')}</span>
                         </label>
                         <input
                             id="email"
@@ -89,13 +89,13 @@ const SignupPage: React.FC = () => {
                             value={email}
                             placeholder={t('auth.enterEmail')}
                             onChange={handleOnChange}
-                            className="input input-bordered"
+                            className="input w-full"
                             required
                         />
                     </div>
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label" htmlFor="username">
-                            <span className="label-text">{t('auth.username')}</span>
+                            <span className="text-sm">{t('auth.username')}</span>
                         </label>
                         <input
                             id="username"
@@ -104,13 +104,13 @@ const SignupPage: React.FC = () => {
                             value={username}
                             placeholder={t('auth.enterUsername')}
                             onChange={handleOnChange}
-                            className="input input-bordered"
+                            className="input w-full"
                             required
                         />
                     </div>
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label" htmlFor="password">
-                            <span className="label-text">{t('auth.password')}</span>
+                            <span className="text-sm">{t('auth.password')}</span>
                         </label>
                         <input
                             id="password"
@@ -119,11 +119,11 @@ const SignupPage: React.FC = () => {
                             value={password}
                             placeholder={t('auth.enterPassword')}
                             onChange={handleOnChange}
-                            className="input input-bordered"
+                            className="input w-full"
                             required
                         />
                     </div>
-                    <div className="form-control mt-6">
+                    <div className="flex flex-col mt-6">
                         <button type="submit" className="btn btn-primary">{t('auth.signup')}</button>
                     </div>
 

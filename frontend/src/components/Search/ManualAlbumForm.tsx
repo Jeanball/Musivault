@@ -99,10 +99,10 @@ const ManualAlbumForm: React.FC = () => {
                     </h3>
 
                     {/* Cover Image Upload */}
-                    <div className="form-control mb-4">
-                        <label className="label">
-                            <span className="label-text">{t('search.coverImage')}</span>
-                            <span className="label-text-alt text-base-content/50">{t('search.optional')}</span>
+                    <div className="flex flex-col mb-4">
+                        <label className="label w-full justify-between">
+                            <span className="text-sm">{t('search.coverImage')}</span>
+                            <span className="text-xs text-base-content/50">{t('search.optional')}</span>
                         </label>
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                             {/* Preview or Placeholder */}
@@ -152,60 +152,60 @@ const ManualAlbumForm: React.FC = () => {
                     </div>
 
                     {/* Album Title */}
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label">
-                            <span className="label-text">{t('common.album')} *</span>
+                            <span className="text-sm">{t('common.album')} *</span>
                         </label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder={t('search.albumPlaceholder')}
-                            className="input input-bordered w-full"
+                            className="input w-full"
                             required
                         />
                     </div>
 
                     {/* Artist */}
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label">
-                            <span className="label-text">{t('common.artist')} *</span>
+                            <span className="text-sm">{t('common.artist')} *</span>
                         </label>
                         <input
                             type="text"
                             value={artist}
                             onChange={(e) => setArtist(e.target.value)}
                             placeholder={t('search.artistPlaceholder')}
-                            className="input input-bordered w-full"
+                            className="input w-full"
                             required
                         />
                     </div>
 
                     {/* Year */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">{t('common.year')}</span>
-                            <span className="label-text-alt text-base-content/50">{t('search.optional')}</span>
+                    <div className="flex flex-col">
+                        <label className="label w-full justify-between">
+                            <span className="text-sm">{t('common.year')}</span>
+                            <span className="text-xs text-base-content/50">{t('search.optional')}</span>
                         </label>
                         <input
                             type="text"
                             value={year}
                             onChange={(e) => setYear(e.target.value)}
                             placeholder="2024"
-                            className="input input-bordered w-full"
+                            className="input w-full"
                             maxLength={4}
                         />
                     </div>
 
                     {/* Format */}
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label">
-                            <span className="label-text">{t('common.format')} *</span>
+                            <span className="text-sm">{t('common.format')} *</span>
                         </label>
                         <select
                             value={format}
                             onChange={(e) => setFormat(e.target.value)}
-                            className="select select-bordered w-full"
+                            className="select w-full"
                         >
                             {FORMATS.map((f) => (
                                 <option key={f} value={f}>

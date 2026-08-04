@@ -48,7 +48,7 @@ const InfoBlock: React.FC<{ label: string; children?: string }> = ({ label, chil
     return (
         <div>
             <h4 className="text-xs font-semibold uppercase tracking-wide text-base-content/60">{label}</h4>
-            <p className="text-sm whitespace-pre-line break-words">{children}</p>
+            <p className="text-sm whitespace-pre-line wrap-break-word">{children}</p>
         </div>
     );
 };
@@ -66,16 +66,16 @@ const ActRow: React.FC<{ act: ConcertAct }> = ({ act }) => {
     return (
         <li className="flex items-start gap-3 py-2 border-b border-base-300 last:border-b-0">
             {act.imageUrl ? (
-                <img src={act.imageUrl} alt="" loading="lazy" className="w-12 h-12 rounded object-cover shrink-0" />
+                <img src={act.imageUrl} alt="" loading="lazy" className="w-12 h-12 rounded-sm object-cover shrink-0" />
             ) : (
-                <div className="w-12 h-12 rounded bg-base-300 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-sm bg-base-300 flex items-center justify-center shrink-0">
                     <Users size={18} className="opacity-40" />
                 </div>
             )}
 
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-medium break-words">{act.name}</span>
+                    <span className="font-medium wrap-break-word">{act.name}</span>
                     {act.owned && (
                         <span className="badge badge-primary badge-sm gap-1">
                             <Disc3 size={11} />
@@ -208,9 +208,9 @@ const ConcertModal: React.FC<ConcertModalProps> = ({ concert, onClose }) => {
                 {/* Ticketmaster prose carries raw URLs and venue names with no
                     space in them; breaking them is what keeps the sheet from
                     growing wider than the screen. */}
-                <div className="p-5 space-y-5 break-words">
+                <div className="p-5 space-y-5 wrap-break-word">
                     <div>
-                        <h2 className="text-xl font-bold leading-tight break-words">{concert.name}</h2>
+                        <h2 className="text-xl font-bold leading-tight wrap-break-word">{concert.name}</h2>
                         <div className="flex flex-wrap items-center gap-1.5 mt-2">
                             <span className="badge badge-ghost badge-sm">
                                 {t('discover.kmAway', { distance: formatDistance(concert.distanceKm, locale) })}
@@ -246,7 +246,7 @@ const ConcertModal: React.FC<ConcertModalProps> = ({ concert, onClose }) => {
 
                         <p className="flex items-start gap-2 text-sm">
                             <MapPin size={16} className="shrink-0 mt-0.5 opacity-60" />
-                            <span className="min-w-0 break-words">
+                            <span className="min-w-0 wrap-break-word">
                                 <span className="font-medium">{venue?.name || concert.venueName}</span>
                                 {address && <span className="block text-base-content/70">{address}</span>}
                             </span>
@@ -317,7 +317,7 @@ const ConcertModal: React.FC<ConcertModalProps> = ({ concert, onClose }) => {
                                     <ul className="text-sm space-y-0.5 mt-1">
                                         {details.presales.map((presale, index) => (
                                             <li key={index} className="flex items-start gap-2">
-                                                <span className="min-w-0 break-words">
+                                                <span className="min-w-0 wrap-break-word">
                                                     {presale.url ? (
                                                         <a href={presale.url} target="_blank" rel="noopener noreferrer" className="link link-hover">
                                                             {presale.name || t('discover.presales')}
@@ -367,7 +367,7 @@ const ConcertModal: React.FC<ConcertModalProps> = ({ concert, onClose }) => {
                             {venueNotes.map(({ label, value, icon: Icon }) => (
                                 <p key={label} className="text-sm flex items-start gap-2">
                                     <Icon size={14} className="shrink-0 mt-0.5 opacity-60" />
-                                    <span className="min-w-0 break-words">
+                                    <span className="min-w-0 wrap-break-word">
                                         <span className="text-base-content/60">{label}: </span>
                                         {value}
                                     </span>

@@ -126,9 +126,9 @@ const SettingsPage: React.FC = () => {
                             <button
                                 key={item.id}
                                 onClick={() => handleMobileMenuClick(item.id)}
-                                className="card bg-base-200 shadow-sm active:shadow-inner active:scale-95 transition-all aspect-square flex flex-col items-center justify-center gap-3 p-4 hover:bg-base-300"
+                                className="card bg-base-200 shadow-xs active:shadow-inner active:scale-95 transition-all aspect-square flex flex-col items-center justify-center gap-3 p-4 hover:bg-base-300"
                             >
-                                <span className="bg-base-100 p-4 rounded-full text-primary shadow-sm">
+                                <span className="bg-base-100 p-4 rounded-full text-primary shadow-xs">
                                     {React.cloneElement(item.icon as React.ReactElement, { size: 32 } as any)}
                                 </span>
                                 <span className="font-bold text-lg text-center leading-tight">{t(item.labelKey)}</span>

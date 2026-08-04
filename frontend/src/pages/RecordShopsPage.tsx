@@ -51,7 +51,7 @@ const RecordShopsPage: React.FC = () => {
 
             <div className="mb-8">
                 <NearbyControls nearby={nearby}>
-                    <label className="input input-bordered flex items-center gap-2 flex-1 min-w-52 max-w-md">
+                    <label className="input flex items-center gap-2 flex-1 min-w-52 max-w-md">
                         <Search size={18} className="opacity-60" />
                         <input
                             type="text"

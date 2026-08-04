@@ -37,11 +37,11 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection 
     return (
         <div className="space-y-4">
             {/* Search Input */}
-            <div className="form-control">
+            <div className="flex flex-col">
                 <input
                     type="text"
                     placeholder={t('tracks.searchTrack')}
-                    className="input input-bordered w-full"
+                    className="input w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -93,7 +93,7 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection 
                                             <img
                                                 src={getImageUrl(album.thumb || album.cover_image || '/placeholder-album.png')}
                                                 alt={album.title}
-                                                className="w-12 h-12 rounded object-cover"
+                                                className="w-12 h-12 rounded-sm object-cover"
                                                 loading="lazy"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).src = '/placeholder-album.png';

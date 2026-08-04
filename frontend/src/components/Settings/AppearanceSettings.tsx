@@ -130,7 +130,7 @@ const AppearanceSettings: React.FC = () => {
                     </p>
 
                     <select
-                        className="select select-bordered w-full max-w-xs"
+                        className="select w-full max-w-xs"
                         value={languages.some(l => l.code === i18n.language) ? i18n.language : i18n.language.substring(0, 2)}
                         onChange={(e) => handleLanguageChange(e.target.value)}
                         disabled={isSaving}
@@ -159,7 +159,7 @@ const AppearanceSettings: React.FC = () => {
                     </p>
 
                     <select
-                        className="select select-bordered w-full max-w-xs uppercase"
+                        className="select w-full max-w-xs uppercase"
                         value={preferredCurrency}
                         onChange={(e) => handleCurrencyChange(e.target.value)}
                         disabled={isSaving}
@@ -189,7 +189,7 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.displayDescription')}
                     </p>
 
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label cursor-pointer justify-start gap-4">
                             <input
                                 type="checkbox"
@@ -199,7 +199,7 @@ const AppearanceSettings: React.FC = () => {
                                 disabled={isSaving}
                             />
                             <div>
-                                <span className="label-text font-medium">{t('settings.wideScreenMode')}</span>
+                                <span className="text-sm font-medium">{t('settings.wideScreenMode')}</span>
                                 <p className="text-xs text-base-content/50 mt-1">
                                     {wideScreenMode
                                         ? t('settings.wideScreenEnabled')

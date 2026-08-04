@@ -78,9 +78,9 @@ const LoginPage: React.FC = () => {
                             <h1 className="text-3xl font-bold">Musivault</h1>
                         </div>
                         <h2 className="card-title text-xl font-semibold self-center">{t('auth.login')}</h2>
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label" htmlFor="identifier">
-                                <span className="label-text">{t('auth.emailOrUsername')}</span>
+                                <span className="text-sm">{t('auth.emailOrUsername')}</span>
                             </label>
                             <input
                                 id="identifier"
@@ -89,13 +89,13 @@ const LoginPage: React.FC = () => {
                                 value={identifier}
                                 placeholder={t('auth.enterUsernameOrEmail')}
                                 onChange={handleOnChange}
-                                className="input input-bordered"
+                                className="input w-full"
                                 required
                             />
                         </div>
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label" htmlFor="password">
-                                <span className="label-text">{t('auth.password')}</span>
+                                <span className="text-sm">{t('auth.password')}</span>
                             </label>
                             <input
                                 id="password"
@@ -104,11 +104,11 @@ const LoginPage: React.FC = () => {
                                 value={password}
                                 placeholder={t('auth.enterPassword')}
                                 onChange={handleOnChange}
-                                className="input input-bordered"
+                                className="input w-full"
                                 required
                             />
                         </div>
-                        <div className="form-control mt-6">
+                        <div className="flex flex-col mt-6">
                             <button type="submit" className="btn btn-primary">{t('auth.login')}</button>
                         </div>
 

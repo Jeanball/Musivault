@@ -171,7 +171,7 @@ const ReleasePage: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-8 max-w-4xl mx-auto">
 
                 {/* Cover Image */}
-                <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
+                <div className="md:w-1/3 lg:w-1/4 shrink-0">
                     {albumDetails.cover_image && (
                         <img
                             src={getImageUrl(albumDetails.cover_image)}
@@ -201,12 +201,12 @@ const ReleasePage: React.FC = () => {
                                         style={getFormatButtonStyle(format.text, format.descriptions)}
                                     >
                                         <div className="absolute inset-0 bg-base-content opacity-0 group-hover:opacity-[0.08] transition-opacity pointer-events-none"></div>
-                                        <div className="text-left w-full break-words whitespace-normal overflow-hidden relative z-10 flex flex-col justify-center gap-0.5">
+                                        <div className="text-left w-full wrap-break-word whitespace-normal overflow-hidden relative z-10 flex flex-col justify-center gap-0.5">
                                             <div className="font-bold text-lg leading-tight">
                                                 {format.name}
-                                                {format.text && <span className="ml-2 break-words">{format.text}</span>}
+                                                {format.text && <span className="ml-2 wrap-break-word">{format.text}</span>}
                                             </div>
-                                            <div className="text-xs font-normal opacity-80 mt-1 break-words min-h-[1rem]">
+                                            <div className="text-xs font-normal opacity-80 mt-1 wrap-break-word min-h-4">
                                                 {format.descriptions?.length > 0 ? format.descriptions.join(', ') : '\u00A0'}
                                             </div>
                                         </div>

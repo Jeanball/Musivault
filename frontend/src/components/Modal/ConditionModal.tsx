@@ -49,12 +49,12 @@ const ConditionModal: React.FC<ConditionModalProps> = ({
                 </p>
 
                 {/* Media Condition */}
-                <div className="form-control mb-4">
+                <div className="flex flex-col mb-4">
                     <label className="label">
-                        <span className="label-text font-semibold">{t('condition.media')}</span>
+                        <span className="text-sm font-semibold">{t('condition.media')}</span>
                     </label>
                     <select
-                        className="select select-bordered w-full"
+                        className="select w-full"
                         value={mediaCondition}
                         onChange={(e) => setMediaCondition(e.target.value)}
                     >
@@ -68,12 +68,12 @@ const ConditionModal: React.FC<ConditionModalProps> = ({
                 </div>
 
                 {/* Sleeve Condition */}
-                <div className="form-control mb-6">
+                <div className="flex flex-col mb-6">
                     <label className="label">
-                        <span className="label-text font-semibold">{t('condition.sleeve')}</span>
+                        <span className="text-sm font-semibold">{t('condition.sleeve')}</span>
                     </label>
                     <select
-                        className="select select-bordered w-full"
+                        className="select w-full"
                         value={sleeveCondition}
                         onChange={(e) => setSleeveCondition(e.target.value)}
                     >

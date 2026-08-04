@@ -68,7 +68,7 @@ const PublicCollectionPage: React.FC<PublicCollectionPageProps> = ({ isAuthentic
                     <div className="flex items-start gap-2 mb-4">
                         <Link
                             to={isAuthenticated ? '/app/discover' : '/'}
-                            className="btn btn-ghost btn-circle flex-shrink-0"
+                            className="btn btn-ghost btn-circle shrink-0"
                             title="Go Back"
                         >
                             <ArrowLeft className="h-6 w-6" />
@@ -79,7 +79,7 @@ const PublicCollectionPage: React.FC<PublicCollectionPageProps> = ({ isAuthentic
                             </h1>
                         </div>
                         {/* Spacer for visual balance */}
-                        <div className="w-12 flex-shrink-0"></div>
+                        <div className="w-12 shrink-0"></div>
                     </div>
                 </div>
             )}

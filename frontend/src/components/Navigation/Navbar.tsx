@@ -23,11 +23,11 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
         <div className="navbar-start">
           <Link to="/app" className="btn btn-ghost normal-case gap-3 hover:bg-transparent">
             <div className="avatar">
-              <div className="w-10 rounded-xl shadow-md ring ring-primary ring-offset-base-100 ring-offset-1">
+              <div className="w-10 rounded-xl shadow-md ring-3 ring-primary ring-offset-base-100 ring-offset-1">
                 <img src="/icons/icon-192x192.png" alt="Musivault Logo" />
               </div>
             </div>
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">MUSIVAULT</span>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
           </Link>
         </div>
 
@@ -63,12 +63,12 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
         <div className="navbar-end gap-2">
           {/* User Dropdown */}
           <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-ghost btn-circle avatar placeholder border border-base-300 hover:border-primary transition-colors">
+            <label tabIndex={0} className="btn btn-ghost btn-circle avatar-placeholder avatar border border-base-300 hover:border-primary transition-colors">
               <div className="bg-neutral text-neutral-content rounded-full w-10">
                 <span className="text-lg font-bold">{username.charAt(0).toUpperCase()}</span>
               </div>
             </label>
-            <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow-2xl menu menu-sm dropdown-content bg-base-200/90 backdrop-blur-md rounded-box w-52 border border-base-300">
+            <ul tabIndex={0} className="mt-3 z-1 p-2 shadow-2xl menu menu-sm dropdown-content bg-base-200/90 backdrop-blur-md rounded-box w-52 border border-base-300">
               <li className="menu-title px-4 py-2">{t('nav.signedInAs', 'Signed in as')} <span className="text-primary truncate block">{username}</span></li>
               <div className="divider my-0"></div>
               <li><Link to="/app/settings">{t('nav.settings', 'Settings')}</Link></li>
@@ -105,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
             </svg>
             <span className="btm-nav-label text-xs font-medium">{t('nav.account', 'Account')}</span>
           </div>
-          <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md rounded-box w-56 mb-4 border border-base-300">
+          <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md rounded-box w-56 mb-4 border border-base-300">
             <li className="menu-title text-center">{t('nav.hi', 'Hi')}, {username}</li>
             <div className="divider my-0"></div>
             <li><Link to="/app/settings">{t('nav.settings', 'Settings')}</Link></li>

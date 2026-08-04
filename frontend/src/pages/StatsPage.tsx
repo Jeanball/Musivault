@@ -129,14 +129,14 @@ const StatsPage: React.FC = () => {
                                 <defs>
                                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                                         {/* Using Tailwind/DaisyUI primary color with opacity */}
-                                        <stop offset="5%" stopColor="oklch(var(--p))" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="oklch(var(--p))" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--bc) / 0.1)" vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--color-base-content) 10%, transparent)" vertical={false} />
                                 <XAxis
                                     dataKey="date"
-                                    stroke="oklch(var(--bc) / 0.5)"
+                                    stroke="color-mix(in oklab, var(--color-base-content) 50%, transparent)"
                                     fontSize={12}
                                     tickMargin={10}
                                     tickFormatter={(val) => {
@@ -146,25 +146,25 @@ const StatsPage: React.FC = () => {
                                     }}
                                 />
                                 <YAxis
-                                    stroke="oklch(var(--bc) / 0.5)"
+                                    stroke="color-mix(in oklab, var(--color-base-content) 50%, transparent)"
                                     fontSize={12}
                                     tickFormatter={(val) => formatValue(val)}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: 'oklch(var(--b2))',
-                                        borderColor: 'oklch(var(--b3))',
+                                        backgroundColor: 'var(--color-base-200)',
+                                        borderColor: 'var(--color-base-300)',
                                         borderRadius: '0.5rem',
-                                        color: 'oklch(var(--bc))'
+                                        color: 'var(--color-base-content)'
                                     }}
-                                    itemStyle={{ color: 'oklch(var(--p))' }}
+                                    itemStyle={{ color: 'var(--color-primary)' }}
                                     formatter={(value: any) => [formatValue(value), t('stats.value')]}
                                     labelFormatter={(label) => `${t('stats.chartDateLabel')}: ${label}`}
                                 />
                                 <Area
                                     type="monotone"
                                     dataKey="value"
-                                    stroke="oklch(var(--p))"
+                                    stroke="var(--color-primary)"
                                     strokeWidth={3}
                                     fillOpacity={1}
                                     fill="url(#colorValue)"

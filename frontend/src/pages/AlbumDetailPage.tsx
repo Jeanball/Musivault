@@ -234,7 +234,7 @@ const AlbumDetailPage: React.FC = () => {
             {/* Dossier */}
             <div className="flex flex-col lg:flex-row gap-8 sm:border sm:border-base-300 sm:p-6">
                 {/* Cover column */}
-                <div className="flex-shrink-0 lg:w-60 flex flex-col gap-4">
+                <div className="shrink-0 lg:w-60 flex flex-col gap-4">
                     <img
                         src={getImageUrl(album.cover_image || '/placeholder-album.svg')}
                         alt={album.title}
@@ -281,7 +281,7 @@ const AlbumDetailPage: React.FC = () => {
                                     {t('condition.media')}
                                 </label>
                                 <select
-                                    className="select select-bordered select-sm w-full"
+                                    className="select select-sm w-full"
                                     value={item.mediaCondition || ''}
                                     onChange={(e) => updateCondition('mediaCondition', e.target.value || null)}
                                 >
@@ -298,7 +298,7 @@ const AlbumDetailPage: React.FC = () => {
                                     {t('condition.sleeve')}
                                 </label>
                                 <select
-                                    className="select select-bordered select-sm w-full"
+                                    className="select select-sm w-full"
                                     value={item.sleeveCondition || ''}
                                     onChange={(e) => updateCondition('sleeveCondition', e.target.value || null)}
                                 >

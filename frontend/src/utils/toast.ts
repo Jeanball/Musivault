@@ -18,9 +18,9 @@ const getSuccessOptions = (): ToastOptions => ({
   position: getPosition(),
   style: {
     ...baseToastOptions.style,
-    background: 'var(--fallback-p,oklch(var(--p)))',
-    color: 'var(--fallback-pc,oklch(var(--pc)))',
-    border: '1px solid var(--fallback-p,oklch(var(--p)))',
+    background: 'var(--color-primary)',
+    color: 'var(--color-primary-content)',
+    border: '1px solid var(--color-primary)',
   }
 });
 
@@ -29,9 +29,9 @@ const getErrorOptions = (): ToastOptions => ({
   position: getPosition(),
   style: {
     ...baseToastOptions.style,
-    background: 'var(--fallback-er,oklch(var(--er)))',
-    color: 'var(--fallback-erc,oklch(var(--erc)))',
-    border: '1px solid var(--fallback-er,oklch(var(--er)))',
+    background: 'var(--color-error)',
+    color: 'var(--color-error-content)',
+    border: '1px solid var(--color-error)',
   }
 });
 
@@ -40,9 +40,9 @@ const getInfoOptions = (): ToastOptions => ({
   position: getPosition(),
   style: {
     ...baseToastOptions.style,
-    background: 'var(--fallback-p,oklch(var(--p)))',
-    color: 'var(--fallback-pc,oklch(var(--pc)))',
-    border: '1px solid var(--fallback-p,oklch(var(--p)))',
+    background: 'var(--color-primary)',
+    color: 'var(--color-primary-content)',
+    border: '1px solid var(--color-primary)',
   }
 });
 
@@ -63,9 +63,9 @@ export const toastService = {
     toastId: toastId(message),
     style: {
       ...baseToastOptions.style,
-      background: 'var(--fallback-wa,oklch(var(--wa)))',
-      color: 'var(--fallback-wac,oklch(var(--wac)))',
-      border: '1px solid var(--fallback-wa,oklch(var(--wa)))',
+      background: 'var(--color-warning)',
+      color: 'var(--color-warning-content)',
+      border: '1px solid var(--color-warning)',
     }
   })
 };

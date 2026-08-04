@@ -89,9 +89,9 @@ const ProfileSettings: React.FC = () => {
                 <form onSubmit={handleProfileSubmit} className="mb-8">
                     <div className="space-y-4">
                         {/* Display Name */}
-                        <div className="form-control w-full">
+                        <div className="flex flex-col w-full">
                             <label className="label">
-                                <span className="label-text flex items-center gap-2">
+                                <span className="text-sm flex items-center gap-2">
                                     <User className="h-4 w-4" />
                                     {t('settings.displayName')}
                                 </span>
@@ -101,17 +101,17 @@ const ProfileSettings: React.FC = () => {
                                 value={profileForm.displayName}
                                 onChange={(e) => setProfileForm({ ...profileForm, displayName: e.target.value })}
                                 placeholder={t('settings.displayNamePlaceholder')}
-                                className="input input-bordered w-full"
+                                className="input w-full"
                             />
                             <label className="label">
-                                <span className="label-text-alt text-base-content/50">{t('settings.displayNameHint')}</span>
+                                <span className="text-xs text-base-content/50">{t('settings.displayNameHint')}</span>
                             </label>
                         </div>
 
                         {/* Username */}
-                        <div className="form-control w-full">
+                        <div className="flex flex-col w-full">
                             <label className="label">
-                                <span className="label-text flex items-center gap-2">
+                                <span className="text-sm flex items-center gap-2">
                                     <AtSign className="h-4 w-4" />
                                     {t('settings.username')}
                                 </span>
@@ -121,15 +121,15 @@ const ProfileSettings: React.FC = () => {
                                 value={profileForm.username}
                                 onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
                                 placeholder={t('settings.usernamePlaceholder')}
-                                className="input input-bordered w-full"
+                                className="input w-full"
                                 required
                             />
                         </div>
 
                         {/* Email */}
-                        <div className="form-control w-full">
+                        <div className="flex flex-col w-full">
                             <label className="label">
-                                <span className="label-text flex items-center gap-2">
+                                <span className="text-sm flex items-center gap-2">
                                     <Mail className="h-4 w-4" />
                                     {t('settings.email')}
                                 </span>
@@ -139,7 +139,7 @@ const ProfileSettings: React.FC = () => {
                                 value={profileForm.email}
                                 onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                                 placeholder={t('settings.emailPlaceholder')}
-                                className="input input-bordered w-full"
+                                className="input w-full"
                                 required
                             />
                         </div>
@@ -170,42 +170,42 @@ const ProfileSettings: React.FC = () => {
                     <div className="collapse-content">
                         <form onSubmit={handlePasswordSubmit}>
                             <div className="space-y-4">
-                                <div className="form-control w-full">
+                                <div className="flex flex-col w-full">
                                     <label className="label">
-                                        <span className="label-text">{t('settings.currentPassword')}</span>
+                                        <span className="text-sm">{t('settings.currentPassword')}</span>
                                     </label>
                                     <input
                                         type="password"
                                         name="currentPassword"
                                         placeholder={t('settings.enterCurrentPassword')}
-                                        className="input input-bordered w-full"
+                                        className="input w-full"
                                         required
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="form-control w-full">
+                                    <div className="flex flex-col w-full">
                                         <label className="label">
-                                            <span className="label-text">{t('settings.newPassword')}</span>
+                                            <span className="text-sm">{t('settings.newPassword')}</span>
                                         </label>
                                         <input
                                             type="password"
                                             name="newPassword"
                                             placeholder={t('settings.enterNewPassword')}
-                                            className="input input-bordered w-full"
+                                            className="input w-full"
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-control w-full">
+                                    <div className="flex flex-col w-full">
                                         <label className="label">
-                                            <span className="label-text">{t('settings.confirmNewPassword')}</span>
+                                            <span className="text-sm">{t('settings.confirmNewPassword')}</span>
                                         </label>
                                         <input
                                             type="password"
                                             name="confirmPassword"
                                             placeholder={t('settings.confirmPassword')}
-                                            className="input input-bordered w-full"
+                                            className="input w-full"
                                             required
                                         />
                                     </div>

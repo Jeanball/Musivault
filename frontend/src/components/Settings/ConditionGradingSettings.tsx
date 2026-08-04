@@ -44,7 +44,7 @@ const ConditionGradingSettings: React.FC = () => {
             <div className="card bg-base-200 shadow-xl">
                 <div className="card-body">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="skeleton h-5 w-5 rounded"></div>
+                        <div className="skeleton h-5 w-5 rounded-sm"></div>
                         <div className="skeleton h-6 w-48"></div>
                     </div>
                     <div className="skeleton h-4 w-3/4 mb-6"></div>
@@ -69,7 +69,7 @@ const ConditionGradingSettings: React.FC = () => {
                     {t('condition.description')}
                 </p>
 
-                <div className="form-control">
+                <div className="flex flex-col">
                     <label className="label cursor-pointer justify-start gap-4">
                         <input
                             type="checkbox"
@@ -78,7 +78,7 @@ const ConditionGradingSettings: React.FC = () => {
                             onChange={handleToggle}
                             disabled={isSaving}
                         />
-                        <span className="label-text">
+                        <span className="text-sm">
                             {isEnabled ? 'Enabled' : 'Disabled'}
                         </span>
                     </label>

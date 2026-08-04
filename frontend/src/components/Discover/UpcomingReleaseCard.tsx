@@ -27,7 +27,7 @@ const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release }) =>
     const hiddenStyles = release.matchedStyles.slice(VISIBLE_STYLES);
 
     return (
-        <div className="card bg-base-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
+        <div className="card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
             <figure className="aspect-square relative overflow-hidden rounded-t-xl bg-base-300">
                 {/* Sits behind the cover so the tile is never an empty hole while loading. */}
                 <img
@@ -42,7 +42,7 @@ const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release }) =>
                     alt={release.title}
                     loading="lazy"
                     decoding="async"
-                    className="object-cover w-full h-full relative z-[1] opacity-0 transition-opacity duration-300"
+                    className="object-cover w-full h-full relative z-1 opacity-0 transition-opacity duration-300"
                     onLoad={(e) => { e.currentTarget.classList.remove('opacity-0'); }}
                     onError={(e) => {
                         e.currentTarget.onerror = null;
@@ -52,12 +52,12 @@ const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release }) =>
                 {/* Readability scrim behind the date/type overlay. */}
                 {/* Kept to single-digit z-indexes: the overlay only has to beat the
                     cover image, and anything higher paints over page-level dropdowns. */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent pointer-events-none z-[2]" />
-                <span className="absolute bottom-1 left-1.5 z-[3] text-[10px] font-medium text-white drop-shadow">
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/70 to-transparent pointer-events-none z-2" />
+                <span className="absolute bottom-1 left-1.5 z-3 text-[10px] font-medium text-white drop-shadow-sm">
                     {formatReleaseDate(release.firstReleaseDate, release.datePrecision, i18n.language)}
                 </span>
                 {release.primaryType === 'EP' && (
-                    <span className="absolute bottom-1 right-1.5 z-[3] badge badge-xs">EP</span>
+                    <span className="absolute bottom-1 right-1.5 z-3 badge badge-xs">EP</span>
                 )}
             </figure>
             <div className="card-body p-2 gap-0.5">

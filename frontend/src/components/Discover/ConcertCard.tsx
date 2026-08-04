@@ -73,7 +73,7 @@ const ConcertCard: React.FC<ConcertCardProps> = ({ concert }) => {
                         setDetailsOpen(true);
                     }
                 }}
-                className="group card bg-base-200 shadow-sm hover:shadow-md transition-shadow duration-300 h-full overflow-hidden cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="group card bg-base-200 shadow-xs hover:shadow-md transition-shadow duration-300 h-full overflow-hidden cursor-pointer text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
             >
                 <div className="relative h-40 shrink-0">
                     {concert.imageUrl ? (
@@ -102,7 +102,7 @@ const ConcertCard: React.FC<ConcertCardProps> = ({ concert }) => {
                             </h4>
                             <ul className="text-sm space-y-0.5">
                                 {concert.attractions.map((act) => (
-                                    <li key={act} className="flex items-center gap-1.5 break-words">
+                                    <li key={act} className="flex items-center gap-1.5 wrap-break-word">
                                         <span className="min-w-0">{act}</span>
                                         {ownedActs.has(act) && (
                                             <Disc3 size={12} className="shrink-0 text-primary" />
@@ -119,7 +119,7 @@ const ConcertCard: React.FC<ConcertCardProps> = ({ concert }) => {
                         {/* min-w-0 on both flex levels: without it the name refuses to
                             shrink below its natural width and overflows the card. */}
                         <h3 className="card-title text-base leading-tight items-start min-w-0 flex-1" title={concert.name}>
-                            <span className="min-w-0 line-clamp-2 break-words">{concert.name}</span>
+                            <span className="min-w-0 line-clamp-2 wrap-break-word">{concert.name}</span>
                         </h3>
                         <span className="badge badge-ghost badge-sm whitespace-nowrap shrink-0">
                             {t('discover.kmAway', { distance: formatDistance(concert.distanceKm, i18n.language) })}
@@ -135,7 +135,7 @@ const ConcertCard: React.FC<ConcertCardProps> = ({ concert }) => {
                     {location && (
                         <p className="text-sm text-base-content/70 flex items-start gap-1.5">
                             <MapPin size={14} className="shrink-0 mt-0.5 opacity-60" />
-                            <span className="min-w-0 break-words">{location}</span>
+                            <span className="min-w-0 wrap-break-word">{location}</span>
                         </p>
                     )}
 

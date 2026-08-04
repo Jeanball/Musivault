@@ -78,7 +78,7 @@ const LabelModal: React.FC<LabelModalProps> = ({ label, onClose }) => {
                         />
                     )}
                     <div className="min-w-0">
-                        <h3 className="font-bold text-lg leading-tight break-words">
+                        <h3 className="font-bold text-lg leading-tight wrap-break-word">
                             {info?.name || label.name}
                         </h3>
                         {label.catno && label.catno !== 'none' && (

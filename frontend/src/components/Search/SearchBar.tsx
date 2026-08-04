@@ -297,7 +297,7 @@ const SearchBar: React.FC = () => {
             <div className="flex justify-center mb-6">
                 {/* Mobile: Dropdown */}
                 <select
-                    className="select select-bordered w-full max-w-xs lg:hidden"
+                    className="select w-full max-w-xs lg:hidden"
                     value={searchMode}
                     onChange={(e) => setSearchMode(e.target.value as SearchMode)}
                 >
@@ -307,7 +307,7 @@ const SearchBar: React.FC = () => {
                 </select>
 
                 {/* Desktop: Tabs */}
-                <div className="tabs tabs-boxed hidden lg:flex">
+                <div className="tabs tabs-box hidden lg:flex">
                     <button
                         className={`tab ${searchMode === 'albumArtist' ? 'tab-active' : ''}`}
                         onClick={() => setSearchMode('albumArtist')}
@@ -340,7 +340,7 @@ const SearchBar: React.FC = () => {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={isMobile ? t('search.placeholderShort') : t('search.placeholder')}
-                                className="input input-bordered w-full pr-10"
+                                className="input w-full pr-10"
                                 aria-label={t('search.placeholder')}
                                 autoFocus={!isMobile}
                             />
@@ -415,7 +415,7 @@ const SearchBar: React.FC = () => {
                                             key={artist.id}
                                             role="button"
                                             tabIndex={0}
-                                            className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                            className="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                                             onClick={() => handleSelectArtist(artist)}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' || e.key === ' ') {
@@ -513,7 +513,7 @@ const SearchBar: React.FC = () => {
                                 placeholder={lookupType === 'discogsId'
                                     ? (isMobile ? t('search.placeholderDiscogsIdShort') : t('search.placeholderDiscogsId'))
                                     : (isMobile ? t('search.placeholderCatnoShort') : t('search.placeholderCatno'))}
-                                className="input input-bordered w-full"
+                                className="input w-full"
                                 autoFocus={!isMobile}
                             />
                         </div>

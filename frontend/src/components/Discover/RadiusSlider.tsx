@@ -36,7 +36,7 @@ const RadiusSlider: React.FC<RadiusSliderProps> = ({ value, onChange, onCommit }
                             if (!Number.isNaN(next)) onChange(clamp(next));
                         }}
                         onBlur={() => onCommit?.(value)}
-                        className="input input-bordered input-xs w-20 text-right"
+                        className="input input-xs w-20 text-right"
                         aria-label={t('discover.searchRadius')}
                     />
                     <span className="text-xs text-base-content/60">km</span>

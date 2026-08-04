@@ -151,11 +151,11 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 <CollectionTracksView collection={filteredCollection} />
             ) : (
                 <>
-                    <div className="form-control mb-4">
+                    <div className="flex flex-col mb-4">
                         <input
                             type="text"
                             placeholder={t('collection.searchAlbum')}
-                            className="input input-bordered w-full"
+                            className="input w-full"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />

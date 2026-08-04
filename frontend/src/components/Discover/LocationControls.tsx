@@ -120,7 +120,7 @@ const LocationControls: React.FC<LocationControlsProps> = ({
             {searchVisible && (
                 <div>
                     <form onSubmit={search} className="flex flex-wrap items-center gap-2">
-                        <label className="input input-bordered input-sm flex items-center gap-2 flex-1 min-w-52 max-w-sm">
+                        <label className="input input-sm flex items-center gap-2 flex-1 min-w-52 max-w-sm">
                             <Search size={16} className="opacity-60" />
                             <input
                                 type="text"
