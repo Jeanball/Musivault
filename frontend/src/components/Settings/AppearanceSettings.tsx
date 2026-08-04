@@ -4,7 +4,7 @@ import { toastService } from '../../utils/toast';
 import { updatePreferences } from '../../api/preferences';
 import { useTheme } from '../../context/ThemeContext';
 
-const themes = ["light", "dark"];
+const themes = ["light", "dark", "abyss", "caramellatte"];
 
 const languages = [
     { code: 'en', label: 'English' },

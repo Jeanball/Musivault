@@ -98,7 +98,9 @@
         "themeDescription": "Choisissez votre thème de couleur préféré. Votre choix sera sauvegardé sur votre compte.",
         "themes": {
             "light": "Clair",
-            "dark": "Sombre"
+            "dark": "Sombre",
+            "abyss": "Abyss",
+            "caramellatte": "Caramel Latte"
         },
         "language": "Langue",
         "languageDescription": "Sélectionnez votre langue préférée pour l'interface.",

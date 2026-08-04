@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @plugin "daisyui" {
-  themes: false;
+  themes: abyss, caramellatte;
 }
 
 @plugin "daisyui/theme" {
@@ -90,6 +90,20 @@
   ::backdrop,
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/*
+  daisyUI 4 inverted an outline button on hover: base-content background,
+  base-100 text. v5 only darkens it by 7%, which reads as no feedback at all.
+  Buttons that carry a colour modifier already invert to their own colour in
+  v5, so this covers the plain variant only.
+*/
+@media (hover: hover) {
+  .btn-outline:not(.btn-neutral, .btn-primary, .btn-secondary, .btn-accent, .btn-info, .btn-success, .btn-warning, .btn-error):hover {
+    --btn-bg: var(--color-base-content);
+    --btn-border: var(--color-base-content);
+    color: var(--color-base-100);
   }
 }
 

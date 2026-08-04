@@ -77,6 +77,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                         <div className="mt-1.5 flex">
                                             <FormatColorBadge
                                                 text={item.format.text}
+                                                maxChars={20}
                                                 className="text-[10px] py-1 min-h-4 max-w-full"
                                                 title={item.format.text}
                                             />

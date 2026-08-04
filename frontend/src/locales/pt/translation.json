@@ -94,7 +94,9 @@
         "themeDescription": "Escolha seu tema de cor preferido. Sua escolha será salva na sua conta.",
         "themes": {
             "light": "Claro",
-            "dark": "Escuro"
+            "dark": "Escuro",
+            "abyss": "Abyss",
+            "caramellatte": "Café com caramelo"
         },
         "language": "Idioma",
         "languageDescription": "Selecione seu idioma preferido para a interface.",

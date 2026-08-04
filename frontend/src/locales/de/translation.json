@@ -94,7 +94,9 @@
         "themeDescription": "Wählen Sie Ihr bevorzugtes Farbthema. Ihre Wahl wird in Ihrem Konto gespeichert.",
         "themes": {
             "light": "Hell",
-            "dark": "Dunkel"
+            "dark": "Dunkel",
+            "abyss": "Abyss",
+            "caramellatte": "Karamell-Latte"
         },
         "language": "Sprache",
         "languageDescription": "Wählen Sie Ihre bevorzugte Sprache für die Benutzeroberfläche.",
