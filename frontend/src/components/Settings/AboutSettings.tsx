@@ -28,7 +28,7 @@ const AboutSettings: React.FC = () => {
                     {t('settings.about')}
                 </h2>
 
-                <div className="stats stats-vertical shadow-sm">
+                <div className="stats stats-vertical bg-base-100 shadow-sm">
                     <div className="stat">
                         <div className="stat-title">{t('settings.version')}</div>
                         <div className="stat-value text-primary text-2xl">

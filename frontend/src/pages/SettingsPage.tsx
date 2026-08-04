@@ -91,12 +91,12 @@ const SettingsPage: React.FC = () => {
                         </button>
                     </div>
 
-                    <ul className="menu bg-base-200 rounded-box p-2">
+                    <ul className="menu w-full bg-base-200 rounded-box p-2">
                         {menuItems.map((item) => (
                             <li key={item.id}>
                                 <button
                                     onClick={() => setActiveSection(item.id)}
-                                    className={`flex items-center gap-3 ${activeSection === item.id ? 'active' : ''}`}
+                                    className={`flex items-center gap-3 ${activeSection === item.id ? 'menu-active' : ''}`}
                                 >
                                     {item.icon}
                                     {t(item.labelKey)}

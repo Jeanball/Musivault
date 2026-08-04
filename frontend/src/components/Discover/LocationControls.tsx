@@ -138,7 +138,7 @@ const LocationControls: React.FC<LocationControlsProps> = ({
                     {searchError && <p className="text-xs text-error mt-1">{searchError}</p>}
 
                     {results.length > 0 && (
-                        <ul className="menu bg-base-200 rounded-box mt-2 max-w-lg">
+                        <ul className="menu w-full bg-base-200 rounded-box mt-2 max-w-lg">
                             {results.map((result) => (
                                 <li key={`${result.lat},${result.lon}`}>
                                     <button onClick={() => pick(result)} className="text-sm text-left">
