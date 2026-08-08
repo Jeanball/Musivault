@@ -122,6 +122,16 @@
   outline-color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
 }
 
+/*
+  daisyUI 5 added `white-space: nowrap` to `.label`, which suits the short
+  prefix/suffix labels living inside an `.input` but truncates the longer hint
+  text we put under fields (Settings > Profile, custom fields, …) off the edge
+  of a phone screen. Restore wrapping everywhere except inside an input.
+*/
+.label:not(.input > *, .select > *) {
+  white-space: normal;
+}
+
 .modal-box {
   background-color: color-mix(in oklab, var(--color-base-100) 75%, transparent) !important;
   backdrop-filter: blur(8px) !important;

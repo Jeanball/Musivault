@@ -13,8 +13,18 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
   const location = useLocation();
   const { t } = useTranslation();
 
-  const isActive = (path: string) => location.pathname === path;
-  const isCollectionActive = location.pathname.startsWith('/app/collection');
+  /**
+   * Which dock entry owns the current page. Detail pages live outside their
+   * parent's path (an album is /app/album/:id, not /app/collection/:id), so a
+   * plain prefix test would leave the dock unlit as soon as the user drills in.
+   */
+  const path = location.pathname;
+  const startsWithAny = (...prefixes: string[]) => prefixes.some(p => path === p || path.startsWith(`${p}/`));
+  const isSearchActive = path === '/app' || startsWithAny('/app/master', '/app/release', '/app/artist');
+  const isDiscoverActive = startsWithAny('/app/discover');
+  const isCollectionActive = startsWithAny('/app/collection', '/app/album');
+  const isStatsActive = startsWithAny('/app/stats');
+  const isAccountActive = startsWithAny('/app/settings', '/app/admin');
 
   return (
     <>
@@ -34,13 +44,13 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
         <div className="navbar-center">
           <ul className="menu menu-horizontal px-1 gap-2">
             <li>
-              <Link to="/app" className={isActive('/app') ? 'menu-active font-bold' : 'font-medium'}>
+              <Link to="/app" className={isSearchActive ? 'menu-active font-bold' : 'font-medium'}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 {t('nav.search', 'Search')}
               </Link>
             </li>
             <li>
-              <Link to="/app/discover" className={isActive('/app/discover') ? 'menu-active font-bold' : 'font-medium'}>
+              <Link to="/app/discover" className={isDiscoverActive ? 'menu-active font-bold' : 'font-medium'}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
                 {t('nav.discover', 'Discover')}
               </Link>
@@ -52,7 +62,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
               </Link>
             </li>
             <li>
-              <Link to="/app/stats" className={isActive('/app/stats') ? 'menu-active font-bold' : 'font-medium'}>
+              <Link to="/app/stats" className={isStatsActive ? 'menu-active font-bold' : 'font-medium'}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                 {t('nav.stats', 'Stats')}
               </Link>
@@ -80,39 +90,49 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
       </div>
 
       {/* --- MOBILE (Bottom Nav) --- */}
-      <div className="dock lg:hidden z-50 bg-base-100/95 backdrop-blur-lg border-t border-base-300">
-        <Link to="/app" className={`${isActive('/app') ? 'dock-active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
+      <div className="dock lg:hidden z-50 bg-base-100/95 backdrop-blur-lg border-t border-base-300 [-webkit-tap-highlight-color:transparent]">
+        <Link to="/app" className={`${isSearchActive ? 'dock-active text-primary' : 'text-base-content/60 hover:text-primary'} transition-colors`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <span className="dock-label text-xs font-medium">{t('nav.search', 'Search')}</span>
         </Link>
-        <Link to="/app/discover" className={`${isActive('/app/discover') ? 'dock-active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
+        <Link to="/app/discover" className={`${isDiscoverActive ? 'dock-active text-primary' : 'text-base-content/60 hover:text-primary'} transition-colors`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
           <span className="dock-label text-xs font-medium">{t('nav.discover', 'Discover')}</span>
         </Link>
-        <Link to="/app/collection" className={`${isCollectionActive ? 'dock-active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
+        <Link to="/app/collection" className={`${isCollectionActive ? 'dock-active text-primary' : 'text-base-content/60 hover:text-primary'} transition-colors`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
           <span className="dock-label text-xs font-medium">{t('nav.collection', 'Collection')}</span>
         </Link>
-        <Link to="/app/stats" className={`${isActive('/app/stats') ? 'dock-active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'} transition-all`}>
+        <Link to="/app/stats" className={`${isStatsActive ? 'dock-active text-primary' : 'text-base-content/60 hover:text-primary'} transition-colors`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
           <span className="dock-label text-xs font-medium">{t('nav.stats', 'Stats')}</span>
         </Link>
-        <button className={`dropdown dropdown-top dropdown-end ${location.pathname === '/app/settings' ? 'dock-active text-primary bg-primary/10 border-t-2 border-primary' : 'text-base-content/60 hover:text-primary'}`}>
-          {/* Dropdown triggers on click for mobile usually needs careful handling, simplified for standard daisyui behavior */}
-          <div tabIndex={0} role="button" className="flex flex-col items-center justify-center w-full h-full">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span className="dock-label text-xs font-medium">{t('nav.account', 'Account')}</span>
+        {/*
+          The dropdown sits on an inner wrapper, not on the dock item itself:
+          daisyUI's `.dropdown` forces `display: inline-block`, which overrides
+          the `.dock > *` flex column and leaves the active indicator drawn
+          half-off the item. The wrapper fills the cell, so the popup anchors in
+          exactly the same place.
+        */}
+        <div className={`${isAccountActive ? 'dock-active text-primary' : 'text-base-content/60 hover:text-primary'} transition-colors`}>
+          <div className="dropdown dropdown-top dropdown-end flex flex-col items-center justify-center w-full h-full">
+            <div tabIndex={0} role="button" className="flex flex-col items-center justify-center w-full h-full">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="dock-label text-xs font-medium">{t('nav.account', 'Account')}</span>
+            </div>
+            <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md rounded-box w-56 max-w-[calc(100vw-1rem)] mb-4 border border-base-300">
+              {/* A username is one long token: without break-all it can't wrap
+                  and pushes the menu past the edge of a phone screen. */}
+              <li className="menu-title text-center break-all">{t('nav.hi', 'Hi')}, {username}</li>
+              <div className="divider my-0"></div>
+              <li><Link to="/app/settings">{t('nav.settings', 'Settings')}</Link></li>
+              {isAdmin && <li><Link to="/app/admin">{t('nav.administration', 'Administration')}</Link></li>}
+              <li><a onClick={onLogout} className="text-error">{t('nav.logout', 'Logout')}</a></li>
+            </ul>
           </div>
-          <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md rounded-box w-56 mb-4 border border-base-300">
-            <li className="menu-title text-center">{t('nav.hi', 'Hi')}, {username}</li>
-            <div className="divider my-0"></div>
-            <li><Link to="/app/settings">{t('nav.settings', 'Settings')}</Link></li>
-            {isAdmin && <li><Link to="/app/admin">{t('nav.administration', 'Administration')}</Link></li>}
-            <li><a onClick={onLogout} className="text-error">{t('nav.logout', 'Logout')}</a></li>
-          </ul>
-        </button>
+        </div>
       </div>
     </>
   );
