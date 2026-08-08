@@ -27,6 +27,15 @@ const PrivateLayout: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const hasShownLoginToast = useRef(false);
 
+    // verifyUser reads these through refs so it can stay out of the mount
+    // effect's dependencies: syncPreferencesFromServer is rebuilt whenever the
+    // theme changes, and re-running the effect on every such change (or on
+    // every navigation) hammered /api/auth/verify.
+    const syncPreferencesRef = useRef(syncPreferencesFromServer);
+    syncPreferencesRef.current = syncPreferencesFromServer;
+    const locationStateRef = useRef(location.state);
+    locationStateRef.current = location.state;
+
     const verifyUser = async () => {
         try {
             const data = await verify();
@@ -39,13 +48,13 @@ const PrivateLayout: React.FC = () => {
                 // Sync preferences from server once user is verified. The
                 // returned value also carries the language, which this layout
                 // owns rather than the theme context.
-                const preferences = await syncPreferencesFromServer();
+                const preferences = await syncPreferencesRef.current();
                 if (preferences?.language && preferences.language !== i18n.language) {
                     i18n.changeLanguage(preferences.language);
                 }
 
                 // Show login success toast AFTER theme sync (only once)
-                const state = location.state as LocationState;
+                const state = locationStateRef.current as LocationState;
                 if (state?.showLoginSuccess && !hasShownLoginToast.current) {
                     hasShownLoginToast.current = true;
                     toastService.success(t('auth.loginSuccess', 'Connection successful!'));
@@ -65,9 +74,12 @@ const PrivateLayout: React.FC = () => {
         }
     };
 
+    // Once per mount. Callers that need fresh user data use the refreshUser
+    // handle passed down through the outlet context.
     useEffect(() => {
         verifyUser();
-    }, [navigate, syncPreferencesFromServer, location.state]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleLogout = async () => {
         try {
