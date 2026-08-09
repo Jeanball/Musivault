@@ -4,7 +4,7 @@ import { Ticket, MapPin, Clock, Disc3, Users } from 'lucide-react';
 import type { Concert } from '../../types/discover.types';
 import { formatDistance } from '../../utils/formatters';
 import { parseLocalDate, formatShortDate } from '../../utils/date';
-import ConcertModal from './ConcertModal';
+import ConcertModal from '../Modal/ConcertModal';
 
 interface ConcertCardProps {
     concert: Concert;
