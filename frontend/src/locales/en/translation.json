@@ -21,6 +21,7 @@
         "formats": "Formats",
         "albums": "Albums",
         "tracks": "Tracks",
+        "labels": "Labels",
         "error": "An error occurred.",
         "success": "Success",
         "failed": "Failed",
@@ -218,7 +219,9 @@
         "issuesOnly": "Only With Issues",
         "period": "Period",
         "goToMusivault": "Go to Musivault",
-        "addAlbum": "Add an album"
+        "addAlbum": "Add an album",
+        "filters": "Filters",
+        "showingCount": "{{shown}} of {{total}}"
     },
     "publicCollection": {
         "collectionOf": "{{username}}'s Collection",
@@ -746,5 +749,13 @@
         "rateLimitedBody": "Too many requests in a short time. Wait a few seconds, then retry — nothing was lost.",
         "loadFailedTitle": "Couldn't load this page",
         "retry": "Retry"
+    },
+    "labels": {
+        "searchLabel": "Search a label…",
+        "noLabelsFound": "No labels found",
+        "labelCount": "{{count}} label",
+        "labelCount_plural": "{{count}} labels",
+        "releaseCount": "{{count}} release",
+        "releaseCount_plural": "{{count}} releases"
     }
 }

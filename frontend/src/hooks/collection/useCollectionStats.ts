@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { CollectionItem, CollectionStats } from '../../types/collection.types';
 import { getItemValue } from '../../utils/itemValue';
+import { stripDiscogsSuffix } from '../../utils/formatters';
 
 const getTopEntry = (counts: Record<string, number>) => {
     let topName: string | null = null;
@@ -63,10 +64,13 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
                 }
             }
 
-            // A release can be co-issued by several labels, each one counts
+            // A release can be co-issued by several labels, each one counts.
+            // The Discogs suffix is stripped so "Columbia" and "Columbia (2)"
+            // don't offer the same imprint twice in the filter.
             for (const label of item.album.labels || []) {
-                if (label.name) {
-                    labelCounts[label.name] = (labelCounts[label.name] || 0) + 1;
+                const name = stripDiscogsSuffix(label.name);
+                if (name) {
+                    labelCounts[name] = (labelCounts[name] || 0) + 1;
                 }
             }
 

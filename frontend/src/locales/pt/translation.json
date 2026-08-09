@@ -21,6 +21,7 @@
         "formats": "Formatos",
         "albums": "Álbuns",
         "tracks": "Faixas",
+        "labels": "Editoras",
         "error": "Ocorreu um erro.",
         "success": "Sucesso",
         "failed": "Falhou",
@@ -200,7 +201,9 @@
         "issuesOnly": "Somente com problemas",
         "period": "Período",
         "goToMusivault": "Ir para Musivault",
-        "addAlbum": "Adicionar um álbum"
+        "addAlbum": "Adicionar um álbum",
+        "filters": "Filtros",
+        "showingCount": "{{shown}} de {{total}}"
     },
     "publicCollection": {
         "collectionOf": "Coleção de {{username}}",
@@ -722,5 +725,13 @@
         "rateLimitedBody": "Demasiados pedidos em pouco tempo. Aguarde alguns segundos e tente novamente — não se perdeu nada.",
         "loadFailedTitle": "Não foi possível carregar esta página",
         "retry": "Tentar novamente"
+    },
+    "labels": {
+        "searchLabel": "Procurar uma editora…",
+        "noLabelsFound": "Nenhuma editora encontrada",
+        "labelCount": "{{count}} editora",
+        "labelCount_plural": "{{count}} editoras",
+        "releaseCount": "{{count}} disco",
+        "releaseCount_plural": "{{count}} discos"
     }
 }

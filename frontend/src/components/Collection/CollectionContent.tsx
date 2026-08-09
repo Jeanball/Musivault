@@ -6,11 +6,12 @@ import CollectionTableView from './Views/CollectionTableView';
 import CollectionGridView from './Views/CollectionGridView';
 import CollectionListView from './Views/CollectionListView';
 import CollectionTracksView from './Views/CollectionTracksView';
+import CollectionLabelsView from './Views/CollectionLabelsView';
 import PublicAlbumModal from '../Modal/PublicAlbumModal';
 import { useCollectionFilters } from '../../hooks/collection/useCollectionFilters';
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
-import type { CollectionItem, LayoutType } from '../../types/collection.types';
+import type { CollectionItem, LayoutType, CollectionViewMode } from '../../types/collection.types';
 import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
@@ -18,7 +19,7 @@ const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
 const VIEW_MODE_STORAGE_KEY = 'musivault_collection_view_mode';
 const COLLECTION_SCROLL_KEY = 'musivault_collection_scroll_y';
 
-type ViewMode = 'albums' | 'tracks';
+const VIEW_MODES: CollectionViewMode[] = ['albums', 'tracks', 'labels'];
 
 interface CollectionContentProps {
     collection: CollectionItem[];
@@ -53,10 +54,10 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     );
     const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
     const deferredSearchTerm = useDeferredValue(searchTerm);
-    const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const [viewMode, setViewMode] = useState<CollectionViewMode>(() => {
         if (readOnly) return 'albums';
         const stored = sessionStorage.getItem(VIEW_MODE_STORAGE_KEY);
-        return (stored === 'albums' || stored === 'tracks') ? stored : 'albums';
+        return VIEW_MODES.includes(stored as CollectionViewMode) ? (stored as CollectionViewMode) : 'albums';
     });
 
     // Persist layout preference (only for authenticated users)
@@ -124,9 +125,12 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         filters.label !== 'all' ||
         filters.issueStatus !== 'all';
 
+    // Tracks and labels each carry their own search field and ignore the three
+    // layouts, so the toolbar drops both while either is showing.
+    const isAggregateMode = !readOnly && (viewMode === 'tracks' || viewMode === 'labels');
+
     return (
         <>
-            {/* Advanced Filters */}
             <CollectionFilters
                 filters={filters}
                 onFiltersChange={setFilters}
@@ -142,25 +146,25 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 issueCount={issueCount}
                 viewMode={readOnly ? undefined : viewMode}
                 onViewModeChange={readOnly ? undefined : setViewMode}
-                layout={layout}
-                onLayoutChange={setLayout}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                showSearchField={!isAggregateMode}
+                layout={isAggregateMode ? undefined : layout}
+                onLayoutChange={isAggregateMode ? undefined : setLayout}
             />
 
-            {/* Tracks View */}
             {viewMode === 'tracks' && !readOnly ? (
                 <CollectionTracksView collection={filteredCollection} />
+            ) : viewMode === 'labels' && !readOnly ? (
+                <CollectionLabelsView
+                    collection={filteredCollection}
+                    onItemClick={(itemId) => {
+                        sessionStorage.setItem(COLLECTION_SCROLL_KEY, String(window.scrollY));
+                        navigate(`/app/album/${itemId}`, { state: { backTo: '/app/collection' } });
+                    }}
+                />
             ) : (
                 <>
-                    <div className="flex flex-col mb-4">
-                        <input
-                            type="text"
-                            placeholder={t('collection.searchAlbum')}
-                            className="input w-full"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-
                     {/* Main content */}
                     {(layout === 'table' ? sortedCollection.length === 0 : Object.keys(groupedByArtist).length === 0) ? (
                         <div className="text-center py-20">

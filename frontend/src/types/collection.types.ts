@@ -63,7 +63,11 @@ export interface CollectionItem {
 
 export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'label' | 'addedAt' | 'price';
 export type SortOrder = 'asc' | 'desc';
+/** How the albums are drawn. */
 export type LayoutType = 'grid' | 'list' | 'table';
+
+/** What the collection page lists — a change of content, not of presentation. */
+export type CollectionViewMode = 'albums' | 'tracks' | 'labels';
 
 export interface FilterState {
     format: string;

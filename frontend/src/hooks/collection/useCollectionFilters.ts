@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, FilterState } from '../../types/collection.types';
 import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
+import { stripDiscogsSuffix } from '../../utils/formatters';
 
 const FILTER_STORAGE_KEY = 'musivault_collection_filters';
 const DEFAULT_FILTERS: FilterState = {
@@ -81,7 +82,9 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
                 return false;
             }
 
-            if (filters.label !== 'all' && !item.album.labels?.some(l => l.name === filters.label)) {
+            // Compared stripped on both sides: the dropdown lists the cleaned
+            // names, so a raw "Columbia (2)" release must still match "Columbia".
+            if (filters.label !== 'all' && !item.album.labels?.some(l => stripDiscogsSuffix(l.name) === filters.label)) {
                 return false;
             }
 

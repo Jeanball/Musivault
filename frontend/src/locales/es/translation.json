@@ -21,6 +21,7 @@
         "formats": "Formatos",
         "albums": "Álbumes",
         "tracks": "Pistas",
+        "labels": "Sellos",
         "error": "Ocurrió un error.",
         "success": "Éxito",
         "failed": "Fallido",
@@ -200,7 +201,9 @@
         "issuesOnly": "Solo con problemas",
         "period": "Período",
         "goToMusivault": "Ir a Musivault",
-        "addAlbum": "Añadir un álbum"
+        "addAlbum": "Añadir un álbum",
+        "filters": "Filtros",
+        "showingCount": "{{shown}} de {{total}}"
     },
     "publicCollection": {
         "collectionOf": "Colección de {{username}}",
@@ -722,5 +725,13 @@
         "rateLimitedBody": "Demasiadas peticiones en poco tiempo. Espera unos segundos y vuelve a intentarlo: no se ha perdido nada.",
         "loadFailedTitle": "No se ha podido cargar esta página",
         "retry": "Reintentar"
+    },
+    "labels": {
+        "searchLabel": "Buscar un sello…",
+        "noLabelsFound": "No se encontraron sellos",
+        "labelCount": "{{count}} sello",
+        "labelCount_plural": "{{count}} sellos",
+        "releaseCount": "{{count}} disco",
+        "releaseCount_plural": "{{count}} discos"
     }
 }

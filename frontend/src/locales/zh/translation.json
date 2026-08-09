@@ -21,6 +21,7 @@
         "formats": "格式",
         "albums": "专辑",
         "tracks": "曲目",
+        "labels": "厂牌",
         "error": "发生错误。",
         "success": "成功",
         "failed": "失败",
@@ -200,7 +201,9 @@
         "issuesOnly": "仅显示有问题的",
         "period": "时期",
         "goToMusivault": "前往 Musivault",
-        "addAlbum": "添加专辑"
+        "addAlbum": "添加专辑",
+        "filters": "筛选",
+        "showingCount": "{{total}} 中的 {{shown}}"
     },
     "publicCollection": {
         "collectionOf": "{{username}} 的收藏",
@@ -718,5 +721,13 @@
         "rateLimitedBody": "短时间内请求过多。请等待几秒后重试——数据没有丢失。",
         "loadFailedTitle": "无法加载此页面",
         "retry": "重试"
+    },
+    "labels": {
+        "searchLabel": "搜索厂牌…",
+        "noLabelsFound": "未找到厂牌",
+        "labelCount": "{{count}} 个厂牌",
+        "labelCount_plural": "{{count}} 个厂牌",
+        "releaseCount": "{{count}} 张",
+        "releaseCount_plural": "{{count}} 张"
     }
 }

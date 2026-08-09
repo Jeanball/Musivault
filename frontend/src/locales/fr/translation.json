@@ -21,6 +21,7 @@
         "formats": "Formats",
         "albums": "Albums",
         "tracks": "Pistes",
+        "labels": "Labels",
         "error": "Une erreur est survenue.",
         "success": "Succès",
         "failed": "Échec",
@@ -218,7 +219,9 @@
         "issuesOnly": "Avec problèmes uniquement",
         "period": "Période",
         "goToMusivault": "Aller sur Musivault",
-        "addAlbum": "Ajouter un album"
+        "addAlbum": "Ajouter un album",
+        "filters": "Filtres",
+        "showingCount": "{{shown}} sur {{total}}"
     },
     "publicCollection": {
         "collectionOf": "Collection de {{username}}",
@@ -745,5 +748,13 @@
         "rateLimitedBody": "Trop de requêtes en peu de temps. Patientez quelques secondes, puis réessayez — rien n'est perdu.",
         "loadFailedTitle": "Impossible de charger cette page",
         "retry": "Réessayer"
+    },
+    "labels": {
+        "searchLabel": "Rechercher un label…",
+        "noLabelsFound": "Aucun label trouvé",
+        "labelCount": "{{count}} label",
+        "labelCount_plural": "{{count}} labels",
+        "releaseCount": "{{count}} disque",
+        "releaseCount_plural": "{{count}} disques"
     }
 }
