@@ -132,6 +132,23 @@
   white-space: normal;
 }
 
+/*
+  Recharts 3 turns its accessibility layer on by default, which makes the chart
+  wrapper focusable — so a plain click paints the browser's default outline as a
+  hard white box around the whole plot. Keep the keyboard navigation it buys us,
+  but show the ring only for keyboard focus, in a colour that belongs to the theme.
+*/
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+
+.recharts-wrapper:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-base-content) 30%, transparent);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
 .modal-box {
   background-color: color-mix(in oklab, var(--color-base-100) 75%, transparent) !important;
   backdrop-filter: blur(8px) !important;
