@@ -6,6 +6,7 @@ import PublicAlbumModal from '../components/Modal/PublicAlbumModal';
 import PublicUserCard from '../components/Discover/PublicUserCard';
 import CommunityAlbumCard from '../components/Discover/CommunityAlbumCard';
 import UpcomingReleaseCard from '../components/Discover/UpcomingReleaseCard';
+import UpcomingReleaseModal from '../components/Modal/UpcomingReleaseModal';
 import PreferredGenresDropdown from '../components/Discover/PreferredGenresDropdown';
 import RecordShopCard from '../components/Discover/RecordShopCard';
 import ConcertCard from '../components/Discover/ConcertCard';
@@ -36,6 +37,7 @@ const DiscoverPage: React.FC = () => {
     const [upcomingReleases, setUpcomingReleases] = useState<UpcomingRelease[]>([]);
     const [isUpcomingLoading, setIsUpcomingLoading] = useState(true);
     const [upcomingError, setUpcomingError] = useState<string | null>(null);
+    const [selectedRelease, setSelectedRelease] = useState<UpcomingRelease | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -238,7 +240,7 @@ const DiscoverPage: React.FC = () => {
                                     {/* Both rows sit near the top of the page, so neither
                                         should wait on lazy loading before even asking. */}
                                     {upcomingSummary.upcoming.slice(0, 5).map((release) => (
-                                        <UpcomingReleaseCard key={release.mbid} release={release} eager />
+                                        <UpcomingReleaseCard key={release.mbid} release={release} onSelect={setSelectedRelease} eager />
                                     ))}
                                 </div>
                             </div>
@@ -251,7 +253,7 @@ const DiscoverPage: React.FC = () => {
                                 </h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                                     {upcomingSummary.recent.slice(0, 5).map((release) => (
-                                        <UpcomingReleaseCard key={release.mbid} release={release} eager />
+                                        <UpcomingReleaseCard key={release.mbid} release={release} onSelect={setSelectedRelease} eager />
                                     ))}
                                 </div>
                             </div>
@@ -411,6 +413,12 @@ const DiscoverPage: React.FC = () => {
                 item={selectedAlbum}
                 onClose={() => setSelectedAlbum(null)}
             />
+            {selectedRelease && (
+                <UpcomingReleaseModal
+                    release={selectedRelease}
+                    onClose={() => setSelectedRelease(null)}
+                />
+            )}
         </div>
     );
 };

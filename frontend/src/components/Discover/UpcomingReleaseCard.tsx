@@ -6,6 +6,8 @@ import { revealIfCached } from '../../utils/imageReveal';
 
 interface UpcomingReleaseCardProps {
     release: UpcomingRelease;
+    /** Opens the release's modal; the tile is inert without it. */
+    onSelect?: (release: UpcomingRelease) => void;
     /**
      * Set on the cards that are on screen the moment the page paints. Lazy
      * loading holds the request back until layout settles, which on a tile the
@@ -17,13 +19,26 @@ interface UpcomingReleaseCardProps {
 /** Styles shown as chips; the rest collapse into a "+N" badge. */
 const VISIBLE_STYLES = 2;
 
-const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release, eager = false }) => {
+const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release, onSelect, eager = false }) => {
     const { t, i18n } = useTranslation();
     const shownStyles = release.matchedStyles.slice(0, VISIBLE_STYLES);
     const hiddenStyles = release.matchedStyles.slice(VISIBLE_STYLES);
 
     return (
-        <div className="card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
+        <div
+            {...(onSelect && {
+                role: 'button',
+                tabIndex: 0,
+                onClick: () => onSelect(release),
+                onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelect(release);
+                    }
+                }
+            })}
+            className={`card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 group ${onSelect ? 'cursor-pointer' : ''}`}
+        >
             <figure className="aspect-square relative overflow-hidden rounded-t-xl bg-base-300">
                 {/* Sits behind the cover so the tile is never an empty hole while loading. */}
                 <img

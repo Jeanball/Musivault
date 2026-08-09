@@ -495,7 +495,19 @@
         "latestAlbums": "Latest Additions by Users",
         "latestUserAdditions": "Latest additions",
         "noLatestAlbums": "No recent additions.",
-        "failedLoadAlbums": "Failed to load latest albums."
+        "failedLoadAlbums": "Failed to load latest albums.",
+        "whyThisRelease": "Why you're seeing this",
+        "discoverArtist": "Discover the artist",
+        "artistOnSpotify": "Artist on Spotify",
+        "releaseOnSpotify": "This release",
+        "artistOnDiscogs": "Artist on Discogs",
+        "onMusicBrainz": "MusicBrainz",
+        "expectedOn": "Expected on {{date}}",
+        "releasedOn": "Released on {{date}}",
+        "ownedByArtist_one": "1 record by this artist",
+        "ownedByArtist_other": "{{count}} records by this artist",
+        "andMoreOwned_one": "and 1 more",
+        "andMoreOwned_other": "and {{count}} more"
     },
     "admin": {
         "title": "Administration",

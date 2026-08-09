@@ -472,7 +472,19 @@
         "geolocationTimeout": "La localización ha tardado demasiado. Inténtalo de nuevo.",
         "geolocationUnsupported": "Tu navegador no admite la geolocalización.",
         "geolocationInsecureContext": "La ubicación precisa requiere una conexión segura (HTTPS o localhost). Puedes introducir una ciudad en su lugar.",
-        "osmAttribution": "Datos de tiendas de OpenStreetMap."
+        "osmAttribution": "Datos de tiendas de OpenStreetMap.",
+        "whyThisRelease": "Por qué ves esto",
+        "discoverArtist": "Descubrir al artista",
+        "artistOnSpotify": "Artista en Spotify",
+        "releaseOnSpotify": "Este lanzamiento",
+        "artistOnDiscogs": "Artista en Discogs",
+        "onMusicBrainz": "MusicBrainz",
+        "expectedOn": "Previsto el {{date}}",
+        "releasedOn": "Publicado el {{date}}",
+        "ownedByArtist_one": "1 disco de este artista",
+        "ownedByArtist_other": "{{count}} discos de este artista",
+        "andMoreOwned_one": "y 1 más",
+        "andMoreOwned_other": "y {{count}} más"
     },
     "admin": {
         "title": "Administración",

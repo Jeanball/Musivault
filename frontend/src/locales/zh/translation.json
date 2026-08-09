@@ -469,7 +469,19 @@
         "geolocationTimeout": "定位耗时过长，请重试。",
         "geolocationUnsupported": "您的浏览器不支持地理定位。",
         "geolocationInsecureContext": "精确定位需要安全连接（HTTPS 或 localhost）。您可以改为输入城市。",
-        "osmAttribution": "店铺数据来自 OpenStreetMap。"
+        "osmAttribution": "店铺数据来自 OpenStreetMap。",
+        "whyThisRelease": "为什么推荐给你",
+        "discoverArtist": "了解这位艺人",
+        "artistOnSpotify": "在 Spotify 上查看艺人",
+        "releaseOnSpotify": "这张专辑",
+        "artistOnDiscogs": "在 Discogs 上查看艺人",
+        "onMusicBrainz": "MusicBrainz",
+        "expectedOn": "预计 {{date}} 发行",
+        "releasedOn": "{{date}} 发行",
+        "ownedByArtist_one": "收藏中有 1 张该艺人的唱片",
+        "ownedByArtist_other": "收藏中有 {{count}} 张该艺人的唱片",
+        "andMoreOwned_one": "还有 1 张",
+        "andMoreOwned_other": "还有 {{count}} 张"
     },
     "admin": {
         "title": "管理",

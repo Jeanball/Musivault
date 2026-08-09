@@ -495,7 +495,19 @@
         "latestAlbums": "Derniers ajouts par les utilisateurs",
         "latestUserAdditions": "Derniers ajouts",
         "noLatestAlbums": "Aucun ajout récent.",
-        "failedLoadAlbums": "Échec du chargement des derniers albums."
+        "failedLoadAlbums": "Échec du chargement des derniers albums.",
+        "whyThisRelease": "Pourquoi cette sortie",
+        "discoverArtist": "Découvrir l'artiste",
+        "artistOnSpotify": "L'artiste sur Spotify",
+        "releaseOnSpotify": "Cette sortie",
+        "artistOnDiscogs": "L'artiste sur Discogs",
+        "onMusicBrainz": "MusicBrainz",
+        "expectedOn": "Prévu le {{date}}",
+        "releasedOn": "Sorti le {{date}}",
+        "ownedByArtist_one": "1 disque de cet artiste",
+        "ownedByArtist_other": "{{count}} disques de cet artiste",
+        "andMoreOwned_one": "et 1 autre",
+        "andMoreOwned_other": "et {{count}} autres"
     },
     "admin": {
         "title": "Administration",

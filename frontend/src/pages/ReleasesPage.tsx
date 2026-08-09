@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Music, CalendarClock, History, Search, AlertCircle } from 'lucide-react';
 import BackButton from '../components/Common/BackButton';
 import UpcomingReleaseCard from '../components/Discover/UpcomingReleaseCard';
+import UpcomingReleaseModal from '../components/Modal/UpcomingReleaseModal';
 import ReleaseWeekHeader from '../components/Discover/ReleaseWeekHeader';
 import PreferredGenresDropdown from '../components/Discover/PreferredGenresDropdown';
 import type { UpcomingRelease } from '../types/discover.types';
@@ -18,6 +19,7 @@ const ReleasesPage: React.FC = () => {
     const [query, setQuery] = useState('');
     const [styleFilter, setStyleFilter] = useState('all');
     const [activeTab, setActiveTab] = useState<ReleaseTab>('upcoming');
+    const [selectedRelease, setSelectedRelease] = useState<UpcomingRelease | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -165,6 +167,7 @@ const ReleasesPage: React.FC = () => {
                                     <UpcomingReleaseCard
                                         key={release.mbid}
                                         release={release}
+                                        onSelect={setSelectedRelease}
                                         eager={groupIndex === 0}
                                     />
                                 ))}
@@ -172,6 +175,13 @@ const ReleasesPage: React.FC = () => {
                         </section>
                     ))}
                 </div>
+            )}
+
+            {selectedRelease && (
+                <UpcomingReleaseModal
+                    release={selectedRelease}
+                    onClose={() => setSelectedRelease(null)}
+                />
             )}
         </div>
     );
