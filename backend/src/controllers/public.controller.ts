@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Request, Response } from 'express';
 import User from '../models/User';
 import CollectionItem from '../models/CollectionItem';
@@ -46,32 +47,52 @@ export async function getPublicCollection(req: Request, res: Response) {
     }
 }
 
+/** How many recent additions each public collection shows on its card. */
+const LATEST_PER_USER = 5;
+
 export async function getPublicUsers(req: Request, res: Response) {
     try {
         // Find all users with public collections
         const publicUsers = await User.find({ 'preferences.isPublic': true })
-            .select('username publicShareId createdAt');
+            .select('username publicShareId createdAt')
+            .lean();
 
-        // Get album counts and latest albums for each user
-        const usersWithCounts = await Promise.all(
-            publicUsers.map(async (user) => {
-                const albumCount = await CollectionItem.countDocuments({ user: user._id });
-                
-                const latestAlbums = await CollectionItem.find({ user: user._id })
-                    .select('-customFields')
-                    .sort({ addedAt: -1 })
-                    .limit(5)
-                    .populate<{ album: IAlbum }>('album');
+        // Counts and latest additions for every public user in one pass. Doing this
+        // per user meant two round trips each, which is what would have buckled
+        // first as an instance grows.
+        const stats = await CollectionItem.aggregate<{
+            _id: mongoose.Types.ObjectId;
+            albumCount: number;
+            latestAlbums: unknown[];
+        }>([
+            { $match: { user: { $in: publicUsers.map((u) => u._id) } } },
+            { $sort: { user: 1, addedAt: -1 } },
+            {
+                $group: {
+                    _id: '$user',
+                    albumCount: { $sum: 1 },
+                    latestAlbums: { $push: '$$ROOT' },
+                },
+            },
+            { $project: { albumCount: 1, latestAlbums: { $slice: ['$latestAlbums', LATEST_PER_USER] } } },
+            // customFields is private and never leaves the server.
+            { $unset: 'latestAlbums.customFields' },
+        ]);
 
-                return {
-                    username: user.username,
-                    publicShareId: user.publicShareId,
-                    albumCount,
-                    createdAt: user.createdAt,
-                    latestAlbums
-                };
-            })
-        );
+        await CollectionItem.populate(stats, { path: 'latestAlbums.album', model: 'Album' });
+
+        const statsByUser = new Map(stats.map((s) => [String(s._id), s]));
+
+        const usersWithCounts = publicUsers.map((user) => {
+            const stat = statsByUser.get(String(user._id));
+            return {
+                username: user.username,
+                publicShareId: user.publicShareId,
+                albumCount: stat?.albumCount ?? 0,
+                createdAt: user.createdAt,
+                latestAlbums: stat?.latestAlbums ?? [],
+            };
+        });
 
         // Sort by album count (most albums first)
         usersWithCounts.sort((a, b) => b.albumCount - a.albumCount);
@@ -83,21 +104,32 @@ export async function getPublicUsers(req: Request, res: Response) {
     }
 }
 
+const DEFAULT_LATEST_ALBUMS = 6;
+const MAX_LATEST_ALBUMS = 24;
+
 export async function getLatestPublicAlbums(req: Request, res: Response) {
     try {
+        // Never the caller's raw number: this bounds a query.
+        const requested = parseInt(String(req.query.limit), 10);
+        const limit = Number.isNaN(requested)
+            ? DEFAULT_LATEST_ALBUMS
+            : Math.min(Math.max(requested, 1), MAX_LATEST_ALBUMS);
+
         // Find all users with public collections
-        const publicUsers = await User.find({ 'preferences.isPublic': true }).select('_id');
+        const publicUsers = await User.find({ 'preferences.isPublic': true }).select('_id').lean();
         const publicUserIds = publicUsers.map(u => u._id);
 
         // Fetch latest collection items for these users (customFields is private, never exposed publicly)
         const latestItems = await CollectionItem.find({ user: { $in: publicUserIds } })
             .select('-customFields')
             .sort({ addedAt: -1 })
-            .limit(6)
+            .limit(limit)
             .populate<{ album: IAlbum }>('album')
             .populate('user', 'username publicShareId');
 
-        res.status(200).json(latestItems);
+        // An item whose album was deleted populates to null and would render as an
+        // empty tile — drop it rather than ship a hole in the row.
+        res.status(200).json(latestItems.filter((item) => item.album));
     } catch (error) {
         logger.error({ err: error }, 'Error fetching latest public albums');
         res.status(500).json({ message: 'Internal server error' });

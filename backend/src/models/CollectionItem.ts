@@ -106,6 +106,10 @@ const collectionItemSchema = new Schema<ICollectionItem>({
   },
 });
 
+// Every read starts from a user and orders by date added: the community feed,
+// the latest additions per public collection, a shared collection's listing.
+collectionItemSchema.index({ user: 1, addedAt: -1 });
+
 const CollectionItem = mongoose.model<ICollectionItem>(
   "CollectionItem",
   collectionItemSchema
