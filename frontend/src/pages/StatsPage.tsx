@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useCollectionStats } from '../hooks/collection/useCollectionStats';
-import CollectionStats from '../components/Collection/CollectionStats';
+import StatsKpiRow from '../components/Stats/StatsKpiRow';
+import DistributionSection from '../components/Stats/DistributionSection';
+import TopValueItems from '../components/Stats/TopValueItems';
 import { getItemValue } from '../utils/itemValue';
 import { useCurrency } from '../hooks/useCurrency';
 import { getSyncInfo } from '../api/collection';
@@ -95,25 +97,25 @@ const StatsPage: React.FC = () => {
                 <p className="text-base-content/60 mt-2">{t('stats.subtitle')}</p>
             </div>
 
-            <CollectionStats stats={stats} desktopExpanded />
+            <StatsKpiRow stats={stats} />
+
+            <DistributionSection stats={stats} />
+
+            <TopValueItems collection={collection} currency={stats.valueCurrency} />
 
             {/* Evolution Graph Section */}
             {chartData.length > 0 && (
                 <div className="bg-base-100 rounded-box shadow-lg p-4 md:p-6">
-                    <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div className="flex flex-col gap-1">
-                            <h2 className="text-xl font-bold">{t('stats.evolutionTitle')}</h2>
-                            <p className="text-lg font-semibold text-warning">
-                                {t('stats.totalValue')}: {stats.totalValue > 0
-                                    ? formatValue(stats.totalValue)
-                                    : '—'}
-                            </p>
-                            <p className="text-sm text-base-content/70">
-                                {t('stats.nextAutoSync')}: {syncInfo?.nextAutoSyncAt
-                                    ? formatDateTime(syncInfo.nextAutoSyncAt)
-                                    : t('stats.noAutoSyncScheduled')}
-                            </p>
-                        </div>
+                    {/* The sync belongs here rather than beside the record count:
+                        refresh-prices only rewrites priceCache, so it moves this
+                        curve and nothing else on the page. */}
+                    <div className="mb-6 flex flex-col gap-1">
+                        <h2 className="text-xl font-bold">{t('stats.evolutionTitle')}</h2>
+                        <p className="text-sm text-base-content/60">
+                            {t('stats.nextAutoSync')}: {syncInfo?.nextAutoSyncAt
+                                ? formatDateTime(syncInfo.nextAutoSyncAt)
+                                : t('stats.noAutoSyncScheduled')}
+                        </p>
                     </div>
                     <div className="w-full h-[300px] md:h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">

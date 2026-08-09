@@ -80,6 +80,7 @@ export interface CollectionStats {
     decadeCounts: Record<string, number>;
     styleCounts: Record<string, number>;
     labelCounts: Record<string, number>;
+    artistCounts: Record<string, number>;
     recentAdds: {
         thisWeek: number;
         thisMonth: number;

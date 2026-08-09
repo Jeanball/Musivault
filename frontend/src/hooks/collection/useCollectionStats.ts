@@ -92,6 +92,7 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
             decadeCounts,
             styleCounts,
             labelCounts,
+            artistCounts,
             recentAdds,
             topArtist,
             topStyle,
