@@ -38,39 +38,32 @@
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/collection-dashboard.png" alt="Collection Dashboard" width="800">
-  <br><em>Collection Dashboard - Overview with statistics and insights</em>
+  <img src="docs/screenshots/composite/collectionGrid.png" alt="Collection Grid" width="820">
+  <br><em>Collection - Browse your albums with cover art, on any screen</em>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/collection-grid-view.png" alt="Collection Grid View" width="800">
-  <br><em>Collection Grid - Browse your albums with cover art</em>
+  <img src="docs/screenshots/composite/searchPage.png" alt="Search" width="820">
+  <br><em>Search - One field that recognises an artist, an album, a Discogs ID or a barcode</em>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/search-add.png" alt="Search and Add" width="800">
-  <br><em>Search - Find albums from the Discogs database</em>
+  <img src="docs/screenshots/composite/albumDetailPage.png" alt="Album Detail" width="820">
+  <br><em>Album Detail - Tracklist, pressing details and market value</em>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/select-album-version.png" alt="Select Album Version" width="800">
-  <br><em>Version Selection - Choose the exact pressing you own</em>
+  <img src="docs/screenshots/composite/discoverPage.png" alt="Discover" width="820">
+  <br><em>Discover - Record shops near you and concerts matching your collection</em>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/album-detail.png" alt="Album Detail" width="800">
-  <br><em>Album Detail - View tracklist and album information</em>
+  <img src="docs/screenshots/composite/statPage.png" alt="Stats" width="820">
+  <br><em>Stats - Analytics and valuation of your collection</em>
 </p>
 
-<p align="center">
-  <img src="docs/screenshots/settings.png" alt="Settings" width="800">
-  <br><em>Settings - Customize your profile and preferences</em>
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/settings-public-collection.png" alt="Public Collection Settings" width="800">
-  <br><em>Public Collection - Share your collection with others</em>
-</p>
+> Settings, import/export, the admin dashboard and every other view are in
+> [`docs/screenshots/`](docs/screenshots/), each one in desktop, mobile and combined form.
 
 ## Quick Start
 
