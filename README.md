@@ -18,28 +18,36 @@
 
 ## Features
 
-- **Discogs Integration** - Search and add albums using the Discogs database.
-- **OIDC SSO Support** - Enterprise-ready authentication with OpenID Connect (e.g., Authentik, Keycloak).
-- **PWA Ready** - Installable on mobile and desktop devices with offline capabilities.
-- **Multi-user Support** - Secure private collections for multiple users.
-- **Multi-languages** - Support internationalization (i18n) with initial translations for English, German (DE), and French (FR), along with a language selector in settings. This feature is back by [Weblate](https://hosted.weblate.org/projects/musivault/).
-- **Collection Sharing** - Share your collection via public links with optional password protection.
-- **Smart Insights** - View collection statistics, format distribution, and top artists.
-- **Advanced Filtering** - Sort and filter by format, decade, date added, and more.
-- **Condition Grading** - Track the media and sleeve condition of your albums. **(You need to opt-in in settings to use this feature)**
-- **ID Lookup** - Quickly find releases by Discogs ID or Barcode.
-- **Price Tracking** - Automatically track item values based on Discogs marketplace data (requires a personal access token and seller account).
-- **Near You** - Find independent record shops around you (via OpenStreetMap, no key needed) and upcoming concerts matching the artists and styles in your collection (requires a free Ticketmaster API key).
-- **Responsive Design** - Optimized for desktop, tablet, and mobile usage.
-- **Dark/Light Mode** - Toggle between aesthetic themes.
-- **Admin Dashboard** - Manage users and settings.
-- **Docker Ready** - Simple deployment using Docker Compose.
+### Your collection
+
+- **Discogs Integration** : search and add albums by artist, title, Discogs ID or barcode, and pick the exact pressing you own.
+- **Condition Grading** : track the media and sleeve condition of your albums (opt-in from settings).
+- **Price Tracking** : follow item values from the Discogs marketplace ([setup](#optional-setup-price-tracking)).
+- **Smart Insights** : collection statistics, format distribution and top artists.
+- **Advanced Filtering** : sort and filter by format, decade, date added and more.
+- **Custom Fields** : add your own per-album fields (purchase price, storage location, notes) as short text or long text, ordered the way you want.
+- **Import & Export** : import a Discogs CSV straight in, matched by release ID, catalog number, then artist and title, with a detailed log of every row. Export the whole collection back to CSV at any time.
+
+### Discover
+
+- **Public collection** : publish your collection through a public link, with optional password protection, and browse what the community is listening to.
+- **On Your Radar** : recent and upcoming album releases in the styles you already collect, from MusicBrainz (no key needed).
+- **Near You** : independent record shops around you from OpenStreetMap (no key needed), and upcoming concerts matching the artists and styles in your collection ([setup](#optional-setup-nearby-concerts)).
+
+Releases and concerts are both filtered by the same **preferred genres**, deduced from your collection and editable right from the Discover page.
+
+### Self-hosting
+
+- **Multi-user** : private collections per user, plus OIDC SSO for Authentik, Keycloak and friends.
+- **Multi-language** : English, German and French, translated on [Weblate](https://hosted.weblate.org/projects/musivault/).
+- **Runs anywhere** : Docker Compose deployment, installable PWA, responsive layout, dark and light themes.
+- **Admin dashboard** : users, background tasks and execution logs.
 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/composite/collectionGrid.png" alt="Collection Grid" width="820">
-  <br><em>Collection - Browse your albums with cover art, on any screen</em>
+  <img src="docs/screenshots/composite/collectionTable.png" alt="Collection Table" width="820">
+  <br><em>Collection - Browse your albums in grid, list or table view, on any screen</em>
 </p>
 
 <p align="center">
@@ -54,7 +62,7 @@
 
 <p align="center">
   <img src="docs/screenshots/composite/discoverPage.png" alt="Discover" width="820">
-  <br><em>Discover - Record shops near you and concerts matching your collection</em>
+  <br><em>Discover - Record shops near you, concerts and releases matching your collection</em>
 </p>
 
 <p align="center">
@@ -118,7 +126,8 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 
 ### Optional Setup: Price Tracking
 
-If you want to use the **price tracking** feature to track your collection's value, you need to configure a Discogs Personal Access Token:
+<details>
+<summary>Needs a Discogs Personal Access Token and a (free) seller account.</summary>
 
 1. **Enroll as a Discogs Seller**: You must have a seller account (it's free). Visit [Discogs Seller Settings](https://www.discogs.com/settings/seller/) to enroll.
 2. **Keep Discogs Currency as USD**: In your Discogs Seller Settings, ensure your currency is set to **USD**. Do not change it there! You will configure your local display currency directly within Musivault's settings.
@@ -127,17 +136,24 @@ If you want to use the **price tracking** feature to track your collection's val
 
 Once configured, prices can be fetched immediately from the **Admin Task Center**, or by restarting the backend server until the `2026-03-28_album-data-backfill` migration has succeeded.
 
+</details>
+
 ### Optional Setup: Nearby Concerts
 
-The **Shows Near You** section of Discover lists upcoming concerts around you, ranked by how well they fit your collection — acts you already own records from first, then anything in a matching genre. It needs a free Ticketmaster API key:
+<details>
+<summary>Needs a free Ticketmaster API key. Record shops work without any key.</summary>
 
-1. **Create an account**: Register at [developer.ticketmaster.com](https://developer.ticketmaster.com) — approval is instant.
+The **Shows Near You** section of Discover lists upcoming concerts around you, ranked by how well they fit your collection: acts you already own records from first, then anything in a matching genre.
+
+1. **Create an account**: Register at [developer.ticketmaster.com](https://developer.ticketmaster.com), approval is instant.
 2. **Copy the Consumer Key**: Your default app is created automatically. Take its **Consumer Key**; the Consumer Secret issued alongside it belongs to the Commerce APIs and is *not* used here.
 3. **Configure Musivault**: Add it as `TICKETMASTER_API_KEY` in your `.env` file or `docker-compose.yml`, then restart the backend.
 
 The free tier allows 5000 calls a day. Results are cached per geographic area for 6 hours and only refreshed when someone actually opens the page, so a typical instance uses a few dozen calls a day. Leave the variable empty to hide the section entirely.
 
-> **Coverage note:** Ticketmaster's catalogue is strongest in North America, the UK, Ireland and Australia, and thinner elsewhere. Record shops are unaffected — they come from OpenStreetMap and need no key.
+> **Coverage note:** Ticketmaster's catalogue is strongest in North America, the UK, Ireland and Australia, and thinner elsewhere. Record shops are unaffected, they come from OpenStreetMap and need no key.
+
+</details>
 
 ## Tech Stack
 
