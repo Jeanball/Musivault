@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { getImageUrl } from '../../utils/imageUrl';
 import { revealIfCached } from '../../utils/imageReveal';
 import type { CommunityAlbum } from '../../types/public.types';
@@ -16,7 +17,9 @@ interface CommunityAlbumCardProps {
  * record opens its detail modal, the collector's name opens their shelf.
  */
 const CommunityAlbumCard: React.FC<CommunityAlbumCardProps> = ({ item, onSelect }) => {
+    const { t, i18n } = useTranslation();
     const album = item.album;
+    const addedDate = item.addedAt ? new Date(item.addedAt) : null;
 
     return (
         <div
@@ -52,6 +55,14 @@ const CommunityAlbumCard: React.FC<CommunityAlbumCardProps> = ({ item, onSelect 
                         e.currentTarget.src = '/placeholder-album.svg';
                     }}
                 />
+                {addedDate && (
+                    <span
+                        className="absolute top-1 right-1 z-3 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs"
+                        title={`${t('collection.added')}: ${addedDate.toLocaleDateString(i18n.language)}`}
+                    >
+                        {addedDate.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                )}
                 {/* Readability scrim behind the owner's name. */}
                 <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/70 to-transparent pointer-events-none z-2" />
                 <Link
