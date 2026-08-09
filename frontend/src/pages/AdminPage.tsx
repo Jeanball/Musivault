@@ -209,7 +209,7 @@ const AdminPage: React.FC = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="stat bg-base-200 rounded-box shadow">
+                <div className="stat bg-base-200 rounded-box shadow-sm">
                     <div className="stat-figure text-primary hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -230,7 +230,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-primary text-2xl sm:text-3xl">{totalUsers}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow">
+                <div className="stat bg-base-200 rounded-box shadow-sm">
                     <div className="stat-figure text-secondary hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -251,7 +251,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-secondary text-2xl sm:text-3xl">{totalAdmins}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow">
+                <div className="stat bg-base-200 rounded-box shadow-sm">
                     <div className="stat-figure text-accent hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -272,7 +272,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-accent text-2xl sm:text-3xl">{totalAlbums}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow">
+                <div className="stat bg-base-200 rounded-box shadow-sm">
                     <div className="stat-figure text-info hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -317,18 +317,18 @@ const AdminPage: React.FC = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                         <h2 className="card-title">{t('admin.userManagement')}</h2>
                         {/* Search */}
-                        <div className="form-control w-full sm:w-64">
-                            <div className="input-group">
+                        <div className="flex flex-col w-full sm:w-64">
+                            <div className="join">
                                 <input
                                     type="text"
                                     placeholder={t('admin.searchUsers')}
-                                    className="input input-bordered input-sm w-full"
+                                    className="input input-sm join-item w-full"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                                 {searchQuery && (
                                     <button
-                                        className="btn btn-sm btn-ghost"
+                                        className="btn btn-sm btn-ghost join-item"
                                         onClick={() => setSearchQuery('')}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -360,7 +360,7 @@ const AdminPage: React.FC = () => {
                                     <tr key={user._id} className={user._id === currentUserId ? 'bg-primary/10' : ''}>
                                         <td>
                                             <div className="flex items-center gap-2">
-                                                <div className="avatar placeholder">
+                                                <div className="avatar-placeholder avatar">
                                                     <div className="bg-neutral text-neutral-content rounded-full w-8">
                                                         <span className="text-sm">
                                                             {user.username.charAt(0).toUpperCase()}
@@ -510,13 +510,13 @@ const AdminPage: React.FC = () => {
                         {filteredUsers.map((user) => (
                             <div
                                 key={user._id}
-                                className={`card bg-base-100 shadow ${user._id === currentUserId ? 'ring-2 ring-primary' : ''}`}
+                                className={`card bg-base-100 shadow-sm ${user._id === currentUserId ? 'ring-2 ring-primary' : ''}`}
                             >
                                 <div className="card-body p-4">
                                     {/* Header row */}
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="avatar placeholder">
+                                            <div className="avatar-placeholder avatar">
                                                 <div className="bg-neutral text-neutral-content rounded-full w-10">
                                                     <span className="text-lg">
                                                         {user.username.charAt(0).toUpperCase()}

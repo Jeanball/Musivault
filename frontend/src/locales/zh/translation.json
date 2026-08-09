@@ -94,7 +94,9 @@
         "themeDescription": "选择您喜欢的颜色主题。您的选择将保存到您的账户。",
         "themes": {
             "light": "浅色",
-            "dark": "深色"
+            "dark": "深色",
+            "abyss": "深渊",
+            "caramellatte": "焦糖拿铁"
         },
         "language": "语言",
         "languageDescription": "选择界面的首选语言。",

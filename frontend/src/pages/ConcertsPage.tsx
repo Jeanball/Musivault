@@ -81,7 +81,7 @@ const ConcertsPage: React.FC = () => {
 
             <div className="mb-8">
                 <NearbyControls nearby={nearby}>
-                    <label className="input input-bordered flex items-center gap-2 flex-1 min-w-52 max-w-md">
+                    <label className="input flex items-center gap-2 flex-1 min-w-52 max-w-md">
                         <Search size={18} className="opacity-60" />
                         <input
                             type="text"
@@ -95,7 +95,7 @@ const ConcertsPage: React.FC = () => {
                     <select
                         value={genre}
                         onChange={(e) => setGenre(e.target.value)}
-                        className="select select-bordered"
+                        className="select w-auto"
                         aria-label={t('discover.allGenres')}
                     >
                         <option value="">{t('discover.allGenres')}</option>
@@ -107,7 +107,7 @@ const ConcertsPage: React.FC = () => {
                     <select
                         value={days}
                         onChange={(e) => setDays(Number(e.target.value))}
-                        className="select select-bordered"
+                        className="select w-auto"
                         aria-label={t('discover.nextDays', { count: days })}
                     >
                         {DAY_WINDOWS.map((window) => (
@@ -119,7 +119,7 @@ const ConcertsPage: React.FC = () => {
                 </NearbyControls>
             </div>
 
-            <div role="tablist" className="tabs tabs-boxed mb-6 w-fit">
+            <div role="tablist" className="tabs tabs-box mb-6 w-fit">
                 <button
                     role="tab"
                     className={`tab ${scope === 'for-you' ? 'tab-active' : ''}`}

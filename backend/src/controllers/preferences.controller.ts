@@ -4,6 +4,14 @@ import ExchangeRates from '../models/ExchangeRates';
 import { logger } from '../config/logger.config';
 import { MIN_RADIUS_KM, MAX_RADIUS_KM } from '../utils/geo.utils';
 
+/**
+ * Mirrors THEMES in `frontend/src/constants/themes.ts`. An unknown name is not
+ * a harmless string: the frontend writes it straight to `data-theme`, where
+ * daisyUI silently falls back to the default theme, so the user's choice
+ * appears to save and then never applies.
+ */
+const ALLOWED_THEMES = ['light', 'dark', 'abyss', 'caramellatte'];
+
 export async function getExchangeRates(req: Request, res: Response) {
     try {
         let exchangeRates = await ExchangeRates.findOne({ baseCurrency: 'USD' });
@@ -78,6 +86,10 @@ export async function updatePreferences(req: Request, res: Response) {
 
         // Update preferences
         if (theme !== undefined) {
+            if (!ALLOWED_THEMES.includes(theme)) {
+                res.status(400).json({ message: `Unknown theme: ${theme}` });
+                return;
+            }
             user.preferences = { ...user.preferences, theme };
         }
         if (isPublic !== undefined) {

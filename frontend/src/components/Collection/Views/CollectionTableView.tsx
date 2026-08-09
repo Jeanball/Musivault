@@ -101,7 +101,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                         <tr
                             key={item._id}
                             onClick={() => onItemClick(item)}
-                            className="hover cursor-pointer"
+                            className="hover:bg-base-300 cursor-pointer"
                         >
                             <td>
                                 <div className="avatar">
@@ -129,6 +129,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                     <div className="mt-1.5">
                                         <FormatColorBadge
                                             text={item.format.text}
+                                            maxChars={20}
                                             className="text-xs min-h-5 py-0.5"
                                             title={item.format.text}
                                         />

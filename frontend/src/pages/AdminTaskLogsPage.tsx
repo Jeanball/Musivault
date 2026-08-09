@@ -140,7 +140,7 @@ const AdminTaskLogsPage: React.FC = () => {
                             </p>
                         </div>
                         <select
-                            className="select select-bordered select-sm w-full max-w-xs"
+                            className="select select-sm w-full max-w-xs"
                             value={filterTaskId}
                             onChange={(e) => handleFilterChange(e.target.value)}
                         >
@@ -245,7 +245,7 @@ const AdminTaskLogsPage: React.FC = () => {
                                             </div>
                                         </div>
                                         {log.details && (
-                                            <p className="text-sm text-base-content/70 break-words">{log.details}</p>
+                                            <p className="text-sm text-base-content/70 wrap-break-word">{log.details}</p>
                                         )}
                                     </div>
                                 ))}

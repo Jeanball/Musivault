@@ -155,7 +155,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     <input
                         type="text"
                         placeholder={t('search.placeholder', 'Search...')}
-                        className="input input-bordered input-sm w-full"
+                        className="input input-sm w-full"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -192,13 +192,13 @@ const ArtistAlbumsPage: React.FC = () => {
                 {sortedAlbums.map((album) => (
                     <div
                         key={`${album.type}-${album.id}`}
-                        className="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 bg-base-200 rounded-xl hover:bg-base-300 cursor-pointer transition-all hover:scale-[1.01] shadow-sm group"
+                        className="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 bg-base-200 rounded-xl hover:bg-base-300 cursor-pointer transition-all hover:scale-[1.01] shadow-xs group"
                         onClick={() => handleAlbumClick(album)}
                     >
                         <img
                             src={getImageUrl(album.thumb || '/placeholder-album.svg')}
                             alt={album.title}
-                            className="w-14 h-14 sm:w-16 sm:h-16 lg:w-[150px] lg:h-[150px] object-cover rounded-lg shadow-sm flex-shrink-0 group-hover:shadow-md transition-shadow"
+                            className="w-14 h-14 sm:w-16 sm:h-16 lg:w-[150px] lg:h-[150px] object-cover rounded-lg shadow-xs shrink-0 group-hover:shadow-md transition-shadow"
                             loading="lazy"
                         />
                         <div className="flex flex-col justify-center min-w-0 flex-1 py-0 lg:py-1">

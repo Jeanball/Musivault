@@ -91,12 +91,12 @@ const SettingsPage: React.FC = () => {
                         </button>
                     </div>
 
-                    <ul className="menu bg-base-200 rounded-box p-2">
+                    <ul className="menu w-full bg-base-200 rounded-box p-2">
                         {menuItems.map((item) => (
                             <li key={item.id}>
                                 <button
                                     onClick={() => setActiveSection(item.id)}
-                                    className={`flex items-center gap-3 ${activeSection === item.id ? 'active' : ''}`}
+                                    className={`flex items-center gap-3 ${activeSection === item.id ? 'menu-active' : ''}`}
                                 >
                                     {item.icon}
                                     {t(item.labelKey)}
@@ -126,9 +126,9 @@ const SettingsPage: React.FC = () => {
                             <button
                                 key={item.id}
                                 onClick={() => handleMobileMenuClick(item.id)}
-                                className="card bg-base-200 shadow-sm active:shadow-inner active:scale-95 transition-all aspect-square flex flex-col items-center justify-center gap-3 p-4 hover:bg-base-300"
+                                className="card bg-base-200 shadow-xs active:shadow-inner active:scale-95 transition-all aspect-square flex flex-col items-center justify-center gap-3 p-4 hover:bg-base-300"
                             >
-                                <span className="bg-base-100 p-4 rounded-full text-primary shadow-sm">
+                                <span className="bg-base-100 p-4 rounded-full text-primary shadow-xs">
                                     {React.cloneElement(item.icon as React.ReactElement, { size: 32 } as any)}
                                 </span>
                                 <span className="font-bold text-lg text-center leading-tight">{t(item.labelKey)}</span>

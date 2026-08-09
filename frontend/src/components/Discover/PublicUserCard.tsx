@@ -34,7 +34,7 @@ const PublicUserCard: React.FC<PublicUserCardProps> = ({ user, isExpanded, onTog
                 className="flex items-center justify-between gap-2 cursor-pointer"
             >
                 <div className="flex items-center gap-4 min-w-0">
-                    <div className="avatar placeholder shrink-0">
+                    <div className="avatar-placeholder avatar shrink-0">
                         <div className="bg-primary text-primary-content rounded-full w-12 h-12">
                             <span className="text-xl font-bold">
                                 {user.username.charAt(0).toUpperCase()}
@@ -74,7 +74,7 @@ const PublicUserCard: React.FC<PublicUserCardProps> = ({ user, isExpanded, onTog
                                 <div
                                     key={item._id}
                                     onClick={() => onSelectAlbum(item)}
-                                    className="card bg-base-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                                    className="card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
                                 >
                                     <figure className="aspect-square relative overflow-hidden rounded-t-xl">
                                         <img

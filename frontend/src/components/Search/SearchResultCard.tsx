@@ -25,15 +25,15 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, onShowDetai
           onShowDetails(result.id);
         }
       }}
-      className="relative flex items-center p-4 bg-base-200 rounded-lg shadow-md transition-all duration-200 hover:shadow-xl hover:bg-base-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="relative flex items-center p-4 bg-base-200 rounded-lg shadow-md transition-all duration-200 hover:shadow-xl hover:bg-base-300 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
     >
       <img
         src={getImageUrl(result.thumb)}
         alt={`${artist} - ${album}`}
-        className="w-20 h-20 object-cover mr-4 rounded flex-shrink-0"
+        className="w-20 h-20 object-cover mr-4 rounded-sm shrink-0"
         loading="lazy"
       />
-      <div className="flex-grow min-w-0">
+      <div className="grow min-w-0">
         <h3 className="text-lg font-bold truncate" title={album}>
           {album}
         </h3>

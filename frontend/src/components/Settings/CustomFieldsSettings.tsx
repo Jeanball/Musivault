@@ -207,13 +207,13 @@ const CustomFieldsSettings: React.FC = () => {
                             {editingId ? t('customFields.editField') : t('customFields.addField')}
                         </h3>
 
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label">
-                                <span className="label-text">{t('customFields.fieldName')}</span>
+                                <span className="text-sm">{t('customFields.fieldName')}</span>
                             </label>
                             <input
                                 type="text"
-                                className="input input-bordered"
+                                className="input w-full"
                                 value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                                 placeholder={t('customFields.namePlaceholder')}
@@ -222,12 +222,12 @@ const CustomFieldsSettings: React.FC = () => {
                             />
                         </div>
 
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label">
-                                <span className="label-text">{t('customFields.fieldType')}</span>
+                                <span className="text-sm">{t('customFields.fieldType')}</span>
                             </label>
                             <select
-                                className="select select-bordered"
+                                className="select w-full"
                                 value={form.type}
                                 onChange={(e) =>
                                     setForm({ ...form, type: e.target.value as CustomFieldType })
@@ -238,20 +238,20 @@ const CustomFieldsSettings: React.FC = () => {
                             </select>
                         </div>
 
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label">
-                                <span className="label-text">{t('customFields.examplePlaceholder')}</span>
+                                <span className="text-sm">{t('customFields.examplePlaceholder')}</span>
                             </label>
                             <input
                                 type="text"
-                                className="input input-bordered"
+                                className="input w-full"
                                 value={form.placeholder}
                                 onChange={(e) => setForm({ ...form, placeholder: e.target.value })}
                                 placeholder={t('customFields.placeholderHint')}
                                 maxLength={500}
                             />
                             <label className="label">
-                                <span className="label-text-alt text-base-content/60">
+                                <span className="text-xs text-base-content/60">
                                     {t('customFields.placeholderDescription')}
                                 </span>
                             </label>

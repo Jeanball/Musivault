@@ -129,7 +129,7 @@ const PreferredGenresDropdown: React.FC<PreferredGenresDropdownProps> = ({ onSav
                                 checked={!draftExcluded.has(style)}
                                 onChange={() => toggleDraftStyle(style)}
                             />
-                            <span className="label-text text-sm">{style}</span>
+                            <span className="text-sm text-sm">{style}</span>
                         </label>
                     ))}
                 </div>

@@ -25,7 +25,7 @@ const AdminTabs: React.FC = () => {
     ];
 
     return (
-        <div className="tabs tabs-boxed bg-base-200 inline-flex">
+        <div className="tabs tabs-box bg-base-200 inline-flex">
             {tabs.map((tab) => (
                 <Link
                     key={tab.to}

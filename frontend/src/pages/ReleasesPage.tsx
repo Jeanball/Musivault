@@ -89,7 +89,7 @@ const ReleasesPage: React.FC = () => {
 
             {/* Tabs + search */}
             <div className="flex flex-wrap items-center gap-4 mb-8">
-                <div className="tabs tabs-boxed bg-base-200 inline-flex max-w-full overflow-x-auto">
+                <div className="tabs tabs-box bg-base-200 inline-flex max-w-full overflow-x-auto">
                     <button
                         onClick={() => setActiveTab('upcoming')}
                         className={`tab h-auto min-h-8 py-1.5 px-3 gap-2 flex-nowrap whitespace-nowrap ${activeTab === 'upcoming' ? 'tab-active' : ''}`}
@@ -108,7 +108,7 @@ const ReleasesPage: React.FC = () => {
                     </button>
                 </div>
 
-                <label className="input input-bordered flex items-center gap-2 flex-1 min-w-52 max-w-md">
+                <label className="input flex items-center gap-2 flex-1 min-w-52 max-w-md">
                     <Search size={18} className="opacity-60" />
                     <input
                         type="text"
@@ -120,7 +120,7 @@ const ReleasesPage: React.FC = () => {
                 </label>
 
                 <select
-                    className="select select-bordered w-full sm:w-auto"
+                    className="select w-full sm:w-auto"
                     value={styleFilter}
                     onChange={(e) => setStyleFilter(e.target.value)}
                 >

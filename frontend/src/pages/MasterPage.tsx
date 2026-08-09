@@ -324,7 +324,7 @@ const MasterPage: React.FC = () => {
 
             <div className="flex flex-col md:flex-row gap-8">
 
-                <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
+                <div className="md:w-1/3 lg:w-1/4 shrink-0">
                     {pageData.coverImage && (
                         <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-lg shadow-2xl" />
                     )}
@@ -336,8 +336,8 @@ const MasterPage: React.FC = () => {
 
                 <div className="flex-1">
                     {/* Helper Tooltip / Alert */}
-                    <div className="alert bg-base-200/50 border border-base-300 shadow-sm py-3 mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info flex-shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div className="alert bg-base-200/50 border border-base-300 shadow-xs py-3 mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <div>
                             <h3 className="font-bold">
                                 {isRematchMode
@@ -375,7 +375,7 @@ const MasterPage: React.FC = () => {
                             {/* Country filter dropdown */}
                             {Object.keys(pageData.countryCounts || {}).length > 1 && (
                                 <select
-                                    className="select select-sm select-bordered w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2"
+                                    className="select select-sm w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2"
                                     value={countryFilter}
                                     onChange={(e) => setCountryFilter(e.target.value)}
                                 >
@@ -426,7 +426,7 @@ const MasterPage: React.FC = () => {
                                         <span className="text-base-content/40 hidden sm:inline">•</span>
                                         <span className="text-base-content/70 truncate max-w-[200px] sm:max-w-[250px]" title={group.header.label}>{group.header.label}</span>
                                         <span className="text-base-content/40 hidden sm:inline">•</span>
-                                        <span className="text-sm bg-base-200 px-2 py-0.5 rounded font-medium whitespace-nowrap">{group.header.country || t('versions.unknown')}</span>
+                                        <span className="text-sm bg-base-200 px-2 py-0.5 rounded-sm font-medium whitespace-nowrap">{group.header.country || t('versions.unknown')}</span>
                                     </div>
 
                                     {/* Formats list for this group */}
@@ -488,16 +488,16 @@ const MasterPage: React.FC = () => {
                                                             <img 
                                                                 src={getImageUrl(details?.thumb || details?.cover_image || pageData.coverImage)} 
                                                                 alt="" 
-                                                                className="w-10 h-10 object-cover rounded shadow-sm bg-base-300 flex-shrink-0"
+                                                                className="w-10 h-10 object-cover rounded-sm shadow-xs bg-base-300 shrink-0"
                                                                 loading="lazy"
                                                             />
                                                             <div className="flex flex-col items-start min-w-0 flex-1 w-full gap-0.5">
                                                                 <div className="flex items-center w-full">
-                                                                    <span className="font-bold whitespace-normal break-words overflow-hidden text-sm mr-1.5">{displayTitle}</span>
-                                                                    <Plus size={16} className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex-shrink-0" />
+                                                                    <span className="font-bold whitespace-normal wrap-break-word overflow-hidden text-sm mr-1.5">{displayTitle}</span>
+                                                                    <Plus size={16} className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto shrink-0" />
                                                                 </div>
                                                                 {/* Render a non-breaking space if empty to ensure uniform button height */}
-                                                                <span className="text-xs break-words whitespace-normal leading-tight mt-0.5 text-base-content/80 font-medium min-h-[1rem]">
+                                                                <span className="text-xs wrap-break-word whitespace-normal leading-tight mt-0.5 text-base-content/80 font-medium min-h-4">
                                                                     {displaySubtitle || '\u00A0'}
                                                                 </span>
                                                             </div>

@@ -33,7 +33,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                             >
                                 <figure className="aspect-square w-full bg-base-300 relative">
                                     {hasActiveFormatVerificationIssue(item.formatVerification) && (
-                                        <div className="absolute top-2 right-2 z-20 rounded-full bg-base-100/90 p-1 shadow-sm">
+                                        <div className="absolute top-2 right-2 z-20 rounded-full bg-base-100/90 p-1 shadow-xs">
                                             <FormatVerificationBadge verification={item.formatVerification} className="tooltip-left" />
                                         </div>
                                     )}
@@ -77,6 +77,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                         <div className="mt-1.5 flex">
                                             <FormatColorBadge
                                                 text={item.format.text}
+                                                maxChars={20}
                                                 className="text-[10px] py-1 min-h-4 max-w-full"
                                                 title={item.format.text}
                                             />

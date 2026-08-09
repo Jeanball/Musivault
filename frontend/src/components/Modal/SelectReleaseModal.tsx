@@ -52,9 +52,9 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
                                 <img
                                     src={getImageUrl(result.thumb || '/placeholder-album.svg')}
                                     alt={album}
-                                    className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
+                                    className="w-16 h-16 object-cover rounded-sm mr-4 shrink-0"
                                 />
-                                <div className="flex-grow min-w-0">
+                                <div className="grow min-w-0">
                                     <h4 className="font-semibold truncate">{album}</h4>
                                     <p className="text-sm text-base-content/70 truncate">{artist || t('common.unknownArtist')}</p>
                                     <p className="text-xs text-base-content/50">{result.year || t('common.na')}</p>

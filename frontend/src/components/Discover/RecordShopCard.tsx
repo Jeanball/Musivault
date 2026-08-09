@@ -18,7 +18,7 @@ const RecordShopCard: React.FC<RecordShopCardProps> = ({ shop }) => {
     // base-200 rather than base-100: the page itself sits on base-100, so a card
     // on that token would have no edge at all against the background.
     return (
-        <div className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow duration-300 h-full">
+        <div className="card bg-base-200 shadow-xs hover:shadow-md transition-shadow duration-300 h-full">
             <div className="card-body p-4 gap-2">
                 <div className="flex items-start justify-between gap-2">
                     {/* min-w-0 on both flex levels: without it the name refuses to
@@ -28,7 +28,7 @@ const RecordShopCard: React.FC<RecordShopCardProps> = ({ shop }) => {
                         <Store size={18} className="shrink-0 opacity-70 mt-0.5" />
                         {/* Two lines, then ellipsis — long names stay readable
                             without letting one card tower over its neighbours. */}
-                        <span className="min-w-0 line-clamp-2 break-words">{shop.name}</span>
+                        <span className="min-w-0 line-clamp-2 wrap-break-word">{shop.name}</span>
                     </h3>
                     <span className="badge badge-ghost badge-sm whitespace-nowrap shrink-0">
                         {t('discover.kmAway', { distance: formatDistance(shop.distanceKm, i18n.language) })}
@@ -38,14 +38,14 @@ const RecordShopCard: React.FC<RecordShopCardProps> = ({ shop }) => {
                 {address && (
                     <p className="text-sm text-base-content/70 flex items-start gap-1.5">
                         <MapPin size={14} className="shrink-0 mt-0.5 opacity-60" />
-                        <span className="min-w-0 break-words">{address}</span>
+                        <span className="min-w-0 wrap-break-word">{address}</span>
                     </p>
                 )}
 
                 {shop.openingHours && (
                     <p className="text-xs text-base-content/60 flex items-start gap-1.5">
                         <Clock size={14} className="shrink-0 mt-0.5 opacity-60" />
-                        <span className="min-w-0 break-words">{shop.openingHours}</span>
+                        <span className="min-w-0 wrap-break-word">{shop.openingHours}</span>
                     </p>
                 )}
 

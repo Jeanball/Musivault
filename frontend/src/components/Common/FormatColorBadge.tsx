@@ -6,22 +6,36 @@ interface FormatColorBadgeProps {
     descriptions?: string[];
     className?: string;
     title?: string;
+    /**
+     * Clips the label past this many characters. Collection views pass the same
+     * value so a badge is the same size everywhere, whatever the variant name.
+     */
+    maxChars?: number;
 }
+
+const truncate = (value: string, maxChars?: number): string =>
+    maxChars && value.length > maxChars
+        ? `${value.slice(0, maxChars - 1).trimEnd()}…`
+        : value;
 
 /**
  * Badge for a format's color-coded text/description (see formatColors.ts).
- * DaisyUI's .badge sizes set a fixed height, which clips the background when
- * a long variant name (e.g. "Cloudy Red on Clear Vinyl") wraps to 2 lines —
- * h-auto/whitespace-normal here let the background grow with the text instead.
+ * Variant names run long — "Olive Green and Sea Blue Pinwheel with White
+ * Splatter" — so callers cap them with maxChars and keep the full name in the
+ * tooltip; the label stays on one line to keep rows an even height.
  */
-const FormatColorBadge: React.FC<FormatColorBadgeProps> = ({ text, descriptions = [], className = '', title }) => (
-    <span
-        className={`badge border h-auto whitespace-normal text-center leading-snug ${className}`.trim()}
-        style={getFormatButtonStyle(text, descriptions)}
-        title={title}
-    >
-        {text}
-    </span>
-);
+const FormatColorBadge: React.FC<FormatColorBadgeProps> = ({ text, descriptions = [], className = '', title, maxChars }) => {
+    const label = truncate(text, maxChars);
+
+    return (
+        <span
+            className={`badge border h-auto whitespace-nowrap text-center leading-snug ${className}`.trim()}
+            style={getFormatButtonStyle(text, descriptions)}
+            title={title ?? (label !== text ? text : undefined)}
+        >
+            {label}
+        </span>
+    );
+};
 
 export default FormatColorBadge;

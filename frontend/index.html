@@ -14,6 +14,18 @@
   <meta name="description" content="Manage your vinyl and CD collection" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Musivault</title>
+  <!--
+    Applied before the first paint. ThemeContext also sets data-theme, but only
+    from an effect, so without this every user whose theme isn't the daisyUI
+    default sees a flash of the light theme on each load. Kept dependency-free
+    and inline on purpose: an external script would be another round trip.
+    'dark' must match DEFAULT_THEME in src/constants/themes.ts.
+  -->
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
+    } catch (e) { /* localStorage can throw when cookies are blocked */ }
+  </script>
 </head>
 
 <body>

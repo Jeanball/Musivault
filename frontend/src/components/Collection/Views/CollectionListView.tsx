@@ -42,7 +42,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                     <tr
                                         key={item._id}
                                         onClick={() => onItemClick(item)}
-                                        className="hover cursor-pointer"
+                                        className="hover:bg-base-300 cursor-pointer"
                                     >
                                         <td>
                                             <div className="avatar">
@@ -67,6 +67,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                                 <div className="mt-1">
                                                     <FormatColorBadge
                                                         text={item.format.text}
+                                                        maxChars={20}
                                                         className="text-xs min-h-5 py-0.5"
                                                         title={item.format.text}
                                                     />

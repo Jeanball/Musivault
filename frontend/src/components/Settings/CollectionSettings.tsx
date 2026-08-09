@@ -50,7 +50,7 @@ const CollectionSettings: React.FC = () => {
             <div className="card bg-base-200 shadow-xl">
                 <div className="card-body">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="skeleton h-5 w-5 rounded"></div>
+                        <div className="skeleton h-5 w-5 rounded-sm"></div>
                         <div className="skeleton h-6 w-48"></div>
                     </div>
                     <div className="skeleton h-4 w-3/4 mb-6"></div>
@@ -77,7 +77,7 @@ const CollectionSettings: React.FC = () => {
                     {t('settings.publicCollectionDescription')}
                 </p>
 
-                <div className="form-control">
+                <div className="flex flex-col">
                     <label className="label cursor-pointer justify-start gap-4">
                         <input
                             type="checkbox"
@@ -86,7 +86,7 @@ const CollectionSettings: React.FC = () => {
                             onChange={handlePublicToggle}
                             disabled={isSaving}
                         />
-                        <span className="label-text">
+                        <span className="text-sm">
                             {isPublic ? t('settings.collectionPublic') : t('settings.collectionPrivate')}
                         </span>
                     </label>
@@ -100,7 +100,7 @@ const CollectionSettings: React.FC = () => {
                                 type="text"
                                 value={`${window.location.origin}/shared/${publicShareId}`}
                                 readOnly
-                                className="input input-bordered input-sm flex-1 font-mono text-xs"
+                                className="input input-sm flex-1 font-mono text-xs"
                             />
                             <button
                                 onClick={copyShareLink}

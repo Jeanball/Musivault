@@ -120,7 +120,7 @@ const LocationControls: React.FC<LocationControlsProps> = ({
             {searchVisible && (
                 <div>
                     <form onSubmit={search} className="flex flex-wrap items-center gap-2">
-                        <label className="input input-bordered input-sm flex items-center gap-2 flex-1 min-w-52 max-w-sm">
+                        <label className="input input-sm flex items-center gap-2 flex-1 min-w-52 max-w-sm">
                             <Search size={16} className="opacity-60" />
                             <input
                                 type="text"
@@ -138,7 +138,7 @@ const LocationControls: React.FC<LocationControlsProps> = ({
                     {searchError && <p className="text-xs text-error mt-1">{searchError}</p>}
 
                     {results.length > 0 && (
-                        <ul className="menu bg-base-200 rounded-box mt-2 max-w-lg">
+                        <ul className="menu w-full bg-base-200 rounded-box mt-2 max-w-lg">
                             {results.map((result) => (
                                 <li key={`${result.lat},${result.lon}`}>
                                     <button onClick={() => pick(result)} className="text-sm text-left">

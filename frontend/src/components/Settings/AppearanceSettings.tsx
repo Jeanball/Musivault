@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { toastService } from '../../utils/toast';
 import { updatePreferences } from '../../api/preferences';
 import { useTheme } from '../../context/ThemeContext';
-
-const themes = ["light", "dark"];
+import { THEMES, type Theme } from '../../constants/themes';
 
 const languages = [
     { code: 'en', label: 'English' },
@@ -20,7 +19,7 @@ const AppearanceSettings: React.FC = () => {
     const { theme, setTheme, wideScreenMode, setWideScreenMode, preferredCurrency, setPreferredCurrency } = useTheme();
     const [isSaving, setIsSaving] = useState(false);
 
-    const handleThemeChange = async (newTheme: string) => {
+    const handleThemeChange = async (newTheme: Theme) => {
         setTheme(newTheme);
         setIsSaving(true);
 
@@ -94,7 +93,7 @@ const AppearanceSettings: React.FC = () => {
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {themes.map((themeOption) => (
+                        {THEMES.map((themeOption) => (
                             <button
                                 key={themeOption}
                                 onClick={() => handleThemeChange(themeOption)}
@@ -130,7 +129,7 @@ const AppearanceSettings: React.FC = () => {
                     </p>
 
                     <select
-                        className="select select-bordered w-full max-w-xs"
+                        className="select w-full max-w-xs"
                         value={languages.some(l => l.code === i18n.language) ? i18n.language : i18n.language.substring(0, 2)}
                         onChange={(e) => handleLanguageChange(e.target.value)}
                         disabled={isSaving}
@@ -159,7 +158,7 @@ const AppearanceSettings: React.FC = () => {
                     </p>
 
                     <select
-                        className="select select-bordered w-full max-w-xs uppercase"
+                        className="select w-full max-w-xs uppercase"
                         value={preferredCurrency}
                         onChange={(e) => handleCurrencyChange(e.target.value)}
                         disabled={isSaving}
@@ -189,7 +188,7 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.displayDescription')}
                     </p>
 
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label cursor-pointer justify-start gap-4">
                             <input
                                 type="checkbox"
@@ -199,7 +198,7 @@ const AppearanceSettings: React.FC = () => {
                                 disabled={isSaving}
                             />
                             <div>
-                                <span className="label-text font-medium">{t('settings.wideScreenMode')}</span>
+                                <span className="text-sm font-medium">{t('settings.wideScreenMode')}</span>
                                 <p className="text-xs text-base-content/50 mt-1">
                                     {wideScreenMode
                                         ? t('settings.wideScreenEnabled')

@@ -92,7 +92,7 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
                 <FieldRow key={field._id} label={field.name}>
                     {field.type === 'textarea' ? (
                         <textarea
-                            className="textarea textarea-bordered textarea-sm w-full h-16"
+                            className="textarea textarea-sm w-full h-16"
                             value={localValues[field._id] || ''}
                             placeholder={field.placeholder || undefined}
                             onChange={(e) =>
@@ -106,7 +106,7 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
                     ) : (
                         <input
                             type="text"
-                            className="input input-bordered input-sm w-full"
+                            className="input input-sm w-full"
                             value={localValues[field._id] || ''}
                             placeholder={field.placeholder || undefined}
                             onChange={(e) =>

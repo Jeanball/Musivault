@@ -27,6 +27,11 @@ const PrivateLayout: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const hasShownLoginToast = useRef(false);
 
+    // Read through a ref so verifyUser can stay out of the mount effect's
+    // dependencies: re-running it on every navigation hammered /api/auth/verify.
+    const locationStateRef = useRef(location.state);
+    locationStateRef.current = location.state;
+
     const verifyUser = async () => {
         try {
             const data = await verify();
@@ -45,7 +50,7 @@ const PrivateLayout: React.FC = () => {
                 }
 
                 // Show login success toast AFTER theme sync (only once)
-                const state = location.state as LocationState;
+                const state = locationStateRef.current as LocationState;
                 if (state?.showLoginSuccess && !hasShownLoginToast.current) {
                     hasShownLoginToast.current = true;
                     toastService.success(t('auth.loginSuccess', 'Connection successful!'));
@@ -65,9 +70,12 @@ const PrivateLayout: React.FC = () => {
         }
     };
 
+    // Once per mount. Callers that need fresh user data use the refreshUser
+    // handle passed down through the outlet context.
     useEffect(() => {
         verifyUser();
-    }, [navigate, syncPreferencesFromServer, location.state]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleLogout = async () => {
         try {

@@ -173,12 +173,12 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
             {/* Bottom row: Filter dropdowns */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
                 {/* Filter by Format */}
-                <div className="form-control">
+                <div className="flex flex-col">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">{t('common.format')}</span>
+                        <span className="text-sm text-xs">{t('common.format')}</span>
                     </label>
                     <select
-                        className="select select-bordered select-sm w-full"
+                        className="select select-sm w-full"
                         value={filters.format}
                         onChange={(e) => handleFilterChange('format', e.target.value)}
                     >
@@ -190,12 +190,12 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 </div>
 
                 {/* Filter by Decade */}
-                <div className="form-control">
+                <div className="flex flex-col">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">{t('collection.decade')}</span>
+                        <span className="text-sm text-xs">{t('collection.decade')}</span>
                     </label>
                     <select
-                        className="select select-bordered select-sm w-full"
+                        className="select select-sm w-full"
                         value={filters.decade}
                         onChange={(e) => handleFilterChange('decade', e.target.value)}
                     >
@@ -207,12 +207,12 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 </div>
 
                 {/* Filter by Added Period */}
-                <div className="form-control">
+                <div className="flex flex-col">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">{t('collection.added')}</span>
+                        <span className="text-sm text-xs">{t('collection.added')}</span>
                     </label>
                     <select
-                        className="select select-bordered select-sm w-full"
+                        className="select select-sm w-full"
                         value={filters.addedPeriod}
                         onChange={(e) => handleFilterChange('addedPeriod', e.target.value)}
                     >
@@ -225,12 +225,12 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 </div>
 
                 {/* Filter by Style */}
-                <div className="form-control">
+                <div className="flex flex-col">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">{t('collection.style')}</span>
+                        <span className="text-sm text-xs">{t('collection.style')}</span>
                     </label>
                     <select
-                        className="select select-bordered select-sm w-full"
+                        className="select select-sm w-full"
                         value={filters.style}
                         onChange={(e) => handleFilterChange('style', e.target.value)}
                     >
@@ -242,12 +242,12 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 </div>
 
                 {/* Filter by Label */}
-                <div className="form-control">
+                <div className="flex flex-col">
                     <label className="label py-0.5 md:py-1">
-                        <span className="label-text text-xs">{t('album.label')}</span>
+                        <span className="text-sm text-xs">{t('album.label')}</span>
                     </label>
                     <select
-                        className="select select-bordered select-sm w-full"
+                        className="select select-sm w-full"
                         value={filters.label}
                         onChange={(e) => handleFilterChange('label', e.target.value)}
                     >

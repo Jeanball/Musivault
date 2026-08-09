@@ -143,6 +143,11 @@ export function extractFormatColors(text?: string, descriptions?: string[]): str
 /**
  * Returns inline styles for a button based on extracted colors.
  * Single color: subtle tint. Multiple colors: diagonal gradient.
+ *
+ * The text colour is deliberately left out: colouring it with the vinyl colour
+ * was unreadable on some themes (pale yellow on caramellatte's cream, for
+ * one). Inheriting base-content keeps it legible on every theme, and the
+ * background still carries the colour.
  */
 export function getFormatButtonStyle(text?: string, descriptions?: string[]): React.CSSProperties {
     const colors = extractFormatColors(text, descriptions);
@@ -152,7 +157,6 @@ export function getFormatButtonStyle(text?: string, descriptions?: string[]): Re
         return {
             backgroundColor: `${colors[0]}20`,
             borderColor: `${colors[0]}60`,
-            color: colors[0],
         };
     }
 
@@ -163,9 +167,16 @@ export function getFormatButtonStyle(text?: string, descriptions?: string[]): Re
         return `${c}30 ${start}%, ${c}30 ${end}%`;
     }).join(', ');
 
+    const borderStops = colors
+        .map((c, i) => `${c}70 ${(i / colors.length) * 100}%`)
+        .concat(`${colors[colors.length - 1]}70 100%`)
+        .join(', ');
+
+    // The border gradient goes through background/border-box rather than
+    // border-image, which ignores border-radius and squares off the corners on
+    // the rounded themes.
     return {
-        background: `linear-gradient(135deg, ${gradientStops})`,
-        borderImage: `linear-gradient(135deg, ${colors.map((c, i) => `${c}70 ${(i / colors.length) * 100}%`).concat(`${colors[colors.length - 1]}70 100%`).join(', ')}) 1`,
-        color: colors[0],
+        background: `linear-gradient(135deg, ${gradientStops}) padding-box, linear-gradient(135deg, ${borderStops}) border-box`,
+        borderColor: 'transparent',
     };
 }

@@ -3,7 +3,6 @@ import dotenv from "dotenv"
 import cors from "cors"
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import path from 'path';
 
 // Config
@@ -104,10 +103,7 @@ app.use((req, res, next) => {
 
 app.use('/api/users', usersRoute);
 app.use('/api/discogs', discogsRoute);
-app.use('/api/auth', rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100
-}), authRoute);
+app.use('/api/auth', authRoute);
 app.use('/api/collection', collectionRoute)
 app.use('/api/public', publicRoute)
 app.use('/api/discover', discoverRoute)

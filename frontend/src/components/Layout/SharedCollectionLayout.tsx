@@ -92,11 +92,11 @@ const SharedCollectionLayout: React.FC = () => {
                 <div className="navbar-start">
                     <Link to="/" className="btn btn-ghost normal-case gap-3 hover:bg-transparent">
                         <div className="avatar">
-                            <div className="w-10 rounded-xl shadow-md ring ring-primary ring-offset-base-100 ring-offset-1">
+                            <div className="w-10 rounded-xl shadow-md ring-3 ring-primary ring-offset-base-100 ring-offset-1">
                                 <img src="/icons/icon-192x192.png" alt="Musivault Logo" />
                             </div>
                         </div>
-                        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">MUSIVAULT</span>
+                        <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
                     </Link>
                 </div>
                 <div className="navbar-end">
