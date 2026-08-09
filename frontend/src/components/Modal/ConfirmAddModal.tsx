@@ -41,7 +41,7 @@ const ConfirmAddModal: React.FC<ConfirmAddModalProps> = ({
                     <div className="flex-1 min-w-0 mt-2 sm:mt-0 w-full">
                         <h3 className="font-bold text-xl md:text-2xl">{t('versions.confirmAddTitle')}</h3>
                         {albumTitle && (
-                            <p className="text-md text-base-content/60 mt-1 line-clamp-2">{albumTitle}</p>
+                            <p className="text-base text-base-content/60 mt-1 line-clamp-2">{albumTitle}</p>
                         )}
                         
                         <div className="mt-4 bg-base-200/50 p-4 rounded-xl border border-base-300 text-left">
