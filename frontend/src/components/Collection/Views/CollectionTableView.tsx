@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem, SortColumn, SortOrder } from '../../../types/collection.types';
 import { getItemValue } from '../../../utils/itemValue';
+import { stripDiscogsSuffix } from '../../../utils/formatters';
 import FormatVerificationBadge from '../../Common/FormatVerificationBadge';
 import FormatColorBadge from '../../Common/FormatColorBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
@@ -44,11 +45,24 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
     onSort,
     getSortIcon
 }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { formatValue } = useCurrency();
     return (
         <div className="overflow-x-auto">
-            <table className="table w-full">
+            {/* table-fixed with an explicit colgroup: left to itself the browser
+                re-measures every column from its content, so a long format or label
+                shifted the whole row out of line with its neighbours. */}
+            <table className="table table-fixed w-full min-w-248">
+                <colgroup>
+                    <col className="w-20" />
+                    <col />
+                    <col />
+                    <col className="w-44" />
+                    <col className="w-40" />
+                    <col className="w-20" />
+                    <col className="w-28" />
+                    <col className="w-28" />
+                </colgroup>
                 <thead>
                     <tr>
                         <th>{t('album.cover')}</th>
@@ -101,21 +115,22 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                         <tr
                             key={item._id}
                             onClick={() => onItemClick(item)}
-                            className="hover:bg-base-300 cursor-pointer"
+                            className="group hover:bg-base-300 cursor-pointer"
                         >
                             <td>
-                                <div className="avatar">
-                                    <div className="w-12 h-12 rounded-lg">
-                                        <img
-                                            src={item.album.thumb || item.album.cover_image}
-                                            alt={item.album.title}
-                                            loading="lazy"
-                                        />
-                                    </div>
+                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-base-300">
+                                    <img
+                                        src={item.album.thumb || item.album.cover_image}
+                                        alt=""
+                                        loading="lazy"
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
                             </td>
                             <td>
-                                <div className="font-bold">{item.album.artist}</div>
+                                <div className="font-bold truncate" title={item.album.artist}>
+                                    {item.album.artist}
+                                </div>
                             </td>
                             <td>
                                 <div className="font-semibold">{item.album.title}</div>
@@ -138,13 +153,17 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                             </td>
                             <td>
                                 {item.album.labels?.[0]?.name ? (
-                                    <span className="text-sm">{item.album.labels[0].name}</span>
+                                    <span className="text-sm truncate block" title={item.album.labels[0].name}>
+                                        {stripDiscogsSuffix(item.album.labels[0].name)}
+                                    </span>
                                 ) : (
                                     <span className="text-base-content/30">—</span>
                                 )}
                             </td>
-                            <td>{item.album.year || t('common.na')}</td>
-                            <td>{new Date(item.addedAt).toLocaleDateString('en-US')}</td>
+                            <td className="tabular-nums">{item.album.year || t('common.na')}</td>
+                            <td className="tabular-nums">
+                                {new Date(item.addedAt).toLocaleDateString(i18n.language)}
+                            </td>
                             <td>
                                 {(() => {
                                     const val = getItemValue(item);

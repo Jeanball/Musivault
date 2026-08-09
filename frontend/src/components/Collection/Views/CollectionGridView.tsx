@@ -58,17 +58,20 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                     >
                                         {item.album.title}
                                     </h2>
+                                    {/* Outlined rather than filled: two solid badges per
+                                        tile turned a wall of covers into a wall of
+                                        badges, and neither colour meant anything. */}
                                     <div className="card-actions justify-start mt-2 gap-1">
-                                        <div className="badge badge-secondary badge-sm">{item.format.name}</div>
+                                        <div className="badge badge-outline badge-sm">{item.format.name}</div>
                                         {(() => {
                                             const val = getItemValue(item);
                                             return val > 0 ? (
-                                                <div className="badge badge-warning badge-outline badge-sm font-semibold">
+                                                <div className="badge badge-outline badge-sm font-semibold text-warning">
                                                     {formatValue(val)}
                                                 </div>
                                             ) : (
-                                                <div className="badge badge-ghost badge-outline badge-sm text-base-content/50">
-                                                    N/A
+                                                <div className="badge badge-outline badge-sm text-base-content/40">
+                                                    —
                                                 </div>
                                             );
                                         })()}

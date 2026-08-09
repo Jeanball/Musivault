@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from '../../../types/collection.types';
 import { getItemValue } from '../../../utils/itemValue';
 import { getImageUrl } from '../../../utils/imageUrl';
+import { revealIfCached } from '../../../utils/imageReveal';
 import FormatVerificationBadge from '../../Common/FormatVerificationBadge';
 import FormatColorBadge from '../../Common/FormatColorBadge';
 import { useCurrency } from '../../../hooks/useCurrency';
@@ -12,6 +13,14 @@ interface CollectionListViewProps {
     onItemClick: (item: CollectionItem) => void;
 }
 
+/**
+ * One table for the whole collection, with the artist as a band across it.
+ *
+ * Previously each artist got its own <table>, so every group sized its columns
+ * independently and the album titles landed at a different x on each band. A
+ * single table with fixed widths keeps every row on the same grid, and the
+ * header only has to be read once.
+ */
 const CollectionListView: React.FC<CollectionListViewProps> = ({
     groupedItems,
     onItemClick
@@ -20,47 +29,64 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
     const { formatValue } = useCurrency();
 
     return (
-        <div className="space-y-10">
-            {Object.entries(groupedItems).map(([artist, items]) => (
-                <div key={artist}>
-                    <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-primary/50">
-                        {artist}
-                    </h2>
-                    <div className="overflow-x-auto">
-                        <table className="table w-full">
-                            <thead>
-                                <tr>
-                                    <th>{t('album.cover')}</th>
-                                    <th>{t('common.album')}</th>
-                                    <th>{t('common.format')}</th>
-                                    <th>{t('common.year')}</th>
-                                    <th>{t('stats.value')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items.map((item) => (
+        <div className="overflow-x-auto">
+            <table className="table table-fixed w-full min-w-176">
+                <colgroup>
+                    <col className="w-16" />
+                    <col />
+                    <col className="w-56" />
+                    <col className="w-20" />
+                    <col className="w-28" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>{t('album.cover')}</th>
+                        <th>{t('common.album')}</th>
+                        <th>{t('common.format')}</th>
+                        <th>{t('common.year')}</th>
+                        <th className="text-right">{t('stats.value')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {Object.entries(groupedItems).map(([artist, items]) => (
+                        <React.Fragment key={artist}>
+                            <tr className="bg-base-200">
+                                <th colSpan={5} className="text-base font-bold text-base-content">
+                                    {artist}
+                                    <span className="ml-2 font-normal text-sm text-base-content/50">
+                                        {items.length}
+                                    </span>
+                                </th>
+                            </tr>
+                            {items.map((item) => {
+                                const value = getItemValue(item);
+                                return (
                                     <tr
                                         key={item._id}
                                         onClick={() => onItemClick(item)}
                                         className="hover:bg-base-300 cursor-pointer"
                                     >
                                         <td>
-                                            <div className="avatar">
-                                                <div className="w-12 h-12 rounded-lg">
-                                                    <img
-                                                        src={getImageUrl(item.album.thumb || item.album.cover_image)}
-                                                        alt={item.album.title}
-                                                        loading="lazy"
-                                                    />
-                                                </div>
+                                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-base-300">
+                                                <img
+                                                    ref={revealIfCached}
+                                                    src={getImageUrl(item.album.thumb || item.album.cover_image)}
+                                                    alt=""
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    className="w-full h-full object-cover opacity-0 transition-opacity duration-300"
+                                                    onLoad={(e) => { e.currentTarget.classList.remove('opacity-0'); }}
+                                                />
                                             </div>
                                         </td>
                                         <td>
-                                            <div className="font-bold">{item.album.title}</div>
+                                            <div className="font-bold truncate" title={item.album.title}>
+                                                {item.album.title}
+                                            </div>
                                         </td>
                                         <td>
-                                            <div className="flex items-center gap-2">
-                                                <div className="font-semibold">{item.format.name}</div>
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <span className="font-semibold truncate">{item.format.name}</span>
                                                 <FormatVerificationBadge verification={item.formatVerification} />
                                             </div>
                                             {item.format.text && item.format.text !== item.format.name && (
@@ -74,26 +100,23 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                                 </div>
                                             )}
                                         </td>
-                                        <td>{item.album.year}</td>
-                                        <td>
-                                            {(() => {
-                                                const val = getItemValue(item);
-                                                return val > 0 ? (
-                                                    <span className="font-semibold text-warning">
-                                                        {formatValue(val)}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-base-content/30">—</span>
-                                                );
-                                            })()}
+                                        <td className="tabular-nums">{item.album.year}</td>
+                                        <td className="text-right tabular-nums">
+                                            {value > 0 ? (
+                                                <span className="font-semibold text-warning">
+                                                    {formatValue(value)}
+                                                </span>
+                                            ) : (
+                                                <span className="text-base-content/30">—</span>
+                                            )}
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            ))}
+                                );
+                            })}
+                        </React.Fragment>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 };
