@@ -339,7 +339,7 @@ const AlbumDetailPage: React.FC = () => {
                     {(item.format.text || (item.format.descriptions && item.format.descriptions.length > 0)) && (
                         <div className="flex flex-wrap gap-2 mb-4">
                             {item.format.text && (
-                                <FormatColorBadge text={item.format.text} className="badge-accent badge-lg min-h-6 py-1" />
+                                <FormatColorBadge text={item.format.text} className="badge-lg min-h-6 py-1" />
                             )}
                             {item.format.descriptions?.map((desc, index) => (
                                 <FormatColorBadge key={index} text={desc} className="badge-lg min-h-6 py-1" />
