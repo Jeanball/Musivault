@@ -52,7 +52,11 @@ const StatsKpiRow: React.FC<StatsKpiRowProps> = ({ stats }) => {
             />
             <Tile
                 label={t('stats.totalValue')}
-                value={stats.totalValue > 0 ? formatValue(stats.totalValue, stats.valueCurrency) : '—'}
+                // No input currency: stored prices are USD and formatValue
+                // converts once, the same way the chart and the collection views
+                // do. Passing another base here made this tile disagree with the
+                // curve right below it.
+                value={stats.totalValue > 0 ? formatValue(stats.totalValue) : '—'}
                 // A total with no coverage is misleading: knowing it covers 31 of
                 // 412 records is the difference between a figure and a guess.
                 detail={t('stats.pricedCoverage', {

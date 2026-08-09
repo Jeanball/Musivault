@@ -139,7 +139,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                         {value > 0 && (
                             <FieldRow label={t('stats.value')}>
                                 <span className="font-mono text-lg font-bold tabular-nums">
-                                    {formatValue(value, item.priceCache?.currency || 'USD')}
+                                    {formatValue(value)}
                                 </span>
                             </FieldRow>
                         )}

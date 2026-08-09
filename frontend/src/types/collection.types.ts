@@ -105,7 +105,7 @@ export interface CollectionStats {
         name: string;
         count: number;
     } | null;
+    /** USD, like the stored prices: converted once, on render. */
     totalValue: number;
-    valueCurrency: string;
     itemsWithValue: number;
 }

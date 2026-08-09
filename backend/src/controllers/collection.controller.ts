@@ -10,6 +10,7 @@ import { getUserStyles } from '../services/collection.service';
 import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
 import type { DiscogsReleaseResponse } from '../types/discogs.types';
 import AdminTaskExecution from '../models/AdminTaskExecution';
+import { getValueForItem, getValueHistory, recordValueSnapshot } from '../services/valueSnapshot.service';
 import { validateCustomFieldValues } from './customFields.controller';
 import { logger } from '../config/logger.config';
 
@@ -845,28 +846,6 @@ export async function addManualAlbum(req: Request, res: Response) {
 // ===== Collection Value Sync =====
 
 /**
- * Get the effective value for a collection item based on its media condition.
- * Matches the item's mediaCondition to the stored per-condition price.
- * Defaults to VG+ if no condition is set.
- */
-function getValueForItem(item: any): number {
-  if (!item.priceCache) return 0;
-  const pc = item.priceCache;
-
-  switch (item.mediaCondition) {
-    case 'M': return pc.mint ?? pc.nearMint ?? 0;
-    case 'NM': return pc.nearMint ?? pc.mint ?? 0;
-    case 'VG+': return pc.veryGoodPlus ?? 0;
-    case 'VG': return pc.veryGood ?? 0;
-    case 'G+': return pc.goodPlus ?? 0;
-    case 'G': return pc.good ?? 0;
-    case 'F': return pc.fair ?? 0;
-    case 'P': return pc.poor ?? 0;
-    default: return pc.veryGoodPlus ?? pc.nearMint ?? 0; // default to VG+
-  }
-}
-
-/**
  * Fetch and store the price for a single collection item (fire-and-forget helper)
  */
 async function fetchPriceForItem(itemId: string, discogsId: number): Promise<void> {
@@ -940,6 +919,26 @@ export async function getCollectionSyncInfo(req: Request, res: Response) {
     });
   } catch (error) {
     logger.error({ err: error }, 'Error fetching collection sync info');
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export async function getCollectionValueHistory(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    // Refresh the current day before reading. The series is otherwise written
+    // only by the price sync task, and this is what makes an add, a delete or a
+    // manual sync show up straight away without instrumenting those mutations.
+    // It writes nothing when the total is unchanged.
+    await recordValueSnapshot(req.user._id);
+
+    res.status(200).json(await getValueHistory(req.user._id));
+  } catch (error) {
+    logger.error({ err: error }, 'Error fetching collection value history');
     res.status(500).json({ message: 'Internal server error' });
   }
 }

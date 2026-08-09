@@ -33,7 +33,6 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
             thisMonth: 0
         };
         let totalValue = 0;
-        let valueCurrency = 'USD';
         let itemsWithValue = 0;
 
         for (const item of collection) {
@@ -74,10 +73,11 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
                 }
             }
 
+            // Stored prices are USD, like everywhere else; the conversion to the
+            // user's currency happens once, on render.
             const val = getItemValue(item);
             if (val > 0) {
                 totalValue += val;
-                valueCurrency = item.priceCache?.currency || 'USD';
                 itemsWithValue++;
             }
         }
@@ -106,7 +106,6 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
             availableStyles,
             availableLabels,
             totalValue: Math.round(totalValue * 100) / 100,
-            valueCurrency,
             itemsWithValue
         };
     }, [collection]);

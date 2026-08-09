@@ -10,6 +10,13 @@ export interface CollectionSyncInfo {
     ttlHours: number;
 }
 
+/** One point of the value history. `value` is USD, converted on render. */
+export interface ValuePoint {
+    date: string;
+    value: number;
+    itemCount: number;
+}
+
 export async function getCollection(
     sort?: 'latest',
     limit?: number
@@ -27,6 +34,11 @@ export async function getCollectionItem(itemId: string): Promise<CollectionItem>
 
 export async function getSyncInfo(): Promise<CollectionSyncInfo> {
     const { data } = await client.get<CollectionSyncInfo>('/collection/sync-info');
+    return data;
+}
+
+export async function getValueHistory(): Promise<ValuePoint[]> {
+    const { data } = await client.get<ValuePoint[]>('/collection/value-history');
     return data;
 }
 

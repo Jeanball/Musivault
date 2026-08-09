@@ -8,7 +8,6 @@ import type { CollectionItem } from '../../types/collection.types';
 
 interface TopValueItemsProps {
     collection: CollectionItem[];
-    currency: string;
 }
 
 const TOP_COUNT = 5;
@@ -19,7 +18,7 @@ const TOP_COUNT = 5;
  * Priced against the grade each copy is actually in, via getItemValue — the same
  * rule the total uses, so this list always adds up to part of the figure above.
  */
-const TopValueItems: React.FC<TopValueItemsProps> = ({ collection, currency }) => {
+const TopValueItems: React.FC<TopValueItemsProps> = ({ collection }) => {
     const { t } = useTranslation();
     const { formatValue } = useCurrency();
 
@@ -68,7 +67,7 @@ const TopValueItems: React.FC<TopValueItemsProps> = ({ collection, currency }) =
                             </div>
                         </div>
                         <span className="shrink-0 text-sm font-semibold tabular-nums">
-                            {formatValue(value, currency)}
+                            {formatValue(value)}
                         </span>
                     </li>
                 ))}

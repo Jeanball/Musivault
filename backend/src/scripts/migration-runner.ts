@@ -13,6 +13,7 @@ import Migration from '../models/Migration';
 import { migrateIndexes } from './migrate-indexes';
 import { cleanupArtistNames } from './cleanup-artist-names';
 import { migrateAlbumData } from './migrate-album-data';
+import { backfillValueSnapshots } from './backfill-value-snapshots';
 import { logger } from '../config/logger.config';
 
 interface MigrationDefinition {
@@ -64,6 +65,15 @@ const MIGRATIONS: MigrationDefinition[] = [
     run: async () => {
       await migrateAlbumData();
       return 'Label ids backfill complete';
+    }
+  },
+  {
+    id: '2026-08-09_backfill-value-snapshots',
+    description: 'Seed the collection value history from each item addedAt date',
+    type: 'background',
+    run: async () => {
+      const points = await backfillValueSnapshots();
+      return `${points} value snapshot(s) written`;
     }
   },
 ];

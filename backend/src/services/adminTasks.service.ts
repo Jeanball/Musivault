@@ -4,6 +4,7 @@ import type { IAlbum } from '../models/Album';
 import { executePriceSync } from '../controllers/collection.controller';
 import type { PopulatedCollectionItem } from '../controllers/collection.controller';
 import { getPriceTTLHours } from '../utils/price.utils';
+import { recordAllUserSnapshots } from './valueSnapshot.service';
 import ExchangeRates from '../models/ExchangeRates';
 import UpcomingRelease from '../models/UpcomingRelease';
 import { getAllDistinctStyles } from './collection.service';
@@ -90,6 +91,10 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
           onProgress: (event) => onProgress(event as TaskProgressEvent),
         }
       );
+
+      // This task is what paces the value history: it runs on the price TTL and
+      // it is the only moment prices actually move. No separate daily job.
+      await recordAllUserSnapshots();
 
       onProgress({
         type: 'complete',
