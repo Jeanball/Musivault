@@ -147,7 +147,13 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                                 <li key={mode}>
                                     <button
                                         className={viewMode === mode ? 'active' : ''}
-                                        onClick={() => onViewModeChange?.(mode)}
+                                        onClick={(e) => {
+                                            // A daisyUI dropdown is held open by focus, so the
+                                            // menu would linger over the new view until the next
+                                            // click landed elsewhere.
+                                            e.currentTarget.blur();
+                                            onViewModeChange?.(mode);
+                                        }}
                                     >
                                         <Icon size={16} />
                                         {t(labelKey)}
