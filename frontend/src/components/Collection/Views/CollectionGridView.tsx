@@ -66,7 +66,7 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                         {(() => {
                                             const val = getItemValue(item);
                                             return val > 0 ? (
-                                                <div className="badge badge-outline badge-sm font-semibold text-warning">
+                                                <div className="badge badge-outline badge-sm font-semibold">
                                                     {formatValue(val)}
                                                 </div>
                                             ) : (

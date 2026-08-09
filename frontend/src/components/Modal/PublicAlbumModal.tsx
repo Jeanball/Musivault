@@ -16,7 +16,7 @@ interface PublicAlbumModalProps {
     onClose: () => void;
 }
 
-/** Tracks shown before the "show all" toggle kicks in — keeps the modal a fixed size. */
+/** Tracks shown before the "show all" toggle kicks in, keeping the modal a fixed size. */
 const COLLAPSED_TRACK_COUNT = 8;
 
 const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) => {
@@ -141,7 +141,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                         )}
                         {value > 0 && (
                             <FieldRow label={t('stats.value')}>
-                                <span className="font-mono text-lg font-bold tabular-nums text-warning">
+                                <span className="font-mono text-lg font-bold tabular-nums">
                                     {formatValue(value, item.priceCache?.currency || 'USD')}
                                 </span>
                             </FieldRow>

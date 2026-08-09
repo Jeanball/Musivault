@@ -401,7 +401,7 @@ const AlbumDetailPage: React.FC = () => {
 
                             return (
                                 <FieldRow label={t('stats.value')}>
-                                    <span className={`font-mono text-xl font-bold tabular-nums ${val > 0 ? 'text-warning' : 'text-base-content/30'}`}>
+                                    <span className={`font-mono text-xl font-bold tabular-nums ${val > 0 ? '' : 'text-base-content/30'}`}>
                                         {val > 0 ? formatValue(val) : 'N/A'}
                                     </span>
                                     <button

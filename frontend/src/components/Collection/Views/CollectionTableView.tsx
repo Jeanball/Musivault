@@ -168,7 +168,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                                 {(() => {
                                     const val = getItemValue(item);
                                     return val > 0 ? (
-                                        <span className="font-semibold text-warning">
+                                        <span className="font-semibold">
                                             {formatValue(val)}
                                         </span>
                                     ) : (

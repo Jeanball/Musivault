@@ -103,7 +103,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                         <td className="tabular-nums">{item.album.year}</td>
                                         <td className="text-right tabular-nums">
                                             {value > 0 ? (
-                                                <span className="font-semibold text-warning">
+                                                <span className="font-semibold">
                                                     {formatValue(value)}
                                                 </span>
                                             ) : (
