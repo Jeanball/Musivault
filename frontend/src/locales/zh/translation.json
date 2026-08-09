@@ -337,13 +337,6 @@
         "exactMatch": "{{reference}} 的精确匹配",
         "recentSearches": "最近搜索",
         "clearRecents": "清除",
-        "tipsTitle": "找到压片的三种方式",
-        "tipTextTitle": "文字",
-        "tipTextBody": "艺术家、专辑或两者：“coltrane blue train”。",
-        "tipReferenceTitle": "编号",
-        "tipReferenceBody": "粘贴 Discogs ID 或目录编号，系统自动识别。",
-        "tipScanTitle": "条形码",
-        "tipScanBody": "扫描封面；单一结果会直接加入。",
         "backToSearch": "返回搜索",
         "keyboardHint": "↑ ↓ 浏览 · ↵ 打开"
     },

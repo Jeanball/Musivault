@@ -334,13 +334,6 @@
         "exactMatch": "Genaue Übereinstimmung für {{reference}}",
         "recentSearches": "Letzte Suchen",
         "clearRecents": "Löschen",
-        "tipsTitle": "Drei Wege zu einer Pressung",
-        "tipTextTitle": "Text",
-        "tipTextBody": "Künstler, Album oder beides: „coltrane blue train“.",
-        "tipReferenceTitle": "Referenz",
-        "tipReferenceBody": "Discogs-ID oder Katalognummer einfügen, wird automatisch erkannt.",
-        "tipScanTitle": "Barcode",
-        "tipScanBody": "Cover scannen; ein einzelner Treffer wird direkt hinzugefügt.",
         "backToSearch": "Zurück zur Suche",
         "keyboardHint": "↑ ↓ navigieren · ↵ öffnen"
     },

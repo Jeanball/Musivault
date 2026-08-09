@@ -337,13 +337,6 @@
         "exactMatch": "Correspondência exata para {{reference}}",
         "recentSearches": "Pesquisas recentes",
         "clearRecents": "Limpar",
-        "tipsTitle": "Três formas de encontrar uma prensagem",
-        "tipTextTitle": "Texto",
-        "tipTextBody": "Artista, álbum ou ambos: “coltrane blue train”.",
-        "tipReferenceTitle": "Referência",
-        "tipReferenceBody": "Cole um ID do Discogs ou número de catálogo, é reconhecido sozinho.",
-        "tipScanTitle": "Código de barras",
-        "tipScanBody": "Digitalize a capa; um resultado único é adicionado diretamente.",
         "backToSearch": "Voltar à pesquisa",
         "keyboardHint": "↑ ↓ navegar · ↵ abrir"
     },

@@ -380,43 +380,63 @@ const SearchBar: React.FC = () => {
             {/* The negative margin matches the p-6 of the card this sits in, so the
                 sticky band spans its full width instead of leaving a gap for content
                 to scroll through. */}
-            <div className="sticky top-0 z-20 -mx-6 px-6 pt-1 pb-2 sm:py-3 bg-base-200 lg:static lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent">
-                <SearchField
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    onReset={handleResetSearch}
-                    resetLabel={t('search.resetSearch')}
-                    placeholder={isMobile ? t('search.placeholderShort') : t('search.placeholder')}
-                    isLoading={isLoading}
-                    inputRef={inputRef}
-                    inputProps={{
-                        onKeyDown: handleInputKeyDown,
-                        role: 'combobox',
-                        'aria-expanded': visibleAlbums.length > 0,
-                        'aria-controls': 'search-results-list',
-                        'aria-activedescendant': activeResultId ? `search-result-${activeResultId}` : undefined,
-                        autoFocus: !isMobile
-                    }}
-                    trailing={
-                        <>
-                            <kbd className="kbd kbd-sm hidden lg:inline-flex shrink-0">⌘K</kbd>
-                            <button
-                                className="btn btn-ghost btn-square h-10 w-10 min-h-10 shrink-0 text-base-content/70 hover:text-base-content"
-                                onClick={() => setIsScannerOpen(true)}
-                                title={t('search.scanBarcode')}
-                                aria-label={t('search.scanBarcode')}
-                                disabled={isAddingFromBarcode}
-                            >
-                                {isAddingFromBarcode ? (
-                                    <span className="loading loading-spinner loading-sm"></span>
-                                ) : (
-                                    <ScanFrameIcon className="w-5 h-5" />
-                                )}
-                            </button>
-                        </>
-                    }
-                />
+            <div className="sticky top-0 z-20 -mx-6 px-6 pt-1 pb-2 sm:py-3 bg-base-200 lg:static lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                    <SearchField
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        onReset={handleResetSearch}
+                        resetLabel={t('search.resetSearch')}
+                        placeholder={isMobile ? t('search.placeholderShort') : t('search.placeholder')}
+                        isLoading={isLoading}
+                        inputRef={inputRef}
+                        inputProps={{
+                            onKeyDown: handleInputKeyDown,
+                            role: 'combobox',
+                            'aria-expanded': visibleAlbums.length > 0,
+                            'aria-controls': 'search-results-list',
+                            'aria-activedescendant': activeResultId ? `search-result-${activeResultId}` : undefined,
+                            autoFocus: !isMobile
+                        }}
+                        trailing={
+                            <>
+                                <kbd className="kbd kbd-sm hidden lg:inline-flex shrink-0">⌘K</kbd>
+                                <button
+                                    className="btn btn-ghost btn-square h-10 w-10 min-h-10 shrink-0 text-base-content/70 hover:text-base-content"
+                                    onClick={() => setIsScannerOpen(true)}
+                                    title={t('search.scanBarcode')}
+                                    aria-label={t('search.scanBarcode')}
+                                    disabled={isAddingFromBarcode}
+                                >
+                                    {isAddingFromBarcode ? (
+                                        <span className="loading loading-spinner loading-sm"></span>
+                                    ) : (
+                                        <ScanFrameIcon className="w-5 h-5" />
+                                    )}
+                                </button>
+                            </>
+                        }
+                    />
+                </div>
+                {/* Adding by hand is a peer of searching, so it sits beside the field
+                    from sm: up. On mobile it would eat the sticky band, so it is
+                    rendered under the field instead (below), where it scrolls away. */}
+                <button
+                    className="btn btn-outline gap-2 shrink-0 hidden sm:inline-flex h-14 min-h-14"
+                    onClick={() => setShowManualForm(true)}
+                >
+                    <PenLine className="w-4 h-4" />
+                    {t('search.modeManual')}
+                </button>
             </div>
+
+            <button
+                className="btn btn-outline btn-sm gap-2 w-full h-11 min-h-11 mt-2 sm:hidden"
+                onClick={() => setShowManualForm(true)}
+            >
+                <PenLine className="w-4 h-4" />
+                {t('search.modeManual')}
+            </button>
 
             {/* Reference detected in the query: offered, never imposed */}
             {intent.kind !== 'text' && (
@@ -472,7 +492,7 @@ const SearchBar: React.FC = () => {
                         : ''}
             </p>
 
-            {/* Empty screen: something to click, and the three ways in */}
+            {/* Empty screen: recent searches, and a way in that isn't the field */}
             {!searchQuery.trim() && !isLoading && (
                 <div className="py-2">
                     {recents.length > 0 && (
@@ -502,38 +522,6 @@ const SearchBar: React.FC = () => {
                         </>
                     )}
 
-                    {/* Adding by hand is a real way in, not a footnote: it sits above the
-                        tips so a thumb reaches it without scrolling. */}
-                    <button
-                        className="btn btn-outline btn-sm gap-2 w-full h-11 min-h-11 sm:w-auto sm:h-8 sm:min-h-8 mb-6"
-                        onClick={() => setShowManualForm(true)}
-                    >
-                        <PenLine className="w-4 h-4" />
-                        {t('search.modeManual')}
-                    </button>
-
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/60 mb-2">
-                        {t('search.tipsTitle')}
-                    </h3>
-                    {/* One line per tip on mobile, cards from sm: up. Three bordered
-                        blocks stacked ate half the screen for something you read once. */}
-                    <div className="grid sm:grid-cols-3 sm:gap-3 border-t border-base-300 sm:border-0">
-                        {[
-                            ['search.tipTextTitle', 'search.tipTextBody'],
-                            ['search.tipReferenceTitle', 'search.tipReferenceBody'],
-                            ['search.tipScanTitle', 'search.tipScanBody']
-                        ].map(([title, body]) => (
-                            <p
-                                key={title}
-                                className="text-xs sm:text-sm text-base-content/60 py-2 border-b border-base-300 sm:p-3 sm:border sm:border-base-300"
-                            >
-                                <span className="font-semibold text-base-content after:content-[':'] after:mr-1 sm:after:content-none sm:block sm:mb-1">
-                                    {t(title)}
-                                </span>
-                                {t(body)}
-                            </p>
-                        ))}
-                    </div>
                 </div>
             )}
 

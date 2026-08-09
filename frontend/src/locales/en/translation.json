@@ -355,13 +355,6 @@
         "exactMatch": "Exact match for {{reference}}",
         "recentSearches": "Recent searches",
         "clearRecents": "Clear",
-        "tipsTitle": "Three ways to find a pressing",
-        "tipTextTitle": "Text",
-        "tipTextBody": "Artist, album, or both: “coltrane blue train”.",
-        "tipReferenceTitle": "Reference",
-        "tipReferenceBody": "Paste a Discogs ID or a catalog number, it is recognised on its own.",
-        "tipScanTitle": "Barcode",
-        "tipScanBody": "Scan the sleeve; a single match is added straight away.",
         "backToSearch": "Back to search",
         "keyboardHint": "↑ ↓ to browse · ↵ to open"
     },
