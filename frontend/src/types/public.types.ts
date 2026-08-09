@@ -8,6 +8,14 @@ export interface PublicUser {
     latestAlbums?: CollectionItem[];
 }
 
+/** A public collection item, carrying the collector it belongs to. */
+export interface CommunityAlbum extends CollectionItem {
+    user: {
+        username: string;
+        publicShareId: string;
+    };
+}
+
 export interface PublicCollection {
     username: string;
     collection: CollectionItem[];

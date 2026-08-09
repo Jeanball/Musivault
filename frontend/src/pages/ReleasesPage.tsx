@@ -155,12 +155,18 @@ const ReleasesPage: React.FC = () => {
                 </div>
             ) : (
                 <div className="space-y-8">
-                    {groups.map((group) => (
+                    {groups.map((group, groupIndex) => (
                         <section key={group.key}>
                             <ReleaseWeekHeader group={group} />
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                {/* Only the first week is on screen at paint time; the rest
+                                    stay lazy so a long list doesn't fetch everything at once. */}
                                 {group.releases.map((release) => (
-                                    <UpcomingReleaseCard key={release.mbid} release={release} />
+                                    <UpcomingReleaseCard
+                                        key={release.mbid}
+                                        release={release}
+                                        eager={groupIndex === 0}
+                                    />
                                 ))}
                             </div>
                         </section>

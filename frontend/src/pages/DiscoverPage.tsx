@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Users, Music, Mic, Lock, AlertCircle, CalendarClock, History, Store, MapPinned } from 'lucide-react';
+import { Users, Music, Mic, Lock, AlertCircle, CalendarClock, History, Store, MapPinned, Sparkles } from 'lucide-react';
 import PublicAlbumModal from '../components/Modal/PublicAlbumModal';
 import PublicUserCard from '../components/Discover/PublicUserCard';
+import CommunityAlbumCard from '../components/Discover/CommunityAlbumCard';
 import UpcomingReleaseCard from '../components/Discover/UpcomingReleaseCard';
 import PreferredGenresDropdown from '../components/Discover/PreferredGenresDropdown';
 import RecordShopCard from '../components/Discover/RecordShopCard';
@@ -16,9 +17,9 @@ import EmptyState from '../components/Common/EmptyState';
 import { RESULTS_GRID_CLASS, PREVIEW_COUNT } from '../components/Discover/constants';
 import { useNearby, useNearbySearch } from '../hooks/useNearbySearch';
 import type { CollectionItem } from '../types/collection.types';
-import type { PublicUser } from '../types/public.types';
+import type { PublicUser, CommunityAlbum } from '../types/public.types';
 import type { UpcomingRelease, RecordShop, Concert } from '../types/discover.types';
-import { getPublicUsers } from '../api/public';
+import { getPublicUsers, getLatestPublicAlbums } from '../api/public';
 import { getUpcomingReleases, splitReleasesByToday, getRecordShops, getConcerts } from '../api/discover';
 
 const DiscoverPage: React.FC = () => {
@@ -28,6 +29,9 @@ const DiscoverPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedAlbum, setSelectedAlbum] = useState<CollectionItem | null>(null);
     const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+
+    const [communityAlbums, setCommunityAlbums] = useState<CommunityAlbum[]>([]);
+    const [isCommunityLoading, setIsCommunityLoading] = useState(true);
 
     const [upcomingReleases, setUpcomingReleases] = useState<UpcomingRelease[]>([]);
     const [isUpcomingLoading, setIsUpcomingLoading] = useState(true);
@@ -52,6 +56,23 @@ const DiscoverPage: React.FC = () => {
         fetchPublicUsers();
     }, []);
 
+    useEffect(() => {
+        const fetchCommunityAlbums = async () => {
+            try {
+                setCommunityAlbums(await getLatestPublicAlbums(PREVIEW_COUNT));
+            } catch (err) {
+                // Deliberately silent: the band is a flourish above a directory that
+                // works without it, and an error banner at the top of the page would
+                // cost more than the band is worth.
+                console.error('Failed to fetch community albums:', err);
+            } finally {
+                setIsCommunityLoading(false);
+            }
+        };
+
+        fetchCommunityAlbums();
+    }, []);
+
     const fetchUpcomingReleases = async () => {
         try {
             setUpcomingReleases(await getUpcomingReleases());
@@ -73,10 +94,10 @@ const DiscoverPage: React.FC = () => {
 
     // One position and one radius for every "near you" section below.
     const nearby = useNearby();
-    const { items: shops, isLoading: isShopsLoading, error: shopsError } =
-        useNearbySearch<RecordShop>(nearby, getRecordShops, 'discover.failedLoadShops');
     const { items: concerts, isLoading: isConcertsLoading, error: concertsError, unavailable: concertsUnavailable } =
         useNearbySearch<Concert>(nearby, getConcerts, 'discover.failedLoadConcerts');
+    const { items: shops, isLoading: isShopsLoading, error: shopsError } =
+        useNearbySearch<RecordShop>(nearby, getRecordShops, 'discover.failedLoadShops');
 
     const toggleUserExpanded = (publicShareId: string) => {
         setExpandedUsers((prev) => {
@@ -108,6 +129,38 @@ const DiscoverPage: React.FC = () => {
                     <Users size={24} />
                     {t('discover.publicCollections')}
                 </h2>
+
+                {/* Real covers before a list of usernames: the section opens on what
+                    people are actually collecting. Absent when there is nothing to
+                    show or the request failed — the directory below stands alone. */}
+                {(isCommunityLoading || communityAlbums.length > 0) && (
+                    <div className="mb-8">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+                            <h3 className="text-sm font-semibold text-base-content/70 flex items-center gap-2">
+                                <Sparkles size={16} />
+                                {t('discover.communityLatest')}
+                            </h3>
+                            <span className="text-xs text-base-content/50">
+                                {t('discover.communityLatestSubtitle')}
+                            </span>
+                        </div>
+                        {/* Six across, like the release rows — these are cover tiles,
+                            not the wide cards the shared results grid is built for. */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                            {isCommunityLoading ? (
+                                <CardSkeleton count={PREVIEW_COUNT} variant="tile" />
+                            ) : (
+                                communityAlbums.map((item) => (
+                                    <CommunityAlbumCard
+                                        key={item._id}
+                                        item={item}
+                                        onSelect={setSelectedAlbum}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {isLoading ? (
                     <div className="flex justify-center items-center h-32">
@@ -182,8 +235,10 @@ const DiscoverPage: React.FC = () => {
                                     {t('discover.upcomingSection')}
                                 </h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                    {/* Both rows sit near the top of the page, so neither
+                                        should wait on lazy loading before even asking. */}
                                     {upcomingSummary.upcoming.slice(0, 5).map((release) => (
-                                        <UpcomingReleaseCard key={release.mbid} release={release} />
+                                        <UpcomingReleaseCard key={release.mbid} release={release} eager />
                                     ))}
                                 </div>
                             </div>
@@ -196,7 +251,7 @@ const DiscoverPage: React.FC = () => {
                                 </h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                                     {upcomingSummary.recent.slice(0, 5).map((release) => (
-                                        <UpcomingReleaseCard key={release.mbid} release={release} />
+                                        <UpcomingReleaseCard key={release.mbid} release={release} eager />
                                     ))}
                                 </div>
                             </div>
@@ -220,75 +275,8 @@ const DiscoverPage: React.FC = () => {
                     />
                 </div>
 
-                {/* Section 3: Record Shops Near You */}
-                <section>
-                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                        <h3 className="text-xl font-bold flex items-center gap-2">
-                            <Store size={22} />
-                            {t('discover.recordShopsNearYou')}
-                        </h3>
-                        {shops.length > 0 && (
-                            <Link to="/app/discover/shops" className="btn btn-outline btn-sm">
-                                {shops.length > PREVIEW_COUNT
-                                    ? t('discover.viewAllShopsCount', { count: shops.length })
-                                    : t('discover.viewAllShops')}
-                            </Link>
-                        )}
-                    </div>
-
-                    <p className="text-base-content/70 text-sm mb-4">{t('discover.recordShopsSubtitle')}</p>
-
-                    {/* Skeletons on every fetch, not just the first: changing the
-                        location otherwise left the previous city's shops on screen
-                        with nothing to show the new ones were being looked up. */}
-                    {nearby.status === 'resolving' || (nearby.location && isShopsLoading) ? (
-                        <div className={RESULTS_GRID_CLASS}>
-                            <CardSkeleton count={PREVIEW_COUNT} />
-                        </div>
-                    ) : shopsError ? (
-                        <div className="alert alert-error">
-                            <AlertCircle className="shrink-0 h-6 w-6" />
-                            <span>{shopsError}</span>
-                        </div>
-                    ) : !nearby.location ? (
-                        /* No position at all — the IP guess failed or was refused by the provider. */
-                        <EmptyState
-                            icon={Store}
-                            title={t('discover.findShopsNearYou')}
-                            description={t('discover.locationNeeded')}
-                        />
-                    ) : shops.length === 0 ? (
-                        <EmptyState
-                            icon={Store}
-                            title={t('discover.noShopsInRadius', { radius: nearby.radiusKm })}
-                            description={t('discover.noShopsHint')}
-                        >
-                            <Link to="/app/discover/shops" className="btn btn-primary btn-sm">
-                                {t('discover.widenSearch')}
-                            </Link>
-                        </EmptyState>
-                    ) : (
-                        <>
-                            <div className={RESULTS_GRID_CLASS}>
-                                {shops.slice(0, PREVIEW_COUNT).map((shop) => (
-                                    <RecordShopCard key={`${shop.osmType}-${shop.osmId}`} shop={shop} />
-                                ))}
-                            </div>
-                            {/* The grid is capped, so say so and offer the way out —
-                                the header button alone is easy to miss after scrolling. */}
-                            {shops.length > PREVIEW_COUNT && (
-                                <div className="mt-4 text-center">
-                                    <Link to="/app/discover/shops" className="btn btn-primary btn-sm">
-                                        {t('discover.seeRemainingShops', { count: shops.length - PREVIEW_COUNT })}
-                                    </Link>
-                                </div>
-                            )}
-                            <OsmAttribution />
-                        </>
-                    )}
-                </section>
-
-                {/* Section 4: Shows Near You — absent entirely on instances
+                {/* Section 3: Shows Near You — dated, so it comes before the shops,
+                    which will still be there next week. Absent entirely on instances
                     with no Ticketmaster key, rather than a standing error. */}
                 {!concertsUnavailable && <section>
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -307,6 +295,9 @@ const DiscoverPage: React.FC = () => {
 
                     <p className="text-base-content/70 text-sm mb-4">{t('discover.concertsSubtitle')}</p>
 
+                    {/* Skeletons on every fetch, not just the first: changing the
+                        location otherwise left the previous city's results on screen
+                        with nothing to show the new ones were being looked up. */}
                     {nearby.status === 'resolving' || (nearby.location && isConcertsLoading) ? (
                         <div className={RESULTS_GRID_CLASS}>
                             <CardSkeleton count={PREVIEW_COUNT} variant="media" />
@@ -317,6 +308,7 @@ const DiscoverPage: React.FC = () => {
                             <span>{concertsError}</span>
                         </div>
                     ) : !nearby.location ? (
+                        /* No position at all — the IP guess failed or was refused by the provider. */
                         <EmptyState
                             icon={Mic}
                             title={t('discover.findConcertsNearYou')}
@@ -339,6 +331,8 @@ const DiscoverPage: React.FC = () => {
                                     <ConcertCard key={concert.tmId} concert={concert} />
                                 ))}
                             </div>
+                            {/* The grid is capped, so say so and offer the way out —
+                                the header button alone is easy to miss after scrolling. */}
                             {concerts.length > PREVIEW_COUNT && (
                                 <div className="mt-4 text-center">
                                     <Link to="/app/discover/concerts" className="btn btn-primary btn-sm">
@@ -350,6 +344,68 @@ const DiscoverPage: React.FC = () => {
                         </>
                     )}
                 </section>}
+
+                {/* Section 4: Record Shops Near You */}
+                <section>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <h3 className="text-xl font-bold flex items-center gap-2">
+                            <Store size={22} />
+                            {t('discover.recordShopsNearYou')}
+                        </h3>
+                        {shops.length > 0 && (
+                            <Link to="/app/discover/shops" className="btn btn-outline btn-sm">
+                                {shops.length > PREVIEW_COUNT
+                                    ? t('discover.viewAllShopsCount', { count: shops.length })
+                                    : t('discover.viewAllShops')}
+                            </Link>
+                        )}
+                    </div>
+
+                    <p className="text-base-content/70 text-sm mb-4">{t('discover.recordShopsSubtitle')}</p>
+
+                    {nearby.status === 'resolving' || (nearby.location && isShopsLoading) ? (
+                        <div className={RESULTS_GRID_CLASS}>
+                            <CardSkeleton count={PREVIEW_COUNT} />
+                        </div>
+                    ) : shopsError ? (
+                        <div className="alert alert-error">
+                            <AlertCircle className="shrink-0 h-6 w-6" />
+                            <span>{shopsError}</span>
+                        </div>
+                    ) : !nearby.location ? (
+                        <EmptyState
+                            icon={Store}
+                            title={t('discover.findShopsNearYou')}
+                            description={t('discover.locationNeeded')}
+                        />
+                    ) : shops.length === 0 ? (
+                        <EmptyState
+                            icon={Store}
+                            title={t('discover.noShopsInRadius', { radius: nearby.radiusKm })}
+                            description={t('discover.noShopsHint')}
+                        >
+                            <Link to="/app/discover/shops" className="btn btn-primary btn-sm">
+                                {t('discover.widenSearch')}
+                            </Link>
+                        </EmptyState>
+                    ) : (
+                        <>
+                            <div className={RESULTS_GRID_CLASS}>
+                                {shops.slice(0, PREVIEW_COUNT).map((shop) => (
+                                    <RecordShopCard key={`${shop.osmType}-${shop.osmId}`} shop={shop} />
+                                ))}
+                            </div>
+                            {shops.length > PREVIEW_COUNT && (
+                                <div className="mt-4 text-center">
+                                    <Link to="/app/discover/shops" className="btn btn-primary btn-sm">
+                                        {t('discover.seeRemainingShops', { count: shops.length - PREVIEW_COUNT })}
+                                    </Link>
+                                </div>
+                            )}
+                            <OsmAttribution />
+                        </>
+                    )}
+                </section>
             </div>
             <PublicAlbumModal
                 item={selectedAlbum}

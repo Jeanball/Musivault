@@ -336,6 +336,8 @@
         "title": "发现",
         "subtitle": "探索来自社区及其他的音乐。",
         "publicCollections": "公开收藏",
+        "communityLatest": "社区新增",
+        "communityLatestSubtitle": "所有公开收藏中最新加入的唱片",
         "noPublicCollections": "暂无公开收藏",
         "beTheFirst": "成为第一个！在设置中启用公开分享。",
         "goToSettings": "前往设置",

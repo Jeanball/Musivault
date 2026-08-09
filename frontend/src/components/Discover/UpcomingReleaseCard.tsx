@@ -2,26 +2,22 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { UpcomingRelease } from '../../types/discover.types';
 import { formatReleaseDate } from '../../utils/date';
+import { revealIfCached } from '../../utils/imageReveal';
 
 interface UpcomingReleaseCardProps {
     release: UpcomingRelease;
+    /**
+     * Set on the cards that are on screen the moment the page paints. Lazy
+     * loading holds the request back until layout settles, which on a tile the
+     * user is already looking at is pure delay.
+     */
+    eager?: boolean;
 }
 
 /** Styles shown as chips; the rest collapse into a "+N" badge. */
 const VISIBLE_STYLES = 2;
 
-/**
- * Covers fade in on `onLoad`, but an image served straight from the browser
- * cache can already be complete by the time React attaches the handler — the
- * event never fires and the tile stays blank. Reveal those immediately.
- */
-const revealIfCached = (img: HTMLImageElement | null): void => {
-    if (img?.complete && img.naturalWidth > 0) {
-        img.classList.remove('opacity-0');
-    }
-};
-
-const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release }) => {
+const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release, eager = false }) => {
     const { t, i18n } = useTranslation();
     const shownStyles = release.matchedStyles.slice(0, VISIBLE_STYLES);
     const hiddenStyles = release.matchedStyles.slice(VISIBLE_STYLES);
@@ -40,7 +36,8 @@ const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release }) =>
                     ref={revealIfCached}
                     src={release.coverArtUrl || '/placeholder-album.svg'}
                     alt={release.title}
-                    loading="lazy"
+                    loading={eager ? 'eager' : 'lazy'}
+                    fetchPriority={eager ? 'high' : 'auto'}
                     decoding="async"
                     className="object-cover w-full h-full relative z-1 opacity-0 transition-opacity duration-300"
                     onLoad={(e) => { e.currentTarget.classList.remove('opacity-0'); }}

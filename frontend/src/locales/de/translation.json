@@ -333,6 +333,8 @@
         "title": "Entdecken",
         "subtitle": "Entdecken Sie Musik aus Ihrer Community und darüber hinaus.",
         "publicCollections": "Öffentliche Sammlungen",
+        "communityLatest": "Neu in der Community",
+        "communityLatestSubtitle": "Die neuesten Zugänge aus allen öffentlichen Sammlungen",
         "noPublicCollections": "Noch keine öffentlichen Sammlungen",
         "beTheFirst": "Seien Sie der Erste! Aktivieren Sie das öffentliche Teilen in Ihren Einstellungen.",
         "goToSettings": "Zu den Einstellungen",

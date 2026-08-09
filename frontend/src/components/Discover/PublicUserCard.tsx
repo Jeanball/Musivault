@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUrl';
+import { revealIfCached } from '../../utils/imageReveal';
 import type { CollectionItem } from '../../types/collection.types';
 import type { PublicUser } from '../../types/public.types';
 
@@ -78,6 +79,7 @@ const PublicUserCard: React.FC<PublicUserCardProps> = ({ user, isExpanded, onTog
                                 >
                                     <figure className="aspect-square relative overflow-hidden rounded-t-xl">
                                         <img
+                                            ref={revealIfCached}
                                             src={getImageUrl(item.album?.cover_image || "/placeholder-album.svg")}
                                             alt={item.album?.title}
                                             loading="lazy"

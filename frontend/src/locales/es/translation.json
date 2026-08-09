@@ -336,6 +336,8 @@
         "title": "Descubrir",
         "subtitle": "Explora música de tu comunidad y más allá.",
         "publicCollections": "Colecciones Públicas",
+        "communityLatest": "Novedades de la comunidad",
+        "communityLatestSubtitle": "Las últimas incorporaciones de todas las colecciones públicas",
         "noPublicCollections": "Aún no hay colecciones públicas",
         "beTheFirst": "¡Sé el primero! Activa el compartir público en tus Ajustes.",
         "goToSettings": "Ir a Ajustes",
