@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from '../../types/collection.types';
 import { getItemValue } from '../../utils/itemValue';
 import { getImageUrl } from '../../utils/imageUrl';
-import { stripArtistSuffix } from '../../utils/formatters';
+import { stripDiscogsSuffix } from '../../utils/formatters';
 import FormatColorBadge from '../Common/FormatColorBadge';
 import FieldRow from '../Common/FieldRow';
 import LabelLink from '../Common/LabelLink';
@@ -57,7 +57,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                     <div className="flex-1 min-w-0 text-center sm:text-left">
                         <span className="text-xs font-semibold uppercase tracking-wide text-base-content/60">{item.format.name}</span>
                         <h2 className="text-xl font-bold leading-tight line-clamp-2 mt-1">{album.title}</h2>
-                        <p className="text-base text-base-content/70 mt-0.5">{stripArtistSuffix(album.artist)}</p>
+                        <p className="text-base text-base-content/70 mt-0.5">{stripDiscogsSuffix(album.artist)}</p>
 
                         {(item.format.text || (item.format.descriptions && item.format.descriptions.length > 0)) && (
                             <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 mt-3">

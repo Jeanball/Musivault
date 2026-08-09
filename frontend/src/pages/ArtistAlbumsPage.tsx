@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router';
 import { getArtistReleases } from '../api/discogs';
 import { useTranslation } from 'react-i18next';
 import { isRateLimitError } from '../api/errors';
-import { stripArtistSuffix } from '../utils/formatters';
+import { stripDiscogsSuffix } from '../utils/formatters';
 import type { ArtistPageData, ArtistAlbum } from '../types/discogs.types';
 import { getImageUrl } from '../utils/imageUrl';
 import BackButton from '../components/Common/BackButton';
@@ -144,7 +144,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     />
                 )}
                 <div className="flex flex-col justify-center text-center md:text-left">
-                    <h1 className="text-3xl md:text-4xl font-bold">{stripArtistSuffix(pageData.artist.name)}</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold">{stripDiscogsSuffix(pageData.artist.name)}</h1>
                     <p className="text-base-content/70 mt-2">{pageData.albums.length} {t('common.albums')}</p>
                 </div>
             </div>

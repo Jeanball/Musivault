@@ -6,7 +6,7 @@ import { isApiError, isRateLimitError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import { stripArtistSuffix } from '../utils/formatters';
+import { stripDiscogsSuffix } from '../utils/formatters';
 import { type AlbumDetails, type FormatDetails } from '../types/album.types';
 import ConditionModal from '../components/Modal/ConditionModal';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
@@ -184,7 +184,7 @@ const ReleasePage: React.FC = () => {
                 {/* Album Info */}
                 <div className="flex-1">
                     <h1 className="text-3xl font-bold">{albumDetails.title}</h1>
-                    <p className="text-xl text-base-content/70 mt-2">{stripArtistSuffix(albumDetails.artist)}</p>
+                    <p className="text-xl text-base-content/70 mt-2">{stripDiscogsSuffix(albumDetails.artist)}</p>
                     <p className="text-base-content/50 mt-1">{albumDetails.year}</p>
 
                     {/* Format selection - direct click to add */}

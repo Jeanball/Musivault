@@ -14,7 +14,7 @@ import {
 } from '../api/collection';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import { stripArtistSuffix } from '../utils/formatters';
+import { stripDiscogsSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
 import { getItemValue } from '../utils/itemValue';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../utils/conditions';
@@ -334,7 +334,7 @@ const AlbumDetailPage: React.FC = () => {
                     )}
 
                     <h1 className="text-4xl md:text-5xl font-bold mb-2">{album.title}</h1>
-                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-3">{stripArtistSuffix(album.artist)}</h2>
+                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-3">{stripDiscogsSuffix(album.artist)}</h2>
 
                     {(item.format.text || (item.format.descriptions && item.format.descriptions.length > 0)) && (
                         <div className="flex flex-wrap gap-2 mb-4">

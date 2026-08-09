@@ -5,7 +5,7 @@ import { addToCollection } from '../../api/collection';
 import { isApiError, isCanceledError, isRateLimitError } from '../../api/errors';
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../../utils/toast";
-import { stripArtistSuffix } from '../../utils/formatters';
+import { stripDiscogsSuffix } from '../../utils/formatters';
 import SearchResultCard from './SearchResultCard';
 import BarcodeScannerModal from '../Modal/BarcodeScannerModal';
 import SelectReleaseModal from '../Modal/SelectReleaseModal';
@@ -427,12 +427,12 @@ const SearchBar: React.FC = () => {
                                             <figure className="px-4 pt-4">
                                                 <img
                                                     src={getImageUrl(artist.thumb || '/placeholder-artist.png')}
-                                                    alt={stripArtistSuffix(artist.name)}
+                                                    alt={stripDiscogsSuffix(artist.name)}
                                                     className="rounded-full w-20 h-20 object-cover mx-auto"
                                                 />
                                             </figure>
                                             <div className="card-body items-center text-center p-3">
-                                                <h3 className="card-title text-sm">{stripArtistSuffix(artist.name)}</h3>
+                                                <h3 className="card-title text-sm">{stripDiscogsSuffix(artist.name)}</h3>
                                             </div>
                                         </div>
                                     ))}
