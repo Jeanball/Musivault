@@ -27,12 +27,8 @@ const PrivateLayout: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const hasShownLoginToast = useRef(false);
 
-    // verifyUser reads these through refs so it can stay out of the mount
-    // effect's dependencies: syncPreferencesFromServer is rebuilt whenever the
-    // theme changes, and re-running the effect on every such change (or on
-    // every navigation) hammered /api/auth/verify.
-    const syncPreferencesRef = useRef(syncPreferencesFromServer);
-    syncPreferencesRef.current = syncPreferencesFromServer;
+    // Read through a ref so verifyUser can stay out of the mount effect's
+    // dependencies: re-running it on every navigation hammered /api/auth/verify.
     const locationStateRef = useRef(location.state);
     locationStateRef.current = location.state;
 
@@ -48,7 +44,7 @@ const PrivateLayout: React.FC = () => {
                 // Sync preferences from server once user is verified. The
                 // returned value also carries the language, which this layout
                 // owns rather than the theme context.
-                const preferences = await syncPreferencesRef.current();
+                const preferences = await syncPreferencesFromServer();
                 if (preferences?.language && preferences.language !== i18n.language) {
                     i18n.changeLanguage(preferences.language);
                 }
