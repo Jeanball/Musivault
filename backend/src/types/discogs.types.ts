@@ -16,6 +16,11 @@ export interface DiscogsSearchResult {
 export interface DiscogsSearchResultExtended extends DiscogsSearchResult {
     master_id?: number; // Present on releases that have a master
     cover_image?: string;
+    // Pressing details Discogs already returns with every search hit
+    format?: string[];
+    label?: string[];
+    country?: string;
+    catno?: string;
 }
 
 // ===== Release Details =====
@@ -132,6 +137,12 @@ export interface CleanedSearchResult {
     year: string;
     thumb: string;
     type: 'master' | 'release';
+    /** Format descriptors ("Vinyl", "LP", "Album"), so a pressing can be told apart in the list */
+    format?: string[];
+    /** First label only: search hits list every reissue label and the rest is noise here */
+    label?: string;
+    country?: string;
+    catno?: string;
 }
 
 export interface CleanedReleaseDetails {

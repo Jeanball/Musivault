@@ -4,6 +4,11 @@ export interface DiscogsResult {
   title: string;
   year: string;
   type: 'master' | 'release';
+  /** Pressing details from the search hit, shown so a result can be judged in the list */
+  format?: string[];
+  label?: string;
+  country?: string;
+  catno?: string;
 }
 
 export interface ArtistResult {

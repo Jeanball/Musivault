@@ -38,6 +38,19 @@ import { logger } from '../config/logger.config';
 // ===== Search Functions (for Controller) =====
 
 /**
+ * Keeps the pressing details Discogs returns with every search hit so a result
+ * can be judged in the list instead of only on its own page.
+ */
+function pressingDetails(item: DiscogsSearchResultExtended) {
+    return {
+        format: item.format || [],
+        label: item.label?.[0] || '',
+        country: item.country || '',
+        catno: item.catno || ''
+    };
+}
+
+/**
  * Search for albums - combines masters and orphan releases
  */
 export async function searchAlbums(query: string): Promise<CleanedSearchResult[]> {
@@ -72,14 +85,16 @@ export async function searchAlbums(query: string): Promise<CleanedSearchResult[]
             title: item.title,
             year: item.year,
             thumb: item.thumb,
-            type: 'master' as const
+            type: 'master' as const,
+            ...pressingDetails(item)
         })),
         ...orphanReleases.map(item => ({
             id: item.id,
             title: item.title,
             year: item.year,
             thumb: item.thumb,
-            type: 'release' as const
+            type: 'release' as const,
+            ...pressingDetails(item)
         }))
     ];
 }
@@ -114,7 +129,8 @@ export async function searchByBarcode(barcode: string): Promise<CleanedSearchRes
         title: item.title,
         year: item.year,
         thumb: item.thumb,
-        type: 'release' as const
+        type: 'release' as const,
+        ...pressingDetails(item)
     }));
 }
 
@@ -171,7 +187,8 @@ export async function lookupByReference(
                 title: item.title,
                 year: item.year,
                 thumb: item.thumb,
-                type: 'release' as const
+                type: 'release' as const,
+                ...pressingDetails(item)
             }));
         } catch (err: any) {
             logger.warn({ err }, '[Discogs] Catalog number lookup error');

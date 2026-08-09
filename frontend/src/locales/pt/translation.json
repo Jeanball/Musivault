@@ -297,7 +297,7 @@
         "confirmAddYes": "Adicionar"
     },
     "search": {
-        "placeholder": "Buscar artistas ou álbuns...",
+        "placeholder": "Artista, álbum, ID do Discogs ou número de catálogo…",
         "artists": "Artistas",
         "resetSearch": "Resetar Busca",
         "scanBarcode": "Escanear Código de Barras",
@@ -314,17 +314,7 @@
         "networkError": "Não foi possível contactar o servidor. Verifique a sua ligação.",
         "searching": "A pesquisar…",
         "resultsCount": "{{albums}} álbuns e {{artists}} artistas encontrados.",
-        "modeAlbumArtist": "Álbum / Artista",
-        "modeIdLookup": "ID / Catálogo",
         "modeManual": "Adicionar manual",
-        "lookupTypeDiscogsId": "ID do Discogs",
-        "lookupTypeCatno": "Número de catálogo",
-        "placeholderDiscogsId": "Digite o ID do Discogs (ex: 4679783)...",
-        "placeholderDiscogsIdShort": "ID (ex: 4679783)...",
-        "placeholderCatno": "Digite o número de catálogo (ex: CAD 0006)...",
-        "placeholderCatnoShort": "Catálogo (ex: CAD 0006)...",
-        "find": "Buscar",
-        "results": "Resultados",
         "noLookupResult": "Nenhum lançamento encontrado para esta referência.",
         "manualTitle": "Adicionar álbum manualmente",
         "albumPlaceholder": "Título do álbum...",
@@ -335,7 +325,27 @@
         "optional": "Opcional",
         "manualRequired": "O título do álbum e o artista são obrigatórios",
         "manualSuccess": "\"{{title}}\" adicionado à sua coleção!",
-        "manualError": "Falha ao adicionar o álbum. Tente novamente."
+        "manualError": "Falha ao adicionar o álbum. Tente novamente.",
+        "placeholderShort": "Artista, álbum, ID…",
+        "addedToCollection": "“{{title}}” adicionado à sua coleção!",
+        "intentDiscogsId": "ID do Discogs detectado",
+        "intentCatno": "Número de catálogo detectado",
+        "intentBarcode": "Código de barras detectado",
+        "intentOpenRelease": "Abrir o lançamento",
+        "intentSearchCatalog": "Procurar no catálogo",
+        "intentFindPressing": "Procurar a prensagem",
+        "exactMatch": "Correspondência exata para {{reference}}",
+        "recentSearches": "Pesquisas recentes",
+        "clearRecents": "Limpar",
+        "tipsTitle": "Três formas de encontrar uma prensagem",
+        "tipTextTitle": "Texto",
+        "tipTextBody": "Artista, álbum ou ambos: “coltrane blue train”.",
+        "tipReferenceTitle": "Referência",
+        "tipReferenceBody": "Cole um ID do Discogs ou número de catálogo, é reconhecido sozinho.",
+        "tipScanTitle": "Código de barras",
+        "tipScanBody": "Digitalize a capa; um resultado único é adicionado diretamente.",
+        "backToSearch": "Voltar à pesquisa",
+        "keyboardHint": "↑ ↓ navegar · ↵ abrir"
     },
     "discover": {
         "title": "Descobrir",
@@ -461,7 +471,7 @@
         "noPlacesFound": "Nenhum lugar encontrado para \"{{query}}\".",
         "failedGeocode": "A busca de lugar falhou.",
         "noShopsInRadius": "Nenhuma loja de discos num raio de {{radius}} km",
-        "noShopsHint": "Tente ampliar o raio. Os dados vêm do OpenStreetMap — se conhece uma loja em falta, pode adicioná-la lá.",
+        "noShopsHint": "Tente ampliar o raio. Os dados vêm do OpenStreetMap; se conhece uma loja em falta, pode adicioná-la lá.",
         "noShopsMatchSearch": "Nenhuma loja corresponde a \"{{query}}\".",
         "widenSearch": "Ampliar a busca",
         "failedLoadShops": "Falha ao carregar as lojas de discos próximas.",
@@ -659,7 +669,8 @@
         "descending": "Decrescente",
         "unknownYear": "Ano desconhecido",
         "noAlbums": "Nenhum álbum encontrado para este artista.",
-        "errorLoading": "Erro ao carregar álbuns do artista."
+        "errorLoading": "Erro ao carregar álbuns do artista.",
+        "filterPlaceholder": "Filtrar álbuns…"
     },
     "release": {
         "noData": "Sem dados para este lançamento.",
@@ -724,7 +735,7 @@
     },
     "errors": {
         "rateLimitedTitle": "O Discogs está a limitar-nos",
-        "rateLimitedBody": "Demasiados pedidos em pouco tempo. Aguarde alguns segundos e tente novamente — não se perdeu nada.",
+        "rateLimitedBody": "Demasiados pedidos em pouco tempo. Aguarde alguns segundos e tente novamente; não se perdeu nada.",
         "loadFailedTitle": "Não foi possível carregar esta página",
         "retry": "Tentar novamente"
     },

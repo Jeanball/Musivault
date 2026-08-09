@@ -5,10 +5,12 @@ import { getArtistReleases } from '../api/discogs';
 import { useTranslation } from 'react-i18next';
 import { isRateLimitError } from '../api/errors';
 import { stripDiscogsSuffix } from '../utils/formatters';
-import type { ArtistPageData, ArtistAlbum } from '../types/discogs.types';
+import type { ArtistPageData, ArtistAlbum, DiscogsResult } from '../types/discogs.types';
 import { getImageUrl } from '../utils/imageUrl';
 import BackButton from '../components/Common/BackButton';
 import PageLoadError from '../components/Common/PageLoadError';
+import SearchField from '../components/Search/SearchField';
+import SearchResultCard from '../components/Search/SearchResultCard';
 
 type SortField = 'title' | 'year';
 type SortOrder = 'asc' | 'desc';
@@ -20,13 +22,26 @@ interface ArtistPageState {
 
 const ARTIST_PAGE_STATE_KEY = 'musivault_artist_page_state';
 
+/**
+ * The artist endpoint returns less than a search hit, so the row simply gets
+ * fewer badges. A year of 0 means Discogs doesn't know it: no badge rather than
+ * an "unknown year" placeholder.
+ */
+const toSearchResult = (album: ArtistAlbum): DiscogsResult => ({
+    id: album.id,
+    title: album.title,
+    thumb: album.thumb,
+    type: album.type,
+    year: album.year > 0 ? String(album.year) : ''
+});
+
 const getStoredState = (artistId: string): ArtistPageState | null => {
     try {
         const stored = sessionStorage.getItem(`${ARTIST_PAGE_STATE_KEY}_${artistId}`);
         if (stored) {
             return JSON.parse(stored);
         }
-    } catch (e) {
+    } catch {
         // Ignore parse errors
     }
     return null;
@@ -131,46 +146,70 @@ const ArtistAlbumsPage: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 max-w-5xl mx-auto">
             <BackButton />
 
-            {/* Header with artist info */}
-            <div className="flex flex-col md:flex-row gap-6 mb-8">
+            {/* Header: the portrait becomes a faded backdrop with the name over it.
+                Stacked and centred, it used to eat a third of a phone screen before
+                a single album showed up. The gradient lands on base-100 exactly where
+                the text sits, so contrast holds in both themes. */}
+            <div className="relative -mx-4 md:-mx-8 -mt-2 mb-4 md:mb-6 overflow-hidden min-h-56 md:min-h-96 flex items-end">
                 {pageData.artist.image && (
-                    <img
-                        src={getImageUrl(pageData.artist.image)}
-                        alt={pageData.artist.name}
-                        className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover shadow-xl mx-auto md:mx-0"
-                    />
+                    <>
+                        {/* Two layers, the way Plex fills a backdrop: a blurred copy
+                            paints the whole band, the sharp photo sits on top scaled to
+                            full height. Portraits are never cut off at the bottom, and
+                            what overflows does so on the sides. */}
+                        <img
+                            src={getImageUrl(pageData.artist.image)}
+                            alt=""
+                            aria-hidden="true"
+                            className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-70"
+                        />
+                        <img
+                            src={getImageUrl(pageData.artist.image)}
+                            alt=""
+                            aria-hidden="true"
+                            className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-auto max-w-none"
+                        />
+                        {/* The veil is concentrated in the bottom third, under the name:
+                            the photo stays legible above, the text stays readable on both
+                            themes below. */}
+                        <div className="absolute inset-0 bg-linear-to-t from-base-100 from-5% via-base-100/45 via-45% to-transparent to-95%" />
+                    </>
                 )}
-                <div className="flex flex-col justify-center text-center md:text-left">
-                    <h1 className="text-3xl md:text-4xl font-bold">{stripDiscogsSuffix(pageData.artist.name)}</h1>
-                    <p className="text-base-content/70 mt-2">{pageData.albums.length} {t('common.albums')}</p>
+                <div className="relative w-full px-4 md:px-8 pt-20 pb-4 md:pt-52 md:pb-6">
+                    <h1 className="text-2xl md:text-4xl font-bold leading-tight">
+                        {stripDiscogsSuffix(pageData.artist.name)}
+                    </h1>
+                    <p className="text-sm md:text-base text-base-content/70 mt-1">
+                        {pageData.albums.length} {t('common.albums')}
+                    </p>
                 </div>
             </div>
 
             {/* Filter and Sort controls */}
-            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6 p-4 bg-base-200 rounded-lg">
+            <div className="flex flex-col md:flex-row justify-between gap-3 md:gap-4 mb-4 md:mb-6 p-3 md:p-4 bg-base-200 rounded-lg">
                 <div className="w-full md:max-w-sm">
-                    <input
-                        type="text"
-                        placeholder={t('search.placeholder', 'Search...')}
-                        className="input input-sm w-full"
+                    <SearchField
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={setSearchTerm}
+                        onReset={() => setSearchTerm('')}
+                        resetLabel={t('search.resetSearch')}
+                        placeholder={t('artist.filterPlaceholder')}
                     />
                 </div>
-                <div className="flex flex-wrap items-center gap-4">
-                    <span className="text-sm font-medium">{t('artist.sortBy')}</span>
+                <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                    <span className="text-sm font-medium hidden md:inline">{t('artist.sortBy')}</span>
                     <div className="flex gap-2">
                         <button
-                            className={`btn btn-sm ${sortField === 'title' ? 'btn-primary' : 'btn-outline'}`}
+                            className={`btn btn-sm h-11 min-h-11 md:h-8 md:min-h-8 ${sortField === 'title' ? 'btn-primary' : 'btn-outline'}`}
                             onClick={() => setSortField('title')}
                         >
                             {t('common.title')}
                         </button>
                         <button
-                            className={`btn btn-sm ${sortField === 'year' ? 'btn-primary' : 'btn-outline'}`}
+                            className={`btn btn-sm h-11 min-h-11 md:h-8 md:min-h-8 ${sortField === 'year' ? 'btn-primary' : 'btn-outline'}`}
                             onClick={() => setSortField('year')}
                         >
                             {t('common.year')}
@@ -178,7 +217,7 @@ const ArtistAlbumsPage: React.FC = () => {
                     </div>
                     <div className="divider divider-horizontal mx-0 hidden md:flex"></div>
                     <button
-                        className="btn btn-sm btn-ghost gap-2"
+                        className="btn btn-sm btn-ghost gap-2 h-11 min-h-11 md:h-8 md:min-h-8 ml-auto md:ml-0"
                         onClick={toggleSortOrder}
                     >
                         {sortOrder === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
@@ -187,32 +226,17 @@ const ArtistAlbumsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Albums List */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+            {/* Albums: the same row as the search results, so an album looks the
+                same wherever it is listed. The artist is in the page title, so the
+                rows don't repeat it. */}
+            <div className="border-t border-base-300 sm:border-0 sm:space-y-3">
                 {sortedAlbums.map((album) => (
-                    <div
+                    <SearchResultCard
                         key={`${album.type}-${album.id}`}
-                        className="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 bg-base-200 rounded-xl hover:bg-base-300 cursor-pointer transition-all hover:scale-[1.01] shadow-xs group"
-                        onClick={() => handleAlbumClick(album)}
-                    >
-                        <img
-                            src={getImageUrl(album.thumb || '/placeholder-album.svg')}
-                            alt={album.title}
-                            className="w-14 h-14 sm:w-16 sm:h-16 lg:w-[150px] lg:h-[150px] object-cover rounded-lg shadow-xs shrink-0 group-hover:shadow-md transition-shadow"
-                            loading="lazy"
-                        />
-                        <div className="flex flex-col justify-center min-w-0 flex-1 py-0 lg:py-1">
-                            <h3 className="font-bold text-sm sm:text-base lg:text-xl line-clamp-2 group-hover:text-primary transition-colors leading-tight lg:leading-normal">{album.title}</h3>
-                            <p className="text-xs sm:text-sm lg:text-base text-base-content/60 mt-0.5 lg:mt-2 font-medium">
-                                {album.year > 0 ? album.year : t('artist.unknownYear')}
-                            </p>
-                        </div>
-                        <div className="px-1 lg:px-6 opacity-0 group-hover:opacity-100 transition-opacity text-base-content/30 group-hover:text-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                            </svg>
-                        </div>
-                    </div>
+                        result={toSearchResult(album)}
+                        artistName={null}
+                        onShowDetails={() => handleAlbumClick(album)}
+                    />
                 ))}
             </div>
 

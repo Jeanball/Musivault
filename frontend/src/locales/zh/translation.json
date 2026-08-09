@@ -297,7 +297,7 @@
         "confirmAddYes": "添加"
     },
     "search": {
-        "placeholder": "搜索艺术家或专辑...",
+        "placeholder": "艺术家、专辑、Discogs ID 或目录编号…",
         "artists": "艺术家",
         "resetSearch": "重置搜索",
         "scanBarcode": "扫描条形码",
@@ -314,17 +314,7 @@
         "networkError": "无法连接服务器，请检查网络连接。",
         "searching": "搜索中…",
         "resultsCount": "找到 {{albums}} 张专辑和 {{artists}} 位艺术家。",
-        "modeAlbumArtist": "专辑 / 艺术家",
-        "modeIdLookup": "ID / 目录",
         "modeManual": "手动添加",
-        "lookupTypeDiscogsId": "Discogs ID",
-        "lookupTypeCatno": "目录编号",
-        "placeholderDiscogsId": "输入 Discogs 发行 ID（例如 4679783）...",
-        "placeholderDiscogsIdShort": "ID（例如 4679783）...",
-        "placeholderCatno": "输入目录编号（例如 CAD 0006）...",
-        "placeholderCatnoShort": "目录（例如 CAD 0006）...",
-        "find": "查找",
-        "results": "结果",
         "noLookupResult": "未找到匹配的发行版本。",
         "manualTitle": "手动添加专辑",
         "albumPlaceholder": "专辑名称...",
@@ -335,7 +325,27 @@
         "optional": "可选",
         "manualRequired": "专辑名称和艺术家为必填项",
         "manualSuccess": "\"{{title}}\" 已添加到您的收藏！",
-        "manualError": "添加专辑失败，请重试。"
+        "manualError": "添加专辑失败，请重试。",
+        "placeholderShort": "艺术家、专辑、ID…",
+        "addedToCollection": "「{{title}}」已加入您的收藏！",
+        "intentDiscogsId": "检测到 Discogs ID",
+        "intentCatno": "检测到目录编号",
+        "intentBarcode": "检测到条形码",
+        "intentOpenRelease": "打开该发行",
+        "intentSearchCatalog": "搜索目录编号",
+        "intentFindPressing": "查找压片",
+        "exactMatch": "{{reference}} 的精确匹配",
+        "recentSearches": "最近搜索",
+        "clearRecents": "清除",
+        "tipsTitle": "找到压片的三种方式",
+        "tipTextTitle": "文字",
+        "tipTextBody": "艺术家、专辑或两者：“coltrane blue train”。",
+        "tipReferenceTitle": "编号",
+        "tipReferenceBody": "粘贴 Discogs ID 或目录编号，系统自动识别。",
+        "tipScanTitle": "条形码",
+        "tipScanBody": "扫描封面；单一结果会直接加入。",
+        "backToSearch": "返回搜索",
+        "keyboardHint": "↑ ↓ 浏览 · ↵ 打开"
     },
     "discover": {
         "title": "发现",
@@ -457,7 +467,7 @@
         "noPlacesFound": "未找到与\"{{query}}\"匹配的地点。",
         "failedGeocode": "地点搜索失败。",
         "noShopsInRadius": "{{radius}} 公里内没有唱片店",
-        "noShopsHint": "请尝试扩大半径。店铺数据来自 OpenStreetMap — 如果您知道遗漏的店铺，可以在那里添加。",
+        "noShopsHint": "请尝试扩大半径。店铺数据来自 OpenStreetMap；如果您知道遗漏的店铺，可以在那里添加。",
         "noShopsMatchSearch": "没有与\"{{query}}\"匹配的店铺。",
         "widenSearch": "扩大搜索范围",
         "failedLoadShops": "加载附近唱片店失败。",
@@ -655,7 +665,8 @@
         "descending": "降序",
         "unknownYear": "未知年份",
         "noAlbums": "未找到此艺术家的专辑。",
-        "errorLoading": "加载艺术家专辑出错。"
+        "errorLoading": "加载艺术家专辑出错。",
+        "filterPlaceholder": "筛选专辑…"
     },
     "release": {
         "noData": "此发行无数据。",
@@ -720,7 +731,7 @@
     },
     "errors": {
         "rateLimitedTitle": "Discogs 正在限制请求",
-        "rateLimitedBody": "短时间内请求过多。请等待几秒后重试——数据没有丢失。",
+        "rateLimitedBody": "短时间内请求过多。请等待几秒后重试，数据没有丢失。",
         "loadFailedTitle": "无法加载此页面",
         "retry": "重试"
     },

@@ -91,7 +91,9 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
 
       {/* --- MOBILE (Bottom Nav) --- */}
       <div className="dock lg:hidden z-50 bg-base-100/95 backdrop-blur-lg border-t border-base-300 [-webkit-tap-highlight-color:transparent]">
-        <Link to="/app" className={`${isSearchActive ? 'dock-active text-primary' : 'text-base-content/60 hover:text-primary'} transition-colors`}>
+        {/* focusSearch tells the home screen to put the cursor in the field: tapping
+            "Search" should start a search, not just land next to one. */}
+        <Link to="/app" state={{ focusSearch: true }} className={`${isSearchActive ? 'dock-active text-primary' : 'text-base-content/60 hover:text-primary'} transition-colors`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <span className="dock-label text-xs font-medium">{t('nav.search', 'Search')}</span>
         </Link>

@@ -7,16 +7,46 @@ import type { DiscogsResult } from '../../types/discogs.types';
 interface SearchResultCardProps {
   result: DiscogsResult;
   onShowDetails: (releaseId: number) => void;
-  isLoadingDetails: boolean;
+  /**
+   * `option` only inside a listbox the arrow keys drive; a plain list of rows
+   * uses the default and stays a button.
+   */
+  role?: 'option' | 'button';
+  /**
+   * Left out, the artist is read from the "Artist - Album" title. Pass null on a
+   * screen that already names the artist, so it isn't repeated on every row.
+   */
+  artistName?: string | null;
+  /** Highlighted by the arrow keys: the row Enter would open */
+  isActive?: boolean;
+  /** Set when the card sits in a listbox, so the active row can be announced */
+  optionId?: string;
 }
 
-const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, onShowDetails, isLoadingDetails }) => {
+/** Beyond three, the descriptors stop helping and start wrapping. */
+const MAX_FORMAT_PARTS = 3;
+
+const SearchResultCard: React.FC<SearchResultCardProps> = ({
+  result,
+  onShowDetails,
+  role = 'button',
+  artistName,
+  isActive = false,
+  optionId
+}) => {
   const { t } = useTranslation();
-  const { artist, album } = parseTitle(result.title);
+  const parsed = parseTitle(result.title);
+  const album = artistName === undefined ? parsed.album : result.title;
+  const artist = artistName === undefined ? parsed.artist || t('common.unknownArtist') : artistName;
+
+  const formatParts = (result.format || []).slice(0, MAX_FORMAT_PARTS).join(', ');
+  const reference = [result.label, result.catno].filter(Boolean).join(' · ');
 
   return (
     <div
-      role="button"
+      id={optionId}
+      role={role}
+      aria-selected={role === 'option' ? isActive : undefined}
       tabIndex={0}
       onClick={() => onShowDetails(result.id)}
       onKeyDown={(e) => {
@@ -25,31 +55,46 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, onShowDetai
           onShowDetails(result.id);
         }
       }}
-      className="relative flex items-center p-4 bg-base-200 rounded-lg shadow-md transition-all duration-200 hover:shadow-xl hover:bg-base-300 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+      /* Mobile keeps a divided list: no card padding or fill, so more of the
+         result fits above the keyboard. The card look returns from sm: up. */
+      className={`flex items-center gap-3 py-2 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-300 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:p-3 sm:border-0 sm:rounded-lg sm:bg-base-200 ${
+        isActive ? 'bg-base-300 ring-2 ring-primary' : ''
+      }`}
     >
       <img
         src={getImageUrl(result.thumb)}
-        alt={`${artist} - ${album}`}
-        className="w-20 h-20 object-cover mr-4 rounded-sm shrink-0"
+        alt={artist ? `${artist} - ${album}` : album}
+        className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-sm shrink-0"
         loading="lazy"
       />
-      <div className="grow min-w-0">
-        <h3 className="text-lg font-bold truncate" title={album}>
-          {album}
-        </h3>
-        <p className="text-md text-base-content/70 truncate" title={artist || t('common.unknownArtist')}>
-          {artist || t('common.unknownArtist')}
-        </p>
-        <p className="text-sm text-base-content/50 mt-1">
-          {t('common.year')}: {result.year || t('common.na')}
-        </p>
-      </div>
 
-      {isLoadingDetails && (
-        <div className="absolute inset-0 bg-black/60 flex justify-center items-center rounded-lg">
-          <span className="loading loading-spinner loading-md text-white"></span>
+      <div className="grow min-w-0">
+        <h3 className="font-bold text-sm sm:text-base leading-tight truncate" title={album}>{album}</h3>
+        {artist && (
+          <p className="text-xs sm:text-sm text-base-content/70 truncate" title={artist}>{artist}</p>
+        )}
+        {/* Master vs release stays implicit: a specific pressing is the one carrying
+            a format, a label and a catalog number. The words themselves mean nothing
+            to most people. */}
+        <div className="flex flex-wrap items-center gap-1 mt-1 sm:mt-1.5">
+          {result.year && (
+            <span className="badge badge-xs sm:badge-sm badge-ghost tabular-nums">{result.year}</span>
+          )}
+          {formatParts && (
+            <span className="badge badge-xs sm:badge-sm badge-ghost max-w-48 truncate" title={formatParts}>
+              {formatParts}
+            </span>
+          )}
+          {reference && (
+            <span className="badge badge-xs sm:badge-sm badge-ghost max-w-56 truncate hidden sm:inline-flex" title={reference}>
+              {reference}
+            </span>
+          )}
+          {result.country && (
+            <span className="badge badge-xs sm:badge-sm badge-ghost hidden sm:inline-flex">{result.country}</span>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
