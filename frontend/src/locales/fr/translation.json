@@ -257,7 +257,9 @@
         "tracklist": "Liste des pistes",
         "trackCount": "{{count}} pistes",
         "duration": "Durée",
-        "cover": "Pochette"
+        "cover": "Pochette",
+        "showAllTracks": "Afficher {{n}} pistes de plus",
+        "showFewerTracks": "Afficher moins"
     },
     "label": {
         "title": "Label",

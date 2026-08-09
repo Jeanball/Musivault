@@ -239,7 +239,9 @@
         "tracklist": "曲目列表",
         "trackCount": "{{count}} 首曲目",
         "duration": "时长",
-        "cover": "封面"
+        "cover": "封面",
+        "showAllTracks": "显示另外 {{n}} 首曲目",
+        "showFewerTracks": "收起"
     },
     "label": {
         "title": "厂牌",

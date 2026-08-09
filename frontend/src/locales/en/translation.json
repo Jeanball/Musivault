@@ -257,7 +257,9 @@
         "tracklist": "Tracklist",
         "trackCount": "{{count}} tracks",
         "duration": "Duration",
-        "cover": "Cover"
+        "cover": "Cover",
+        "showAllTracks": "Show {{n}} more tracks",
+        "showFewerTracks": "Show fewer"
     },
     "label": {
         "title": "Label",

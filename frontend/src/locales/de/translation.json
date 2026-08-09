@@ -236,7 +236,9 @@
         "tracklist": "Titelliste",
         "trackCount": "{{count}} Titel",
         "duration": "Dauer",
-        "cover": "Cover"
+        "cover": "Cover",
+        "showAllTracks": "{{n}} weitere Titel anzeigen",
+        "showFewerTracks": "Weniger anzeigen"
     },
     "label": {
         "title": "Label",

@@ -239,7 +239,9 @@
         "tracklist": "Lista de canciones",
         "trackCount": "{{count}} pistas",
         "duration": "Duración",
-        "cover": "Portada"
+        "cover": "Portada",
+        "showAllTracks": "Mostrar {{n}} pistas más",
+        "showFewerTracks": "Mostrar menos"
     },
     "label": {
         "title": "Sello",
