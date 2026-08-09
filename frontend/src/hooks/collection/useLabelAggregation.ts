@@ -9,8 +9,6 @@ export interface LabelRelease {
     year: string;
     cover_image: string;
     thumb: string;
-    /** Catalogue number as printed on this particular release. */
-    catno: string;
 }
 
 export interface AggregatedLabel {
@@ -63,7 +61,6 @@ export function useLabelAggregation(collection: CollectionItem[]): AggregatedLab
                     year: album.year,
                     cover_image: album.cover_image,
                     thumb: album.thumb,
-                    catno: label.catno || '',
                 });
                 entry.releaseCount += 1;
             }

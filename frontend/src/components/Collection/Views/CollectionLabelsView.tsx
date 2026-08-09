@@ -48,12 +48,11 @@ const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection,
                 </div>
             ) : (
                 <div className="overflow-x-auto">
-                    <table className="table table-fixed w-full min-w-176">
+                    <table className="table table-fixed w-full min-w-140">
                         <colgroup>
                             <col className="w-16" />
                             <col />
                             <col className="w-56" />
-                            <col className="w-36" />
                             <col className="w-20" />
                         </colgroup>
                         <thead>
@@ -61,7 +60,6 @@ const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection,
                                 <th>{t('album.cover')}</th>
                                 <th>{t('common.album')}</th>
                                 <th>{t('common.artist')}</th>
-                                <th>{t('album.catalogNumber')}</th>
                                 <th>{t('common.year')}</th>
                             </tr>
                         </thead>
@@ -69,7 +67,7 @@ const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection,
                             {filteredLabels.map((label) => (
                                 <React.Fragment key={label.id}>
                                     <tr className="bg-base-200">
-                                        <th colSpan={5} className="text-base font-bold text-base-content">
+                                        <th colSpan={4} className="text-base font-bold text-base-content">
                                             <div className="flex items-center gap-3">
                                                 <LabelLink label={label.label} />
                                                 <span className="font-normal text-sm text-base-content/50">
@@ -106,15 +104,6 @@ const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection,
                                                 <div className="truncate" title={release.artist}>
                                                     {release.artist}
                                                 </div>
-                                            </td>
-                                            <td>
-                                                {release.catno ? (
-                                                    <span className="font-mono text-xs text-base-content/70">
-                                                        {release.catno}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-base-content/30">—</span>
-                                                )}
                                             </td>
                                             <td className="tabular-nums">{release.year || '—'}</td>
                                         </tr>
