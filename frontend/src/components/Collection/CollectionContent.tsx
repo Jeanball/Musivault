@@ -21,6 +21,13 @@ const COLLECTION_SCROLL_KEY = 'musivault_collection_scroll_y';
 
 const VIEW_MODES: CollectionViewMode[] = ['albums', 'tracks', 'labels'];
 
+/** One field for the three modes, so only its wording moves. */
+const SEARCH_PLACEHOLDER_KEYS: Record<CollectionViewMode, string> = {
+    albums: 'collection.searchAlbum',
+    tracks: 'tracks.searchTrack',
+    labels: 'labels.searchLabel',
+};
+
 interface CollectionContentProps {
     collection: CollectionItem[];
     isLoading: boolean;
@@ -81,13 +88,33 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         }
     }, [viewMode, readOnly]);
 
+    // Tracks and labels search their own aggregates, so the term stays out of the
+    // album filter there rather than narrowing twice from a single field.
+    const isAggregateMode = viewMode === 'tracks' || viewMode === 'labels';
+
     // Custom hooks
-    const { filters, setFilters, filteredCollection, groupedByArtist, clearFilters } = useCollectionFilters(collection, deferredSearchTerm);
+    const { filters, setFilters, filteredCollection, groupedByArtist, clearFilters } = useCollectionFilters(
+        collection,
+        isAggregateMode ? '' : deferredSearchTerm
+    );
     const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection);
     const stats = useCollectionStats(collection);
+    // Format mismatches are a private housekeeping signal, so a visitor never gets
+    // the toggle even though the shared items carry the flag.
     const issueCount = useMemo(
-        () => collection.reduce((count, item) => count + (hasActiveFormatVerificationIssue(item.formatVerification) ? 1 : 0), 0),
-        [collection]
+        () => readOnly
+            ? 0
+            : collection.reduce((count, item) => count + (hasActiveFormatVerificationIssue(item.formatVerification) ? 1 : 0), 0),
+        [collection, readOnly]
+    );
+
+    // The grid runs as one uninterrupted flow, so the artist grouping survives only
+    // as the order: every album of an artist still lands side by side.
+    const gridItems = useMemo(
+        () => Object.entries(groupedByArtist)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .flatMap(([, artistItems]) => artistItems),
+        [groupedByArtist]
     );
 
     const handleClearAll = () => {
@@ -109,6 +136,14 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         }
     };
 
+    /** The tracks and labels views only carry the item id back. */
+    const handleItemIdClick = (itemId: string) => {
+        const item = collection.find((entry) => entry._id === itemId);
+        if (item) {
+            handleItemClick(item);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -125,10 +160,6 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         filters.label !== 'all' ||
         filters.issueStatus !== 'all';
 
-    // Tracks and labels each carry their own search field and ignore the three
-    // layouts, so the toolbar drops both while either is showing.
-    const isAggregateMode = !readOnly && (viewMode === 'tracks' || viewMode === 'labels');
-
     return (
         <>
             <CollectionFilters
@@ -144,24 +175,26 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 filteredResults={filteredCollection.length}
                 onClearAll={hasAnyFilters ? handleClearAll : undefined}
                 issueCount={issueCount}
-                viewMode={readOnly ? undefined : viewMode}
-                onViewModeChange={readOnly ? undefined : setViewMode}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
-                showSearchField={!isAggregateMode}
+                searchPlaceholder={t(SEARCH_PLACEHOLDER_KEYS[viewMode])}
                 layout={isAggregateMode ? undefined : layout}
                 onLayoutChange={isAggregateMode ? undefined : setLayout}
             />
 
-            {viewMode === 'tracks' && !readOnly ? (
-                <CollectionTracksView collection={filteredCollection} />
-            ) : viewMode === 'labels' && !readOnly ? (
+            {viewMode === 'tracks' ? (
+                <CollectionTracksView
+                    collection={filteredCollection}
+                    searchTerm={deferredSearchTerm}
+                    onAlbumClick={handleItemIdClick}
+                />
+            ) : viewMode === 'labels' ? (
                 <CollectionLabelsView
                     collection={filteredCollection}
-                    onItemClick={(itemId) => {
-                        sessionStorage.setItem(COLLECTION_SCROLL_KEY, String(window.scrollY));
-                        navigate(`/app/album/${itemId}`, { state: { backTo: '/app/collection' } });
-                    }}
+                    searchTerm={deferredSearchTerm}
+                    onItemClick={handleItemIdClick}
                 />
             ) : (
                 <>
@@ -183,7 +216,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                             )}
                             {layout === 'grid' && (
                                 <CollectionGridView
-                                    groupedItems={groupedByArtist}
+                                    items={gridItems}
                                     onItemClick={handleItemClick}
                                 />
                             )}

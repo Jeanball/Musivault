@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useTrackAggregation, type AggregatedTrack } from '../../../hooks/collection/useTrackAggregation';
 import type { CollectionItem } from '../../../types/collection.types';
@@ -7,13 +6,14 @@ import { getImageUrl } from '../../../utils/imageUrl';
 
 interface CollectionTracksViewProps {
     collection: CollectionItem[];
+    /** Typed in the toolbar, which keeps its place across the view modes. */
+    searchTerm: string;
+    onAlbumClick: (collectionItemId: string) => void;
 }
 
-const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection }) => {
-    const navigate = useNavigate();
+const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection, searchTerm, onAlbumClick }) => {
     const { t } = useTranslation();
     const aggregatedTracks = useTrackAggregation(collection);
-    const [searchTerm, setSearchTerm] = useState('');
     const [expandedTrackId, setExpandedTrackId] = useState<string | null>(null);
 
     const filteredTracks = useMemo(() => {
@@ -30,23 +30,8 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection 
         setExpandedTrackId(expandedTrackId === track.id ? null : track.id);
     };
 
-    const handleAlbumClick = (collectionItemId: string) => {
-        navigate(`/app/album/${collectionItemId}`);
-    };
-
     return (
         <div className="space-y-4">
-            {/* Search Input */}
-            <div className="flex flex-col">
-                <input
-                    type="text"
-                    placeholder={t('tracks.searchTrack')}
-                    className="input w-full"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-
             {/* Tracks Count */}
             <div className="text-sm text-base-content/60">
                 {filteredTracks.length} {filteredTracks.length !== 1 ? t('tracks.uniqueTracks_plural', { count: filteredTracks.length }) : t('tracks.uniqueTracks', { count: filteredTracks.length })}
@@ -87,7 +72,7 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection 
                                     {track.albums.map((album) => (
                                         <div
                                             key={album.collectionItemId}
-                                            onClick={() => handleAlbumClick(album.collectionItemId)}
+                                            onClick={() => onAlbumClick(album.collectionItemId)}
                                             className="flex items-center gap-3 p-2 rounded-lg bg-base-300 hover:bg-primary/10 cursor-pointer transition-colors"
                                         >
                                             <img

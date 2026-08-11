@@ -9,7 +9,7 @@ const THROTTLE_MS = 60 * 1000;
  * a second tab, can move the data underneath it. Throttled because tab flicking
  * would otherwise fire a burst of requests for nothing.
  */
-export const useRefreshOnVisible = (refresh: () => void) => {
+export const useRefreshOnVisible = (refresh: () => void): void => {
     const refreshRef = useRef(refresh);
     refreshRef.current = refresh;
 

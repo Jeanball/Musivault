@@ -13,15 +13,25 @@
 
 import mongoose from 'mongoose';
 import CollectionItem from '../models/CollectionItem';
+import type { IPriceCache } from '../models/CollectionItem';
 import ValueSnapshot from '../models/ValueSnapshot';
 import { logger } from '../config/logger.config';
+
+/**
+ * The two fields a value depends on, and nothing else: this accepts a hydrated
+ * document, a lean result or a projection alike.
+ */
+export interface PricedItem {
+  priceCache?: IPriceCache | null;
+  mediaCondition?: string | null;
+}
 
 /**
  * The effective value of an item: its price for the condition it is in.
  * Mirrors getItemValue on the frontend; both must agree or the chart and the
  * total value KPI show different numbers for the same collection.
  */
-export function getValueForItem(item: any): number {
+export function getValueForItem(item: PricedItem): number {
   if (!item.priceCache) return 0;
   const pc = item.priceCache;
 

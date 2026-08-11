@@ -32,7 +32,7 @@ const CommunityAlbumCard: React.FC<CommunityAlbumCardProps> = ({ item, onSelect 
                     onSelect(item);
                 }
             }}
-            className="card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+            className="card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
         >
             <figure className="aspect-square relative overflow-hidden rounded-t-xl bg-base-300">
                 {/* Sits behind the cover so the tile is never an empty hole while loading. */}
@@ -55,32 +55,35 @@ const CommunityAlbumCard: React.FC<CommunityAlbumCardProps> = ({ item, onSelect 
                         e.currentTarget.src = '/placeholder-album.svg';
                     }}
                 />
+                {/* Only the date and the format sit on the sleeve; the collector
+                    reads better as a line under the record it belongs to. */}
                 {addedDate && (
                     <span
-                        className="absolute top-1 right-1 z-3 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs"
+                        className="absolute top-1 left-1 z-3 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs"
                         title={`${t('collection.added')}: ${addedDate.toLocaleDateString(i18n.language)}`}
                     >
                         {addedDate.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                 )}
-                {/* Readability scrim behind the owner's name. */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/70 to-transparent pointer-events-none z-2" />
-                <Link
-                    to={`/shared/${item.user.publicShareId}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute bottom-1 left-1.5 right-1.5 z-3 flex items-center gap-1 text-[10px] font-medium text-white drop-shadow-sm hover:underline"
-                >
-                    <span className="size-3.5 shrink-0 rounded-full bg-white/90 text-black text-[8px] font-bold grid place-items-center">
-                        {item.user.username.charAt(0).toUpperCase()}
-                    </span>
-                    <span className="truncate">{item.user.username}</span>
-                </Link>
+                <span className="badge badge-sm absolute bottom-2 left-2 z-3 max-w-[calc(100%-1rem)] truncate border-none bg-base-100/90 font-semibold backdrop-blur-xs">
+                    {item.format.name}
+                </span>
             </figure>
             <div className="card-body p-2 gap-0.5">
                 <h3 className="card-title text-xs leading-tight truncate block" title={album?.title}>
                     {album?.title}
                 </h3>
                 <p className="text-[10px] opacity-70 truncate block">{album?.artist}</p>
+                <Link
+                    to={`/shared/${item.user.publicShareId}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1 flex items-center gap-1.5 text-sm font-semibold hover:underline"
+                >
+                    <span className="size-4 shrink-0 rounded-full bg-base-300 text-[9px] font-bold grid place-items-center">
+                        {item.user.username.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="truncate">{item.user.username}</span>
+                </Link>
             </div>
         </div>
     );

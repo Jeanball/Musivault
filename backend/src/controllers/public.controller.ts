@@ -23,9 +23,9 @@ export async function getPublicCollection(req: Request, res: Response) {
             return;
         }
 
-        // Fetch collection items for this user (customFields is private, never exposed publicly)
+        // customFields and formatVerification are private housekeeping, never exposed publicly
         const collection = await CollectionItem.find({ user: user._id })
-            .select('-customFields')
+            .select('-customFields -formatVerification')
             .populate<{ album: IAlbum }>('album');
 
         // Sort by artist
@@ -75,8 +75,8 @@ export async function getPublicUsers(req: Request, res: Response) {
                 },
             },
             { $project: { albumCount: 1, latestAlbums: { $slice: ['$latestAlbums', LATEST_PER_USER] } } },
-            // customFields is private and never leaves the server.
-            { $unset: 'latestAlbums.customFields' },
+            // Private housekeeping, never leaves the server.
+            { $unset: ['latestAlbums.customFields', 'latestAlbums.formatVerification'] },
         ]);
 
         await CollectionItem.populate(stats, { path: 'latestAlbums.album', model: 'Album' });
@@ -119,9 +119,9 @@ export async function getLatestPublicAlbums(req: Request, res: Response) {
         const publicUsers = await User.find({ 'preferences.isPublic': true }).select('_id').lean();
         const publicUserIds = publicUsers.map(u => u._id);
 
-        // Fetch latest collection items for these users (customFields is private, never exposed publicly)
+        // customFields and formatVerification are private housekeeping, never exposed publicly
         const latestItems = await CollectionItem.find({ user: { $in: publicUserIds } })
-            .select('-customFields')
+            .select('-customFields -formatVerification')
             .sort({ addedAt: -1 })
             .limit(limit)
             .populate<{ album: IAlbum }>('album')

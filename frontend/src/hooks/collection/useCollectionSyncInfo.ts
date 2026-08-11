@@ -8,7 +8,7 @@ import type { CollectionSyncInfo } from '../../api/collection';
  * Purely informational: refreshing the chart is not driven from here. lastSyncedAt
  * only tracks priceCache, so it would miss an add or a delete made elsewhere.
  */
-export const useCollectionSyncInfo = (enabled: boolean) => {
+export const useCollectionSyncInfo = (enabled: boolean): CollectionSyncInfo | null => {
     const [syncInfo, setSyncInfo] = useState<CollectionSyncInfo | null>(null);
 
     useEffect(() => {

@@ -8,7 +8,13 @@ import type { ValuePoint } from '../../api/collection';
  * Reading it is what refreshes the current day server-side, so `reload` is also
  * how an add, a delete or a manual price sync makes its way onto the curve.
  */
-export const useValueHistory = () => {
+interface UseValueHistory {
+    points: ValuePoint[];
+    isLoading: boolean;
+    reload: () => Promise<void>;
+}
+
+export const useValueHistory = (): UseValueHistory => {
     const [points, setPoints] = useState<ValuePoint[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 

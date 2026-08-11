@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLabelAggregation } from '../../../hooks/collection/useLabelAggregation';
 import LabelLink from '../../Common/LabelLink';
@@ -8,6 +8,8 @@ import { revealIfCached } from '../../../utils/imageReveal';
 
 interface CollectionLabelsViewProps {
     collection: CollectionItem[];
+    /** Typed in the toolbar, which keeps its place across the view modes. */
+    searchTerm: string;
     onItemClick: (itemId: string) => void;
 }
 
@@ -16,10 +18,9 @@ interface CollectionLabelsViewProps {
  * header, a band per label. A release co-issued by two labels appears under both,
  * so the per-label counts legitimately sum past the collection size.
  */
-const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection, onItemClick }) => {
+const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection, searchTerm, onItemClick }) => {
     const { t } = useTranslation();
     const labels = useLabelAggregation(collection);
-    const [searchTerm, setSearchTerm] = useState('');
 
     const filteredLabels = useMemo(() => {
         if (!searchTerm.trim()) return labels;
@@ -29,14 +30,6 @@ const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection,
 
     return (
         <div className="space-y-4">
-            <input
-                type="search"
-                placeholder={t('labels.searchLabel')}
-                className="input w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-
             <div className="text-sm text-base-content/60">
                 {t('labels.labelCount', { count: filteredLabels.length })}
             </div>

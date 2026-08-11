@@ -86,13 +86,15 @@ const HomePage: React.FC = () => {
               <div
                 key={item._id}
                 onClick={() => handleAlbumClick(item)}
-                className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
               >
                 <figure className="aspect-square relative overflow-hidden">
                   <img src={getImageUrl(item.album.cover_image || "/placeholder-album.svg")} alt={item.album.title} className="object-cover w-full h-full" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="badge badge-primary">{item.format.name}</span>
-                  </div>
+                  {/* Same corner as the collection grid, and no longer hidden until
+                      hover: on a phone that hover state never arrives. */}
+                  <span className="badge badge-sm absolute bottom-2 left-2 z-20 max-w-[calc(100%-1rem)] truncate border-none bg-base-100/90 font-semibold backdrop-blur-xs">
+                    {item.format.name}
+                  </span>
                 </figure>
                 <div className="card-body p-3 gap-1">
                   <h3 className="card-title text-sm leading-tight truncate block" title={item.album.title}>{item.album.title}</h3>

@@ -2,7 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { getExchangeRates } from '../api/preferences';
 
-export const useCurrency = () => {
+interface UseCurrency {
+    formatValue: (value: number, inputCurrency?: string) => string;
+    formatCompactValue: (value: number, inputCurrency?: string) => string;
+    getValue: (value: number, inputCurrency?: string) => number;
+    isLoading: boolean;
+    rates: Record<string, number> | null;
+    preferredCurrency: string;
+}
+
+export const useCurrency = (): UseCurrency => {
     const { preferredCurrency } = useTheme();
     const [rates, setRates] = useState<Record<string, number> | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);

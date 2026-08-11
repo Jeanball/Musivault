@@ -21,12 +21,8 @@ interface CollectionFiltersProps {
     onViewModeChange?: (mode: CollectionViewMode) => void;
     searchTerm?: string;
     onSearchChange?: (value: string) => void;
-    /**
-     * False in the tracks and labels modes, which carry their own search field.
-     * The term keeps filtering, so it surfaces as a removable chip instead of
-     * narrowing the results with nothing on screen to explain it.
-     */
-    showSearchField?: boolean;
+    /** What the field searches changes with the view mode; its position never does. */
+    searchPlaceholder?: string;
     /** Omitted where the layouts have nothing to draw. */
     layout?: LayoutType;
     onLayoutChange?: (layout: LayoutType) => void;
@@ -62,7 +58,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     onViewModeChange,
     searchTerm,
     onSearchChange,
-    showSearchField = true,
+    searchPlaceholder,
     layout,
     onLayoutChange
 }) => {
@@ -74,8 +70,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     const CurrentModeIcon = currentMode.Icon;
 
     const showIssueToggle = issueCount >= 1 || filters.issueStatus === 'issues';
-    const showSearch = showSearchField && searchTerm !== undefined && !!onSearchChange;
-    const orphanedSearch = !showSearchField && !!searchTerm;
+    const showSearch = searchTerm !== undefined && !!onSearchChange;
     const showLayouts = !!layout && !!onLayoutChange;
 
     const handleFilterChange = (key: keyof FilterState, value: string) => {
@@ -114,7 +109,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                         <Search size={16} className="opacity-50 shrink-0" />
                         <input
                             type="search"
-                            placeholder={t('collection.searchAlbum')}
+                            placeholder={searchPlaceholder ?? t('collection.searchAlbum')}
                             value={searchTerm}
                             onChange={(e) => onSearchChange?.(e.target.value)}
                         />
@@ -281,17 +276,6 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 different badge colours encoded nothing. */}
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-1.5">
-                    {orphanedSearch && (
-                        <button
-                            className="badge badge-outline gap-1.5 hover:badge-neutral"
-                            onClick={() => onSearchChange?.('')}
-                            title={t('collection.clear')}
-                        >
-                            <Search size={12} className="opacity-60" />
-                            <span className="font-semibold">{searchTerm}</span>
-                            <X size={12} className="opacity-60" />
-                        </button>
-                    )}
                     {activeChips.map(({ key, label, value }) => (
                         <button
                             key={key}
