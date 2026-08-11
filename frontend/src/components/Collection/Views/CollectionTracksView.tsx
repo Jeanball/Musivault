@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ChevronRight } from 'lucide-react';
 import { useTrackAggregation, type AggregatedTrack } from '../../../hooks/collection/useTrackAggregation';
 import type { CollectionItem } from '../../../types/collection.types';
 import { getImageUrl } from '../../../utils/imageUrl';
@@ -59,7 +60,8 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection,
                                     <div className="text-sm text-base-content/60 truncate">{track.artist}</div>
                                 </div>
                                 {track.albumCount > 1 && (
-                                    <span className="badge badge-primary badge-sm shrink-0">
+                                    /* Ghost, not primary: a count of copies is a fact, not an action. */
+                                    <span className="badge badge-ghost badge-sm shrink-0">
                                         {track.albumCount} {t('common.albums')}
                                     </span>
                                 )}
@@ -73,15 +75,19 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection,
                                         <div
                                             key={album.collectionItemId}
                                             onClick={() => onAlbumClick(album.collectionItemId)}
-                                            className="flex items-center gap-3 p-2 rounded-lg bg-base-300 hover:bg-primary/10 cursor-pointer transition-colors"
+                                            className="flex items-center gap-3 p-2 rounded-field bg-base-300 hover:bg-primary/10 cursor-pointer transition-colors"
                                         >
+                                            {/* .svg, not .png: the png was never in public/, so a
+                                                record without a thumb showed a broken image and the
+                                                handler re-pointed at the same missing file. */}
                                             <img
-                                                src={getImageUrl(album.thumb || album.cover_image || '/placeholder-album.png')}
+                                                src={getImageUrl(album.thumb || album.cover_image || '/placeholder-album.svg')}
                                                 alt={album.title}
-                                                className="w-12 h-12 rounded-sm object-cover"
+                                                className="w-12 h-12 rounded-field object-cover"
                                                 loading="lazy"
                                                 onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = '/placeholder-album.png';
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = '/placeholder-album.svg';
                                                 }}
                                             />
                                             <div className="flex-1 min-w-0">
@@ -90,20 +96,7 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection,
                                                     {album.artist} {album.year && `• ${album.year}`}
                                                 </div>
                                             </div>
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-5 w-5 text-base-content/40"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="2"
-                                                    d="M9 5l7 7-7 7"
-                                                />
-                                            </svg>
+                                            <ChevronRight size={20} className="shrink-0 text-base-content/40" />
                                         </div>
                                     ))}
                                 </div>

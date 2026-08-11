@@ -37,7 +37,7 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, 
             <div className="modal-box max-w-2xl max-h-[80vh]">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-primary/20 rounded-lg">
+                    <div className="p-2 bg-primary/20 rounded-field">
                         <Sparkles className="w-6 h-6 text-primary" />
                     </div>
                     <div>

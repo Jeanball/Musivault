@@ -563,13 +563,13 @@ const SearchBar: React.FC = () => {
                                    lift and the press-in say "this is a control", the
                                    motion-safe guard keeps it still for anyone who asked
                                    the system for less movement. */
-                                className="group shrink-0 w-16 sm:w-24 flex flex-col items-center gap-1.5 sm:gap-2 p-1 sm:p-2 rounded-lg cursor-pointer transition-all duration-200 hover:bg-base-200 motion-safe:active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+                                className="group shrink-0 w-16 sm:w-24 flex flex-col items-center gap-1.5 sm:gap-2 p-1 sm:p-2 rounded-field cursor-pointer transition-all duration-200 hover:bg-base-200 motion-safe:active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                                 onClick={() => handleSelectArtist(artist)}
                             >
                                 <img
                                     src={getImageUrl(artist.thumb || '/placeholder-artist.png')}
                                     alt={stripDiscogsSuffix(artist.name)}
-                                    className="rounded-full w-11 h-11 sm:w-14 sm:h-14 object-cover ring-2 ring-base-300 transition-all duration-200 group-hover:ring-primary group-hover:shadow-md motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:scale-105"
+                                    className="rounded-full w-11 h-11 sm:w-14 sm:h-14 object-cover ring-2 ring-base-300 transition-all duration-200 group-hover:ring-primary motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:scale-105"
                                     loading="lazy"
                                 />
                                 <span className="text-[11px] sm:text-xs text-center leading-tight line-clamp-2 transition-colors duration-200 group-hover:text-primary">

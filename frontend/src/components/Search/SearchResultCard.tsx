@@ -57,14 +57,14 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
       }}
       /* Mobile keeps a divided list: no card padding or fill, so more of the
          result fits above the keyboard. The card look returns from sm: up. */
-      className={`flex items-center gap-3 py-2 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-300 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:p-3 sm:border-0 sm:rounded-lg sm:bg-base-200 ${
+      className={`flex items-center gap-3 py-2 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-300 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:p-3 sm:border-0 sm:rounded-box sm:bg-base-200 ${
         isActive ? 'bg-base-300 ring-2 ring-primary' : ''
       }`}
     >
       <img
         src={getImageUrl(result.thumb)}
         alt={artist ? `${artist} - ${album}` : album}
-        className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-sm shrink-0"
+        className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-field shrink-0"
         loading="lazy"
       />
 

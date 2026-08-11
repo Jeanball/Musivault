@@ -32,7 +32,7 @@ const SearchField: React.FC<SearchFieldProps> = ({
     inputRef,
     inputProps
 }) => (
-    <div className="flex items-center gap-2 h-12 sm:h-14 pl-3 pr-1 sm:pr-1.5 bg-base-100 border-2 border-base-300 rounded-lg transition-colors focus-within:border-primary">
+    <div className="flex items-center gap-2 h-12 sm:h-14 pl-3 pr-1 sm:pr-1.5 bg-base-100 border-theme border-base-300 rounded-field transition-colors focus-within:border-primary">
         <SearchGlassIcon className="w-5 h-5 shrink-0 text-base-content/50" />
         <input
             ref={inputRef}

@@ -18,7 +18,7 @@ const RecordShopCard: React.FC<RecordShopCardProps> = ({ shop }) => {
     // base-200 rather than base-100: the page itself sits on base-100, so a card
     // on that token would have no edge at all against the background.
     return (
-        <div className="card bg-base-200 shadow-xs hover:shadow-md transition-shadow duration-300 h-full">
+        <div className="card bg-base-200 shadow-card hover:shadow-card-hover transition-shadow duration-300 h-full">
             <div className="card-body p-4 gap-2">
                 <div className="flex items-start justify-between gap-2">
                     {/* min-w-0 on both flex levels: without it the name refuses to

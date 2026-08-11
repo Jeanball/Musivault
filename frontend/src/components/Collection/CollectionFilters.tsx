@@ -100,7 +100,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     }
 
     return (
-        <div className="bg-base-100 rounded-box shadow-lg p-3 md:p-4 mb-6 flex flex-col gap-3">
+        <div className="bg-base-100 rounded-box shadow-panel p-3 md:p-4 mb-6 flex flex-col gap-3">
             {/* What you type, what you narrow, how it's drawn — one row on desktop,
                 with the layouts dropping to their own centred line on a phone. */}
             <div className="flex flex-wrap items-center gap-2">
@@ -137,7 +137,7 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <span className="hidden sm:inline">{t(currentMode.labelKey)}</span>
                             <ChevronDown size={14} className="opacity-60" />
                         </button>
-                        <ul tabIndex={0} className="dropdown-content menu menu-sm z-20 mt-1 w-44 rounded-box bg-base-200 p-1 shadow-lg">
+                        <ul tabIndex={0} className="dropdown-content menu menu-sm z-20 mt-1 w-44 rounded-box bg-base-200 p-1 shadow-dropdown">
                             {VIEW_MODES.map(({ mode, labelKey, Icon }) => (
                                 <li key={mode}>
                                     <button

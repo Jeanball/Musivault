@@ -75,7 +75,7 @@ const ProfileSettings: React.FC = () => {
     };
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <User className="h-5 w-5" />

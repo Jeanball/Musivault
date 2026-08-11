@@ -34,7 +34,7 @@ const ConfirmAddModal: React.FC<ConfirmAddModalProps> = ({
                         <img
                             src={getImageUrl(coverImage)}
                             alt={albumTitle || ''}
-                            className="w-32 h-32 sm:w-40 sm:h-40 rounded-xl object-cover shadow-lg shrink-0"
+                            className="w-32 h-32 sm:w-40 sm:h-40 rounded-box object-cover shadow-card shrink-0"
                         />
                     )}
 
@@ -44,7 +44,7 @@ const ConfirmAddModal: React.FC<ConfirmAddModalProps> = ({
                             <p className="text-base text-base-content/60 mt-1 line-clamp-2">{albumTitle}</p>
                         )}
                         
-                        <div className="mt-4 bg-base-200/50 p-4 rounded-xl border border-base-300 text-left">
+                        <div className="mt-4 bg-base-200/50 p-4 rounded-box border border-base-300 text-left">
                             <p className="text-base-content wrap-break-word whitespace-normal text-lg">
                                 <span className="font-bold">{format.name}</span>
                                 {format.text && <span className="ml-2 text-accent font-semibold">{format.text}</span>}

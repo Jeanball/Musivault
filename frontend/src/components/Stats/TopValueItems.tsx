@@ -33,7 +33,7 @@ const TopValueItems: React.FC<TopValueItemsProps> = ({ collection }) => {
     if (top.length === 0) return null;
 
     return (
-        <div className="bg-base-100 rounded-box shadow-lg p-4 md:p-6 flex flex-col gap-4">
+        <div className="bg-base-100 rounded-box shadow-panel p-4 md:p-6 flex flex-col gap-4">
             <h2 className="text-lg font-bold">{t('stats.mostValuable')}</h2>
 
             <ol className="flex flex-col gap-2">
@@ -42,7 +42,7 @@ const TopValueItems: React.FC<TopValueItemsProps> = ({ collection }) => {
                         <span className="w-4 shrink-0 text-sm tabular-nums text-base-content/40">
                             {index + 1}
                         </span>
-                        <div className="size-11 shrink-0 rounded-md overflow-hidden bg-base-300">
+                        <div className="size-11 shrink-0 rounded-field overflow-hidden bg-base-300">
                             <img
                                 ref={revealIfCached}
                                 src={getImageUrl(item.album?.cover_image || '/placeholder-album.svg')}

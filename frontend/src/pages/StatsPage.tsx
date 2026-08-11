@@ -62,7 +62,7 @@ const StatsPage: React.FC = () => {
             {/* Evolution Graph Section. Two points minimum: a single one draws
                 no line and reads as a broken chart rather than a young one. */}
             {points.length > 1 && (
-                <div className="bg-base-100 rounded-box shadow-lg p-4 md:p-6">
+                <div className="bg-base-100 rounded-box shadow-panel p-4 md:p-6">
                     {/* The sync belongs here rather than beside the record count:
                         refresh-prices is what appends a point to this curve, and
                         it moves nothing else on the page. */}

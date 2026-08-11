@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { MusivaultMark } from '../components/Common/BrandIcons';
 import { useTranslation } from 'react-i18next';
 import Footer from "../components/Navigation/Footer";
 import { toastService } from "../utils/toast";
@@ -71,11 +72,11 @@ const LoginPage: React.FC = () => {
     return (
         <div className="flex flex-col min-h-screen">
             <div className="flex-1 hero bg-base-200">
-                <div className="card shrink-0 w-full max-w-md shadow-2xl bg-base-100">
+                <div className="card shrink-0 w-full max-w-md shadow-card bg-base-100">
                     <form className="card-body" onSubmit={handleSubmit}>
                         <div className="flex flex-col items-center mb-4">
-                            <img src="/icons/icon-musivault.svg" alt="Musivault" className="w-16 h-16 mb-2" />
-                            <h1 className="text-3xl font-bold">Musivault</h1>
+                            <MusivaultMark className="w-16 h-16 mb-2" />
+                            <h1 className="font-brand text-4xl leading-none tracking-wide bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</h1>
                         </div>
                         <h2 className="card-title text-xl font-semibold self-center">{t('auth.login')}</h2>
                         <div className="flex flex-col">

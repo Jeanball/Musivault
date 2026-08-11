@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { X, CalendarClock, Disc3, ExternalLink } from 'lucide-react';
+import { X, CalendarClock, Disc3 } from 'lucide-react';
 import type { UpcomingRelease } from '../../types/discover.types';
 import { useCollectionContext } from '../../context/CollectionContext';
 import { formatReleaseDate, parseLocalDate } from '../../utils/date';
 import { stripDiscogsSuffix } from '../../utils/formatters';
 import { getImageUrl } from '../../utils/imageUrl';
-import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../../utils/brandColors';
 import { SpotifyIcon, DiscogsIcon } from '../Common/BrandIcons';
 
 interface UpcomingReleaseModalProps {
@@ -50,7 +49,6 @@ const UpcomingReleaseModal: React.FC<UpcomingReleaseModalProps> = ({ release, on
     }, [collection, release.artist]);
 
     const artistQuery = encodeURIComponent(stripDiscogsSuffix(release.artist));
-    const releaseQuery = encodeURIComponent(`${stripDiscogsSuffix(release.artist)} ${release.title}`);
 
     const isFuture = parseLocalDate(release.firstReleaseDate).getTime() > Date.now();
     const formattedDate = formatReleaseDate(release.firstReleaseDate, release.datePrecision, i18n.language);
@@ -163,39 +161,19 @@ const UpcomingReleaseModal: React.FC<UpcomingReleaseModalProps> = ({ release, on
                                 href={`https://open.spotify.com/search/${artistQuery}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn h-11 min-h-11 sm:btn-sm sm:h-9 sm:min-h-9"
-                                style={SPOTIFY_BUTTON_STYLE}
+                                className="btn h-11 min-h-11 sm:btn-sm sm:h-9 sm:min-h-9 btn-spotify"
                             >
                                 <SpotifyIcon />
                                 {t('discover.artistOnSpotify')}
                             </a>
                             <a
-                                href={`https://open.spotify.com/search/${releaseQuery}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-outline h-11 min-h-11 sm:btn-sm sm:h-9 sm:min-h-9"
-                            >
-                                <SpotifyIcon />
-                                {t('discover.releaseOnSpotify')}
-                            </a>
-                            <a
                                 href={`https://www.discogs.com/search/?q=${artistQuery}&type=artist`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn h-11 min-h-11 sm:btn-sm sm:h-9 sm:min-h-9"
-                                style={DISCOGS_BUTTON_STYLE}
+                                className="btn h-11 min-h-11 sm:btn-sm sm:h-9 sm:min-h-9 btn-discogs"
                             >
                                 <DiscogsIcon />
                                 {t('discover.artistOnDiscogs')}
-                            </a>
-                            <a
-                                href={`https://musicbrainz.org/release-group/${release.mbid}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-outline h-11 min-h-11 sm:btn-sm sm:h-9 sm:min-h-9"
-                            >
-                                <ExternalLink size={16} />
-                                {t('discover.onMusicBrainz')}
                             </a>
                         </div>
                     </div>

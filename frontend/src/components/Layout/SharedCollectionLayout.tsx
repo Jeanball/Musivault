@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { MusivaultMark } from '../Common/BrandIcons';
 import { verify, logout } from '../../api/auth';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../Navigation/Navbar';
@@ -88,15 +89,11 @@ const SharedCollectionLayout: React.FC = () => {
     return (
         <div data-theme="dark" className="flex flex-col min-h-screen bg-base-100 text-base-content">
             {/* Generic Header */}
-            <header className="navbar bg-base-100 shadow-lg px-4 md:px-8">
+            <header className="navbar bg-base-100 shadow-panel px-4 md:px-8">
                 <div className="navbar-start">
-                    <Link to="/" className="btn btn-ghost normal-case gap-3 hover:bg-transparent">
-                        <div className="avatar">
-                            <div className="w-10 rounded-xl shadow-md ring-3 ring-primary ring-offset-base-100 ring-offset-1">
-                                <img src="/icons/icon-192x192.png" alt="Musivault Logo" />
-                            </div>
-                        </div>
-                        <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
+                    <Link to="/" className="flex items-center gap-2.5" aria-label="Musivault">
+                        <MusivaultMark className="w-10 h-10 shrink-0" />
+                        <span className="font-brand text-3xl leading-none translate-y-[0.06em] tracking-wide bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
                     </Link>
                 </div>
                 <div className="navbar-end">

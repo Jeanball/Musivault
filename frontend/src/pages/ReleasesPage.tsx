@@ -145,7 +145,7 @@ const ReleasesPage: React.FC = () => {
                     <span>{error}</span>
                 </div>
             ) : visible.length === 0 ? (
-                <div className="bg-base-200 rounded-xl p-8 text-center border-2 border-dashed border-base-300">
+                <div className="bg-base-200 rounded-box p-8 text-center border-theme border-dashed border-base-300">
                     <div className="flex justify-center mb-4">
                         <Music size={48} />
                     </div>

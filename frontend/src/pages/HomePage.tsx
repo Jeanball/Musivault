@@ -6,6 +6,8 @@ import type { CollectionItem } from "../types/collection.types";
 import type { PrivateOutletContext } from "../types/auth.types";
 import { getImageUrl } from "../utils/imageUrl";
 import { getCollection } from "../api/collection";
+import CoverOverlay from "../components/Common/CoverOverlay";
+import { MusivaultMark } from "../components/Common/BrandIcons";
 
 
 /** Number of recent covers shown in the "Freshly Added" grid. */
@@ -13,7 +15,7 @@ const LATEST_COUNT = 6;
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { username, displayName } = useOutletContext<PrivateOutletContext>();
   const [latestAdditions, setLatestAdditions] = useState<CollectionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,6 +56,13 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* The desktop navbar is hidden below lg and the bottom dock carries no
+          branding, so this is the only place the mark appears on a phone. */}
+      <div className="flex items-center justify-center gap-2.5 lg:hidden">
+        <MusivaultMark className="w-9 h-9 shrink-0" />
+        <span className="font-brand text-3xl leading-none translate-y-[0.06em] tracking-wide bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
+      </div>
+
       {/* HEADER */}
       <div className="grid grid-cols-1 gap-6">
         {/* Welcome Card */}
@@ -66,7 +75,7 @@ const HomePage: React.FC = () => {
       </div>
 
       {/* SEARCH SECTION */}
-      <div className="bg-base-200 p-6 rounded-box shadow-md">
+      <div className="bg-base-200 p-6 rounded-box shadow-panel">
         <h3 className="text-xl font-bold mb-4 text-center ">{t('home.quickSearch', 'Quick Search')}</h3>
         <SearchBar />
       </div>
@@ -86,15 +95,16 @@ const HomePage: React.FC = () => {
               <div
                 key={item._id}
                 onClick={() => handleAlbumClick(item)}
-                className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                className="card bg-base-100 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 cursor-pointer"
               >
                 <figure className="aspect-square relative overflow-hidden">
                   <img src={getImageUrl(item.album.cover_image || "/placeholder-album.svg")} alt={item.album.title} className="object-cover w-full h-full" />
-                  {/* Same corner as the collection grid, and no longer hidden until
-                      hover: on a phone that hover state never arrives. */}
-                  <span className="badge badge-sm absolute bottom-2 left-2 z-20 max-w-[calc(100%-1rem)] truncate border-none bg-base-100/90 font-semibold backdrop-blur-xs">
-                    {item.format.name}
-                  </span>
+                  <CoverOverlay
+                    date={new Date(item.addedAt).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    dateTitle={`${t('collection.added')}: ${new Date(item.addedAt).toLocaleDateString(i18n.language)}`}
+                    type={item.format.name}
+                    typeTitle={item.format.name}
+                  />
                 </figure>
                 <div className="card-body p-3 gap-1">
                   <h3 className="card-title text-sm leading-tight truncate block" title={item.album.title}>{item.album.title}</h3>
@@ -104,7 +114,7 @@ const HomePage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center p-12 bg-base-200 rounded-box border-2 border-dashed border-base-content/20">
+          <div className="text-center p-12 bg-base-200 rounded-box border-theme border-dashed border-base-content/20">
             <p className="text-lg opacity-60">{t('home.emptyVault', 'Your vault is empty.')}</p>
             <p className="text-sm opacity-50">{t('home.emptyVaultHint', 'Start by searching above!')}</p>
           </div>

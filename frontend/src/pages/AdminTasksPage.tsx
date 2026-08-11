@@ -241,7 +241,7 @@ const AdminTasksPage: React.FC = () => {
                 <AdminTabs />
             </div>
 
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body p-4 sm:p-6 space-y-4">
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                         <div>

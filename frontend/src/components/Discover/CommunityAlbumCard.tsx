@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { getImageUrl } from '../../utils/imageUrl';
 import { revealIfCached } from '../../utils/imageReveal';
+import CoverOverlay from '../Common/CoverOverlay';
 import type { CommunityAlbum } from '../../types/public.types';
 
 interface CommunityAlbumCardProps {
@@ -32,9 +33,9 @@ const CommunityAlbumCard: React.FC<CommunityAlbumCardProps> = ({ item, onSelect 
                     onSelect(item);
                 }
             }}
-            className="card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+            className="card bg-base-100 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 cursor-pointer"
         >
-            <figure className="aspect-square relative overflow-hidden rounded-t-xl bg-base-300">
+            <figure className="aspect-square relative overflow-hidden bg-base-300">
                 {/* Sits behind the cover so the tile is never an empty hole while loading. */}
                 <img
                     src="/placeholder-album.svg"
@@ -57,17 +58,12 @@ const CommunityAlbumCard: React.FC<CommunityAlbumCardProps> = ({ item, onSelect 
                 />
                 {/* Only the date and the format sit on the sleeve; the collector
                     reads better as a line under the record it belongs to. */}
-                {addedDate && (
-                    <span
-                        className="absolute top-1 left-1 z-3 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs"
-                        title={`${t('collection.added')}: ${addedDate.toLocaleDateString(i18n.language)}`}
-                    >
-                        {addedDate.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </span>
-                )}
-                <span className="badge badge-sm absolute bottom-2 left-2 z-3 max-w-[calc(100%-1rem)] truncate border-none bg-base-100/90 font-semibold backdrop-blur-xs">
-                    {item.format.name}
-                </span>
+                <CoverOverlay
+                    date={addedDate?.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    dateTitle={addedDate ? `${t('collection.added')}: ${addedDate.toLocaleDateString(i18n.language)}` : undefined}
+                    type={item.format.name}
+                    typeTitle={item.format.name}
+                />
             </figure>
             <div className="card-body p-2 gap-0.5">
                 <h3 className="card-title text-xs leading-tight truncate block" title={album?.title}>

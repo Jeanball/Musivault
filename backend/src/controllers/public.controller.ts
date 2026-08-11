@@ -48,7 +48,7 @@ export async function getPublicCollection(req: Request, res: Response) {
 }
 
 /** How many recent additions each public collection shows on its card. */
-const LATEST_PER_USER = 5;
+const LATEST_PER_USER = 6;
 
 export async function getPublicUsers(req: Request, res: Response) {
     try {

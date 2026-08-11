@@ -91,7 +91,7 @@ const ManualAlbumForm: React.FC = () => {
 
     return (
         <form onSubmit={handleSubmit} className="max-w-xl mx-auto">
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h3 className="card-title text-lg mb-4">
                         <Music className="w-5 h-5" />
@@ -106,7 +106,7 @@ const ManualAlbumForm: React.FC = () => {
                         </label>
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                             {/* Preview or Placeholder */}
-                            <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-base-300 flex items-center justify-center">
+                            <div className="relative w-24 h-24 rounded-box overflow-hidden bg-base-300 flex items-center justify-center">
                                 {coverPreview ? (
                                     <>
                                         <img

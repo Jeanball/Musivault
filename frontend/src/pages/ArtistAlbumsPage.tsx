@@ -189,7 +189,7 @@ const ArtistAlbumsPage: React.FC = () => {
             </div>
 
             {/* Filter and Sort controls */}
-            <div className="flex flex-col md:flex-row justify-between gap-3 md:gap-4 mb-4 md:mb-6 p-3 md:p-4 bg-base-200 rounded-lg">
+            <div className="flex flex-col md:flex-row justify-between gap-3 md:gap-4 mb-4 md:mb-6 p-3 md:p-4 bg-base-200 rounded-box">
                 <div className="w-full md:max-w-sm">
                     <SearchField
                         value={searchTerm}

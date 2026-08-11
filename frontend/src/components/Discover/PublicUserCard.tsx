@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import CoverOverlay from '../Common/CoverOverlay';
 import { ChevronDown } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUrl';
 import { revealIfCached } from '../../utils/imageReveal';
@@ -15,7 +16,7 @@ interface PublicUserCardProps {
 }
 
 const PublicUserCard: React.FC<PublicUserCardProps> = ({ user, isExpanded, onToggleExpand, onSelectAlbum }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -25,7 +26,10 @@ const PublicUserCard: React.FC<PublicUserCardProps> = ({ user, isExpanded, onTog
     };
 
     return (
-        <div className="bg-base-200 rounded-xl p-5 border border-base-300">
+        // Same shell as the shop and concert cards it sits beside: this was the
+        // one panel on the page rolling its own surface.
+        <div className="card bg-base-200 shadow-card">
+          <div className="card-body p-4 gap-2">
             <div
                 role="button"
                 tabIndex={0}
@@ -35,9 +39,11 @@ const PublicUserCard: React.FC<PublicUserCardProps> = ({ user, isExpanded, onTog
                 className="flex items-center justify-between gap-2 cursor-pointer"
             >
                 <div className="flex items-center gap-4 min-w-0">
+                    {/* Neutral rather than primary: the collector's name is the
+                        subject here, and the accent belongs to the action. */}
                     <div className="avatar-placeholder avatar shrink-0">
-                        <div className="bg-primary text-primary-content rounded-full w-12 h-12">
-                            <span className="text-xl font-bold">
+                        <div className="bg-base-300 text-base-content rounded-full w-10 h-10">
+                            <span className="text-lg font-bold">
                                 {user.username.charAt(0).toUpperCase()}
                             </span>
                         </div>
@@ -75,29 +81,38 @@ const PublicUserCard: React.FC<PublicUserCardProps> = ({ user, isExpanded, onTog
                                 <div
                                     key={item._id}
                                     onClick={() => onSelectAlbum(item)}
-                                    className="card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                                    className="card bg-base-100 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
                                 >
-                                    <figure className="aspect-square relative overflow-hidden rounded-t-xl">
+                                    <figure className="aspect-square relative overflow-hidden bg-base-300">
+                                        {/* Sits behind the cover so the tile is never an empty hole while loading. */}
+                                        <img
+                                            src="/placeholder-album.svg"
+                                            alt=""
+                                            aria-hidden="true"
+                                            className="absolute inset-0 w-full h-full object-cover opacity-40"
+                                        />
                                         <img
                                             ref={revealIfCached}
                                             src={getImageUrl(item.album?.cover_image || "/placeholder-album.svg")}
                                             alt={item.album?.title}
                                             loading="lazy"
-                                            className="object-cover w-full h-full opacity-0 transition-opacity duration-300"
+                                            className="object-cover w-full h-full relative z-1 opacity-0 transition-opacity duration-300"
                                             onLoad={(e) => { e.currentTarget.classList.remove('opacity-0'); }}
                                         />
-                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <span className="badge badge-primary badge-sm">{item.format?.name || 'Vinyl'}</span>
-                                        </div>
+                                        {/* The format used to appear on hover only, so never on a
+                                            phone. Same two corners as every other album tile now. */}
+                                        <CoverOverlay
+                                            date={new Date(item.addedAt).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            dateTitle={`${t('collection.added')}: ${new Date(item.addedAt).toLocaleDateString(i18n.language)}`}
+                                            type={item.format?.name}
+                                            typeTitle={item.format?.name}
+                                        />
                                     </figure>
                                     <div className="card-body p-2 gap-0.5">
                                         <h3 className="card-title text-xs leading-tight truncate block" title={item.album?.title}>
                                             {item.album?.title}
                                         </h3>
                                         <p className="text-[10px] opacity-70 truncate block">{item.album?.artist}</p>
-                                        <p className="text-[9px] opacity-50 mt-0.5">
-                                            {new Date(item.addedAt).toLocaleDateString()}
-                                        </p>
                                     </div>
                                 </div>
                             ))}
@@ -109,6 +124,7 @@ const PublicUserCard: React.FC<PublicUserCardProps> = ({ user, isExpanded, onTog
                     </p>
                 )
             )}
+          </div>
         </div>
     );
 };

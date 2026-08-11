@@ -21,7 +21,6 @@ import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../utils/conditions';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { getImageUrl } from '../utils/imageUrl';
 import { getFormatVerificationMessage, hasActiveFormatVerificationIssue, hasIgnoredFormatVerificationIssue } from '../utils/formatVerification';
-import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../utils/brandColors';
 import { SpotifyIcon, DiscogsIcon } from '../components/Common/BrandIcons';
 import FormatVerificationBadge from '../components/Common/FormatVerificationBadge';
 import FormatColorBadge from '../components/Common/FormatColorBadge';
@@ -248,8 +247,7 @@ const AlbumDetailPage: React.FC = () => {
                                 href={spotifyUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn btn-sm flex-1"
-                                style={SPOTIFY_BUTTON_STYLE}
+                                className="btn btn-sm flex-1 btn-spotify"
                                 aria-label={t('album.listenOnSpotify')}
                             >
                                 <SpotifyIcon className="w-3.5 h-3.5" />
@@ -261,8 +259,7 @@ const AlbumDetailPage: React.FC = () => {
                                 href={`https://www.discogs.com/release/${album.discogsId}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn btn-sm flex-1"
-                                style={DISCOGS_BUTTON_STYLE}
+                                className="btn btn-sm flex-1 btn-discogs"
                                 aria-label={t('album.viewOnDiscogs')}
                             >
                                 <DiscogsIcon className="w-3.5 h-3.5" />

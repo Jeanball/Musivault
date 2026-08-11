@@ -67,7 +67,7 @@ const CollectionListView: React.FC<CollectionListViewProps> = ({
                                         className="hover:bg-base-300 cursor-pointer"
                                     >
                                         <td>
-                                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-base-300">
+                                            <div className="w-12 h-12 rounded-field overflow-hidden bg-base-300">
                                                 <img
                                                     ref={revealIfCached}
                                                     src={getImageUrl(item.album.thumb || item.album.cover_image)}

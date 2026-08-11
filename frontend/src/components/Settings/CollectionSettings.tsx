@@ -47,10 +47,10 @@ const CollectionSettings: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="skeleton h-5 w-5 rounded-sm"></div>
+                        <div className="skeleton h-5 w-5 rounded-field"></div>
                         <div className="skeleton h-6 w-48"></div>
                     </div>
                     <div className="skeleton h-4 w-3/4 mb-6"></div>
@@ -64,7 +64,7 @@ const CollectionSettings: React.FC = () => {
     }
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,7 +93,7 @@ const CollectionSettings: React.FC = () => {
                 </div>
 
                 {isPublic && publicShareId && (
-                    <div className="mt-4 p-4 bg-base-300 rounded-lg">
+                    <div className="mt-4 p-4 bg-base-300 rounded-box">
                         <p className="text-sm font-medium mb-2">{t('settings.shareLink')}</p>
                         <div className="flex gap-2">
                             <input

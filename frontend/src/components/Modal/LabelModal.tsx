@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getLabelInfo } from '../../api/discogs';
 import { getImageUrl } from '../../utils/imageUrl';
-import { DISCOGS_BUTTON_STYLE } from '../../utils/brandColors';
 import type { Label } from '../../types/collection.types';
 import type { LabelInfo } from '../../types/discogs.types';
 
@@ -74,7 +73,7 @@ const LabelModal: React.FC<LabelModalProps> = ({ label, onClose }) => {
                         <img
                             src={getImageUrl(info.image)}
                             alt={info.name}
-                            className="w-16 h-16 rounded-lg object-contain bg-base-200 shrink-0"
+                            className="w-16 h-16 rounded-field object-contain bg-base-200 shrink-0"
                         />
                     )}
                     <div className="min-w-0">
@@ -128,8 +127,7 @@ const LabelModal: React.FC<LabelModalProps> = ({ label, onClose }) => {
                                 href={info.discogsUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn btn-sm w-full border-none"
-                                style={DISCOGS_BUTTON_STYLE}
+                                className="btn btn-sm w-full border-none btn-discogs"
                             >
                                 {t('label.viewOnDiscogs')}
                             </a>

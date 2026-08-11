@@ -108,7 +108,7 @@ const PreferredGenresDropdown: React.FC<PreferredGenresDropdownProps> = ({ onSav
                 )}
             </button>
             {isOpen && (
-            <div className="dropdown-content z-50 mt-2 p-3 shadow-lg bg-base-200 border border-base-300 rounded-box w-full sm:w-72">
+            <div className="dropdown-content z-50 mt-2 p-3 shadow-dropdown bg-base-200 border border-base-300 rounded-box w-full sm:w-72">
                 <p className="text-xs text-base-content/60 mb-2">
                     {t('discover.preferredGenresHint')}
                 </p>

@@ -31,7 +31,7 @@ const ExportSettings: React.FC = () => {
     };
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <Download size={20} />

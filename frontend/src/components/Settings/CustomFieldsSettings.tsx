@@ -121,7 +121,7 @@ const CustomFieldsSettings: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <div className="skeleton h-6 w-48 mb-4"></div>
                     <div className="skeleton h-4 w-full mb-2"></div>
@@ -132,7 +132,7 @@ const CustomFieldsSettings: React.FC = () => {
     }
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <ListPlus size={20} />
@@ -202,7 +202,7 @@ const CustomFieldsSettings: React.FC = () => {
                 )}
 
                 {showForm ? (
-                    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-base-300 rounded-lg">
+                    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-base-300 rounded-box">
                         <h3 className="font-semibold">
                             {editingId ? t('customFields.editField') : t('customFields.addField')}
                         </h3>

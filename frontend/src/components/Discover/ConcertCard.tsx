@@ -73,7 +73,7 @@ const ConcertCard: React.FC<ConcertCardProps> = ({ concert }) => {
                         setDetailsOpen(true);
                     }
                 }}
-                className="group card bg-base-200 shadow-xs hover:shadow-md transition-shadow duration-300 h-full overflow-hidden cursor-pointer text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+                className="group card bg-base-200 shadow-card hover:shadow-card-hover transition-shadow duration-300 h-full overflow-hidden cursor-pointer text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
             >
                 <div className="relative h-40 shrink-0">
                     {concert.imageUrl ? (

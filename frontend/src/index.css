@@ -76,6 +76,88 @@
 }
 
 /*
+  The wordmark's typeface.
+
+  Deliberately outside the theme blocks, and the only thing here that is: a
+  brand does not change with the skin it is wearing. Self-hosted rather than
+  pulled from a CDN so the shell still renders it offline, which a PWA has to.
+*/
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('/fonts/bebas-neue-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-brand: 'Bebas Neue', 'Haettenschweiler', 'Impact', sans-serif;
+}
+
+/*
+  Elevation, as a theme decision.
+
+  daisyUI ships tokens for radius, border width and depth, but none for
+  shadows. Without these, every component picked its own Tailwind level and the
+  same card was shadow-xl in one file and shadow-xs in another, whatever the
+  theme asked for. Components now name what a surface *is* — a card, a panel, a
+  floating menu — and each theme below says how high that sits.
+
+  Every theme states its own values. None inherits, because a theme that stays
+  silent is a theme whose look someone else decided.
+
+  Declared as plain custom properties and utilities rather than through
+  `@theme`: Tailwind bakes theme shadow values into the class at build time
+  (`--tw-shadow: none`), which would freeze whichever theme compiled last. Radius
+  survives that because Tailwind emits `var(--radius-box)`; shadows do not.
+*/
+:root {
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-panel: none;
+  --shadow-dropdown: 0 4px 12px -2px oklch(0% 0 0 / 0.2);
+}
+
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+@utility shadow-card-hover {
+  box-shadow: var(--shadow-card-hover);
+}
+@utility shadow-panel {
+  box-shadow: var(--shadow-panel);
+}
+@utility shadow-dropdown {
+  box-shadow: var(--shadow-dropdown);
+}
+
+/* Flat by design: these two set --depth: 0, and a 1px border does the separating. */
+[data-theme="light"],
+[data-theme="dark"] {
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-panel: none;
+  /* The one exception, and it is function rather than decoration: a menu that
+     floats over content has to detach from it. Set it to none for a fully flat
+     look. */
+  --shadow-dropdown: 0 4px 12px -2px oklch(0% 0 0 / 0.2);
+}
+
+/* Both ship --depth: 1, so they get real elevation to match. */
+[data-theme="abyss"],
+[data-theme="caramellatte"] {
+  --shadow-card: 0 1px 3px 0 oklch(0% 0 0 / 0.12), 0 1px 2px -1px oklch(0% 0 0 / 0.1);
+  --shadow-card-hover: 0 10px 15px -3px oklch(0% 0 0 / 0.15), 0 4px 6px -4px oklch(0% 0 0 / 0.1);
+  --shadow-panel: 0 1px 2px 0 oklch(0% 0 0 / 0.08);
+  --shadow-dropdown: 0 20px 25px -5px oklch(0% 0 0 / 0.18), 0 8px 10px -6px oklch(0% 0 0 / 0.12);
+}
+
+/* Border width is a theme token too; Tailwind's `border-2` would pin it. */
+@utility border-theme {
+  border-width: var(--border);
+}
+
+/*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
   looks the same as it did with Tailwind CSS v3.
@@ -104,6 +186,48 @@
     --btn-bg: var(--color-base-content);
     --btn-border: var(--color-base-content);
     color: var(--color-base-100);
+  }
+}
+
+/*
+  Spotify and Discogs buttons.
+
+  Classes on daisyUI's own --btn-* variables rather than inline styles: an
+  inline style outranks every rule, which is why these two used to be the only
+  buttons in the app that did nothing under the cursor.
+
+  Their colours belong to the brands, so they are the one thing here that does
+  not follow the theme. Hover darkens rather than inverting like the outline
+  buttons: swapping left the brand colour on the border and read as a stray
+  frame around the button.
+*/
+:root {
+  --color-spotify: #1db954;
+  --color-discogs: #f5df2e;
+  --color-brand-ink: #191414;
+}
+
+.btn-spotify {
+  --btn-bg: var(--color-spotify);
+  --btn-border: var(--color-spotify);
+  color: var(--color-brand-ink);
+}
+
+.btn-discogs {
+  --btn-bg: var(--color-discogs);
+  --btn-border: var(--color-discogs);
+  color: var(--color-brand-ink);
+}
+
+@media (hover: hover) {
+  .btn-spotify:hover {
+    --btn-bg: color-mix(in oklab, var(--color-spotify) 82%, black);
+    --btn-border: color-mix(in oklab, var(--color-spotify) 82%, black);
+  }
+
+  .btn-discogs:hover {
+    --btn-bg: color-mix(in oklab, var(--color-discogs) 82%, black);
+    --btn-border: color-mix(in oklab, var(--color-discogs) 82%, black);
   }
 }
 
@@ -146,7 +270,7 @@
 .recharts-wrapper:focus-visible {
   outline: 2px solid color-mix(in oklab, var(--color-base-content) 30%, transparent);
   outline-offset: 2px;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-field);
 }
 
 .modal-box {

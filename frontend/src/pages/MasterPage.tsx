@@ -326,7 +326,7 @@ const MasterPage: React.FC = () => {
 
                 <div className="md:w-1/3 lg:w-1/4 shrink-0">
                     {pageData.coverImage && (
-                        <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-lg shadow-2xl" />
+                        <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-box shadow-card" />
                     )}
                     <h1 className="text-2xl font-bold mt-4">{pageData.masterTitle}</h1>
                     <p className="text-base-content/70">
@@ -336,7 +336,7 @@ const MasterPage: React.FC = () => {
 
                 <div className="flex-1">
                     {/* Helper Tooltip / Alert */}
-                    <div className="alert bg-base-200/50 border border-base-300 shadow-xs py-3 mb-6">
+                    <div className="alert bg-base-200/50 border border-base-300 shadow-panel py-3 mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <div>
                             <h3 className="font-bold">
@@ -417,7 +417,7 @@ const MasterPage: React.FC = () => {
                     ) : (
                         <div className="space-y-4">
                             {groupedVisibleVersions.map((group, groupIdx) => (
-                                <div key={groupIdx} className="bg-base-200/30 rounded-lg p-4 border border-base-200 hover:border-base-300 transition-colors">
+                                <div key={groupIdx} className="bg-base-200/30 rounded-box p-4 border border-base-200 hover:border-base-300 transition-colors">
                                     {/* Group Header Info */}
                                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3">
                                         <span className="font-bold text-lg whitespace-nowrap">{group.header.released || 'N/A'}</span>
@@ -426,7 +426,7 @@ const MasterPage: React.FC = () => {
                                         <span className="text-base-content/40 hidden sm:inline">•</span>
                                         <span className="text-base-content/70 truncate max-w-[200px] sm:max-w-[250px]" title={group.header.label}>{group.header.label}</span>
                                         <span className="text-base-content/40 hidden sm:inline">•</span>
-                                        <span className="text-sm bg-base-200 px-2 py-0.5 rounded-sm font-medium whitespace-nowrap">{group.header.country || t('versions.unknown')}</span>
+                                        <span className="text-sm bg-base-200 px-2 py-0.5 rounded-field font-medium whitespace-nowrap">{group.header.country || t('versions.unknown')}</span>
                                     </div>
 
                                     {/* Formats list for this group */}
@@ -488,7 +488,7 @@ const MasterPage: React.FC = () => {
                                                             <img 
                                                                 src={getImageUrl(details?.thumb || details?.cover_image || pageData.coverImage)} 
                                                                 alt="" 
-                                                                className="w-10 h-10 object-cover rounded-sm shadow-xs bg-base-300 shrink-0"
+                                                                className="w-10 h-10 object-cover rounded-field shadow-panel bg-base-300 shrink-0"
                                                                 loading="lazy"
                                                             />
                                                             <div className="flex flex-col items-start min-w-0 flex-1 w-full gap-0.5">

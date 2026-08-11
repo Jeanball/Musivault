@@ -209,7 +209,7 @@ const AdminPage: React.FC = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="stat bg-base-200 rounded-box shadow-sm">
+                <div className="stat bg-base-200 rounded-box shadow-panel">
                     <div className="stat-figure text-primary hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -230,7 +230,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-primary text-2xl sm:text-3xl">{totalUsers}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow-sm">
+                <div className="stat bg-base-200 rounded-box shadow-panel">
                     <div className="stat-figure text-secondary hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -251,7 +251,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-secondary text-2xl sm:text-3xl">{totalAdmins}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow-sm">
+                <div className="stat bg-base-200 rounded-box shadow-panel">
                     <div className="stat-figure text-accent hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -272,7 +272,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-accent text-2xl sm:text-3xl">{totalAlbums}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow-sm">
+                <div className="stat bg-base-200 rounded-box shadow-panel">
                     <div className="stat-figure text-info hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -294,7 +294,7 @@ const AdminPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body p-4 sm:p-6 gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <div>
@@ -312,7 +312,7 @@ const AdminPage: React.FC = () => {
             </div>
 
             {/* Users Management */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                         <h2 className="card-title">{t('admin.userManagement')}</h2>
@@ -510,7 +510,7 @@ const AdminPage: React.FC = () => {
                         {filteredUsers.map((user) => (
                             <div
                                 key={user._id}
-                                className={`card bg-base-100 shadow-sm ${user._id === currentUserId ? 'ring-2 ring-primary' : ''}`}
+                                className={`card bg-base-100 shadow-card ${user._id === currentUserId ? 'ring-2 ring-primary' : ''}`}
                             >
                                 <div className="card-body p-4">
                                     {/* Header row */}

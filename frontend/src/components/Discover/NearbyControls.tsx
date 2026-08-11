@@ -18,7 +18,7 @@ interface NearbyControlsProps {
  * section, so this renders once per page and every list on it follows.
  */
 const NearbyControls: React.FC<NearbyControlsProps> = ({ nearby, showManualSearch, children, bare }) => (
-    <div className={bare ? 'space-y-4' : 'bg-base-200 rounded-xl p-4 space-y-4'}>
+    <div className={bare ? 'space-y-4' : 'bg-base-200 rounded-box p-4 space-y-4'}>
         <LocationControls
             location={nearby.location}
             error={nearby.error}

@@ -5,7 +5,12 @@ import { getImageUrl } from '../../../utils/imageUrl';
 import { hasActiveFormatVerificationIssue } from '../../../utils/formatVerification';
 import FormatVerificationBadge from '../../Common/FormatVerificationBadge';
 import FormatColorBadge from '../../Common/FormatColorBadge';
+import CoverOverlay from '../../Common/CoverOverlay';
 import { useCurrency } from '../../../hooks/useCurrency';
+
+/** Shared by the real variant badge and its invisible placeholder, so the space
+    one reserves is exactly the space the other fills. */
+const VARIANT_BADGE_CLASS = 'text-[10px] py-1 min-h-4 max-w-full';
 
 interface CollectionGridViewProps {
     /** Already ordered by artist then title: the artist lives on the card, so a
@@ -25,11 +30,11 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                 <div
                     key={item._id}
                     onClick={() => onItemClick(item)}
-                    className="card bg-base-200 shadow-xl transition-transform hover:scale-105 cursor-pointer"
+                    className="card bg-base-200 shadow-card transition-transform hover:scale-105 cursor-pointer"
                 >
                     <figure className="aspect-square w-full bg-base-300 relative">
                         {hasActiveFormatVerificationIssue(item.formatVerification) && (
-                            <div className="absolute top-2 right-2 z-20 rounded-full bg-base-100/90 p-1 shadow-xs">
+                            <div className="absolute top-2 right-2 z-3 rounded-full bg-base-100/90 p-1 shadow-panel">
                                 <FormatVerificationBadge verification={item.formatVerification} className="tooltip-left" />
                             </div>
                         )}
@@ -43,14 +48,14 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                             src={getImageUrl(item.album.cover_image || item.album.thumb)}
                             alt={item.album.title}
                             loading="lazy"
-                            className="w-full h-full object-cover relative z-10 opacity-0 transition-opacity duration-300"
+                            className="w-full h-full object-cover relative z-1 opacity-0 transition-opacity duration-300"
                             onLoad={(e) => { e.currentTarget.classList.remove('opacity-0'); }}
                         />
                         {/* On the sleeve rather than under it: the format is what you
-                            scan a shelf for, and it costs the cover no room. */}
-                        <span className="badge badge-sm absolute bottom-2 left-2 z-20 max-w-[calc(100%-1rem)] truncate border-none bg-base-100/90 font-semibold backdrop-blur-xs">
-                            {item.format.name}
-                        </span>
+                            scan a shelf for, and it costs the cover no room. No date
+                            here, unlike the discover tiles: in your own collection
+                            every record is one you added. */}
+                        <CoverOverlay type={item.format.name} typeTitle={item.format.name} />
                     </figure>
                     <div className="card-body p-3 gap-0">
                         {/* The artist leads, the way the section header used to. */}
@@ -66,10 +71,29 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                         >
                             {item.album.title}
                         </p>
+                        {/* Tags sit above the price and their row is always
+                            rendered: a variant appearing used to push the price
+                            up a line, so prices sat at different heights across
+                            the grid. An invisible twin of the badge reserves the
+                            room, which keeps the two in step if its style ever
+                            changes. One line only: wrapping would bring the
+                            drift right back. */}
+                        <div className="mt-1.5 flex gap-1 overflow-hidden">
+                            {item.format.text && item.format.text !== item.format.name ? (
+                                <FormatColorBadge
+                                    text={item.format.text}
+                                    maxChars={20}
+                                    className={VARIANT_BADGE_CLASS}
+                                    title={item.format.text}
+                                />
+                            ) : (
+                                <FormatColorBadge text={' '} className={`${VARIANT_BADGE_CLASS} invisible`} />
+                            )}
+                        </div>
                         {/* Outlined rather than filled: two solid badges per
                             tile turned a wall of covers into a wall of
                             badges, and neither colour meant anything. */}
-                        <div className="card-actions justify-start mt-2 gap-1">
+                        <div className="card-actions justify-start mt-auto pt-2 gap-1">
                             {(() => {
                                 const val = getItemValue(item);
                                 return val > 0 ? (
@@ -83,16 +107,6 @@ const CollectionGridView: React.FC<CollectionGridViewProps> = ({
                                 );
                             })()}
                         </div>
-                        {item.format.text && item.format.text !== item.format.name && (
-                            <div className="mt-1.5 flex">
-                                <FormatColorBadge
-                                    text={item.format.text}
-                                    maxChars={20}
-                                    className="text-[10px] py-1 min-h-4 max-w-full"
-                                    title={item.format.text}
-                                />
-                            </div>
-                        )}
                     </div>
                 </div>
             ))}

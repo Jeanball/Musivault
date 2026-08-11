@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router';
+import { MusivaultMark } from '../Common/BrandIcons';
 import { useTranslation } from 'react-i18next';
 
 interface NavbarProps {
@@ -29,15 +30,13 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
   return (
     <>
       {/* --- DESKTOP (Standard) --- */}
-      <div className="navbar bg-base-100 rounded-box shadow-xl mb-8 hidden lg:flex">
+      <div className="navbar bg-base-100 rounded-box shadow-panel mb-8 hidden lg:flex">
         <div className="navbar-start">
-          <Link to="/app" className="btn btn-ghost normal-case gap-3 hover:bg-transparent">
-            <div className="avatar">
-              <div className="w-10 rounded-xl shadow-md ring-3 ring-primary ring-offset-base-100 ring-offset-1">
-                <img src="/icons/icon-192x192.png" alt="Musivault Logo" />
-              </div>
-            </div>
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
+          {/* leading-none on the wordmark: Bebas is all caps with no descenders,
+              so its line box would otherwise sit the name low against the mark. */}
+          <Link to="/app" className="flex items-center gap-2.5" aria-label="Musivault">
+            <MusivaultMark className="w-10 h-10 shrink-0" />
+            <span className="font-brand text-3xl leading-none translate-y-[0.06em] tracking-wide bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
           </Link>
         </div>
 
@@ -78,7 +77,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
                 <span className="text-lg font-bold">{username.charAt(0).toUpperCase()}</span>
               </div>
             </label>
-            <ul tabIndex={0} className="mt-3 z-1 p-2 shadow-2xl menu menu-sm dropdown-content bg-base-200/90 backdrop-blur-md rounded-box w-52 border border-base-300">
+            <ul tabIndex={0} className="mt-3 z-1 p-2 shadow-dropdown menu menu-sm dropdown-content bg-base-200/90 backdrop-blur-md rounded-box w-52 border border-base-300">
               <li className="menu-title px-4 py-2">{t('nav.signedInAs', 'Signed in as')} <span className="text-primary truncate block">{username}</span></li>
               <div className="divider my-0"></div>
               <li><Link to="/app/settings">{t('nav.settings', 'Settings')}</Link></li>
@@ -124,7 +123,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
               </svg>
               <span className="dock-label text-xs font-medium">{t('nav.account', 'Account')}</span>
             </div>
-            <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md rounded-box w-56 max-w-[calc(100vw-1rem)] mb-4 border border-base-300">
+            <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow-dropdown bg-base-200/95 backdrop-blur-md rounded-box w-56 max-w-[calc(100vw-1rem)] mb-4 border border-base-300">
               {/* A username is one long token: without break-all it can't wrap
                   and pushes the menu past the edge of a phone screen. */}
               <li className="menu-title text-center break-all">{t('nav.hi', 'Hi')}, {username}</li>

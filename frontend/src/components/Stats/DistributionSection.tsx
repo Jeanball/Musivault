@@ -17,7 +17,7 @@ const toEntries = (counts: Record<string, number>): BarBreakdownEntry[] =>
     Object.entries(counts).map(([name, count]) => ({ name, count })).sort(byCountDesc);
 
 const Panel: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <div className="bg-base-100 rounded-box shadow-lg p-4 md:p-6 flex flex-col gap-4">
+    <div className="bg-base-100 rounded-box shadow-panel p-4 md:p-6 flex flex-col gap-4">
         <h2 className="text-lg font-bold">{title}</h2>
         {children}
     </div>

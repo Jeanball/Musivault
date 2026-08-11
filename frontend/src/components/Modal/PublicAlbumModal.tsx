@@ -9,7 +9,6 @@ import { SpotifyIcon, DiscogsIcon } from '../Common/BrandIcons';
 import FieldRow from '../Common/FieldRow';
 import LabelLink from '../Common/LabelLink';
 import { useCurrency } from '../../hooks/useCurrency';
-import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../../utils/brandColors';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../../utils/conditions';
 
 interface PublicAlbumModalProps {
@@ -87,8 +86,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                                 href={spotifyUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn flex-1 h-12 min-h-12 text-base sm:btn-sm sm:h-8 sm:min-h-8 sm:text-sm"
-                                style={SPOTIFY_BUTTON_STYLE}
+                                className="btn flex-1 h-12 min-h-12 text-base sm:btn-sm sm:h-8 sm:min-h-8 sm:text-sm btn-spotify"
                             >
                                 <SpotifyIcon className="w-5 h-5 sm:w-4 sm:h-4" />
                                 {t('album.listenOnSpotify')}
@@ -98,8 +96,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                                     href={discogsUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="btn flex-1 h-12 min-h-12 text-base sm:btn-sm sm:h-8 sm:min-h-8 sm:text-sm"
-                                    style={DISCOGS_BUTTON_STYLE}
+                                    className="btn flex-1 h-12 min-h-12 text-base sm:btn-sm sm:h-8 sm:min-h-8 sm:text-sm btn-discogs"
                                 >
                                     <DiscogsIcon className="w-5 h-5 sm:w-4 sm:h-4" />
                                     {t('album.viewOnDiscogs')}

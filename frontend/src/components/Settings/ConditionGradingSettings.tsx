@@ -41,10 +41,10 @@ const ConditionGradingSettings: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="skeleton h-5 w-5 rounded-sm"></div>
+                        <div className="skeleton h-5 w-5 rounded-field"></div>
                         <div className="skeleton h-6 w-48"></div>
                     </div>
                     <div className="skeleton h-4 w-3/4 mb-6"></div>
@@ -58,7 +58,7 @@ const ConditionGradingSettings: React.FC = () => {
     }
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <Star size={20} />

@@ -66,9 +66,9 @@ const ActRow: React.FC<{ act: ConcertAct }> = ({ act }) => {
     return (
         <li className="flex items-start gap-3 py-2 border-b border-base-300 last:border-b-0">
             {act.imageUrl ? (
-                <img src={act.imageUrl} alt="" loading="lazy" className="w-12 h-12 rounded-sm object-cover shrink-0" />
+                <img src={act.imageUrl} alt="" loading="lazy" className="w-12 h-12 rounded-field object-cover shrink-0" />
             ) : (
-                <div className="w-12 h-12 rounded-sm bg-base-300 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-field bg-base-300 flex items-center justify-center shrink-0">
                     <Users size={18} className="opacity-40" />
                 </div>
             )}

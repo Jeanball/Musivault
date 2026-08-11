@@ -76,7 +76,7 @@ const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection,
                                             className="hover:bg-base-300 cursor-pointer"
                                         >
                                             <td>
-                                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-base-300">
+                                                <div className="w-12 h-12 rounded-field overflow-hidden bg-base-300">
                                                     <img
                                                         ref={revealIfCached}
                                                         src={getImageUrl(release.thumb || release.cover_image)}

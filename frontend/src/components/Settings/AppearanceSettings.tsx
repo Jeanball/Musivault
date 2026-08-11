@@ -79,7 +79,7 @@ const AppearanceSettings: React.FC = () => {
     return (
         <>
             {/* Theme Section */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h2 className="card-title flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,7 +115,7 @@ const AppearanceSettings: React.FC = () => {
             </div>
 
             {/* Language Section */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h2 className="card-title flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -144,7 +144,7 @@ const AppearanceSettings: React.FC = () => {
             </div>
 
             {/* Currency Section */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h2 className="card-title flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -175,7 +175,7 @@ const AppearanceSettings: React.FC = () => {
             </div>
 
             {/* Display Section */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h2 className="card-title flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

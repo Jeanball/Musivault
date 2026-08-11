@@ -176,7 +176,7 @@ const ReleasePage: React.FC = () => {
                         <img
                             src={getImageUrl(albumDetails.cover_image)}
                             alt={`Cover of ${albumDetails.title}`}
-                            className="w-full h-auto object-cover rounded-lg shadow-2xl"
+                            className="w-full h-auto object-cover rounded-box shadow-card"
                         />
                     )}
                 </div>

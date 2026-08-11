@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { UpcomingRelease } from '../../types/discover.types';
 import { formatReleaseDate } from '../../utils/date';
 import { revealIfCached } from '../../utils/imageReveal';
+import CoverOverlay from '../Common/CoverOverlay';
 
 interface UpcomingReleaseCardProps {
     release: UpcomingRelease;
@@ -37,9 +38,9 @@ const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release, onSe
                     }
                 }
             })}
-            className={`card bg-base-100 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 group ${onSelect ? 'cursor-pointer' : ''}`}
+            className={`card bg-base-100 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 group ${onSelect ? 'cursor-pointer' : ''}`}
         >
-            <figure className="aspect-square relative overflow-hidden rounded-t-xl bg-base-300">
+            <figure className="aspect-square relative overflow-hidden bg-base-300">
                 {/* Sits behind the cover so the tile is never an empty hole while loading. */}
                 <img
                     src="/placeholder-album.svg"
@@ -61,16 +62,10 @@ const UpcomingReleaseCard: React.FC<UpcomingReleaseCardProps> = ({ release, onSe
                         e.currentTarget.src = '/placeholder-album.svg';
                     }}
                 />
-                {/* Readability scrim behind the date/type overlay. */}
-                {/* Kept to single-digit z-indexes: the overlay only has to beat the
-                    cover image, and anything higher paints over page-level dropdowns. */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/70 to-transparent pointer-events-none z-2" />
-                <span className="absolute bottom-1 left-1.5 z-3 text-[10px] font-medium text-white drop-shadow-sm">
-                    {formatReleaseDate(release.firstReleaseDate, release.datePrecision, i18n.language)}
-                </span>
-                {release.primaryType === 'EP' && (
-                    <span className="absolute bottom-1 right-1.5 z-3 badge badge-xs">EP</span>
-                )}
+                <CoverOverlay
+                    date={formatReleaseDate(release.firstReleaseDate, release.datePrecision, i18n.language)}
+                    type={release.primaryType === 'EP' ? 'EP' : null}
+                />
             </figure>
             <div className="card-body p-2 gap-0.5">
                 <h3 className="card-title text-xs leading-tight truncate block" title={release.title}>

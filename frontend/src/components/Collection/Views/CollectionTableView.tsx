@@ -118,7 +118,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
                             className="group hover:bg-base-300 cursor-pointer"
                         >
                             <td>
-                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-base-300">
+                                <div className="w-12 h-12 rounded-field overflow-hidden bg-base-300">
                                     <img
                                         src={item.album.thumb || item.album.cover_image}
                                         alt=""
