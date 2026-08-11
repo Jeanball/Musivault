@@ -203,7 +203,8 @@
         "goToMusivault": "前往 Musivault",
         "addAlbum": "添加专辑",
         "filters": "筛选",
-        "showingCount": "{{total}} 中的 {{shown}}"
+        "showingCount": "{{total}} 中的 {{shown}}",
+        "releasesInGroup_other": "{{count}} 张唱片"
     },
     "publicCollection": {
         "collectionOf": "{{username}} 的收藏",
@@ -619,13 +620,15 @@
     },
     "tracks": {
         "searchTrack": "搜索曲目...",
-        "uniqueTracks": "{{count}} 首唯一曲目",
-        "uniqueTracks_plural": "{{count}} 首唯一曲目",
+        "uniqueTracks_other": "{{count}} 首唯一曲目",
         "matching": "匹配 “{{term}}”",
         "noTracksFound": "未找到曲目。",
         "tryDifferent": "尝试不同的搜索词",
-        "appearsOn": "出现在 {{count}} 张专辑中：",
-        "appearsOn_plural": "出现在 {{count}} 张专辑中："
+        "appearsOn_other": "出现在 {{count}} 张专辑中：",
+        "sortBy": "排序方式",
+        "sortAppearances": "副本最多",
+        "sortTitle": "标题 (A-Z)",
+        "sortArtist": "艺人 (A-Z)"
     },
     "barcodeScanner": {
         "title": "扫描条形码",
@@ -743,9 +746,10 @@
     "labels": {
         "searchLabel": "搜索厂牌…",
         "noLabelsFound": "未找到厂牌",
-        "labelCount": "{{count}} 个厂牌",
-        "labelCount_plural": "{{count}} 个厂牌",
-        "releaseCount": "{{count}} 张",
-        "releaseCount_plural": "{{count}} 张"
+        "labelCount_other": "{{count}} 个厂牌",
+        "releaseCount_other": "{{count}} 张",
+        "sortBy": "排序方式",
+        "sortReleases": "发行最多",
+        "sortName": "名称 (A-Z)"
     }
 }

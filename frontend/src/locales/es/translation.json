@@ -203,7 +203,9 @@
         "goToMusivault": "Ir a Musivault",
         "addAlbum": "Añadir un álbum",
         "filters": "Filtros",
-        "showingCount": "{{shown}} de {{total}}"
+        "showingCount": "{{shown}} de {{total}}",
+        "releasesInGroup_one": "{{count}} disco",
+        "releasesInGroup_other": "{{count}} discos"
     },
     "publicCollection": {
         "collectionOf": "Colección de {{username}}",
@@ -622,13 +624,17 @@
     },
     "tracks": {
         "searchTrack": "Buscar una pista...",
-        "uniqueTracks": "{{count}} pista única",
-        "uniqueTracks_plural": "{{count}} pistas únicas",
+        "uniqueTracks_one": "{{count}} pista única",
+        "uniqueTracks_other": "{{count}} pistas únicas",
         "matching": "coincidiendo con \"{{term}}\"",
         "noTracksFound": "No se encontraron pistas.",
         "tryDifferent": "Intenta un término diferente",
-        "appearsOn": "Aparece en {{count}} álbum:",
-        "appearsOn_plural": "Aparece en {{count}} álbumes:"
+        "appearsOn_one": "Aparece en {{count}} álbum:",
+        "appearsOn_other": "Aparece en {{count}} álbumes:",
+        "sortBy": "Ordenar por",
+        "sortAppearances": "Más copias",
+        "sortTitle": "Título (A-Z)",
+        "sortArtist": "Artista (A-Z)"
     },
     "barcodeScanner": {
         "title": "Escanear Código de Barras",
@@ -747,9 +753,12 @@
     "labels": {
         "searchLabel": "Buscar un sello…",
         "noLabelsFound": "No se encontraron sellos",
-        "labelCount": "{{count}} sello",
-        "labelCount_plural": "{{count}} sellos",
-        "releaseCount": "{{count}} disco",
-        "releaseCount_plural": "{{count}} discos"
+        "labelCount_one": "{{count}} sello",
+        "labelCount_other": "{{count}} sellos",
+        "releaseCount_one": "{{count}} disco",
+        "releaseCount_other": "{{count}} discos",
+        "sortBy": "Ordenar por",
+        "sortReleases": "Más lanzamientos",
+        "sortName": "Nombre (A-Z)"
     }
 }

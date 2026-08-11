@@ -200,7 +200,9 @@
         "goToMusivault": "Gehe zu Musivault",
         "addAlbum": "Ein Album hinzufügen",
         "filters": "Filter",
-        "showingCount": "{{shown}} von {{total}}"
+        "showingCount": "{{shown}} von {{total}}",
+        "releasesInGroup_one": "{{count}} Platte",
+        "releasesInGroup_other": "{{count}} Platten"
     },
     "publicCollection": {
         "collectionOf": "Sammlung von {{username}}",
@@ -619,13 +621,17 @@
     },
     "tracks": {
         "searchTrack": "Suchen Sie einen Titel...",
-        "uniqueTracks": "{{count}} einzigartiger Titel",
-        "uniqueTracks_plural": "{{count}} einzigartige Titel",
+        "uniqueTracks_one": "{{count}} einzigartiger Titel",
+        "uniqueTracks_other": "{{count}} einzigartige Titel",
         "matching": "passend zu \"{{term}}\"",
         "noTracksFound": "Keine Titel gefunden.",
         "tryDifferent": "Versuchen Sie einen anderen Suchbegriff",
-        "appearsOn": "Erscheint auf {{count}} Album:",
-        "appearsOn_plural": "Erscheint auf {{count}} Alben:"
+        "appearsOn_one": "Erscheint auf {{count}} Album:",
+        "appearsOn_other": "Erscheint auf {{count}} Alben:",
+        "sortBy": "Sortieren nach",
+        "sortAppearances": "Meiste Exemplare",
+        "sortTitle": "Titel (A-Z)",
+        "sortArtist": "Künstler (A-Z)"
     },
     "barcodeScanner": {
         "title": "Barcode scannen",
@@ -743,9 +749,12 @@
     "labels": {
         "searchLabel": "Label suchen…",
         "noLabelsFound": "Keine Labels gefunden",
-        "labelCount": "{{count}} Label",
-        "labelCount_plural": "{{count}} Labels",
-        "releaseCount": "{{count}} Platte",
-        "releaseCount_plural": "{{count}} Platten"
+        "labelCount_one": "{{count}} Label",
+        "labelCount_other": "{{count}} Labels",
+        "releaseCount_one": "{{count}} Platte",
+        "releaseCount_other": "{{count}} Platten",
+        "sortBy": "Sortieren nach",
+        "sortReleases": "Meiste Ausgaben",
+        "sortName": "Name (A-Z)"
     }
 }

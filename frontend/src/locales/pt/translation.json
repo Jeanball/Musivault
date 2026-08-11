@@ -203,7 +203,9 @@
         "goToMusivault": "Ir para Musivault",
         "addAlbum": "Adicionar um álbum",
         "filters": "Filtros",
-        "showingCount": "{{shown}} de {{total}}"
+        "showingCount": "{{shown}} de {{total}}",
+        "releasesInGroup_one": "{{count}} disco",
+        "releasesInGroup_other": "{{count}} discos"
     },
     "publicCollection": {
         "collectionOf": "Coleção de {{username}}",
@@ -623,13 +625,17 @@
     },
     "tracks": {
         "searchTrack": "Buscar uma faixa...",
-        "uniqueTracks": "{{count}} faixa única",
-        "uniqueTracks_plural": "{{count}} faixas únicas",
+        "uniqueTracks_one": "{{count}} faixa única",
+        "uniqueTracks_other": "{{count}} faixas únicas",
         "matching": "coincidindo com \"{{term}}\"",
         "noTracksFound": "Nenhuma faixa encontrada.",
         "tryDifferent": "Tente um termo diferente",
-        "appearsOn": "Aparece em {{count}} álbum:",
-        "appearsOn_plural": "Aparece em {{count}} álbuns:"
+        "appearsOn_one": "Aparece em {{count}} álbum:",
+        "appearsOn_other": "Aparece em {{count}} álbuns:",
+        "sortBy": "Ordenar por",
+        "sortAppearances": "Mais cópias",
+        "sortTitle": "Título (A-Z)",
+        "sortArtist": "Artista (A-Z)"
     },
     "barcodeScanner": {
         "title": "Escanear Código de Barras",
@@ -747,9 +753,12 @@
     "labels": {
         "searchLabel": "Procurar uma editora…",
         "noLabelsFound": "Nenhuma editora encontrada",
-        "labelCount": "{{count}} editora",
-        "labelCount_plural": "{{count}} editoras",
-        "releaseCount": "{{count}} disco",
-        "releaseCount_plural": "{{count}} discos"
+        "labelCount_one": "{{count}} editora",
+        "labelCount_other": "{{count}} editoras",
+        "releaseCount_one": "{{count}} disco",
+        "releaseCount_other": "{{count}} discos",
+        "sortBy": "Ordenar por",
+        "sortReleases": "Mais lançamentos",
+        "sortName": "Nome (A-Z)"
     }
 }

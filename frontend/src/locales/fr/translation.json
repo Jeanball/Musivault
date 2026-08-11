@@ -221,7 +221,9 @@
         "goToMusivault": "Aller sur Musivault",
         "addAlbum": "Ajouter un album",
         "filters": "Filtres",
-        "showingCount": "{{shown}} sur {{total}}"
+        "showingCount": "{{shown}} sur {{total}}",
+        "releasesInGroup_one": "{{count}} disque",
+        "releasesInGroup_other": "{{count}} disques"
     },
     "publicCollection": {
         "collectionOf": "Collection de {{username}}",
@@ -645,13 +647,17 @@
     },
     "tracks": {
         "searchTrack": "Rechercher une piste...",
-        "uniqueTracks": "{{count}} piste unique",
-        "uniqueTracks_plural": "{{count}} pistes uniques",
+        "uniqueTracks_one": "{{count}} piste unique",
+        "uniqueTracks_other": "{{count}} pistes uniques",
         "matching": "correspondant à \"{{term}}\"",
         "noTracksFound": "Aucune piste trouvée.",
         "tryDifferent": "Essayez un autre terme de recherche",
-        "appearsOn": "Apparaît sur {{count}} album :",
-        "appearsOn_plural": "Apparaît sur {{count}} albums :"
+        "appearsOn_one": "Apparaît sur {{count}} album :",
+        "appearsOn_other": "Apparaît sur {{count}} albums :",
+        "sortBy": "Trier par",
+        "sortAppearances": "Le plus d'exemplaires",
+        "sortTitle": "Titre (A-Z)",
+        "sortArtist": "Artiste (A-Z)"
     },
     "barcodeScanner": {
         "title": "Scanner un code-barres",
@@ -769,9 +775,12 @@
     "labels": {
         "searchLabel": "Rechercher un label…",
         "noLabelsFound": "Aucun label trouvé",
-        "labelCount": "{{count}} label",
-        "labelCount_plural": "{{count}} labels",
-        "releaseCount": "{{count}} disque",
-        "releaseCount_plural": "{{count}} disques"
+        "labelCount_one": "{{count}} label",
+        "labelCount_other": "{{count}} labels",
+        "releaseCount_one": "{{count}} disque",
+        "releaseCount_other": "{{count}} disques",
+        "sortBy": "Trier par",
+        "sortReleases": "Le plus de disques",
+        "sortName": "Nom (A-Z)"
     }
 }

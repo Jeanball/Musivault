@@ -221,7 +221,9 @@
         "goToMusivault": "Go to Musivault",
         "addAlbum": "Add an album",
         "filters": "Filters",
-        "showingCount": "{{shown}} of {{total}}"
+        "showingCount": "{{shown}} of {{total}}",
+        "releasesInGroup_one": "{{count}} record",
+        "releasesInGroup_other": "{{count}} records"
     },
     "publicCollection": {
         "collectionOf": "{{username}}'s Collection",
@@ -646,13 +648,17 @@
     },
     "tracks": {
         "searchTrack": "Search a track...",
-        "uniqueTracks": "{{count}} unique track",
-        "uniqueTracks_plural": "{{count}} unique tracks",
+        "uniqueTracks_one": "{{count}} unique track",
+        "uniqueTracks_other": "{{count}} unique tracks",
         "matching": "matching \"{{term}}\"",
         "noTracksFound": "No tracks found.",
         "tryDifferent": "Try a different search term",
-        "appearsOn": "Appears on {{count}} album:",
-        "appearsOn_plural": "Appears on {{count}} albums:"
+        "appearsOn_one": "Appears on {{count}} album:",
+        "appearsOn_other": "Appears on {{count}} albums:",
+        "sortBy": "Sort by",
+        "sortAppearances": "Most copies",
+        "sortTitle": "Title (A-Z)",
+        "sortArtist": "Artist (A-Z)"
     },
     "barcodeScanner": {
         "title": "Scan Barcode",
@@ -770,9 +776,12 @@
     "labels": {
         "searchLabel": "Search a label…",
         "noLabelsFound": "No labels found",
-        "labelCount": "{{count}} label",
-        "labelCount_plural": "{{count}} labels",
-        "releaseCount": "{{count}} release",
-        "releaseCount_plural": "{{count}} releases"
+        "labelCount_one": "{{count}} label",
+        "labelCount_other": "{{count}} labels",
+        "releaseCount_one": "{{count}} release",
+        "releaseCount_other": "{{count}} releases",
+        "sortBy": "Sort by",
+        "sortReleases": "Most releases",
+        "sortName": "Name (A-Z)"
     }
 }

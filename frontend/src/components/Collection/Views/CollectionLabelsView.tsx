@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLabelAggregation } from '../../../hooks/collection/useLabelAggregation';
+import GroupedReleaseList from '../GroupedReleaseList';
+import ListToolbar from '../ListToolbar';
 import LabelLink from '../../Common/LabelLink';
 import type { CollectionItem } from '../../../types/collection.types';
-import { getImageUrl } from '../../../utils/imageUrl';
-import { revealIfCached } from '../../../utils/imageReveal';
+
+type LabelSort = 'releases' | 'name';
 
 interface CollectionLabelsViewProps {
     collection: CollectionItem[];
@@ -14,25 +16,40 @@ interface CollectionLabelsViewProps {
 }
 
 /**
- * The collection grouped by imprint, laid out like the list view: one table, one
- * header, a band per label. A release co-issued by two labels appears under both,
- * so the per-label counts legitimately sum past the collection size.
+ * The collection grouped by imprint, laid out like the tracks view because it is
+ * the same shape: a named group, a count, and the records under it. A release
+ * co-issued by two labels appears under both, so the per-label counts
+ * legitimately sum past the collection size.
  */
 const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection, searchTerm, onItemClick }) => {
     const { t } = useTranslation();
     const labels = useLabelAggregation(collection);
+    const [expandedLabelId, setExpandedLabelId] = useState<string | null>(null);
+    // Biggest imprints first: the shape of a collection is the point, and an
+    // alphabetical list buries it.
+    const [sortBy, setSortBy] = useState<LabelSort>('releases');
 
     const filteredLabels = useMemo(() => {
-        if (!searchTerm.trim()) return labels;
-        const lower = searchTerm.toLowerCase();
-        return labels.filter((label) => label.name.toLowerCase().includes(lower));
-    }, [labels, searchTerm]);
+        const lower = searchTerm.trim().toLowerCase();
+        const matching = lower ? labels.filter((label) => label.name.toLowerCase().includes(lower)) : labels;
+
+        // The hook already orders by release count, which is the default here.
+        if (sortBy === 'releases') return matching;
+        return [...matching].sort((a, b) => a.name.localeCompare(b.name));
+    }, [labels, searchTerm, sortBy]);
 
     return (
         <div className="space-y-4">
-            <div className="text-sm text-base-content/60">
-                {t('labels.labelCount', { count: filteredLabels.length })}
-            </div>
+            <ListToolbar
+                summary={t('labels.labelCount', { count: filteredLabels.length })}
+                sortValue={sortBy}
+                onSortChange={setSortBy}
+                sortLabel={t('labels.sortBy')}
+                options={[
+                    { value: 'releases', label: t('labels.sortReleases') },
+                    { value: 'name', label: t('labels.sortName') },
+                ]}
+            />
 
             {filteredLabels.length === 0 ? (
                 <div className="text-center py-20">
@@ -40,72 +57,22 @@ const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection,
                     <p className="mt-2 text-base-content/70">{t('collection.tryAgain')}</p>
                 </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="table table-fixed w-full min-w-140">
-                        <colgroup>
-                            <col className="w-16" />
-                            <col />
-                            <col className="w-56" />
-                            <col className="w-20" />
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>{t('album.cover')}</th>
-                                <th>{t('common.album')}</th>
-                                <th>{t('common.artist')}</th>
-                                <th>{t('common.year')}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredLabels.map((label) => (
-                                <React.Fragment key={label.id}>
-                                    <tr className="bg-base-200">
-                                        <th colSpan={4} className="text-base font-bold text-base-content">
-                                            <div className="flex items-center gap-3">
-                                                <LabelLink label={label.label} />
-                                                <span className="font-normal text-sm text-base-content/50">
-                                                    {t('labels.releaseCount', { count: label.releaseCount })}
-                                                </span>
-                                            </div>
-                                        </th>
-                                    </tr>
-                                    {label.releases.map((release) => (
-                                        <tr
-                                            key={release.collectionItemId}
-                                            onClick={() => onItemClick(release.collectionItemId)}
-                                            className="hover:bg-base-300 cursor-pointer"
-                                        >
-                                            <td>
-                                                <div className="w-12 h-12 rounded-field overflow-hidden bg-base-300">
-                                                    <img
-                                                        ref={revealIfCached}
-                                                        src={getImageUrl(release.thumb || release.cover_image)}
-                                                        alt=""
-                                                        loading="lazy"
-                                                        decoding="async"
-                                                        className="w-full h-full object-cover opacity-0 transition-opacity duration-300"
-                                                        onLoad={(e) => { e.currentTarget.classList.remove('opacity-0'); }}
-                                                    />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="font-bold truncate" title={release.title}>
-                                                    {release.title}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="truncate" title={release.artist}>
-                                                    {release.artist}
-                                                </div>
-                                            </td>
-                                            <td className="tabular-nums">{release.year || '—'}</td>
-                                        </tr>
-                                    ))}
-                                </React.Fragment>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <GroupedReleaseList
+                    groups={filteredLabels}
+                    expandedId={expandedLabelId}
+                    onToggle={(id) => setExpandedLabelId(expandedLabelId === id ? null : id)}
+                    onSelect={onItemClick}
+                    renderHeader={(label) => (
+                        // stopPropagation so opening the label's card doesn't also
+                        // toggle the group it sits in.
+                        <div className="flex items-center gap-3 min-w-0" onClick={(e) => e.stopPropagation()}>
+                            <LabelLink label={label.label} />
+                            <span className="font-normal text-sm text-base-content/50 shrink-0">
+                                {t('labels.releaseCount', { count: label.releaseCount })}
+                            </span>
+                        </div>
+                    )}
+                />
             )}
         </div>
     );
