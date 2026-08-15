@@ -21,17 +21,24 @@ export const DiscogsIcon: React.FC<BrandIconProps> = ({ className = 'w-4 h-4' })
     </svg>
 );
 
-export const MusivaultMark: React.FC<BrandIconProps> = ({ className = 'w-10 h-10' }) => (
+export const MusivaultMark: React.FC<BrandIconProps> = ({ className = 'w-10 h-10' }) => {
+    /* Per instance and not a fixed id: several marks live in the DOM at once
+       (the navbar keeps its own behind `hidden lg:flex`), and a shared id makes
+       every `url(#…)` resolve to the first one, which below `lg` sits in a
+       `display:none` subtree and paints nothing. */
+    const gradientId = React.useId();
+
+    return (
     <svg className={className} viewBox="0 0 1080 1080" aria-hidden="true">
         <defs>
             {/* The same primary-to-secondary ramp the wordmark beside it uses, so the
                 mark and the name are always the one object under any theme. */}
-            <linearGradient id="musivault-mark" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="var(--color-primary)" />
                 <stop offset="100%" stopColor="var(--color-secondary)" />
             </linearGradient>
         </defs>
-        <g fill="url(#musivault-mark)">
+        <g fill={`url(#${gradientId})`}>
             <path d="M878.6,298.5h-49c-128.7-152.4-351.2-181.4-513-61.6-206.9,153.2-204.9,460.2,4.9,609.8,160.8,114.7,379,86.1,506.1-63.1h50.1c-65,92-172.2,156.4-284.4,170.7-215.6,27.6-418.4-119.3-462-330.8C72,336.7,326.8,75.8,614.9,129.2c105,19.4,202.8,81.9,263.6,169.3Z" />
             <path d="M799.5,298.5h-38.5l-64.3-49.6h-127.1v97h96.5c3.5,0,12.8,6.3,12,11.2.9,28.4-.8,57,0,85.4,0,3.1,0,11,0,12.9-3.8.9-11.2,1.3-16.1,2.7-33.2,9.2-57.7,40.6-60.9,74.6h-35.9v14.8h35.9c4,41.5,36.7,73.8,78.1,78.1-.8,1.5-1.1,3-1.1,4.7-.7,22.2.9,44.5,1.2,66.5.1,10.5,2.5,34.1-11.2,36.4-8.8,1.5-23-.3-32.7,0-2.5,0-4.8,1.1-7.3,1.1-19.5.4-39.1-.4-58.6,0v97h131.3l61.2-47.5h35.3c-63.2,68.4-155.4,109.3-248.9,111.8V184.6c94.8,2.2,187.3,44.4,251,113.9Z" />
             <path d="M839.5,314.3v68.6h-18.5c-4.7,0-15.4,8.9-16.6,14l-.8,285c-.2,6.3,10.9,17.4,16.4,17.4h19.5v69.6h-81.7l-62.2,47.5h-111.3v-68.6c24.1-.5,48.2,2.4,72.3,1.1,22.7-1.2,35.5-7.8,37.4-32.2,2.3-29.6-2-61.5.5-91.3,27.8-3.6,52.5-19,66.2-43.5,30-53.7-5.2-122.2-66.6-126.2v-92.3c.8-14.6-11.5-32.1-26.9-32.1h-82.8v-67.5h107.1l64.6,49.4c27.7,2.6,55.8.7,83.6,1.3Z" />
@@ -59,4 +66,5 @@ export const MusivaultMark: React.FC<BrandIconProps> = ({ className = 'w-10 h-10
             <path d="M692.9,557.9h-13.7c-.6-.6,2.3-14,1.9-16.2-.5-2.5-5.8-3.5-5-10.6,1.6-13.5,23.6-11.5,19.8,5-.7,2.9-3.5,4-4,6.6-.8,4.3,2.3,10.5,1.1,15.3Z" />
         </g>
     </svg>
-);
+    );
+};
