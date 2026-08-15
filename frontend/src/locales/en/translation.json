@@ -716,6 +716,11 @@
         "info": "Info",
         "warning": "Warning"
     },
+    "price": {
+        "loading": "Loading price…",
+        "estimatedValue": "Estimated value",
+        "basedOn": "Based on {{condition}}"
+    },
     "condition": {
         "title": "Condition Grading",
         "description": "Enable condition grading to track the physical condition of your vinyl and sleeves.",
@@ -723,8 +728,6 @@
         "disabledToast": "Condition grading disabled",
         "media": "Media Condition",
         "sleeve": "Sleeve Condition",
-        "skip": "Skip",
-        "setCondition": "Set Condition",
         "updated": "Condition updated!",
         "grades": {
             "mint": "Mint (M)",

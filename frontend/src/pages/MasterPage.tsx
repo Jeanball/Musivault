@@ -6,10 +6,10 @@ import { getRelease, getMasterVersions } from '../api/discogs';
 import { addToCollection as apiAddToCollection, rematchAlbum } from '../api/collection';
 import { isApiError, isRateLimitError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
+import { useReleasePrice } from '../hooks/useReleasePrice';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { type AlbumDetails, type FormatDetails } from '../types/album.types';
-import ConditionModal from '../components/Modal/ConditionModal';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
 import BackButton from '../components/Common/BackButton';
 import PageLoadError from '../components/Common/PageLoadError';
@@ -77,11 +77,8 @@ const MasterPage: React.FC = () => {
     const [confirmAlbum, setConfirmAlbum] = useState<AlbumDetails | null>(null);
     const [confirmFormat, setConfirmFormat] = useState<FormatDetails | null>(null);
 
-    // Condition grading state
+    // Condition grading is offered inside the confirmation modal
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
-    const [showConditionModal, setShowConditionModal] = useState<boolean>(false);
-    const [pendingFormat, setPendingFormat] = useState<FormatDetails | null>(null);
-    const [pendingAlbum, setPendingAlbum] = useState<AlbumDetails | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -187,6 +184,12 @@ const MasterPage: React.FC = () => {
         });
     }, [visibleVersions]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    /**
+     * The release being added. Priced once the user picks a format, and the add
+     * that follows reuses that lookup.
+     */
+    const { price, isLoading: isPriceLoading } = useReleasePrice(confirmAlbum?.discogsId ?? null);
+
     const handleShowMore = () => {
         setVisibleCount(prev => prev + VERSIONS_PER_PAGE);
     };
@@ -221,16 +224,10 @@ const MasterPage: React.FC = () => {
         }
     };
 
-    const handleConfirmAdd = () => {
+    const handleConfirmAdd = (mediaCondition: string | null, sleeveCondition: string | null) => {
         setShowConfirmModal(false);
-        if (!confirmAlbum || !confirmFormat) return;
-
-        if (conditionGradingEnabled) {
-            setPendingFormat(confirmFormat);
-            setPendingAlbum(confirmAlbum);
-            setShowConditionModal(true);
-        } else {
-            addToCollection(confirmAlbum, confirmFormat, null, null);
+        if (confirmAlbum && confirmFormat) {
+            addToCollection(confirmAlbum, confirmFormat, mediaCondition, sleeveCondition);
         }
         setConfirmAlbum(null);
         setConfirmFormat(null);
@@ -240,20 +237,6 @@ const MasterPage: React.FC = () => {
         setShowConfirmModal(false);
         setConfirmAlbum(null);
         setConfirmFormat(null);
-    };
-
-    const handleConditionConfirm = (mediaCondition: string | null, sleeveCondition: string | null) => {
-        setShowConditionModal(false);
-        if (pendingFormat && pendingAlbum) {
-            addToCollection(pendingAlbum, pendingFormat, mediaCondition, sleeveCondition);
-        }
-    };
-
-    const handleConditionSkip = () => {
-        setShowConditionModal(false);
-        if (pendingFormat && pendingAlbum) {
-            addToCollection(pendingAlbum, pendingFormat, null, null);
-        }
     };
 
     const addToCollection = async (
@@ -275,8 +258,6 @@ const MasterPage: React.FC = () => {
                 id: item._id,
                 title: album.title
             });
-            setPendingFormat(null);
-            setPendingAlbum(null);
         } catch (err) {
             const message = isApiError(err) ? err.serverMessage : undefined;
             toastService.error(message || t('app.error'));
@@ -533,17 +514,11 @@ const MasterPage: React.FC = () => {
                     coverImage={confirmAlbum?.cover_image}
                     albumTitle={confirmAlbum?.title}
                     format={confirmFormat}
+                    price={price}
+                    isPriceLoading={isPriceLoading}
+                    conditionGradingEnabled={conditionGradingEnabled}
                     onConfirm={handleConfirmAdd}
                     onCancel={handleConfirmCancel}
-                />
-            )}
-
-            {!isRematchMode && (
-                <ConditionModal
-                    isOpen={showConditionModal}
-                    albumTitle={pendingAlbum?.title || ''}
-                    onSkip={handleConditionSkip}
-                    onConfirm={handleConditionConfirm}
                 />
             )}
 

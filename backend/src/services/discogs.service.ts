@@ -17,8 +17,10 @@ import {
     CleanedReleaseDetails,
     CleanedMasterVersions,
     CleanedArtistReleases,
-    FoundAlbumInfo
+    FoundAlbumInfo,
+    MarketplaceStats
 } from '../types/discogs.types';
+import { getPriceTTLHours } from '../utils/price.utils';
 import {
     DISCOGS_BASE_URL,
     DISCOGS_HEADERS,
@@ -801,27 +803,37 @@ export async function searchByCatalogNumber(
 
 // ===== Marketplace / Pricing =====
 
-export interface MarketplaceStats {
-    mint: number | null;
-    nearMint: number | null;
-    veryGoodPlus: number | null;
-    veryGood: number | null;
-    goodPlus: number | null;
-    good: number | null;
-    fair: number | null;
-    poor: number | null;
-    currency: string;
+/**
+ * Prices move, so this cache only exists to stop the same release being priced
+ * twice in a row: once when the add modal opens, once when the add is confirmed.
+ * It follows the same freshness rule as the prices stored on collection items.
+ * A missing suggestion expires sooner, so an absence never sticks for a week.
+ */
+const priceCache = new Map<number, { stats: MarketplaceStats | null; expiresAt: number }>();
+const NO_PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
+
+function cachePriceSuggestions(releaseId: number, stats: MarketplaceStats | null): MarketplaceStats | null {
+    const ttlMs = stats ? getPriceTTLHours() * 60 * 60 * 1000 : NO_PRICE_CACHE_TTL_MS;
+    priceCache.set(releaseId, { stats, expiresAt: Date.now() + ttlMs });
+    return stats;
 }
 
 /**
  * Get price suggestions per condition grade for a release
  * Requires DISCOGS_PAT (Personal Access Token)
  * The user must have a Discogs seller account for this to work
+ * Pass forceRefresh for the explicit sync paths, which must hit Discogs.
  */
-export async function getMarketplaceStats(releaseId: number): Promise<MarketplaceStats | null> {
+export async function getMarketplaceStats(
+    releaseId: number,
+    { forceRefresh = false }: { forceRefresh?: boolean } = {}
+): Promise<MarketplaceStats | null> {
     if (!hasPAT()) {
         return null;
     }
+
+    const cached = priceCache.get(releaseId);
+    if (!forceRefresh && cached && cached.expiresAt > Date.now()) return cached.stats;
 
     try {
         await delay(RATE_LIMIT_MS);
@@ -834,12 +846,12 @@ export async function getMarketplaceStats(releaseId: number): Promise<Marketplac
 
         // If empty response, no data available
         if (!suggestions || Object.keys(suggestions).length === 0) {
-            return null;
+            return cachePriceSuggestions(releaseId, null);
         }
 
         const currency = Object.values(suggestions)[0]?.currency || 'USD';
 
-        return {
+        return cachePriceSuggestions(releaseId, {
             mint: suggestions['Mint (M)']?.value ?? null,
             nearMint: suggestions['Near Mint (NM or M-)']?.value ?? null,
             veryGoodPlus: suggestions['Very Good Plus (VG+)']?.value ?? null,
@@ -849,7 +861,7 @@ export async function getMarketplaceStats(releaseId: number): Promise<Marketplac
             fair: suggestions['Fair (F)']?.value ?? null,
             poor: suggestions['Poor (P)']?.value ?? null,
             currency,
-        };
+        });
     } catch (err: any) {
         logger.warn({ err }, `[Discogs] Price suggestions error for release ${releaseId}`);
         return null;

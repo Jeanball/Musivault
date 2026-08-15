@@ -1,3 +1,6 @@
+/** Grade a release is valued at when the user has not graded it. */
+export const DEFAULT_PRICE_CONDITION = 'VG+';
+
 // Condition grades for media
 export const MEDIA_CONDITIONS = [
     { value: 'M', labelKey: 'condition.grades.mint' },

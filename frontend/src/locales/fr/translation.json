@@ -715,6 +715,11 @@
         "info": "Info",
         "warning": "Attention"
     },
+    "price": {
+        "loading": "Chargement du prix…",
+        "estimatedValue": "Valeur estimée",
+        "basedOn": "Basé sur {{condition}}"
+    },
     "condition": {
         "title": "Cotation de l'état",
         "description": "Activez la cotation pour suivre l'état physique de vos vinyles et pochettes.",
@@ -722,8 +727,6 @@
         "disabledToast": "Cotation de l'état désactivée",
         "media": "État du média",
         "sleeve": "État de la pochette",
-        "skip": "Passer",
-        "setCondition": "Définir l'état",
         "updated": "État mis à jour !",
         "grades": {
             "mint": "Neuf (M)",

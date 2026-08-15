@@ -686,6 +686,11 @@
         "info": "信息",
         "warning": "警告"
     },
+    "price": {
+        "loading": "正在加载价格…",
+        "estimatedValue": "估计价值",
+        "basedOn": "基于 {{condition}} 品相"
+    },
     "condition": {
         "title": "品相分级",
         "description": "启用品相分级，追踪您的唱片和封套的物理状态。",
@@ -693,8 +698,6 @@
         "disabledToast": "品相分级已禁用",
         "media": "唱片品相",
         "sleeve": "封套品相",
-        "skip": "跳过",
-        "setCondition": "设置品相",
         "updated": "品相已更新！",
         "grades": {
             "mint": "全新 (M)",

@@ -1,6 +1,7 @@
 import { client } from './client';
 import type { DiscogsResult, ArtistResult, ArtistPageData, LabelInfo } from '../types/discogs.types';
 import type { AlbumDetails } from '../types/album.types';
+import type { ConditionPrices } from '../types/collection.types';
 
 export type LookupType = 'discogsId' | 'catno';
 
@@ -35,6 +36,15 @@ export async function lookup(ref: string, type: LookupType): Promise<DiscogsResu
 
 export async function getRelease(releaseId: number | string): Promise<AlbumDetails> {
     const { data } = await client.get<AlbumDetails>(`/discogs/release/${releaseId}`);
+    return data;
+}
+
+/** Marketplace price suggestions. Null when Discogs has no data for the release. */
+export async function getReleasePrice(
+    releaseId: number,
+    signal?: AbortSignal
+): Promise<ConditionPrices | null> {
+    const { data } = await client.get<ConditionPrices | null>(`/discogs/release/${releaseId}/price`, { signal });
     return data;
 }
 

@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 import type { Express } from 'express';
 import Album, { IAlbum, ITrack, ILabel } from '../models/Album';
-import CollectionItem, { ICollectionItem } from '../models/CollectionItem';
+import CollectionItem, { ICollectionItem, IPriceCache } from '../models/CollectionItem';
 import { csvImportService } from '../services/import.service';
 import { csvExportService } from '../services/export.service';
 import { getMarketplaceStats } from '../services/discogs.service';
 import { getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { getUserStyles } from '../services/collection.service';
 import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
-import type { DiscogsReleaseResponse } from '../types/discogs.types';
+import type { DiscogsReleaseResponse, MarketplaceStats } from '../types/discogs.types';
 import AdminTaskExecution from '../models/AdminTaskExecution';
 import { getValueForItem, getValueHistory, recordValueSnapshot } from '../services/valueSnapshot.service';
 import { validateCustomFieldValues } from './customFields.controller';
@@ -35,7 +35,7 @@ export type PopulatedCollectionItem = ICollectionItem & {
   album: IAlbum;
 };
 
-function buildPriceCache(stats: Awaited<ReturnType<typeof getMarketplaceStats>>) {
+function buildPriceCache(stats: MarketplaceStats | null): IPriceCache | undefined {
   if (!stats) return undefined;
 
   return {
@@ -130,7 +130,7 @@ export async function executePriceSync(
       itemCount: releaseItems.length,
     });
 
-    const stats = await getMarketplaceStats(discogsId);
+    const stats = await getMarketplaceStats(discogsId, { forceRefresh });
 
     if (stats) {
       const priceCache = buildPriceCache(stats);
@@ -964,7 +964,7 @@ export async function syncItemPrice(req: Request, res: Response) {
       return;
     }
 
-    const stats = await getMarketplaceStats(item.album.discogsId);
+    const stats = await getMarketplaceStats(item.album.discogsId, { forceRefresh: true });
 
     if (stats) {
       item.priceCache = {

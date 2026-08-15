@@ -693,6 +693,11 @@
         "info": "Info",
         "warning": "Aviso"
     },
+    "price": {
+        "loading": "Cargando precio…",
+        "estimatedValue": "Valor estimado",
+        "basedOn": "Basado en {{condition}}"
+    },
     "condition": {
         "title": "Clasificación de Estado",
         "description": "Activa la clasificación de estado para registrar el estado físico de tus vinilos y fundas.",
@@ -700,8 +705,6 @@
         "disabledToast": "Clasificación de estado desactivada",
         "media": "Estado del Medio",
         "sleeve": "Estado de la Funda",
-        "skip": "Omitir",
-        "setCondition": "Establecer Estado",
         "updated": "¡Estado actualizado!",
         "grades": {
             "mint": "Nuevo (M)",

@@ -1,22 +1,27 @@
-import type { CollectionItem } from '../types/collection.types';
+import type { CollectionItem, ConditionPrices } from '../types/collection.types';
+
+/**
+ * Pick the amount matching a condition grade. Falls back the way a grader would:
+ * mint and near mint stand in for each other, anything unknown lands on VG+.
+ */
+export function getPriceForCondition(prices: ConditionPrices, condition?: string | null): number {
+    switch (condition) {
+        case 'M': return prices.mint ?? prices.nearMint ?? 0;
+        case 'NM': return prices.nearMint ?? prices.mint ?? 0;
+        case 'VG+': return prices.veryGoodPlus ?? 0;
+        case 'VG': return prices.veryGood ?? 0;
+        case 'G+': return prices.goodPlus ?? 0;
+        case 'G': return prices.good ?? 0;
+        case 'F': return prices.fair ?? 0;
+        case 'P': return prices.poor ?? 0;
+        default: return prices.veryGoodPlus ?? prices.nearMint ?? 0;
+    }
+}
 
 /**
  * Get the effective value for a collection item based on its media condition.
- * Matches mediaCondition to the stored per-condition price. Defaults to VG+.
  */
 export function getItemValue(item: CollectionItem): number {
     if (!item.priceCache) return 0;
-    const pc = item.priceCache;
-
-    switch (item.mediaCondition) {
-        case 'M': return pc.mint ?? pc.nearMint ?? 0;
-        case 'NM': return pc.nearMint ?? pc.mint ?? 0;
-        case 'VG+': return pc.veryGoodPlus ?? 0;
-        case 'VG': return pc.veryGood ?? 0;
-        case 'G+': return pc.goodPlus ?? 0;
-        case 'G': return pc.good ?? 0;
-        case 'F': return pc.fair ?? 0;
-        case 'P': return pc.poor ?? 0;
-        default: return pc.veryGoodPlus ?? pc.nearMint ?? 0;
-    }
+    return getPriceForCondition(item.priceCache, item.mediaCondition);
 }

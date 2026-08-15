@@ -214,3 +214,16 @@ export interface FoundAlbumInfo {
     cover_image: string;
     format?: 'Vinyl' | 'CD';
 }
+
+/** Marketplace price suggestions, one amount per condition grade. */
+export interface MarketplaceStats {
+    mint: number | null;
+    nearMint: number | null;
+    veryGoodPlus: number | null;
+    veryGood: number | null;
+    goodPlus: number | null;
+    good: number | null;
+    fair: number | null;
+    poor: number | null;
+    currency: string;
+}

@@ -28,16 +28,24 @@ export interface Album {
     labels?: Label[];
 }
 
-export interface PriceCache {
-    mint?: number;
-    nearMint?: number;
-    veryGoodPlus?: number;
-    veryGood?: number;
-    goodPlus?: number;
-    good?: number;
-    fair?: number;
-    poor?: number;
+/**
+ * One amount per condition grade. Shared by the prices stored on a collection
+ * item and the live suggestions read from Discogs, so both can be priced and
+ * rendered by the same helpers.
+ */
+export interface ConditionPrices {
+    mint?: number | null;
+    nearMint?: number | null;
+    veryGoodPlus?: number | null;
+    veryGood?: number | null;
+    goodPlus?: number | null;
+    good?: number | null;
+    fair?: number | null;
+    poor?: number | null;
     currency: string;
+}
+
+export interface PriceCache extends ConditionPrices {
     updatedAt?: string;
 }
 

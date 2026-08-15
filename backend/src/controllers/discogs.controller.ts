@@ -103,6 +103,28 @@ export async function getReleaseDetails(req: Request, res: Response) {
 }
 
 /**
+ * Get marketplace price suggestions for a release
+ * GET /api/discogs/release/:releaseId/price
+ * Answers 200 with null when no price is available, so the UI can simply hide
+ * the block instead of treating a missing price as an error.
+ */
+export async function getReleasePrice(req: Request, res: Response) {
+    const releaseId = Number(req.params.releaseId);
+
+    if (!Number.isInteger(releaseId) || releaseId <= 0) {
+        res.status(400).json({ message: "The 'releaseId' parameter must be a positive integer." });
+        return;
+    }
+
+    try {
+        const stats = await discogsService.getMarketplaceStats(releaseId);
+        res.status(200).json(stats);
+    } catch (error) {
+        handleDiscogsError(error, res, `fetching price suggestions for release ${releaseId}`);
+    }
+}
+
+/**
  * Get label info (official website, profile, Discogs page)
  * GET /api/discogs/label?id=<discogsId> or GET /api/discogs/label?name=<label name>
  */

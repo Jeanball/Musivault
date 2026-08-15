@@ -4,11 +4,11 @@ import { getRelease } from '../api/discogs';
 import { addToCollection as apiAddToCollection } from '../api/collection';
 import { isApiError, isRateLimitError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
+import { useReleasePrice } from '../hooks/useReleasePrice';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripDiscogsSuffix } from '../utils/formatters';
 import { type AlbumDetails, type FormatDetails } from '../types/album.types';
-import ConditionModal from '../components/Modal/ConditionModal';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
 import BackButton from '../components/Common/BackButton';
 import PageLoadError from '../components/Common/PageLoadError';
@@ -32,10 +32,8 @@ const ReleasePage: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
-    // Condition grading state
+    // Condition grading is offered inside the confirmation modal
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
-    const [showConditionModal, setShowConditionModal] = useState<boolean>(false);
-    const [pendingFormat, setPendingFormat] = useState<FormatDetails | null>(null);
 
     // Confirmation modal state
     const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
@@ -64,20 +62,23 @@ const ReleasePage: React.FC = () => {
         fetchData();
     }, [releaseId, retryCount]);
 
+    /**
+     * Priced only once a format is picked, and the add that follows reuses that
+     * lookup.
+     */
+    const { price, isLoading: isPriceLoading } = useReleasePrice(
+        showConfirmModal ? albumDetails?.discogsId ?? null : null
+    );
+
     const handleFormatClick = (format: FormatDetails) => {
         setConfirmFormat(format);
         setShowConfirmModal(true);
     };
 
-    const handleConfirmAdd = () => {
+    const handleConfirmAdd = (mediaCondition: string | null, sleeveCondition: string | null) => {
         setShowConfirmModal(false);
-        if (!confirmFormat) return;
-
-        if (conditionGradingEnabled) {
-            setPendingFormat(confirmFormat);
-            setShowConditionModal(true);
-        } else {
-            addToCollection(confirmFormat, null, null);
+        if (confirmFormat) {
+            addToCollection(confirmFormat, mediaCondition, sleeveCondition);
         }
         setConfirmFormat(null);
     };
@@ -85,20 +86,6 @@ const ReleasePage: React.FC = () => {
     const handleConfirmCancel = () => {
         setShowConfirmModal(false);
         setConfirmFormat(null);
-    };
-
-    const handleConditionConfirm = (mediaCondition: string | null, sleeveCondition: string | null) => {
-        setShowConditionModal(false);
-        if (pendingFormat) {
-            addToCollection(pendingFormat, mediaCondition, sleeveCondition);
-        }
-    };
-
-    const handleConditionSkip = () => {
-        setShowConditionModal(false);
-        if (pendingFormat) {
-            addToCollection(pendingFormat, null, null);
-        }
     };
 
     const addToCollection = async (
@@ -120,7 +107,6 @@ const ReleasePage: React.FC = () => {
                 id: item._id,
                 title: albumDetails.title
             });
-            setPendingFormat(null);
         } catch (err) {
             const message = isApiError(err) ? err.serverMessage : undefined;
             toastService.error(message || t('common.error'));
@@ -225,16 +211,11 @@ const ReleasePage: React.FC = () => {
                 coverImage={albumDetails.cover_image}
                 albumTitle={albumDetails.title}
                 format={confirmFormat}
+                price={price}
+                isPriceLoading={isPriceLoading}
+                conditionGradingEnabled={conditionGradingEnabled}
                 onConfirm={handleConfirmAdd}
                 onCancel={handleConfirmCancel}
-            />
-
-            {/* Condition Modal */}
-            <ConditionModal
-                isOpen={showConditionModal}
-                albumTitle={albumDetails.title}
-                onSkip={handleConditionSkip}
-                onConfirm={handleConditionConfirm}
             />
 
             {/* Success Modal - Choice after adding */}

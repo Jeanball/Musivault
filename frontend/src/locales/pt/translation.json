@@ -693,6 +693,11 @@
         "info": "Info",
         "warning": "Aviso"
     },
+    "price": {
+        "loading": "A carregar preço…",
+        "estimatedValue": "Valor estimado",
+        "basedOn": "Baseado em {{condition}}"
+    },
     "condition": {
         "title": "Classificação de Estado",
         "description": "Ative a classificação de estado para acompanhar o estado físico dos seus vinis e capas.",
@@ -700,8 +705,6 @@
         "disabledToast": "Classificação de estado desativada",
         "media": "Estado da Mídia",
         "sleeve": "Estado da Capa",
-        "skip": "Pular",
-        "setCondition": "Definir Estado",
         "updated": "Estado atualizado!",
         "grades": {
             "mint": "Novo (M)",

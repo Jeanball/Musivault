@@ -689,6 +689,11 @@
         "info": "Info",
         "warning": "Warnung"
     },
+    "price": {
+        "loading": "Preis wird geladen…",
+        "estimatedValue": "Geschätzter Wert",
+        "basedOn": "Basierend auf {{condition}}"
+    },
     "condition": {
         "title": "Zustandsbewertung",
         "description": "Aktivieren Sie die Zustandsbewertung, um den physischen Zustand Ihrer Schallplatten und Hüllen zu verfolgen.",
@@ -696,8 +701,6 @@
         "disabledToast": "Zustandsbewertung deaktiviert",
         "media": "Medienzustand",
         "sleeve": "Hüllenzustand",
-        "skip": "Überspringen",
-        "setCondition": "Zustand festlegen",
         "updated": "Zustand aktualisiert!",
         "grades": {
             "mint": "Neuwertig (M)",
