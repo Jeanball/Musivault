@@ -515,6 +515,22 @@ function categorizeRelease(formats: string[]): ArtistReleaseCategory {
     return formats.some(f => ALBUM_FORMAT_KEYWORDS.includes(f.toLowerCase())) ? 'album' : 'other';
 }
 
+/**
+ * Discogs indexes several masters for the same record: the canonical one, badly
+ * entered duplicates and 2-in-1 packs. They have different ids, so only the
+ * title tells them apart. Search ranks the canonical master first, hence the
+ * first hit wins.
+ */
+function dedupeByTitle<T extends { title: string; category: ArtistReleaseCategory }>(albums: T[]): T[] {
+    const seen = new Set<string>();
+    return albums.filter(album => {
+        const key = `${album.category}|${album.title.toLowerCase()}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
 async function fetchArtistDetails(artistId: string): Promise<DiscogsArtistResponse> {
     const auth = getAuthParams();
     const { data } = await axios.get<DiscogsArtistResponse>(`${DISCOGS_BASE_URL}/artists/${artistId}`, {
@@ -540,17 +556,14 @@ async function fetchArtistAlbums(artistId: string): Promise<CleanedArtistRelease
         DEFAULT_VIEW_FORMATS.map(format => searchMasters(artist.name, format))
     );
 
-    const seen = new Set<number>();
-    const albums = searches.flat()
-        .filter(result => !seen.has(result.id) && seen.add(result.id))
-        .map(result => ({
+    const albums = dedupeByTitle(searches.flat().map(result => ({
             id: result.id,
             title: cleanAlbumTitle(result.title),
             year: Number(result.year) || 0,
             thumb: result.thumb || result.cover_image || '',
             type: 'master' as const,
             category: 'album' as const
-        }));
+        })));
 
     const data: CleanedArtistReleases = {
         artist: {
@@ -608,14 +621,7 @@ async function fetchArtistDiscography(artistId: string): Promise<CleanedArtistRe
             };
         });
 
-    // Deduplicate by title within a category: an album and its single share a name
-    const seen = new Set<string>();
-    const uniqueAlbums = albums.filter(album => {
-        const key = `${album.category}|${album.title.toLowerCase()}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
+    const uniqueAlbums = dedupeByTitle(albums);
 
     const data: CleanedArtistReleases = {
         artist: {
