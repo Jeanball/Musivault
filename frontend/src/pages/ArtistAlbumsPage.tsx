@@ -81,11 +81,7 @@ const ArtistAlbumsPage: React.FC = () => {
             setIsLoading(true);
             setLoadError(null);
             try {
-                setPageData(await getArtistReleases(artistId, {
-                    sort: sortField,
-                    order: sortOrder,
-                    scope: showAllReleases ? 'all' : 'albums'
-                }));
+                setPageData(await getArtistReleases(artistId));
             } catch (error) {
                 console.error('Error loading artist albums:', error);
                 setLoadError(error);
@@ -94,7 +90,9 @@ const ArtistAlbumsPage: React.FC = () => {
             }
         };
         fetchArtistAlbums();
-    }, [artistId, sortField, sortOrder, retryCount, showAllReleases]);
+        // Sorting and the "show everything" toggle are applied below on the same
+        // payload, so only the artist itself is worth another round trip.
+    }, [artistId, retryCount]);
 
     const sortedAlbums = useMemo(() => {
         if (!pageData) return [];
@@ -135,10 +133,8 @@ const ArtistAlbumsPage: React.FC = () => {
         return (
             <div className="flex flex-col gap-4 justify-center items-center min-h-screen">
                 <span className="loading loading-spinner loading-lg"></span>
-                {/* Crawling every credit takes minutes on a prolific artist */}
-                {showAllReleases && (
-                    <p className="text-sm text-base-content/70">{t('artist.loadingAllReleases')}</p>
-                )}
+                {/* The whole discography is crawled once, then cached for a day */}
+                <p className="text-sm text-base-content/70">{t('artist.loadingAllReleases')}</p>
             </div>
         );
     }

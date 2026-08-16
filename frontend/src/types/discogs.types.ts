@@ -21,7 +21,6 @@ export interface ArtistResult {
 export type ArtistReleaseCategory = 'album' | 'other';
 
 /** How much of a discography to load: the fast default, or every credit. */
-export type ArtistReleaseScope = 'albums' | 'all';
 
 export interface ArtistAlbum {
   id: number;

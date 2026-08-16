@@ -17,7 +17,6 @@ import {
     DiscogsArtistReleasesResponse,
     DiscogsMasterSearchResponse,
     ArtistReleaseCategory,
-    ArtistReleaseScope,
     CleanedSearchResult,
     CleanedReleaseDetails,
     CleanedMasterVersions,
@@ -444,7 +443,6 @@ const ARTIST_PAGE_CONCURRENCY = 5;
 const ARTIST_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 /** Holds the discography unsorted: sorting is cheap and belongs to the request. */
 const artistCache = new Map<string, { data: CleanedArtistReleases; expiresAt: number }>();
-const albumsCache = new Map<string, { data: CleanedArtistReleases; expiresAt: number }>();
 
 async function fetchArtistReleasesPage(artistId: string, page: number): Promise<DiscogsArtistReleasesResponse> {
     const auth = getAuthParams();
@@ -531,54 +529,12 @@ function dedupeByTitle<T extends { title: string; category: ArtistReleaseCategor
     });
 }
 
-async function fetchArtistDetails(artistId: string): Promise<DiscogsArtistResponse> {
-    const auth = getAuthParams();
-    const { data } = await axios.get<DiscogsArtistResponse>(`${DISCOGS_BASE_URL}/artists/${artistId}`, {
-        params: { key: auth.key, secret: auth.secret },
-        headers: DISCOGS_HEADERS
-    });
-    return data;
-}
-
-/** Formats that make up the default view. */
-const DEFAULT_VIEW_FORMATS = ['Album', 'EP'];
-
 /**
- * Albums and EPs only, straight from the master search: two or three requests
- * even for an artist with thousands of credits, so the page opens fast.
+ * The whole discography, unsorted and cached. The artist endpoint is the only
+ * trustworthy source of master ids: a master search by artist name also returns
+ * badly entered duplicates and homonyms, whose pages then load empty. The
+ * search is kept here purely as a format lookup table.
  */
-async function fetchArtistAlbums(artistId: string): Promise<CleanedArtistReleases> {
-    const cached = albumsCache.get(artistId);
-    if (cached && cached.expiresAt > Date.now()) return cached.data;
-
-    const artist = await fetchArtistDetails(artistId);
-    const searches = await Promise.all(
-        DEFAULT_VIEW_FORMATS.map(format => searchMasters(artist.name, format))
-    );
-
-    const albums = dedupeByTitle(searches.flat().map(result => ({
-            id: result.id,
-            title: cleanAlbumTitle(result.title),
-            year: Number(result.year) || 0,
-            thumb: result.thumb || result.cover_image || '',
-            type: 'master' as const,
-            category: 'album' as const
-        })));
-
-    const data: CleanedArtistReleases = {
-        artist: {
-            id: artistId,
-            name: artist.name,
-            image: artist.images?.[0]?.uri || ''
-        },
-        albums
-    };
-
-    albumsCache.set(artistId, { data, expiresAt: Date.now() + ARTIST_CACHE_TTL_MS });
-    return data;
-}
-
-/** The whole discography, unsorted and cached: this is the expensive part. */
 async function fetchArtistDiscography(artistId: string): Promise<CleanedArtistReleases> {
     const cached = artistCache.get(artistId);
     if (cached && cached.expiresAt > Date.now()) return cached.data;
@@ -637,19 +593,16 @@ async function fetchArtistDiscography(artistId: string): Promise<CleanedArtistRe
 }
 
 /**
- * Get an artist's discography. 'albums' keeps the page fast by asking only for
- * albums and EPs; 'all' crawls every credit, which is slow on a prolific
- * artist and is therefore only requested when the user asks to see everything.
+ * Get an artist's discography, every credit included and categorised. The
+ * caller decides what to show: splitting the fetch per scope only meant
+ * crawling twice.
  */
 export async function getArtistReleases(
     artistId: string,
     sort: string = 'year',
-    order: string = 'desc',
-    scope: ArtistReleaseScope = 'albums'
+    order: string = 'desc'
 ): Promise<CleanedArtistReleases> {
-    const { artist, albums } = scope === 'all'
-        ? await fetchArtistDiscography(artistId)
-        : await fetchArtistAlbums(artistId);
+    const { artist, albums } = await fetchArtistDiscography(artistId);
 
     const sortedAlbums = [...albums].sort((a, b) => {
         const comparison = sort === 'title'
