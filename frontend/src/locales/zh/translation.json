@@ -279,6 +279,7 @@
         "filterBy": "筛选：",
         "all": "全部",
         "allCountries": "所有国家",
+        "allYears": "所有年份",
         "noPhysicalVersions": "无实体版本",
         "digitalOnly": "此发行仅存在数字格式（流媒体/下载）。",
         "noVersionsMatch": "没有版本匹配您的筛选",
@@ -289,13 +290,15 @@
         "errorLoadingVersions": "加载此专辑版本出错。",
         "errorRetrievingData": "获取此版本数据出错。",
         "loadingFormats": "正在加载格式...",
-        "seeMore": "显示更多 {{remaining}} 个（共 {{total}} 个）",
         "noFormats": "无格式信息",
         "clickToAdd": "点击将此格式添加到收藏",
         "selectFormat": "选择要添加的格式",
         "goBack": "返回",
         "confirmAddTitle": "添加到您的收藏？",
-        "confirmAddYes": "添加"
+        "confirmAddYes": "添加",
+        "previousPage": "上一页",
+        "nextPage": "下一页",
+        "pageOf": "第 {{current}} 页，共 {{total}} 页"
     },
     "search": {
         "placeholder": "艺术家、专辑、Discogs ID 或目录编号…",
@@ -669,6 +672,8 @@
     "artist": {
         "noData": "此艺术家无数据。",
         "sortBy": "排序方式：",
+        "showAllReleases": "显示全部（单曲、宣传版）",
+        "loadingAllReleases": "正在加载全部发行版，作品众多的艺人可能需要几分钟。",
         "ascending": "升序",
         "descending": "降序",
         "unknownYear": "未知年份",

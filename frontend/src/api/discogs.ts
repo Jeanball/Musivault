@@ -1,5 +1,5 @@
 import { client } from './client';
-import type { DiscogsResult, ArtistResult, ArtistPageData, LabelInfo } from '../types/discogs.types';
+import type { DiscogsResult, ArtistResult, ArtistPageData, ArtistReleaseScope, LabelInfo } from '../types/discogs.types';
 import type { AlbumDetails } from '../types/album.types';
 import type { ConditionPrices } from '../types/collection.types';
 
@@ -58,7 +58,7 @@ export async function getLabelInfo(params: { id?: number; name?: string }): Prom
 
 export async function getArtistReleases(
     artistId: string,
-    params: { sort: string; order: string }
+    params: { sort: string; order: string; scope: ArtistReleaseScope }
 ): Promise<ArtistPageData> {
     const { data } = await client.get<ArtistPageData>(`/discogs/artist/${artistId}/releases`, {
         params

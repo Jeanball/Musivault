@@ -280,6 +280,7 @@
         "filterBy": "Filtrar por:",
         "all": "Todos",
         "allCountries": "Todos los países",
+        "allYears": "Todos los años",
         "noPhysicalVersions": "No hay versiones físicas disponibles",
         "digitalOnly": "Este lanzamiento solo existe en formato digital (streaming/descarga).",
         "noVersionsMatch": "Ninguna versión coincide con tus filtros",
@@ -290,13 +291,15 @@
         "errorLoadingVersions": "Error cargando versiones para este álbum.",
         "errorRetrievingData": "Error recuperando datos para esta versión.",
         "loadingFormats": "Cargando formatos...",
-        "seeMore": "Mostrar {{remaining}} más ({{total}} en total)",
         "noFormats": "Sin info de formato disponible",
         "clickToAdd": "Clic para añadir este formato a tu colección",
         "selectFormat": "Selecciona un formato para añadir",
         "goBack": "Volver",
         "confirmAddTitle": "¿Añadir a tu colección?",
-        "confirmAddYes": "Añadir"
+        "confirmAddYes": "Añadir",
+        "previousPage": "Anterior",
+        "nextPage": "Siguiente",
+        "pageOf": "Página {{current}} de {{total}}"
     },
     "search": {
         "placeholder": "Artista, álbum, ID de Discogs o número de catálogo…",
@@ -675,6 +678,8 @@
     "artist": {
         "noData": "Sin datos para este artista.",
         "sortBy": "Ordenar por:",
+        "showAllReleases": "Mostrar todo (sencillos, promos)",
+        "loadingAllReleases": "Cargando todos los lanzamientos, puede tardar varios minutos con un artista prolífico.",
         "ascending": "Ascendente",
         "descending": "Descendente",
         "unknownYear": "Año desconocido",

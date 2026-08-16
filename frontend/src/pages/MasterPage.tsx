@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { ChevronDown, Plus } from 'lucide-react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { getRelease, getMasterVersions } from '../api/discogs';
 import { addToCollection as apiAddToCollection, rematchAlbum } from '../api/collection';
@@ -42,6 +42,11 @@ interface AddedAlbumInfo {
 
 const VERSIONS_PER_PAGE = 5;
 
+/** Discogs dates come as "2005", "2005-05" or "2005-05-23". */
+function getReleaseYear(released: string): string {
+    return released?.slice(0, 4) || '';
+}
+
 const MasterPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
     const navigate = useNavigate();
@@ -61,9 +66,11 @@ const MasterPage: React.FC = () => {
 
     const [filter, setFilter] = useState<FormatFilter>(initialFilter);
     const [countryFilter, setCountryFilter] = useState<string>('all');
+    const [yearFilter, setYearFilter] = useState<string>('all');
 
-    // Display pagination
-    const [visibleCount, setVisibleCount] = useState<number>(VERSIONS_PER_PAGE);
+    // Display pagination: every visible version costs one release lookup
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const listRef = useRef<HTMLDivElement>(null);
 
     // Release details cache: releaseId -> AlbumDetails
     const [releaseDetailsCache, setReleaseDetailsCache] = useState<Map<number, AlbumDetails>>(new Map());
@@ -110,6 +117,16 @@ const MasterPage: React.FC = () => {
         fetchData();
     }, [masterId, retryCount]);
 
+    /** Years present in the master, most recent first, with their version count. */
+    const yearCounts = useMemo(() => {
+        const counts = new Map<string, number>();
+        (pageData?.versions || []).forEach(version => {
+            const year = getReleaseYear(version.released);
+            if (year) counts.set(year, (counts.get(year) || 0) + 1);
+        });
+        return Array.from(counts.entries()).sort(([a], [b]) => b.localeCompare(a));
+    }, [pageData]);
+
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
         return pageData.versions.filter(version => {
@@ -117,19 +134,23 @@ const MasterPage: React.FC = () => {
                 version.majorFormat.toLowerCase().includes(filter.toLowerCase());
             const matchesCountry = countryFilter === 'all' ||
                 version.country === countryFilter;
-            return matchesFormat && matchesCountry;
+            const matchesYear = yearFilter === 'all' ||
+                getReleaseYear(version.released) === yearFilter;
+            return matchesFormat && matchesCountry && matchesYear;
         });
-    }, [pageData, filter, countryFilter]);
+    }, [pageData, filter, countryFilter, yearFilter]);
 
-    // Reset visible count when filters change
+    // Back to the first page when filters change
     useEffect(() => {
-        setVisibleCount(VERSIONS_PER_PAGE);
-    }, [filter, countryFilter]);
+        setCurrentPage(1);
+    }, [filter, countryFilter, yearFilter]);
 
-    // Visible versions (paginated display)
+    const totalPages = Math.max(1, Math.ceil(filteredVersions.length / VERSIONS_PER_PAGE));
+
     const visibleVersions = useMemo(() => {
-        return filteredVersions.slice(0, visibleCount);
-    }, [filteredVersions, visibleCount]);
+        const start = (currentPage - 1) * VERSIONS_PER_PAGE;
+        return filteredVersions.slice(start, start + VERSIONS_PER_PAGE);
+    }, [filteredVersions, currentPage]);
 
     // Group visible versions by attributes for rendering
     const groupedVisibleVersions = useMemo(() => {
@@ -190,8 +211,9 @@ const MasterPage: React.FC = () => {
      */
     const { price, isLoading: isPriceLoading } = useReleasePrice(confirmAlbum?.discogsId ?? null);
 
-    const handleShowMore = () => {
-        setVisibleCount(prev => prev + VERSIONS_PER_PAGE);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+        listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     const handleFormatClick = (album: AlbumDetails, format: FormatDetails) => {
@@ -296,9 +318,6 @@ const MasterPage: React.FC = () => {
         return <div className="text-center p-8">{t('versions.noData')}</div>
     }
 
-    const hasMore = visibleCount < filteredVersions.length;
-    const remaining = filteredVersions.length - visibleCount;
-
     return (
         <div className="p-4 md:p-8" >
             <BackButton />
@@ -371,8 +390,26 @@ const MasterPage: React.FC = () => {
                                     }
                                 </select>
                             )}
+
+                            {/* Year filter dropdown */}
+                            {yearCounts.length > 1 && (
+                                <select
+                                    className="select select-sm w-full sm:w-auto mt-2 sm:mt-0"
+                                    value={yearFilter}
+                                    onChange={(e) => setYearFilter(e.target.value)}
+                                >
+                                    <option value="all">{t('versions.allYears')}</option>
+                                    {yearCounts.map(([year, count]) => (
+                                        <option key={year} value={year}>
+                                            {year} ({count})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
                     </div>
+
+                    <div ref={listRef} className="scroll-mt-4" />
 
                     {filteredVersions.length === 0 ? (
                         pageData.versions.length === 0 ? (
@@ -388,7 +425,7 @@ const MasterPage: React.FC = () => {
                                 <h3 className="text-lg font-semibold mb-2">{t('versions.noVersionsMatch')}</h3>
                                 <p className="text-base-content/70">{t('versions.adjustFilters')}</p>
                                 <button
-                                    onClick={() => { setFilter('all'); setCountryFilter('all'); }}
+                                    onClick={() => { setFilter('all'); setCountryFilter('all'); setYearFilter('all'); }}
                                     className="btn btn-outline btn-sm mt-4"
                                 >
                                     {t('versions.resetFilters')}
@@ -493,15 +530,26 @@ const MasterPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* See more button */}
-                    {hasMore && (
-                        <div className="flex justify-center mt-6">
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 mt-6">
                             <button
-                                className="btn btn-ghost gap-2"
-                                onClick={handleShowMore}
+                                className="btn btn-sm btn-ghost gap-1"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
                             >
-                                <ChevronDown size={18} />
-                                {t('versions.seeMore', { remaining: remaining > VERSIONS_PER_PAGE ? VERSIONS_PER_PAGE : remaining, total: filteredVersions.length })}
+                                <ChevronLeft size={16} />
+                                <span className="hidden sm:inline">{t('versions.previousPage')}</span>
+                            </button>
+                            <span className="text-sm font-medium px-2">
+                                {t('versions.pageOf', { current: currentPage, total: totalPages })}
+                            </span>
+                            <button
+                                className="btn btn-sm btn-ghost gap-1"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                <span className="hidden sm:inline">{t('versions.nextPage')}</span>
+                                <ChevronRight size={16} />
                             </button>
                         </div>
                     )}

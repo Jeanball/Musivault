@@ -62,6 +62,8 @@ const ArtistAlbumsPage: React.FC = () => {
     const [sortField, setSortField] = useState<SortField>(storedState?.sortField ?? 'year');
     const [sortOrder, setSortOrder] = useState<SortOrder>(storedState?.sortOrder ?? 'desc');
     const [searchTerm, setSearchTerm] = useState<string>('');
+    /** Albums and EPs only by default; singles and derived pressings on demand. */
+    const [showAllReleases, setShowAllReleases] = useState<boolean>(false);
 
     // Save state to sessionStorage whenever it changes
     useEffect(() => {
@@ -79,7 +81,11 @@ const ArtistAlbumsPage: React.FC = () => {
             setIsLoading(true);
             setLoadError(null);
             try {
-                setPageData(await getArtistReleases(artistId, { sort: sortField, order: sortOrder }));
+                setPageData(await getArtistReleases(artistId, {
+                    sort: sortField,
+                    order: sortOrder,
+                    scope: showAllReleases ? 'all' : 'albums'
+                }));
             } catch (error) {
                 console.error('Error loading artist albums:', error);
                 setLoadError(error);
@@ -88,12 +94,14 @@ const ArtistAlbumsPage: React.FC = () => {
             }
         };
         fetchArtistAlbums();
-    }, [artistId, sortField, sortOrder, retryCount]);
+    }, [artistId, sortField, sortOrder, retryCount, showAllReleases]);
 
     const sortedAlbums = useMemo(() => {
         if (!pageData) return [];
 
-        let result = pageData.albums;
+        let result = showAllReleases
+            ? pageData.albums
+            : pageData.albums.filter(a => a.category === 'album');
 
         if (searchTerm.trim() !== '') {
             const lowerQuery = searchTerm.toLowerCase();
@@ -109,7 +117,7 @@ const ArtistAlbumsPage: React.FC = () => {
                 return sortOrder === 'asc' ? comparison : -comparison;
             }
         });
-    }, [pageData, sortField, sortOrder, searchTerm]);
+    }, [pageData, sortField, sortOrder, searchTerm, showAllReleases]);
 
     const handleAlbumClick = (album: ArtistAlbum) => {
         if (album.type === 'master') {
@@ -125,8 +133,12 @@ const ArtistAlbumsPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center min-h-screen">
+            <div className="flex flex-col gap-4 justify-center items-center min-h-screen">
                 <span className="loading loading-spinner loading-lg"></span>
+                {/* Crawling every credit takes minutes on a prolific artist */}
+                {showAllReleases && (
+                    <p className="text-sm text-base-content/70">{t('artist.loadingAllReleases')}</p>
+                )}
             </div>
         );
     }
@@ -146,7 +158,7 @@ const ArtistAlbumsPage: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-8 max-w-5xl mx-auto">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto">
             <BackButton />
 
             {/* Header: the portrait becomes a faded backdrop with the name over it.
@@ -183,7 +195,7 @@ const ArtistAlbumsPage: React.FC = () => {
                         {stripDiscogsSuffix(pageData.artist.name)}
                     </h1>
                     <p className="text-sm md:text-base text-base-content/70 mt-1">
-                        {pageData.albums.length} {t('common.albums')}
+                        {sortedAlbums.length} {t('common.albums')}
                     </p>
                 </div>
             </div>
@@ -216,6 +228,16 @@ const ArtistAlbumsPage: React.FC = () => {
                         </button>
                     </div>
                     <div className="divider divider-horizontal mx-0 hidden md:flex"></div>
+                    <label className="label cursor-pointer gap-2 py-0">
+                        <input
+                            type="checkbox"
+                            className="toggle toggle-sm"
+                            checked={showAllReleases}
+                            onChange={(e) => setShowAllReleases(e.target.checked)}
+                        />
+                        <span className="text-sm">{t('artist.showAllReleases')}</span>
+                    </label>
+                    <div className="divider divider-horizontal mx-0 hidden md:flex"></div>
                     <button
                         className="btn btn-sm btn-ghost gap-2 h-11 min-h-11 md:h-8 md:min-h-8 ml-auto md:ml-0"
                         onClick={toggleSortOrder}
@@ -229,7 +251,7 @@ const ArtistAlbumsPage: React.FC = () => {
             {/* Albums: the same row as the search results, so an album looks the
                 same wherever it is listed. The artist is in the page title, so the
                 rows don't repeat it. */}
-            <div className="border-t border-base-300 sm:border-0 sm:space-y-3">
+            <div className="border-t border-base-300 sm:border-0 sm:grid sm:grid-cols-1 lg:grid-cols-2 sm:gap-3">
                 {sortedAlbums.map((album) => (
                     <SearchResultCard
                         key={`${album.type}-${album.id}`}

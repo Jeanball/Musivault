@@ -8,11 +8,16 @@ import {
     DiscogsSearchResultExtended,
     DiscogsMasterDetailsResponse,
     DiscogsMasterVersionsResponse,
+    DiscogsVersion,
     DiscogsReleaseResponse,
     DiscogsLabelResponse,
     CleanedLabelInfo,
     DiscogsArtistResponse,
+    DiscogsArtistRelease,
     DiscogsArtistReleasesResponse,
+    DiscogsMasterSearchResponse,
+    ArtistReleaseCategory,
+    ArtistReleaseScope,
     CleanedSearchResult,
     CleanedReleaseDetails,
     CleanedMasterVersions,
@@ -336,6 +341,47 @@ export async function getLabelByName(name: string): Promise<CleanedLabelInfo | n
     return info;
 }
 
+const VERSIONS_PER_PAGE = 100;
+// Discogs allows 60 requests/min: fetch pages by small batches instead of all at once
+const VERSIONS_PAGE_CONCURRENCY = 5;
+const VERSIONS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const versionsCache = new Map<string, { versions: DiscogsVersion[]; expiresAt: number }>();
+
+async function fetchVersionsPage(masterId: string, page: number): Promise<DiscogsMasterVersionsResponse> {
+    const auth = getAuthParams();
+    const { data } = await axios.get<DiscogsMasterVersionsResponse>(
+        `${DISCOGS_BASE_URL}/masters/${masterId}/versions`,
+        {
+            headers: DISCOGS_HEADERS,
+            params: { key: auth.key, secret: auth.secret, page, per_page: VERSIONS_PER_PAGE }
+        }
+    );
+    return data;
+}
+
+/**
+ * Get every version of a master, following Discogs pagination to the last page
+ */
+async function fetchAllVersions(masterId: string): Promise<DiscogsVersion[]> {
+    const cached = versionsCache.get(masterId);
+    if (cached && cached.expiresAt > Date.now()) return cached.versions;
+
+    const first = await fetchVersionsPage(masterId, 1);
+    const totalPages = first.pagination?.pages || 1;
+
+    const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+    const versions = [...(first.versions || [])];
+
+    for (let i = 0; i < remaining.length; i += VERSIONS_PAGE_CONCURRENCY) {
+        const batch = remaining.slice(i, i + VERSIONS_PAGE_CONCURRENCY);
+        const pages = await Promise.all(batch.map(page => fetchVersionsPage(masterId, page)));
+        pages.forEach(page => versions.push(...(page.versions || [])));
+    }
+
+    versionsCache.set(masterId, { versions, expiresAt: Date.now() + VERSIONS_CACHE_TTL_MS });
+    return versions;
+}
+
 /**
  * Get master versions with format filtering and counts
  */
@@ -343,18 +389,13 @@ export async function getMasterVersions(masterId: string): Promise<CleanedMaster
     const auth = getAuthParams();
 
     // Fetch details and versions in parallel
-    const [detailsResponse, versionsResponse] = await Promise.all([
+    const [detailsResponse, versions] = await Promise.all([
         axios.get<DiscogsMasterDetailsResponse>(`${DISCOGS_BASE_URL}/masters/${masterId}`, {
             headers: DISCOGS_HEADERS,
             params: { key: auth.key, secret: auth.secret }
         }),
-        axios.get<DiscogsMasterVersionsResponse>(`${DISCOGS_BASE_URL}/masters/${masterId}/versions`, {
-            headers: DISCOGS_HEADERS,
-            params: { key: auth.key, secret: auth.secret }
-        })
+        fetchAllVersions(masterId)
     ]);
-
-    const versions = versionsResponse.data.versions || [];
 
     // Filter out digital-only versions
     const physicalVersions = versions.filter(version => {
@@ -399,30 +440,151 @@ export async function getMasterVersions(masterId: string): Promise<CleanedMaster
     };
 }
 
+const ARTIST_PAGE_CONCURRENCY = 5;
+const ARTIST_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+/** Holds the discography unsorted: sorting is cheap and belongs to the request. */
+const artistCache = new Map<string, { data: CleanedArtistReleases; expiresAt: number }>();
+const albumsCache = new Map<string, { data: CleanedArtistReleases; expiresAt: number }>();
+
+async function fetchArtistReleasesPage(artistId: string, page: number): Promise<DiscogsArtistReleasesResponse> {
+    const auth = getAuthParams();
+    const { data } = await axios.get<DiscogsArtistReleasesResponse>(
+        `${DISCOGS_BASE_URL}/artists/${artistId}/releases`,
+        {
+            params: { key: auth.key, secret: auth.secret, per_page: 100, page, sort: 'year', sort_order: 'desc' },
+            headers: DISCOGS_HEADERS
+        }
+    );
+    return data;
+}
+
+/** Every release credited to an artist, following Discogs pagination. */
+async function fetchAllArtistReleases(artistId: string): Promise<DiscogsArtistRelease[]> {
+    const first = await fetchArtistReleasesPage(artistId, 1);
+    const totalPages = first.pagination?.pages || 1;
+
+    const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+    const releases = [...(first.releases || [])];
+
+    for (let i = 0; i < remaining.length; i += ARTIST_PAGE_CONCURRENCY) {
+        const batch = remaining.slice(i, i + ARTIST_PAGE_CONCURRENCY);
+        const pages = await Promise.all(batch.map(page => fetchArtistReleasesPage(artistId, page)));
+        pages.forEach(page => releases.push(...(page.releases || [])));
+    }
+
+    return releases;
+}
+
 /**
- * Get artist releases/discography
+ * Masters credited to an artist, optionally narrowed to one format. Far
+ * cheaper than the artist endpoint, and the only place a master's format is
+ * exposed.
  */
-export async function getArtistReleases(
-    artistId: string,
-    sort: string = 'year',
-    order: string = 'desc'
-): Promise<CleanedArtistReleases> {
+async function searchMasters(artistName: string, format?: string): Promise<DiscogsSearchResultExtended[]> {
+    const auth = getAuthParams();
+    const results: DiscogsSearchResultExtended[] = [];
+
+    const search = async (page: number) => {
+        const { data } = await axios.get<DiscogsMasterSearchResponse>(`${DISCOGS_BASE_URL}/database/search`, {
+            params: { key: auth.key, secret: auth.secret, type: 'master', artist: artistName, per_page: 100, page, format },
+            headers: DISCOGS_HEADERS
+        });
+        results.push(...(data.results || []));
+        return data.pagination?.pages || 1;
+    };
+
+    const totalPages = await search(1);
+    const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+
+    for (let i = 0; i < remaining.length; i += ARTIST_PAGE_CONCURRENCY) {
+        await Promise.all(remaining.slice(i, i + ARTIST_PAGE_CONCURRENCY).map(search));
+    }
+
+    return results;
+}
+
+/**
+ * Formats describing a complete record. Anything else, singles and derived
+ * pressings included, is hidden behind the "show everything" filter.
+ */
+const ALBUM_FORMAT_KEYWORDS = ['album', 'ep', 'lp', 'mini-album', 'compilation', 'box set'];
+
+function categorizeRelease(formats: string[]): ArtistReleaseCategory {
+    // An unknown format stays visible: hiding a real album is worse than showing a single
+    if (formats.length === 0) return 'album';
+    return formats.some(f => ALBUM_FORMAT_KEYWORDS.includes(f.toLowerCase())) ? 'album' : 'other';
+}
+
+async function fetchArtistDetails(artistId: string): Promise<DiscogsArtistResponse> {
+    const auth = getAuthParams();
+    const { data } = await axios.get<DiscogsArtistResponse>(`${DISCOGS_BASE_URL}/artists/${artistId}`, {
+        params: { key: auth.key, secret: auth.secret },
+        headers: DISCOGS_HEADERS
+    });
+    return data;
+}
+
+/** Formats that make up the default view. */
+const DEFAULT_VIEW_FORMATS = ['Album', 'EP'];
+
+/**
+ * Albums and EPs only, straight from the master search: two or three requests
+ * even for an artist with thousands of credits, so the page opens fast.
+ */
+async function fetchArtistAlbums(artistId: string): Promise<CleanedArtistReleases> {
+    const cached = albumsCache.get(artistId);
+    if (cached && cached.expiresAt > Date.now()) return cached.data;
+
+    const artist = await fetchArtistDetails(artistId);
+    const searches = await Promise.all(
+        DEFAULT_VIEW_FORMATS.map(format => searchMasters(artist.name, format))
+    );
+
+    const seen = new Set<number>();
+    const albums = searches.flat()
+        .filter(result => !seen.has(result.id) && seen.add(result.id))
+        .map(result => ({
+            id: result.id,
+            title: cleanAlbumTitle(result.title),
+            year: Number(result.year) || 0,
+            thumb: result.thumb || result.cover_image || '',
+            type: 'master' as const,
+            category: 'album' as const
+        }));
+
+    const data: CleanedArtistReleases = {
+        artist: {
+            id: artistId,
+            name: artist.name,
+            image: artist.images?.[0]?.uri || ''
+        },
+        albums
+    };
+
+    albumsCache.set(artistId, { data, expiresAt: Date.now() + ARTIST_CACHE_TTL_MS });
+    return data;
+}
+
+/** The whole discography, unsorted and cached: this is the expensive part. */
+async function fetchArtistDiscography(artistId: string): Promise<CleanedArtistReleases> {
+    const cached = artistCache.get(artistId);
+    if (cached && cached.expiresAt > Date.now()) return cached.data;
+
     const auth = getAuthParams();
 
-    const [artistResponse, releasesResponse] = await Promise.all([
+    const [artistResponse, releases] = await Promise.all([
         axios.get<DiscogsArtistResponse>(`${DISCOGS_BASE_URL}/artists/${artistId}`, {
             params: { key: auth.key, secret: auth.secret },
             headers: DISCOGS_HEADERS
         }),
-        axios.get<DiscogsArtistReleasesResponse>(`${DISCOGS_BASE_URL}/artists/${artistId}/releases`, {
-            params: { key: auth.key, secret: auth.secret, per_page: 100, sort: 'year', sort_order: order },
-            headers: DISCOGS_HEADERS
-        })
+        fetchAllArtistReleases(artistId)
     ]);
 
-    const releases = releasesResponse.data.releases || [];
+    const masterFormats = new Map<number, string[]>();
+    (await searchMasters(artistResponse.data.name)).forEach(result => {
+        if (result.format?.length) masterFormats.set(result.id, result.format);
+    });
 
-    // Filter to main albums only, excluding digital-only
     const albums = releases
         .filter(r => {
             if (r.role !== 'Main' || (r.type !== 'master' && r.type !== 'release')) {
@@ -432,41 +594,65 @@ export async function getArtistReleases(
             const isFileOnly = format === 'file' || (format.includes('file') && !format.match(/vinyl|cd|cassette|lp|box set/i));
             return !isFileOnly;
         })
-        .map(r => ({
-            id: r.type === 'master' ? r.id : (r.main_release || r.id),
-            title: r.title,
-            year: r.year || 0,
-            thumb: r.thumb,
-            type: r.type as 'master' | 'release'
-        }));
+        .map(r => {
+            const formats = r.type === 'master'
+                ? masterFormats.get(r.id) || []
+                : (r.format || '').split(',').map(f => f.trim());
+            return {
+                id: r.type === 'master' ? r.id : (r.main_release || r.id),
+                title: r.title,
+                year: r.year || 0,
+                thumb: r.thumb,
+                type: r.type as 'master' | 'release',
+                category: categorizeRelease(formats)
+            };
+        });
 
-    // Deduplicate by title
+    // Deduplicate by title within a category: an album and its single share a name
     const seen = new Set<string>();
     const uniqueAlbums = albums.filter(album => {
-        const key = album.title.toLowerCase();
+        const key = `${album.category}|${album.title.toLowerCase()}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
     });
 
-    // Sort
-    const sortedAlbums = [...uniqueAlbums].sort((a, b) => {
-        if (sort === 'title') {
-            const comparison = a.title.localeCompare(b.title);
-            return order === 'asc' ? comparison : -comparison;
-        }
-        const comparison = a.year - b.year;
-        return order === 'asc' ? comparison : -comparison;
-    });
-
-    return {
+    const data: CleanedArtistReleases = {
         artist: {
             id: artistId,
             name: artistResponse.data.name,
             image: artistResponse.data.images?.[0]?.uri || ''
         },
-        albums: sortedAlbums
+        albums: uniqueAlbums
     };
+
+    artistCache.set(artistId, { data, expiresAt: Date.now() + ARTIST_CACHE_TTL_MS });
+    return data;
+}
+
+/**
+ * Get an artist's discography. 'albums' keeps the page fast by asking only for
+ * albums and EPs; 'all' crawls every credit, which is slow on a prolific
+ * artist and is therefore only requested when the user asks to see everything.
+ */
+export async function getArtistReleases(
+    artistId: string,
+    sort: string = 'year',
+    order: string = 'desc',
+    scope: ArtistReleaseScope = 'albums'
+): Promise<CleanedArtistReleases> {
+    const { artist, albums } = scope === 'all'
+        ? await fetchArtistDiscography(artistId)
+        : await fetchArtistAlbums(artistId);
+
+    const sortedAlbums = [...albums].sort((a, b) => {
+        const comparison = sort === 'title'
+            ? a.title.localeCompare(b.title)
+            : a.year - b.year;
+        return order === 'asc' ? comparison : -comparison;
+    });
+
+    return { artist, albums: sortedAlbums };
 }
 
 // ===== Import Functions (for CSV Import Service) =====

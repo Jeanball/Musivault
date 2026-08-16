@@ -104,6 +104,7 @@ export interface DiscogsVersion {
 
 export interface DiscogsMasterVersionsResponse {
     versions: DiscogsVersion[];
+    pagination?: { pages: number };
 }
 
 // ===== Artist =====
@@ -127,7 +128,19 @@ export interface DiscogsArtistRelease {
 
 export interface DiscogsArtistReleasesResponse {
     releases: DiscogsArtistRelease[];
+    pagination?: { pages: number };
 }
+
+export interface DiscogsMasterSearchResponse {
+    results: DiscogsSearchResultExtended[];
+    pagination?: { pages: number };
+}
+
+/** An album or EP, versus a single or a derived pressing (promo, test pressing). */
+export type ArtistReleaseCategory = 'album' | 'other';
+
+/** How much of a discography to load: the fast default, or every credit. */
+export type ArtistReleaseScope = 'albums' | 'all';
 
 // ===== API Response Types (cleaned for frontend) =====
 
@@ -200,6 +213,7 @@ export interface CleanedArtistReleases {
         year: number;
         thumb: string;
         type: 'master' | 'release';
+        category: ArtistReleaseCategory;
     }[];
 }
 

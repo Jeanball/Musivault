@@ -298,6 +298,7 @@
         "filterBy": "Filtrer par :",
         "all": "Tous",
         "allCountries": "Tous les pays",
+        "allYears": "Toutes les années",
         "noPhysicalVersions": "Aucune version physique disponible",
         "digitalOnly": "Cette sortie n'existe qu'en format numérique (streaming/téléchargement).",
         "noVersionsMatch": "Aucune version ne correspond à vos filtres",
@@ -308,13 +309,15 @@
         "errorLoadingVersions": "Erreur lors du chargement des versions pour cet album.",
         "errorRetrievingData": "Erreur lors de la récupération des données pour cette version.",
         "loadingFormats": "Chargement des formats...",
-        "seeMore": "Afficher {{remaining}} de plus ({{total}} au total)",
         "noFormats": "Aucune info de format disponible",
         "clickToAdd": "Cliquer pour ajouter ce format à votre collection",
         "selectFormat": "Sélectionnez un format à ajouter",
         "goBack": "Retour",
         "confirmAddTitle": "Ajouter à votre collection ?",
-        "confirmAddYes": "Ajouter"
+        "confirmAddYes": "Ajouter",
+        "previousPage": "Précédent",
+        "nextPage": "Suivant",
+        "pageOf": "Page {{current}} sur {{total}}"
     },
     "search": {
         "placeholder": "Artiste, album, ID Discogs ou n° de catalogue…",
@@ -698,6 +701,8 @@
     "artist": {
         "noData": "Aucune donnée pour cet artiste.",
         "sortBy": "Trier par :",
+        "showAllReleases": "Tout afficher (singles, promos)",
+        "loadingAllReleases": "Chargement de toutes les sorties, cela peut prendre plusieurs minutes pour un artiste prolifique.",
         "ascending": "Croissant",
         "descending": "Décroissant",
         "unknownYear": "Année inconnue",

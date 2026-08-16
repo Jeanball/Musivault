@@ -73,13 +73,14 @@ export async function searchByBarcode(req: Request, res: Response) {
  */
 export async function getArtistReleases(req: Request, res: Response) {
     const { artistId } = req.params;
-    const { sort = 'year', order = 'desc' } = req.query;
+    const { sort = 'year', order = 'desc', scope } = req.query;
 
     try {
         const result = await discogsService.getArtistReleases(
             artistId,
             String(sort),
-            String(order)
+            String(order),
+            scope === 'all' ? 'all' : 'albums'
         );
         res.status(200).json(result);
     } catch (error) {
