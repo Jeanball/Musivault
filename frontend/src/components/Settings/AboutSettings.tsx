@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-
-interface VersionInfo {
-    version: string;
-    channel?: string;
-    buildDate: string;
-    commitSha: string;
-    environment: string;
-}
+import { getVersion } from '../../api/system';
+import type { VersionInfo } from '../../types/system.types';
 
 const AboutSettings: React.FC = () => {
     const { t, i18n } = useTranslation();
     const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
 
     useEffect(() => {
-        axios.get<VersionInfo>('/api/version')
-            .then(res => setVersionInfo(res.data))
+        getVersion()
+            .then(setVersionInfo)
             .catch(err => console.error('Failed to fetch version:', err));
     }, []);
 
@@ -26,7 +19,7 @@ const AboutSettings: React.FC = () => {
     }
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,7 +28,7 @@ const AboutSettings: React.FC = () => {
                     {t('settings.about')}
                 </h2>
 
-                <div className="stats stats-vertical shadow">
+                <div className="stats stats-vertical bg-base-100 shadow-panel">
                     <div className="stat">
                         <div className="stat-title">{t('settings.version')}</div>
                         <div className="stat-value text-primary text-2xl">

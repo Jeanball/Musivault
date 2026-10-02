@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import { toastService } from '../../utils/toast';
-
-interface PreferencesResponse {
-    theme: string;
-    isPublic: boolean;
-    publicShareId: string | null;
-    language: string;
-}
+import { getPreferences, updatePreferences } from '../../api/preferences';
 
 const CollectionSettings: React.FC = () => {
     const { t } = useTranslation();
@@ -18,10 +11,10 @@ const CollectionSettings: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
-            .then(res => {
-                setIsPublic(res.data.isPublic || false);
-                setPublicShareId(res.data.publicShareId || null);
+        getPreferences()
+            .then(prefs => {
+                setIsPublic(prefs.isPublic || false);
+                setPublicShareId(prefs.publicShareId || null);
             })
             .catch(err => console.error('Failed to fetch preferences:', err))
             .finally(() => setIsLoading(false));
@@ -32,13 +25,9 @@ const CollectionSettings: React.FC = () => {
         setIsSaving(true);
 
         try {
-            const response = await axios.put<{ preferences: PreferencesResponse; publicShareId: string | null }>(
-                '/api/preferences',
-                { isPublic: newValue },
-                { withCredentials: true }
-            );
+            const prefs = await updatePreferences({ isPublic: newValue });
             setIsPublic(newValue);
-            setPublicShareId(response.data.publicShareId);
+            setPublicShareId(prefs.publicShareId);
             toastService.success(newValue ? t('settings.collectionNowPublic') : t('settings.collectionNowPrivate'));
         } catch (error) {
             console.error('Failed to update public setting:', error);
@@ -58,10 +47,10 @@ const CollectionSettings: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="skeleton h-5 w-5 rounded"></div>
+                        <div className="skeleton h-5 w-5 rounded-field"></div>
                         <div className="skeleton h-6 w-48"></div>
                     </div>
                     <div className="skeleton h-4 w-3/4 mb-6"></div>
@@ -75,7 +64,7 @@ const CollectionSettings: React.FC = () => {
     }
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,11 +73,11 @@ const CollectionSettings: React.FC = () => {
                     {t('settings.publicCollection')}
                     {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                 </h2>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-base-content/50 mb-4">
                     {t('settings.publicCollectionDescription')}
                 </p>
 
-                <div className="form-control">
+                <div className="flex flex-col">
                     <label className="label cursor-pointer justify-start gap-4">
                         <input
                             type="checkbox"
@@ -97,21 +86,21 @@ const CollectionSettings: React.FC = () => {
                             onChange={handlePublicToggle}
                             disabled={isSaving}
                         />
-                        <span className="label-text">
+                        <span className="text-sm">
                             {isPublic ? t('settings.collectionPublic') : t('settings.collectionPrivate')}
                         </span>
                     </label>
                 </div>
 
                 {isPublic && publicShareId && (
-                    <div className="mt-4 p-4 bg-base-300 rounded-lg">
+                    <div className="mt-4 p-4 bg-base-300 rounded-box">
                         <p className="text-sm font-medium mb-2">{t('settings.shareLink')}</p>
                         <div className="flex gap-2">
                             <input
                                 type="text"
                                 value={`${window.location.origin}/shared/${publicShareId}`}
                                 readOnly
-                                className="input input-bordered input-sm flex-1 font-mono text-xs"
+                                className="input input-sm flex-1 font-mono text-xs"
                             />
                             <button
                                 onClick={copyShareLink}

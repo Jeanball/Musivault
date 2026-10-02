@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { CollectionItem, CollectionStats } from '../../types/collection.types';
-import { getItemValue } from '../../types/collection.types';
+import { getItemValue } from '../../utils/itemValue';
+import { stripDiscogsSuffix } from '../../utils/formatters';
 
 const getTopEntry = (counts: Record<string, number>) => {
     let topName: string | null = null;
@@ -25,13 +26,13 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
         const formatCounts: Record<string, number> = {};
         const decadeCounts: Record<string, number> = {};
         const styleCounts: Record<string, number> = {};
+        const labelCounts: Record<string, number> = {};
         const artistCounts: Record<string, number> = {};
         const recentAdds = {
             thisWeek: 0,
             thisMonth: 0
         };
         let totalValue = 0;
-        let valueCurrency = 'USD';
         let itemsWithValue = 0;
 
         for (const item of collection) {
@@ -62,10 +63,21 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
                 }
             }
 
+            // A release can be co-issued by several labels, each one counts.
+            // The Discogs suffix is stripped so "Columbia" and "Columbia (2)"
+            // don't offer the same imprint twice in the filter.
+            for (const label of item.album.labels || []) {
+                const name = stripDiscogsSuffix(label.name);
+                if (name) {
+                    labelCounts[name] = (labelCounts[name] || 0) + 1;
+                }
+            }
+
+            // Stored prices are USD, like everywhere else; the conversion to the
+            // user's currency happens once, on render.
             const val = getItemValue(item);
             if (val > 0) {
                 totalValue += val;
-                valueCurrency = item.priceCache?.currency || 'USD';
                 itemsWithValue++;
             }
         }
@@ -73,22 +85,27 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
         const availableFormats = Object.keys(formatCounts).sort();
         const availableDecades = Object.keys(decadeCounts).sort();
         const availableStyles = Object.keys(styleCounts).sort();
+        const availableLabels = Object.keys(labelCounts).sort((a, b) => a.localeCompare(b));
         const topArtist = getTopEntry(artistCounts);
         const topStyle = getTopEntry(styleCounts);
+        const topLabel = getTopEntry(labelCounts);
 
         return {
             total,
             formatCounts,
             decadeCounts,
             styleCounts,
+            labelCounts,
+            artistCounts,
             recentAdds,
             topArtist,
             topStyle,
+            topLabel,
             availableFormats,
             availableDecades,
             availableStyles,
+            availableLabels,
             totalValue: Math.round(totalValue * 100) / 100,
-            valueCurrency,
             itemsWithValue
         };
     }, [collection]);

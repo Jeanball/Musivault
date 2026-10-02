@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
-import axios from "axios";
+import { MusivaultMark } from '../components/Common/BrandIcons';
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../utils/toast";
+import { signup, getOidcStatus, OIDC_LOGIN_URL } from "../api/auth";
+import { isApiError } from "../api/errors";
 
 // Interface for the form state, now with 'username'
 interface SignupFormState {
@@ -11,13 +13,6 @@ interface SignupFormState {
     username: string;
 }
 
-// Interface for the expected API response
-interface ApiResponse {
-    success: boolean;
-    message: string;
-}
-
-const API_BASE_URL = import.meta.env.API_URL || '';
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -29,10 +24,10 @@ const SignupPage: React.FC = () => {
 
     useEffect(() => {
         // Check if OIDC is enabled and get provider name
-        axios.get<{ enabled: boolean; providerName: string }>(`${API_BASE_URL}/api/auth/oidc/status`)
-            .then(res => {
-                setOidcEnabled(res.data.enabled);
-                setOidcProviderName(res.data.providerName || 'SSO');
+        getOidcStatus()
+            .then(status => {
+                setOidcEnabled(status.enabled);
+                setOidcProviderName(status.providerName || 'SSO');
             })
             .catch(() => setOidcEnabled(false));
     }, []);
@@ -48,13 +43,7 @@ const SignupPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            const { data } = await axios.post<ApiResponse>(
-                `${API_BASE_URL}/api/auth/signup`,
-                { ...inputValue },
-                { withCredentials: true }
-            );
-
-            const { success, message } = data;
+            const { success, message } = await signup(inputValue);
             if (success) {
                 toastService.success(message);
                 setTimeout(() => {
@@ -63,10 +52,10 @@ const SignupPage: React.FC = () => {
             } else {
                 toastService.error(message);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
+        } catch (error) {
             console.log(error);
-            toastService.error(error.response?.data?.message || t('auth.signupError', 'Registration failed'));
+            const serverMessage = isApiError(error) ? error.serverMessage : undefined;
+            toastService.error(serverMessage || t('auth.signupError', 'Registration failed'));
         }
 
         setInputValue({
@@ -78,21 +67,21 @@ const SignupPage: React.FC = () => {
     };
 
     const handleSSOSignup = () => {
-        window.location.href = `${API_BASE_URL}/api/auth/oidc/login`;
+        window.location.href = OIDC_LOGIN_URL;
     };
 
     return (
         <div className="hero min-h-screen bg-base-200">
-            <div className="card shrink-0 w-full max-w-md shadow-2xl bg-base-100">
+            <div className="card shrink-0 w-full max-w-md shadow-card bg-base-100">
                 <form className="card-body" onSubmit={handleSubmit}>
                     <div className="flex flex-col items-center mb-4">
-                        <img src="/icons/icon-musivault.svg" alt="Musivault" className="w-16 h-16 mb-2" />
-                        <h1 className="text-3xl font-bold">Musivault</h1>
+                        <MusivaultMark className="w-16 h-16 mb-2" />
+                        <h1 className="font-brand text-4xl leading-none tracking-wide bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</h1>
                     </div>
                     <h2 className="card-title text-xl font-semibold self-center">{t('auth.createAccount')}</h2>
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label" htmlFor="email">
-                            <span className="label-text">{t('auth.email')}</span>
+                            <span className="text-sm">{t('auth.email')}</span>
                         </label>
                         <input
                             id="email"
@@ -101,13 +90,13 @@ const SignupPage: React.FC = () => {
                             value={email}
                             placeholder={t('auth.enterEmail')}
                             onChange={handleOnChange}
-                            className="input input-bordered"
+                            className="input w-full"
                             required
                         />
                     </div>
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label" htmlFor="username">
-                            <span className="label-text">{t('auth.username')}</span>
+                            <span className="text-sm">{t('auth.username')}</span>
                         </label>
                         <input
                             id="username"
@@ -116,13 +105,13 @@ const SignupPage: React.FC = () => {
                             value={username}
                             placeholder={t('auth.enterUsername')}
                             onChange={handleOnChange}
-                            className="input input-bordered"
+                            className="input w-full"
                             required
                         />
                     </div>
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label" htmlFor="password">
-                            <span className="label-text">{t('auth.password')}</span>
+                            <span className="text-sm">{t('auth.password')}</span>
                         </label>
                         <input
                             id="password"
@@ -131,11 +120,11 @@ const SignupPage: React.FC = () => {
                             value={password}
                             placeholder={t('auth.enterPassword')}
                             onChange={handleOnChange}
-                            className="input input-bordered"
+                            className="input w-full"
                             required
                         />
                     </div>
-                    <div className="form-control mt-6">
+                    <div className="flex flex-col mt-6">
                         <button type="submit" className="btn btn-primary">{t('auth.signup')}</button>
                     </div>
 

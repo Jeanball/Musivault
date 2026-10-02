@@ -1,20 +1,15 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-interface VersionInfo {
-    version: string;
-    channel?: string;
-}
+import { getVersion } from '../../api/system';
 
 const Footer = () => {
     const [version, setVersion] = useState<string>('');
     const [channel, setChannel] = useState<string>('');
 
     useEffect(() => {
-        axios.get<VersionInfo>('/api/version')
-            .then(res => {
-                setVersion(res.data.version);
-                setChannel(res.data.channel || '');
+        getVersion()
+            .then(info => {
+                setVersion(info.version);
+                setChannel(info.channel || '');
             })
             .catch(() => setVersion(''));
     }, []);
@@ -23,7 +18,7 @@ const Footer = () => {
     const showChannelBadge = channel && !['latest', 'stable', ''].includes(channel);
 
     return (
-        <footer className="footer px-4 py-2 bg-neutral text-neutral-content flex flex-row justify-between items-center">
+        <footer className="footer footer-horizontal px-4 py-2 bg-neutral text-neutral-content flex flex-row justify-between items-center">
             <p className="text-xs inline-flex items-center flex-wrap gap-1">
                 <span>© {new Date().getFullYear()} Jeanball</span>
                 {version && <span className="opacity-60">v{version}</span>}

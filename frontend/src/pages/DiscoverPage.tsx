@@ -1,19 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Users, Music, Mic, Lock, Calendar, Ticket, AlertCircle } from 'lucide-react';
-import { getImageUrl } from '../utils/imageUrl';
+import { Users, Music, Mic, Lock, AlertCircle, CalendarClock, History, Store, MapPinned, Sparkles } from 'lucide-react';
 import PublicAlbumModal from '../components/Modal/PublicAlbumModal';
+import PublicUserCard from '../components/Discover/PublicUserCard';
+import CommunityAlbumCard from '../components/Discover/CommunityAlbumCard';
+import UpcomingReleaseCard from '../components/Discover/UpcomingReleaseCard';
+import UpcomingReleaseModal from '../components/Modal/UpcomingReleaseModal';
+import PreferredGenresDropdown from '../components/Discover/PreferredGenresDropdown';
+import RecordShopCard from '../components/Discover/RecordShopCard';
+import ConcertCard from '../components/Discover/ConcertCard';
+import NearbyControls from '../components/Discover/NearbyControls';
+import OsmAttribution from '../components/Discover/OsmAttribution';
+import TicketmasterAttribution from '../components/Discover/TicketmasterAttribution';
+import CardSkeleton from '../components/Common/CardSkeleton';
+import EmptyState from '../components/Common/EmptyState';
+import { RESULTS_GRID_CLASS, PREVIEW_COUNT } from '../components/Discover/constants';
+import { useNearby, useNearbySearch } from '../hooks/useNearbySearch';
 import type { CollectionItem } from '../types/collection.types';
-
-interface PublicUser {
-    username: string;
-    publicShareId: string;
-    albumCount: number;
-    createdAt: string;
-    latestAlbums?: CollectionItem[];
-}
+import type { PublicUser, CommunityAlbum } from '../types/public.types';
+import type { UpcomingRelease, RecordShop, Concert } from '../types/discover.types';
+import { getPublicUsers, getLatestPublicAlbums } from '../api/public';
+import { getUpcomingReleases, splitReleasesByToday, getRecordShops, getConcerts } from '../api/discover';
 
 const DiscoverPage: React.FC = () => {
     const { t } = useTranslation();
@@ -21,6 +29,15 @@ const DiscoverPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedAlbum, setSelectedAlbum] = useState<CollectionItem | null>(null);
+    const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+
+    const [communityAlbums, setCommunityAlbums] = useState<CommunityAlbum[]>([]);
+    const [isCommunityLoading, setIsCommunityLoading] = useState(true);
+
+    const [upcomingReleases, setUpcomingReleases] = useState<UpcomingRelease[]>([]);
+    const [isUpcomingLoading, setIsUpcomingLoading] = useState(true);
+    const [upcomingError, setUpcomingError] = useState<string | null>(null);
+    const [selectedRelease, setSelectedRelease] = useState<UpcomingRelease | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -29,8 +46,7 @@ const DiscoverPage: React.FC = () => {
     useEffect(() => {
         const fetchPublicUsers = async () => {
             try {
-                const response = await axios.get('/api/public/users');
-                setUsers(response.data);
+                setUsers(await getPublicUsers());
             } catch (err) {
                 console.error('Failed to fetch public users:', err);
                 setError(t('discover.failedLoadCollections'));
@@ -41,6 +57,61 @@ const DiscoverPage: React.FC = () => {
 
         fetchPublicUsers();
     }, []);
+
+    useEffect(() => {
+        const fetchCommunityAlbums = async () => {
+            try {
+                setCommunityAlbums(await getLatestPublicAlbums(PREVIEW_COUNT));
+            } catch (err) {
+                // Deliberately silent: the band is a flourish above a directory that
+                // works without it, and an error banner at the top of the page would
+                // cost more than the band is worth.
+                console.error('Failed to fetch community albums:', err);
+            } finally {
+                setIsCommunityLoading(false);
+            }
+        };
+
+        fetchCommunityAlbums();
+    }, []);
+
+    const fetchUpcomingReleases = async () => {
+        try {
+            setUpcomingReleases(await getUpcomingReleases());
+            setUpcomingError(null);
+        } catch (err) {
+            console.error('Failed to fetch upcoming releases:', err);
+            setUpcomingError(t('discover.failedLoadUpcoming'));
+        } finally {
+            setIsUpcomingLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUpcomingReleases();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const upcomingSummary = useMemo(() => splitReleasesByToday(upcomingReleases), [upcomingReleases]);
+
+    // One position and one radius for every "near you" section below.
+    const nearby = useNearby();
+    const { items: concerts, isLoading: isConcertsLoading, error: concertsError, unavailable: concertsUnavailable } =
+        useNearbySearch<Concert>(nearby, getConcerts, 'discover.failedLoadConcerts');
+    const { items: shops, isLoading: isShopsLoading, error: shopsError } =
+        useNearbySearch<RecordShop>(nearby, getRecordShops, 'discover.failedLoadShops');
+
+    const toggleUserExpanded = (publicShareId: string) => {
+        setExpandedUsers((prev) => {
+            const next = new Set(prev);
+            if (next.has(publicShareId)) {
+                next.delete(publicShareId);
+            } else {
+                next.add(publicShareId);
+            }
+            return next;
+        });
+    };
 
 
 
@@ -61,6 +132,38 @@ const DiscoverPage: React.FC = () => {
                     {t('discover.publicCollections')}
                 </h2>
 
+                {/* Real covers before a list of usernames: the section opens on what
+                    people are actually collecting. Absent when there is nothing to
+                    show or the request failed — the directory below stands alone. */}
+                {(isCommunityLoading || communityAlbums.length > 0) && (
+                    <div className="mb-8">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+                            <h3 className="text-sm font-semibold text-base-content/70 flex items-center gap-2">
+                                <Sparkles size={16} />
+                                {t('discover.communityLatest')}
+                            </h3>
+                            <span className="text-xs text-base-content/50">
+                                {t('discover.communityLatestSubtitle')}
+                            </span>
+                        </div>
+                        {/* Six across, like the release rows — these are cover tiles,
+                            not the wide cards the shared results grid is built for. */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                            {isCommunityLoading ? (
+                                <CardSkeleton count={PREVIEW_COUNT} variant="tile" />
+                            ) : (
+                                communityAlbums.map((item) => (
+                                    <CommunityAlbumCard
+                                        key={item._id}
+                                        item={item}
+                                        onSelect={setSelectedAlbum}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {isLoading ? (
                     <div className="flex justify-center items-center h-32">
                         <span className="loading loading-spinner loading-lg text-primary"></span>
@@ -71,135 +174,251 @@ const DiscoverPage: React.FC = () => {
                         <span>{error}</span>
                     </div>
                 ) : users.length === 0 ? (
-                    <div className="bg-base-200 rounded-xl p-8 text-center border-2 border-dashed border-base-300">
-                        <div className="flex justify-center mb-4">
-                            <Lock size={48} />
-                        </div>
-                        <h3 className="text-lg font-semibold mb-2">{t('discover.noPublicCollections')}</h3>
-                        <p className="text-base-content/60 mb-4">
-                            {t('discover.beTheFirst')}
-                        </p>
+                    <EmptyState
+                        icon={Lock}
+                        title={t('discover.noPublicCollections')}
+                        description={t('discover.beTheFirst')}
+                    >
                         <Link to="/app/settings" className="btn btn-primary btn-sm">{t('discover.goToSettings')}</Link>
-                    </div>
+                    </EmptyState>
                 ) : (
-                    <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                         {users.map((user) => (
-                            <div key={user.publicShareId} className="bg-base-200 rounded-xl p-5 border border-base-300">
-                                {/* User Header */}
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="avatar placeholder">
-                                            <div className="bg-primary text-primary-content rounded-full w-12 h-12">
-                                                <span className="text-xl font-bold">
-                                                    {user.username.charAt(0).toUpperCase()}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg">{user.username}</h3>
-                                            <p className="text-sm text-base-content/60">
-                                                {user.albumCount} {user.albumCount === 1 ? t('common.album') : t('common.albums')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Link
-                                        to={`/shared/${user.publicShareId}`}
-                                        className="btn btn-outline btn-sm"
-                                    >
-                                        {t('discover.viewCollection')}
-                                    </Link>
-                                </div>
-                                
-                                {/* Latest Albums for User */}
-                                {user.latestAlbums && user.latestAlbums.length > 0 ? (
-                                    <div className="mt-4">
-                                        <h4 className="text-sm font-semibold mb-3 text-base-content/70">
-                                            {t('discover.latestUserAdditions', 'Latest additions')}
-                                        </h4>
-                                        <div className="flex overflow-x-auto pb-4 gap-3 sm:grid sm:grid-cols-3 md:grid-cols-5 sm:overflow-visible sm:pb-0 snap-x">
-                                        {user.latestAlbums.map((item) => (
-                                            <div
-                                                key={item._id}
-                                                onClick={() => setSelectedAlbum(item)}
-                                                className="card bg-base-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group shrink-0 w-32 sm:w-auto snap-start"
-                                            >
-                                                <figure className="aspect-square relative overflow-hidden rounded-t-xl">
-                                                    <img 
-                                                        src={getImageUrl(item.album?.cover_image || "/placeholder-album.svg")} 
-                                                        alt={item.album?.title} 
-                                                        className="object-cover w-full h-full" 
-                                                    />
-                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <span className="badge badge-primary badge-sm">{item.format?.name || 'Vinyl'}</span>
-                                                    </div>
-                                                </figure>
-                                                <div className="card-body p-2 gap-0.5">
-                                                    <h3 className="card-title text-xs leading-tight truncate block" title={item.album?.title}>
-                                                        {item.album?.title}
-                                                    </h3>
-                                                    <p className="text-[10px] opacity-70 truncate block">{item.album?.artist}</p>
-                                                    <p className="text-[9px] opacity-50 mt-0.5">
-                                                        {new Date(item.addedAt).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-base-content/50 italic mt-2">
-                                        {t('discover.noLatestAlbums', 'No recent additions.')}
-                                    </p>
-                                )}
-                            </div>
+                            <PublicUserCard
+                                key={user.publicShareId}
+                                user={user}
+                                isExpanded={expandedUsers.has(user.publicShareId)}
+                                onToggleExpand={() => toggleUserExpanded(user.publicShareId)}
+                                onSelectAlbum={setSelectedAlbum}
+                            />
                         ))}
                     </div>
                 )}
             </section>
 
-            {/* Section 2: Upcoming Releases - Coming Soon */}
+            {/* Section 2: On Your Radar — recent + upcoming summary; full list on the dedicated page */}
             <section>
-                <div className="flex flex-wrap items-center gap-2 mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                         <Music size={24} />
-                        {t('discover.upcomingReleases')}
+                        {t('discover.onYourRadar')}
                     </h2>
-                    <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
-                </div>
-                <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
-                    <div className="flex justify-center mb-4">
-                        <Calendar size={48} />
+                    <div className="flex items-center gap-2">
+                        <PreferredGenresDropdown onSaved={fetchUpcomingReleases} />
+                        {upcomingReleases.length > 0 && (
+                            <Link to="/app/discover/releases" className="btn btn-outline btn-sm">
+                                {t('discover.viewAllReleases')}
+                            </Link>
+                        )}
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{t('discover.newMusicFromArtists')}</h3>
-                    <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
-                        {t('discover.upcomingReleasesDescription')}
-                    </p>
                 </div>
+
+                {isUpcomingLoading ? (
+                    <div className="flex justify-center items-center h-32">
+                        <span className="loading loading-spinner loading-lg text-primary"></span>
+                    </div>
+                ) : upcomingError ? (
+                    <div className="alert alert-error">
+                        <AlertCircle className="shrink-0 h-6 w-6" />
+                        <span>{upcomingError}</span>
+                    </div>
+                ) : upcomingReleases.length === 0 ? (
+                    <EmptyState
+                        icon={Music}
+                        title={t('discover.newMusicFromArtists')}
+                        description={t('discover.noUpcomingReleases')}
+                    />
+                ) : (
+                    <div className="space-y-8">
+                        {upcomingSummary.upcoming.length > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold mb-3 text-base-content/70 flex items-center gap-2">
+                                    <CalendarClock size={16} />
+                                    {t('discover.upcomingSection')}
+                                </h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                    {/* Both rows sit near the top of the page, so neither
+                                        should wait on lazy loading before even asking. */}
+                                    {upcomingSummary.upcoming.slice(0, 5).map((release) => (
+                                        <UpcomingReleaseCard key={release.mbid} release={release} onSelect={setSelectedRelease} eager />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {upcomingSummary.recent.length > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold mb-3 text-base-content/70 flex items-center gap-2">
+                                    <History size={16} />
+                                    {t('discover.recentSection')}
+                                </h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                    {upcomingSummary.recent.slice(0, 5).map((release) => (
+                                        <UpcomingReleaseCard key={release.mbid} release={release} onSelect={setSelectedRelease} eager />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </section>
 
-            {/* Section 3: Shows Near You - Coming Soon */}
-            <section>
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                        <Mic size={24} />
-                        {t('discover.showsNearYou')}
+            {/* Sections 3 & 4: everything "near you", driven by one set of controls */}
+            <div className="space-y-8">
+                <div>
+                    <h2 className="text-2xl font-bold flex items-center gap-2 mb-4">
+                        <MapPinned size={24} />
+                        {t('discover.nearYou')}
                     </h2>
-                    <span className="badge badge-primary badge-outline whitespace-nowrap">{t('discover.comingSoon')}</span>
+                    <NearbyControls
+                        nearby={nearby}
+                        // Once the precise attempt has failed, entering a city is the
+                        // only way forward — don't make the user go hunting for it.
+                        showManualSearch={!nearby.location || nearby.error !== null}
+                    />
                 </div>
-                <div className="bg-base-200 rounded-xl p-6 md:p-8 text-center border-2 border-dashed border-base-300">
-                    <div className="flex justify-center mb-4">
-                        <Ticket size={48} />
+
+                {/* Section 3: Shows Near You — dated, so it comes before the shops,
+                    which will still be there next week. Absent entirely on instances
+                    with no Ticketmaster key, rather than a standing error. */}
+                {!concertsUnavailable && <section>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <h3 className="text-xl font-bold flex items-center gap-2">
+                            <Mic size={22} />
+                            {t('discover.showsNearYou')}
+                        </h3>
+                        {concerts.length > 0 && (
+                            <Link to="/app/discover/concerts" className="btn btn-outline btn-sm">
+                                {concerts.length > PREVIEW_COUNT
+                                    ? t('discover.viewAllConcertsCount', { count: concerts.length })
+                                    : t('discover.viewAllConcerts')}
+                            </Link>
+                        )}
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{t('discover.liveConcerts')}</h3>
-                    <p className="text-base-content/60 max-w-md mx-auto text-sm md:text-base">
-                        {t('discover.showsDescription')}
-                    </p>
-                </div>
-            </section>
+
+                    <p className="text-base-content/70 text-sm mb-4">{t('discover.concertsSubtitle')}</p>
+
+                    {/* Skeletons on every fetch, not just the first: changing the
+                        location otherwise left the previous city's results on screen
+                        with nothing to show the new ones were being looked up. */}
+                    {nearby.status === 'resolving' || (nearby.location && isConcertsLoading) ? (
+                        <div className={RESULTS_GRID_CLASS}>
+                            <CardSkeleton count={PREVIEW_COUNT} variant="media" />
+                        </div>
+                    ) : concertsError ? (
+                        <div className="alert alert-error">
+                            <AlertCircle className="shrink-0 h-6 w-6" />
+                            <span>{concertsError}</span>
+                        </div>
+                    ) : !nearby.location ? (
+                        /* No position at all — the IP guess failed or was refused by the provider. */
+                        <EmptyState
+                            icon={Mic}
+                            title={t('discover.findConcertsNearYou')}
+                            description={t('discover.locationNeeded')}
+                        />
+                    ) : concerts.length === 0 ? (
+                        <EmptyState
+                            icon={Mic}
+                            title={t('discover.noConcertsInRadius', { radius: nearby.radiusKm })}
+                            description={t('discover.noConcertsHint')}
+                        >
+                            <Link to="/app/discover/concerts" className="btn btn-primary btn-sm">
+                                {t('discover.widenSearch')}
+                            </Link>
+                        </EmptyState>
+                    ) : (
+                        <>
+                            <div className={RESULTS_GRID_CLASS}>
+                                {concerts.slice(0, PREVIEW_COUNT).map((concert) => (
+                                    <ConcertCard key={concert.tmId} concert={concert} />
+                                ))}
+                            </div>
+                            {/* The grid is capped, so say so and offer the way out —
+                                the header button alone is easy to miss after scrolling. */}
+                            {concerts.length > PREVIEW_COUNT && (
+                                <div className="mt-4 text-center">
+                                    <Link to="/app/discover/concerts" className="btn btn-primary btn-sm">
+                                        {t('discover.seeRemainingConcerts', { count: concerts.length - PREVIEW_COUNT })}
+                                    </Link>
+                                </div>
+                            )}
+                            <TicketmasterAttribution />
+                        </>
+                    )}
+                </section>}
+
+                {/* Section 4: Record Shops Near You */}
+                <section>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <h3 className="text-xl font-bold flex items-center gap-2">
+                            <Store size={22} />
+                            {t('discover.recordShopsNearYou')}
+                        </h3>
+                        {shops.length > 0 && (
+                            <Link to="/app/discover/shops" className="btn btn-outline btn-sm">
+                                {shops.length > PREVIEW_COUNT
+                                    ? t('discover.viewAllShopsCount', { count: shops.length })
+                                    : t('discover.viewAllShops')}
+                            </Link>
+                        )}
+                    </div>
+
+                    <p className="text-base-content/70 text-sm mb-4">{t('discover.recordShopsSubtitle')}</p>
+
+                    {nearby.status === 'resolving' || (nearby.location && isShopsLoading) ? (
+                        <div className={RESULTS_GRID_CLASS}>
+                            <CardSkeleton count={PREVIEW_COUNT} />
+                        </div>
+                    ) : shopsError ? (
+                        <div className="alert alert-error">
+                            <AlertCircle className="shrink-0 h-6 w-6" />
+                            <span>{shopsError}</span>
+                        </div>
+                    ) : !nearby.location ? (
+                        <EmptyState
+                            icon={Store}
+                            title={t('discover.findShopsNearYou')}
+                            description={t('discover.locationNeeded')}
+                        />
+                    ) : shops.length === 0 ? (
+                        <EmptyState
+                            icon={Store}
+                            title={t('discover.noShopsInRadius', { radius: nearby.radiusKm })}
+                            description={t('discover.noShopsHint')}
+                        >
+                            <Link to="/app/discover/shops" className="btn btn-primary btn-sm">
+                                {t('discover.widenSearch')}
+                            </Link>
+                        </EmptyState>
+                    ) : (
+                        <>
+                            <div className={RESULTS_GRID_CLASS}>
+                                {shops.slice(0, PREVIEW_COUNT).map((shop) => (
+                                    <RecordShopCard key={`${shop.osmType}-${shop.osmId}`} shop={shop} />
+                                ))}
+                            </div>
+                            {shops.length > PREVIEW_COUNT && (
+                                <div className="mt-4 text-center">
+                                    <Link to="/app/discover/shops" className="btn btn-primary btn-sm">
+                                        {t('discover.seeRemainingShops', { count: shops.length - PREVIEW_COUNT })}
+                                    </Link>
+                                </div>
+                            )}
+                            <OsmAttribution />
+                        </>
+                    )}
+                </section>
+            </div>
             <PublicAlbumModal
                 item={selectedAlbum}
                 onClose={() => setSelectedAlbum(null)}
             />
+            {selectedRelease && (
+                <UpcomingReleaseModal
+                    release={selectedRelease}
+                    onClose={() => setSelectedRelease(null)}
+                />
+            )}
         </div>
     );
 };

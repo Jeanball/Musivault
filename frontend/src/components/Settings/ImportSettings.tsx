@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../../utils/toast';
+import { startCsvImport, getImportLog, downloadImportLog, downloadCsvTemplate } from '../../api/collection';
 
 interface ImportResult {
     imported: number;
@@ -24,19 +24,27 @@ const ImportSettings: React.FC = () => {
         status: string;
     } | null>(null);
 
-    const downloadTemplate = () => {
-        const csv = [
-            'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional),Media Condition (Optional),Sleeve Condition (Optional)',
-            'Daft Punk,Discovery,Vinyl,2001,,,,',
-            'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29,NM,VG+'
-        ].join('\n');
-        const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        const link = document.createElement('a');
-        link.href = dataUri;
-        link.setAttribute('download', 'musivault_import_template.csv');
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+    const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+
+    // The template is served by the API so its columns stay in sync with the parser.
+    const downloadTemplate = async () => {
+        setIsLoadingTemplate(true);
+        try {
+            const blob = await downloadCsvTemplate();
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'musivault_import_template.csv');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch {
+            toastService.error(t('csvImport.failedDownloadTemplate'));
+        } finally {
+            setIsLoadingTemplate(false);
+        }
     };
 
     const [isDownloading, setIsDownloading] = useState(false);
@@ -44,12 +52,9 @@ const ImportSettings: React.FC = () => {
     const downloadLog = async (logId: string) => {
         setIsDownloading(true);
         try {
-            const response = await axios.get(`/api/collection/import/logs/${logId}/download`, {
-                withCredentials: true,
-                responseType: 'blob'
-            });
+            const blob = await downloadImportLog(logId);
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download', `import_log_${logId}.json`);
@@ -57,19 +62,25 @@ const ImportSettings: React.FC = () => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-        } catch (error) {
+        } catch {
             toastService.error(t('csvImport.failedDownloadLog'));
         } finally {
             setIsDownloading(false);
         }
     };
 
+    const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // The import runs server-side, but a dangling interval would keep calling
+    // setState after the panel unmounts.
+    useEffect(() => () => {
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    }, []);
+
     const pollStatus = async (logId: string) => {
         const intervalId = setInterval(async () => {
             try {
-                const { data } = await axios.get(`/api/collection/import/logs/${logId}`, {
-                    withCredentials: true
-                });
+                const data = await getImportLog(logId);
 
                 setProgress({
                     processed: data.successCount + data.failCount + data.skipCount,
@@ -82,14 +93,15 @@ const ImportSettings: React.FC = () => {
 
                 if (data.status === 'completed' || data.status === 'error') {
                     clearInterval(intervalId);
+                    pollIntervalRef.current = null;
                     setIsImporting(false);
 
                     if (data.status === 'completed') {
                         toastService.success(t('csvImport.importFinished', { count: data.successCount }));
                         // Transform log entries to expected failures result
                         const failures = data.entries
-                            .filter((e: any) => e.status === 'failed')
-                            .map((e: any) => ({
+                            .filter(e => e.status === 'failed')
+                            .map(e => ({
                                 index: e.rowIndex,
                                 artist: e.inputArtist,
                                 album: e.inputAlbum,
@@ -112,6 +124,7 @@ const ImportSettings: React.FC = () => {
                 // Don't stop polling on single error, but maybe warn?
             }
         }, 2000);
+        pollIntervalRef.current = intervalId;
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,13 +137,7 @@ const ImportSettings: React.FC = () => {
         setProgress(null);
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-            // Start the import
-            const { data } = await axios.post('/api/collection/import', formData, {
-                withCredentials: true,
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const data = await startCsvImport(file);
 
             toastService.info(t('csvImport.importStarted'));
 
@@ -147,7 +154,7 @@ const ImportSettings: React.FC = () => {
             // Start polling
             pollStatus(data.logId);
 
-        } catch (error) {
+        } catch {
             toastService.error(t('csvImport.failedStartImport'));
             setIsImporting(false);
         } finally {
@@ -156,7 +163,7 @@ const ImportSettings: React.FC = () => {
     };
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,12 +174,16 @@ const ImportSettings: React.FC = () => {
                 <p className="text-sm text-base-content/70">
                     {t('csvImport.columns')}
                 </p>
+                <p className="text-sm text-base-content/70">
+                    {t('csvImport.required')}
+                </p>
                 <p className="text-xs text-base-content/50 mt-1">
-                    {t('csvImport.hint')}
+                    {t('csvImport.matching')}
                 </p>
 
                 <div className="mt-3 flex flex-wrap gap-3 items-center">
-                    <button className="btn btn-outline btn-sm" onClick={downloadTemplate}>
+                    <button className="btn btn-outline btn-sm" onClick={downloadTemplate} disabled={isLoadingTemplate}>
+                        {isLoadingTemplate && <span className="loading loading-spinner loading-xs"></span>}
                         {t('csvImport.downloadTemplate')}
                     </button>
                     {!isImporting && (

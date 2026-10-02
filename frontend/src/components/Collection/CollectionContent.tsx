@@ -1,16 +1,17 @@
 import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import CollectionFilters from '../Collection/CollectionFilters';
-import CollectionTableView from '../Collection/Views/CollectionTableView';
-import CollectionGridView from '../Collection/Views/CollectionGridView';
-import CollectionListView from '../Collection/Views/CollectionListView';
-import TracksView from '../Collection/Views/TracksView';
+import CollectionFilters from './CollectionFilters';
+import CollectionTableView from './Views/CollectionTableView';
+import CollectionGridView from './Views/CollectionGridView';
+import CollectionListView from './Views/CollectionListView';
+import CollectionTracksView from './Views/CollectionTracksView';
+import CollectionLabelsView from './Views/CollectionLabelsView';
 import PublicAlbumModal from '../Modal/PublicAlbumModal';
 import { useCollectionFilters } from '../../hooks/collection/useCollectionFilters';
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
-import type { CollectionItem, LayoutType } from '../../types/collection.types';
+import type { CollectionItem, LayoutType, CollectionViewMode } from '../../types/collection.types';
 import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
@@ -18,7 +19,14 @@ const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
 const VIEW_MODE_STORAGE_KEY = 'musivault_collection_view_mode';
 const COLLECTION_SCROLL_KEY = 'musivault_collection_scroll_y';
 
-type ViewMode = 'albums' | 'tracks';
+const VIEW_MODES: CollectionViewMode[] = ['albums', 'tracks', 'labels'];
+
+/** One field for the three modes, so only its wording moves. */
+const SEARCH_PLACEHOLDER_KEYS: Record<CollectionViewMode, string> = {
+    albums: 'collection.searchAlbum',
+    tracks: 'tracks.searchTrack',
+    labels: 'labels.searchLabel',
+};
 
 interface CollectionContentProps {
     collection: CollectionItem[];
@@ -53,10 +61,10 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     );
     const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
     const deferredSearchTerm = useDeferredValue(searchTerm);
-    const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const [viewMode, setViewMode] = useState<CollectionViewMode>(() => {
         if (readOnly) return 'albums';
         const stored = sessionStorage.getItem(VIEW_MODE_STORAGE_KEY);
-        return (stored === 'albums' || stored === 'tracks') ? stored : 'albums';
+        return VIEW_MODES.includes(stored as CollectionViewMode) ? (stored as CollectionViewMode) : 'albums';
     });
 
     // Persist layout preference (only for authenticated users)
@@ -80,13 +88,33 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         }
     }, [viewMode, readOnly]);
 
+    // Tracks and labels search their own aggregates, so the term stays out of the
+    // album filter there rather than narrowing twice from a single field.
+    const isAggregateMode = viewMode === 'tracks' || viewMode === 'labels';
+
     // Custom hooks
-    const { filters, setFilters, filteredCollection, groupedByArtist, clearFilters } = useCollectionFilters(collection, deferredSearchTerm);
+    const { filters, setFilters, filteredCollection, groupedByArtist, clearFilters } = useCollectionFilters(
+        collection,
+        isAggregateMode ? '' : deferredSearchTerm
+    );
     const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection);
     const stats = useCollectionStats(collection);
+    // Format mismatches are a private housekeeping signal, so a visitor never gets
+    // the toggle even though the shared items carry the flag.
     const issueCount = useMemo(
-        () => collection.reduce((count, item) => count + (hasActiveFormatVerificationIssue(item.formatVerification) ? 1 : 0), 0),
-        [collection]
+        () => readOnly
+            ? 0
+            : collection.reduce((count, item) => count + (hasActiveFormatVerificationIssue(item.formatVerification) ? 1 : 0), 0),
+        [collection, readOnly]
+    );
+
+    // The grid runs as one uninterrupted flow, so the artist grouping survives only
+    // as the order: every album of an artist still lands side by side.
+    const gridItems = useMemo(
+        () => Object.entries(groupedByArtist)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .flatMap(([, artistItems]) => artistItems),
+        [groupedByArtist]
     );
 
     const handleClearAll = () => {
@@ -108,6 +136,14 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         }
     };
 
+    /** The tracks and labels views only carry the item id back. */
+    const handleItemIdClick = (itemId: string) => {
+        const item = collection.find((entry) => entry._id === itemId);
+        if (item) {
+            handleItemClick(item);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -121,11 +157,11 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         filters.decade !== 'all' ||
         filters.addedPeriod !== 'all' ||
         filters.style !== 'all' ||
+        filters.label !== 'all' ||
         filters.issueStatus !== 'all';
 
     return (
         <>
-            {/* Advanced Filters */}
             <CollectionFilters
                 filters={filters}
                 onFiltersChange={setFilters}
@@ -133,36 +169,40 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 availableDecades={stats.availableDecades}
                 availableStyles={stats.availableStyles}
                 styleCounts={stats.styleCounts}
+                availableLabels={stats.availableLabels}
+                labelCounts={stats.labelCounts}
                 totalResults={collection.length}
                 filteredResults={filteredCollection.length}
                 onClearAll={hasAnyFilters ? handleClearAll : undefined}
                 issueCount={issueCount}
-                viewMode={readOnly ? undefined : viewMode}
-                onViewModeChange={readOnly ? undefined : setViewMode}
-                layout={layout}
-                onLayoutChange={setLayout}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder={t(SEARCH_PLACEHOLDER_KEYS[viewMode])}
+                layout={isAggregateMode ? undefined : layout}
+                onLayoutChange={isAggregateMode ? undefined : setLayout}
             />
 
-            {/* Tracks View */}
-            {viewMode === 'tracks' && !readOnly ? (
-                <TracksView collection={filteredCollection} />
+            {viewMode === 'tracks' ? (
+                <CollectionTracksView
+                    collection={filteredCollection}
+                    searchTerm={deferredSearchTerm}
+                    onAlbumClick={handleItemIdClick}
+                />
+            ) : viewMode === 'labels' ? (
+                <CollectionLabelsView
+                    collection={filteredCollection}
+                    searchTerm={deferredSearchTerm}
+                    onItemClick={handleItemIdClick}
+                />
             ) : (
                 <>
-                    <div className="form-control mb-4">
-                        <input
-                            type="text"
-                            placeholder={t('collection.searchAlbum')}
-                            className="input input-bordered w-full"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-
                     {/* Main content */}
                     {(layout === 'table' ? sortedCollection.length === 0 : Object.keys(groupedByArtist).length === 0) ? (
                         <div className="text-center py-20">
                             <h2 className="text-2xl font-semibold">{t('collection.noResults')}</h2>
-                            <p className="mt-2 text-gray-400">{t('collection.tryAgain')}</p>
+                            <p className="mt-2 text-base-content/70">{t('collection.tryAgain')}</p>
                         </div>
                     ) : (
                         <>
@@ -176,7 +216,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                             )}
                             {layout === 'grid' && (
                                 <CollectionGridView
-                                    groupedItems={groupedByArtist}
+                                    items={gridItems}
                                     onItemClick={handleItemClick}
                                 />
                             )}

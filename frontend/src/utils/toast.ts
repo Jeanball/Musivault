@@ -18,9 +18,9 @@ const getSuccessOptions = (): ToastOptions => ({
   position: getPosition(),
   style: {
     ...baseToastOptions.style,
-    background: 'var(--fallback-p,oklch(var(--p)))',
-    color: 'var(--fallback-pc,oklch(var(--pc)))',
-    border: '1px solid var(--fallback-p,oklch(var(--p)))',
+    background: 'var(--color-primary)',
+    color: 'var(--color-primary-content)',
+    border: '1px solid var(--color-primary)',
   }
 });
 
@@ -29,9 +29,9 @@ const getErrorOptions = (): ToastOptions => ({
   position: getPosition(),
   style: {
     ...baseToastOptions.style,
-    background: 'var(--fallback-er,oklch(var(--er)))',
-    color: 'var(--fallback-erc,oklch(var(--erc)))',
-    border: '1px solid var(--fallback-er,oklch(var(--er)))',
+    background: 'var(--color-error)',
+    color: 'var(--color-error-content)',
+    border: '1px solid var(--color-error)',
   }
 });
 
@@ -40,24 +40,32 @@ const getInfoOptions = (): ToastOptions => ({
   position: getPosition(),
   style: {
     ...baseToastOptions.style,
-    background: 'var(--fallback-p,oklch(var(--p)))',
-    color: 'var(--fallback-pc,oklch(var(--pc)))',
-    border: '1px solid var(--fallback-p,oklch(var(--p)))',
+    background: 'var(--color-primary)',
+    color: 'var(--color-primary-content)',
+    border: '1px solid var(--color-primary)',
   }
 });
 
+/**
+ * Deriving the toast id from the message collapses duplicates: an effect that
+ * runs twice under StrictMode, or two components reacting to the same failure,
+ * shows one toast instead of a stack of identical ones.
+ */
+const toastId = (message: string) => `toast-${message}`;
+
 export const toastService = {
-  success: (message: string) => toast.success(message, getSuccessOptions()),
-  error: (message: string) => toast.error(message, getErrorOptions()),
-  info: (message: string) => toast.info(message, getInfoOptions()),
+  success: (message: string) => toast.success(message, { ...getSuccessOptions(), toastId: toastId(message) }),
+  error: (message: string) => toast.error(message, { ...getErrorOptions(), toastId: toastId(message) }),
+  info: (message: string) => toast.info(message, { ...getInfoOptions(), toastId: toastId(message) }),
   warning: (message: string) => toast.warning(message, {
     ...baseToastOptions,
     position: getPosition(),
+    toastId: toastId(message),
     style: {
       ...baseToastOptions.style,
-      background: 'var(--fallback-wa,oklch(var(--wa)))',
-      color: 'var(--fallback-wac,oklch(var(--wac)))',
-      border: '1px solid var(--fallback-wa,oklch(var(--wa)))',
+      background: 'var(--color-warning)',
+      color: 'var(--color-warning-content)',
+      border: '1px solid var(--color-warning)',
     }
   })
 };

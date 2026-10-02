@@ -4,7 +4,7 @@
  * This script checks all albums in the database and fetches any missing fields:
  * - styles
  * - tracklist
- * - labels
+ * - labels (including the Discogs label id used to link to the label's own site)
  * - cover_image
  * - year
  * 
@@ -21,6 +21,7 @@ import axios from 'axios';
 import path from 'path';
 import Album from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
+import { logger } from '../config/logger.config';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env') });
@@ -29,7 +30,7 @@ const DISCOGS_SECRET = process.env.DISCOGS_SECRET;
 const DISCOGS_PAT = process.env.DISCOGS_PAT;
 
 if (!DISCOGS_SECRET) {
-    console.error('❌ DISCOGS_SECRET is missing in .env');
+    logger.error('❌ DISCOGS_SECRET is missing in .env');
     process.exit(1);
 }
 
@@ -56,16 +57,16 @@ interface DiscogsRelease {
     images?: { type: string; uri: string }[];
     styles?: string[];
     tracklist?: { position: string; title: string; duration: string; artists?: { name: string }[] }[];
-    labels?: { name: string; catno: string }[];
+    labels?: { id?: number; name: string; catno: string }[];
     formats?: DiscogsFormat[];
 }
 
 async function connectDB() {
     try {
         await mongoose.connect(MONGO_URI);
-        console.log('✅ Connected to MongoDB');
+        logger.info('✅ Connected to MongoDB');
     } catch (error) {
-        console.error('❌ MongoDB connection error:', error);
+        logger.error({ err: error }, '❌ MongoDB connection error');
         process.exit(1);
     }
 }
@@ -87,7 +88,7 @@ async function fetchWithRetry(discogsId: number, retries: number = 0): Promise<D
         if (error.response?.status === 429) {
             // Rate limited
             if (retries < MAX_RETRIES) {
-                console.log(`  ⏳ Rate limited. Waiting 60 seconds before retry ${retries + 1}/${MAX_RETRIES}...`);
+                logger.info(`  ⏳ Rate limited. Waiting 60 seconds before retry ${retries + 1}/${MAX_RETRIES}...`);
                 await sleep(RETRY_DELAY_MS);
                 return fetchWithRetry(discogsId, retries + 1);
             }
@@ -111,7 +112,7 @@ async function fetchPriceWithRetry(discogsId: number, retries: number = 0): Prom
         if (error.response?.status === 429) {
             // Rate limited
             if (retries < MAX_RETRIES) {
-                console.log(`  ⏳ Rate limited. Waiting 60 seconds before retry ${retries + 1}/${MAX_RETRIES}...`);
+                logger.info(`  ⏳ Rate limited. Waiting 60 seconds before retry ${retries + 1}/${MAX_RETRIES}...`);
                 await sleep(RETRY_DELAY_MS);
                 return fetchPriceWithRetry(discogsId, retries + 1);
             }
@@ -125,22 +126,27 @@ interface MissingFields {
     styles: boolean;
     tracklist: boolean;
     labels: boolean;
+    /** Labels are stored but predate the Discogs label id, so they can't link to the label's site */
+    labelIds: boolean;
     cover_image: boolean;
     year: boolean;
 }
 
 function checkMissingFields(album: any): MissingFields {
+    const hasLabels = !!album.labels?.length;
+
     return {
         styles: !album.styles || album.styles.length === 0,
         tracklist: !album.tracklist || album.tracklist.length === 0,
-        labels: !album.labels || album.labels.length === 0,
+        labels: !hasLabels,
+        labelIds: hasLabels && album.labels.some((l: any) => !l.discogsId),
         cover_image: !album.cover_image || album.cover_image === '',
         year: !album.year || album.year === '',
     };
 }
 
 function hasMissingFields(missing: MissingFields): boolean {
-    return missing.styles || missing.tracklist || missing.labels || missing.cover_image || missing.year;
+    return Object.values(missing).some(Boolean);
 }
 
 function formatMissingFields(missing: MissingFields): string {
@@ -148,6 +154,7 @@ function formatMissingFields(missing: MissingFields): string {
     if (missing.styles) fields.push('styles');
     if (missing.tracklist) fields.push('tracklist');
     if (missing.labels) fields.push('labels');
+    if (missing.labelIds) fields.push('label ids');
     if (missing.cover_image) fields.push('cover_image');
     if (missing.year) fields.push('year');
     return fields.join(', ');
@@ -162,11 +169,11 @@ export async function migrateAlbumData(isStandalone = false) {
         // Ensure Album is registered in Mongoose BEFORE population
         if (!Album) throw new Error('Album model missing');
 
-        console.log('\n========== Unified Collection Data Migration ==========\n');
+        logger.info('\n========== Unified Collection Data Migration ==========\n');
 
         // Find all collection items and populate the album
         const collectionItems = await CollectionItem.find({}).populate('album');
-        console.log(`Found ${collectionItems.length} items in your collection.\n`);
+        logger.info(`Found ${collectionItems.length} items in your collection.\n`);
 
         let updatedAlbumsCount = 0;
         let updatedFormatsCount = 0;
@@ -180,7 +187,7 @@ export async function migrateAlbumData(isStandalone = false) {
             const progress = `[${i + 1}/${collectionItems.length}]`;
 
             if (!album?.discogsId) {
-                console.log(`${progress} Skipping: No discogsId for item`);
+                logger.info(`${progress} Skipping: No discogsId for item`);
                 fullySkippedCount++;
                 continue;
             }
@@ -200,7 +207,7 @@ export async function migrateAlbumData(isStandalone = false) {
                 continue;
             }
 
-            console.log(`${progress} Processing: ${album.title} (ID: ${album.discogsId})`);
+            logger.info(`${progress} Processing: ${album.title} (ID: ${album.discogsId})`);
             
             let itemChanged = false;
             let albumChanged = false;
@@ -213,13 +220,13 @@ export async function migrateAlbumData(isStandalone = false) {
                     // --- Handle Album Data ---
                     if (needsAlbumUpdate) {
                         const missingStr = formatMissingFields(missingAlbumFields);
-                        console.log(`  🔍 Needs Album Data (${missingStr})`);
+                        logger.info(`  🔍 Needs Album Data (${missingStr})`);
                         
                         // Update styles
                         if (missingAlbumFields.styles && data.styles?.length) {
                             album.styles = data.styles;
                             albumChanged = true;
-                            console.log(`  ✅ styles added: ${data.styles.length}`);
+                            logger.info(`  ✅ styles added: ${data.styles.length}`);
                         }
 
                         // Update tracklist
@@ -232,17 +239,40 @@ export async function migrateAlbumData(isStandalone = false) {
                                 artist: t.artists?.map(a => a.name).join(', ') || ''
                             }));
                             albumChanged = true;
-                            console.log(`  ✅ tracklist added: ${data.tracklist.length} tracks`);
+                            logger.info(`  ✅ tracklist added: ${data.tracklist.length} tracks`);
                         }
 
                         // Update labels
                         if (missingAlbumFields.labels && data.labels?.length) {
                             album.labels = data.labels.map(l => ({
                                 name: l.name || '',
-                                catno: l.catno || ''
+                                catno: l.catno || '',
+                                discogsId: l.id
                             }));
                             albumChanged = true;
-                            console.log(`  ✅ labels added`);
+                            logger.info(`  ✅ labels added`);
+                        } else if (missingAlbumFields.labelIds && data.labels?.length) {
+                            // Labels are already there, only the Discogs id is missing: match on
+                            // name (then position) so manually edited catalog numbers survive.
+                            let idsAdded = 0;
+                            album.labels = album.labels.map((label: any, index: number) => {
+                                if (label.discogsId) return label;
+
+                                const match = data.labels!.find(
+                                    l => l.name?.toLowerCase() === label.name?.toLowerCase()
+                                ) || data.labels![index];
+
+                                if (!match?.id) return label;
+
+                                idsAdded++;
+                                return { name: label.name, catno: label.catno, discogsId: match.id };
+                            });
+
+                            if (idsAdded > 0) {
+                                album.markModified('labels');
+                                albumChanged = true;
+                                logger.info(`  ✅ label ids added: ${idsAdded}`);
+                            }
                         }
 
                         // Update cover_image
@@ -251,7 +281,7 @@ export async function migrateAlbumData(isStandalone = false) {
                             if (newCoverImage) {
                                 album.cover_image = newCoverImage;
                                 albumChanged = true;
-                                console.log(`  ✅ cover_image updated`);
+                                logger.info(`  ✅ cover_image updated`);
                             }
                         }
 
@@ -259,13 +289,13 @@ export async function migrateAlbumData(isStandalone = false) {
                         if (missingAlbumFields.year && data.year) {
                             album.year = data.year.toString();
                             albumChanged = true;
-                            console.log(`  ✅ year added: ${data.year}`);
+                            logger.info(`  ✅ year added: ${data.year}`);
                         }
                     }
 
                     // --- Handle Format Data ---
                     if (needsFormatUpdate) {
-                        console.log(`  🔍 Needs Format Data`);
+                        logger.info(`  🔍 Needs Format Data`);
                         if (data.formats && data.formats.length > 0) {
                             const matchingFormat = data.formats.find(f =>
                                 f.name.toLowerCase() === item.format.name.toLowerCase()
@@ -275,7 +305,7 @@ export async function migrateAlbumData(isStandalone = false) {
                                 item.format.text = matchingFormat.text || '';
                                 item.format.descriptions = matchingFormat.descriptions || [];
                                 itemChanged = true;
-                                console.log(`  ✅ format updated`);
+                                logger.info(`  ✅ format updated`);
                             }
                         }
                     }
@@ -286,9 +316,9 @@ export async function migrateAlbumData(isStandalone = false) {
 
                 // --- Handle Price Data ---
                 if (needsPriceUpdate) {
-                    console.log(`  🔍 Needs Price Data`);
+                    logger.info(`  🔍 Needs Price Data`);
                     if (!DISCOGS_PAT) {
-                        console.log(`  ⚠️ Skipping Price fetch: DISCOGS_PAT missing in .env`);
+                        logger.warn(`  ⚠️ Skipping Price fetch: DISCOGS_PAT missing in .env`);
                     } else {
                         const suggestions = await fetchPriceWithRetry(album.discogsId);
                         const currency = (Object.values(suggestions || {})[0] as any)?.currency || 'USD';
@@ -309,9 +339,9 @@ export async function migrateAlbumData(isStandalone = false) {
                         itemChanged = true;
 
                         if (suggestions && Object.keys(suggestions).length > 0) {
-                            console.log(`  ✅ price added: ${item.priceCache.veryGoodPlus} ${currency} (VG+)`);
+                            logger.info(`  ✅ price added: ${item.priceCache.veryGoodPlus} ${currency} (VG+)`);
                         } else {
-                            console.log(`  ⚠️ No price data found in marketplace`);
+                            logger.warn(`  ⚠️ No price data found in marketplace`);
                         }
 
                         // Sleep to respect rate limits if we made an API call
@@ -332,27 +362,27 @@ export async function migrateAlbumData(isStandalone = false) {
                 }
 
             } catch (error: any) {
-                console.error(`  ❌ Failed: ${error.message}`);
+                logger.error({ err: error }, `  ❌ Failed`);
                 errorCount++;
                 await sleep(RATE_LIMIT_DELAY_MS);
             }
         }
 
-        console.log('\n========== Migration Summary ==========');
-        console.log(`Albums updated with new data: ${updatedAlbumsCount}`);
-        console.log(`Items updated with formats:   ${updatedFormatsCount}`);
-        console.log(`Items updated with prices:    ${updatedPricesCount}`);
-        console.log(`Items already complete:       ${fullySkippedCount}`);
-        console.log(`Errors encountered:           ${errorCount}`);
-        console.log('=======================================');
+        logger.info('\n========== Migration Summary ==========');
+        logger.info(`Albums updated with new data: ${updatedAlbumsCount}`);
+        logger.info(`Items updated with formats:   ${updatedFormatsCount}`);
+        logger.info(`Items updated with prices:    ${updatedPricesCount}`);
+        logger.info(`Items already complete:       ${fullySkippedCount}`);
+        logger.info(`Errors encountered:           ${errorCount}`);
+        logger.info('=======================================');
 
     } catch (error) {
-        console.error('Migration failed:', error);
+        logger.error({ err: error }, 'Migration failed');
         if (isStandalone) process.exit(1);
     } finally {
         if (isStandalone) {
             await mongoose.disconnect();
-            console.log('\nDisconnected from MongoDB');
+            logger.info('\nDisconnected from MongoDB');
             process.exit(0);
         }
     }

@@ -3,12 +3,13 @@ import dotenv from "dotenv"
 import cors from "cors"
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import fs from 'fs';
 import path from 'path';
 
 // Config
 import { connectDB } from "./config/database.config"
+import { VERSION, NODE_ENV, COMMIT_SHA, IMAGE_TAG } from "./config/version.config"
+import { logger } from "./config/logger.config"
+import { ensureUploadDirs } from "./config/uploads.config"
 
 // Routes
 import usersRoute from "./routes/users.route"
@@ -19,6 +20,8 @@ import publicRoute from './routes/public.route'
 import preferencesRoute from './routes/preferences.route'
 import adminRoute from './routes/admin.route'
 import customFieldsRoute from './routes/customFields.route'
+import systemRoute from './routes/system.route'
+import discoverRoute from './routes/discover.route'
 
 // Scripts
 import { seedAdminUser } from "./scripts/seed"
@@ -27,38 +30,7 @@ import { startTaskScheduler } from "./services/taskScheduler.service"
 
 dotenv.config()
 
-// ============================================================================
-// APP VERSION & CONFIGURATION
-// ============================================================================
-
-// Read version from environment variable (Docker) or VERSION file (development)
-const getVersion = (): string => {
-    // In Docker, APP_VERSION is set as an environment variable during build
-    if (process.env.APP_VERSION) {
-        return process.env.APP_VERSION;
-    }
-
-    // In development, read from VERSION file
-    try {
-        const versionPath = path.join(__dirname, '..', 'VERSION');
-        return fs.readFileSync(versionPath, 'utf-8').trim();
-    } catch {
-        try {
-            // Try one more level up (from src/server.ts)
-            const versionPath = path.join(__dirname, '../..', 'VERSION');
-            return fs.readFileSync(versionPath, 'utf-8').trim();
-        } catch {
-            console.warn('Could not read VERSION file, using default');
-            return '0.0.0-dev';
-        }
-    }
-};
-
-const VERSION = getVersion();
-const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString();
-const COMMIT_SHA = process.env.COMMIT_SHA || 'dev';
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const IMAGE_TAG = process.env.IMAGE_TAG || 'dev'; // Release channel: nightly, beta, latest, or dev
+const bootStartedAt = Date.now();
 
 // ============================================================================
 // EXPRESS APP SETUP
@@ -66,10 +38,16 @@ const IMAGE_TAG = process.env.IMAGE_TAG || 'dev'; // Release channel: nightly, b
 
 const app = express()
 
+// Identity first: this is what you look for when opening a container's logs.
+logger.info(`Musivault API v${VERSION} (channel: ${IMAGE_TAG})`);
+logger.info(`env=${NODE_ENV} commit=${COMMIT_SHA.substring(0, 7)} node=${process.version}`);
+
 // Trust proxy setting for Docker environments (behind Nginx)
-if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
+const trustProxy = process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true';
+if (trustProxy) {
     app.set('trust proxy', 1);
 }
+logger.info(`trust proxy: ${trustProxy ? 'enabled' : 'disabled'}`);
 
 const PORT = parseInt(process.env.PORT || '5001', 10);
 
@@ -91,6 +69,9 @@ const getCorsOrigins = (): string[] | true => {
 };
 
 const corsOrigins = getCorsOrigins();
+// Resolved rather than raw: getCorsOrigins branches on NODE_ENV, and this is
+// the first thing worth checking when the frontend hits a CORS block.
+logger.info(`cors origins: ${corsOrigins === true ? 'any' : corsOrigins.join(', ')}`);
 
 app.use(cors({
     origin: corsOrigins === true
@@ -122,12 +103,10 @@ app.use((req, res, next) => {
 
 app.use('/api/users', usersRoute);
 app.use('/api/discogs', discogsRoute);
-app.use('/api/auth', rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100
-}), authRoute);
+app.use('/api/auth', authRoute);
 app.use('/api/collection', collectionRoute)
 app.use('/api/public', publicRoute)
+app.use('/api/discover', discoverRoute)
 app.use('/api/preferences', preferencesRoute)
 app.use('/api/custom-fields', customFieldsRoute)
 app.use('/api/admin', adminRoute)
@@ -135,50 +114,31 @@ app.use('/api/admin', adminRoute)
 // Serve uploaded files (cover images for manual albums)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-
-// Version endpoint
-app.get('/api/version', (req, res) => {
-    res.status(200).json({
-        version: VERSION,
-        channel: IMAGE_TAG,
-        buildDate: BUILD_DATE,
-        commitSha: COMMIT_SHA,
-        environment: NODE_ENV
-    });
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.status(200).json({
-        status: 'ok',
-        version: VERSION,
-        timestamp: new Date().toISOString()
-    });
-});
+// Version & health endpoints
+app.use('/api', systemRoute);
 
 // ============================================================================
 // SERVER STARTUP & MIGRATIONS
 // ============================================================================
 
+ensureUploadDirs();
+
 connectDB().then(async () => {
     // 1. Run all pending migrations automatically
-    console.log('Running startup migrations...');
+    logger.info('running startup migrations...');
     await runPendingMigrations();
 
     // 2. Seeding
     await seedAdminUser();
 
-    // 3. Start Server
+    // 3. Start the background scheduler before listening. It logs on start, and
+    //    doing it after app.listen() would print it *before* the ready line
+    //    below, since that one runs in an async callback.
+    startTaskScheduler();
+
+    // 4. Accept traffic
     const server = app.listen(PORT, '0.0.0.0', () => {
-        console.log("=================================");
-        console.log(`🚀 Musivault API v${VERSION}`);
-        console.log(`📡 Server running on PORT: ${PORT}`);
-        console.log(`🌍 Environment: ${NODE_ENV}`);
-        console.log(`📦 Commit: ${COMMIT_SHA.substring(0, 7)}`);
-        console.log("=================================");
+        logger.info(`listening on 0.0.0.0:${PORT} - ready in ${Date.now() - bootStartedAt}ms`);
     });
     server.setTimeout(3600000); // 1 hour timeout for long imports
-
-    // 4. Start background task scheduler
-    startTaskScheduler();
 });

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import { toastService } from '../../utils/toast';
+import { updatePreferences } from '../../api/preferences';
 import { useTheme } from '../../context/ThemeContext';
-
-const themes = ["light", "dark"];
+import { THEMES, type Theme } from '../../constants/themes';
 
 const languages = [
     { code: 'en', label: 'English' },
@@ -20,12 +19,12 @@ const AppearanceSettings: React.FC = () => {
     const { theme, setTheme, wideScreenMode, setWideScreenMode, preferredCurrency, setPreferredCurrency } = useTheme();
     const [isSaving, setIsSaving] = useState(false);
 
-    const handleThemeChange = async (newTheme: string) => {
+    const handleThemeChange = async (newTheme: Theme) => {
         setTheme(newTheme);
         setIsSaving(true);
 
         try {
-            await axios.put('/api/preferences', { theme: newTheme }, { withCredentials: true });
+            await updatePreferences({ theme: newTheme });
             toastService.success(t('settings.themeSaved'));
         } catch (error) {
             console.error('Failed to save theme to server:', error);
@@ -39,7 +38,7 @@ const AppearanceSettings: React.FC = () => {
         localStorage.setItem('i18nextLng', lng);
         setIsSaving(true);
         try {
-            await axios.put('/api/preferences', { language: lng }, { withCredentials: true });
+            await updatePreferences({ language: lng });
             const tNew = i18n.getFixedT(lng);
             toastService.success(tNew('settings.languageSaved', 'Language saved!'));
         } catch (error) {
@@ -55,7 +54,7 @@ const AppearanceSettings: React.FC = () => {
         setIsSaving(true);
 
         try {
-            await axios.put('/api/preferences', { wideScreenMode: newValue }, { withCredentials: true });
+            await updatePreferences({ wideScreenMode: newValue });
             toastService.success(newValue ? t('settings.wideScreenModeEnabled') : t('settings.wideScreenModeDisabled'));
         } catch (error) {
             console.error('Failed to save wide screen mode to server:', error);
@@ -68,7 +67,7 @@ const AppearanceSettings: React.FC = () => {
         setPreferredCurrency(currency);
         setIsSaving(true);
         try {
-            await axios.put('/api/preferences', { preferredCurrency: currency }, { withCredentials: true });
+            await updatePreferences({ preferredCurrency: currency });
             toastService.success(t('settings.currencySaved', 'Currency updated!'));
         } catch (error) {
             console.error('Failed to save preferred currency:', error);
@@ -80,7 +79,7 @@ const AppearanceSettings: React.FC = () => {
     return (
         <>
             {/* Theme Section */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h2 className="card-title flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -89,12 +88,12 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.theme')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-base-content/50 mb-4">
                         {t('settings.themeDescription')}
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {themes.map((themeOption) => (
+                        {THEMES.map((themeOption) => (
                             <button
                                 key={themeOption}
                                 onClick={() => handleThemeChange(themeOption)}
@@ -116,7 +115,7 @@ const AppearanceSettings: React.FC = () => {
             </div>
 
             {/* Language Section */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h2 className="card-title flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,12 +124,12 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.language')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-base-content/50 mb-4">
                         {t('settings.languageDescription')}
                     </p>
 
                     <select
-                        className="select select-bordered w-full max-w-xs"
+                        className="select w-full max-w-xs"
                         value={languages.some(l => l.code === i18n.language) ? i18n.language : i18n.language.substring(0, 2)}
                         onChange={(e) => handleLanguageChange(e.target.value)}
                         disabled={isSaving}
@@ -145,7 +144,7 @@ const AppearanceSettings: React.FC = () => {
             </div>
 
             {/* Currency Section */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h2 className="card-title flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,12 +153,12 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.currency')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-base-content/50 mb-4">
                         {t('settings.currencyDescription')}
                     </p>
 
                     <select
-                        className="select select-bordered w-full max-w-xs uppercase"
+                        className="select w-full max-w-xs uppercase"
                         value={preferredCurrency}
                         onChange={(e) => handleCurrencyChange(e.target.value)}
                         disabled={isSaving}
@@ -176,7 +175,7 @@ const AppearanceSettings: React.FC = () => {
             </div>
 
             {/* Display Section */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <h2 className="card-title flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -185,11 +184,11 @@ const AppearanceSettings: React.FC = () => {
                         {t('settings.display')}
                         {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-base-content/50 mb-4">
                         {t('settings.displayDescription')}
                     </p>
 
-                    <div className="form-control">
+                    <div className="flex flex-col">
                         <label className="label cursor-pointer justify-start gap-4">
                             <input
                                 type="checkbox"
@@ -199,8 +198,8 @@ const AppearanceSettings: React.FC = () => {
                                 disabled={isSaving}
                             />
                             <div>
-                                <span className="label-text font-medium">{t('settings.wideScreenMode')}</span>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <span className="text-sm font-medium">{t('settings.wideScreenMode')}</span>
+                                <p className="text-xs text-base-content/50 mt-1">
                                     {wideScreenMode
                                         ? t('settings.wideScreenEnabled')
                                         : t('settings.wideScreenDisabled')}

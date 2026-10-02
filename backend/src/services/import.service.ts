@@ -8,6 +8,7 @@ import ImportLog, { IImportLogEntry } from '../models/ImportLog';
 import User from '../models/User';
 import { discogsService } from './discogs.service';
 import { FoundAlbumInfo } from '../types/discogs.types';
+import { logger } from '../config/logger.config';
 
 // Ensure logs directory exists
 // Use /app/logs/imports in Docker, or fallback to relative path for local dev
@@ -21,7 +22,7 @@ try {
         fs.mkdirSync(LOGS_DIR, { recursive: true });
     }
 } catch (err) {
-    console.warn(`[Import] Could not create logs directory: ${LOGS_DIR}`, err);
+    logger.warn({ err }, `[Import] Could not create logs directory: ${LOGS_DIR}`);
 }
 
 // ===== Types =====
@@ -145,31 +146,31 @@ export async function processImportRow(
 
     // Priority 1: Direct release ID lookup
     if (row.releaseId) {
-        console.log(`[Import] Trying direct release ID lookup: ${row.releaseId}`);
+        logger.debug(`[Import] Trying direct release ID lookup: ${row.releaseId}`);
         found = await discogsService.fetchByReleaseId(row.releaseId);
         if (found) {
             matchMethod = 'releaseId';
-            console.log(`[Import] Matched via release ID: ${found.artist} - ${found.title}`);
+            logger.debug(`[Import] Matched via release ID: ${found.artist} - ${found.title}`);
         }
     }
 
     // Priority 2: Catalog number search
     if (!found && row.catalogNumber) {
-        console.log(`[Import] Trying catalog number search: ${row.catalogNumber}`);
+        logger.debug(`[Import] Trying catalog number search: ${row.catalogNumber}`);
         found = await discogsService.searchByCatalogNumber(row.catalogNumber, row.artist, row.album);
         if (found) {
             matchMethod = 'catalogNumber';
-            console.log(`[Import] Matched via catalog number: ${found.artist} - ${found.title}`);
+            logger.debug(`[Import] Matched via catalog number: ${found.artist} - ${found.title}`);
         }
     }
 
     // Priority 3: Standard artist/album search
     if (!found && row.artist && row.album) {
-        console.log(`[Import] Trying artist/album search: ${row.artist} - ${row.album}`);
+        logger.debug(`[Import] Trying artist/album search: ${row.artist} - ${row.album}`);
         found = await discogsService.searchByArtistAlbum(row.artist, row.album, row.year);
         if (found) {
             matchMethod = 'search';
-            console.log(`[Import] Matched via search: ${found.artist} - ${found.title}`);
+            logger.debug(`[Import] Matched via search: ${found.artist} - ${found.title}`);
         }
     }
 
@@ -192,7 +193,7 @@ export async function processImportRow(
             cover_image: found.cover_image,
         });
         await album.save();
-        console.log(`[Import] Album created: ${album.title}`);
+        logger.debug(`[Import] Album created: ${album.title}`);
     }
 
     // Check if already in collection
@@ -220,7 +221,7 @@ export async function processImportRow(
         sleeveCondition: row.sleeveCondition || null
     });
     await newItem.save();
-    console.log(`[Import] Added to collection: ${album.title} (${format})`);
+    logger.debug(`[Import] Added to collection: ${album.title} (${format})`);
 
     return { success: true, matchedData: found, matchMethod };
 }
@@ -250,11 +251,11 @@ export async function importFromCsv(
     await importLog.save();
     const logId = String(importLog._id);
 
-    console.log(`[Import] Started import ${logId} with ${rows.length} rows`);
+    logger.info(`[Import] Started import ${logId} with ${rows.length} rows`);
 
     // Run processing in background (no await)
     processImportBackground(rows, importLog, userId).catch(err => {
-        console.error(`[Import] Background process failed for ${logId}:`, err);
+        logger.error({ err }, `[Import] Background process failed for ${logId}`);
         importLog.status = 'error';
         importLog.save();
     });
@@ -317,7 +318,7 @@ async function processImportBackground(
                 logEntry.reason = result.reason;
             }
         } catch (err: any) {
-            console.log(`[Import] Error processing row ${i + 1}:`, err.message);
+            logger.warn({ err }, `[Import] Error processing row ${i + 1}`);
             logEntry.status = 'failed';
             logEntry.reason = `Processing error: ${err.message}`;
             failures++;
@@ -339,7 +340,7 @@ async function processImportBackground(
     // Mark as completed
     importLog.status = 'completed';
     await importLog.save();
-    console.log(`[Import] Finished import ${importLog._id}`);
+    logger.info(`[Import] Finished import ${importLog._id}`);
 
     // Save final JSON file log
     await saveJsonLogFile(importLog);
@@ -370,9 +371,9 @@ async function saveJsonLogFile(importLog: any) {
         };
 
         fs.writeFileSync(logFilePath, JSON.stringify(fileLogData, null, 2));
-        console.log(`[Import] Log file saved: ${logFilePath}`);
+        logger.debug(`[Import] Log file saved: ${logFilePath}`);
     } catch (err) {
-        console.error('[Import] Failed to save JSON log file:', err);
+        logger.error({ err }, '[Import] Failed to save JSON log file');
     }
 }
 

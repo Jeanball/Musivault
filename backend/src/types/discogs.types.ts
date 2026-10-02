@@ -16,6 +16,11 @@ export interface DiscogsSearchResult {
 export interface DiscogsSearchResultExtended extends DiscogsSearchResult {
     master_id?: number; // Present on releases that have a master
     cover_image?: string;
+    // Pressing details Discogs already returns with every search hit
+    format?: string[];
+    label?: string[];
+    country?: string;
+    catno?: string;
 }
 
 // ===== Release Details =====
@@ -35,8 +40,34 @@ export interface DiscogsTrack {
 }
 
 export interface DiscogsLabel {
+    id?: number;
     name: string;
     catno?: string;
+}
+
+/** Raw response of GET /labels/{id} */
+export interface DiscogsLabelResponse {
+    id: number;
+    name: string;
+    profile?: string;
+    /** Official websites of the label, most relevant first */
+    urls?: string[];
+    /** Discogs page of the label */
+    uri?: string;
+    images?: { type: string; uri: string; uri150?: string }[];
+}
+
+/** Label info exposed to the frontend */
+export interface CleanedLabelInfo {
+    discogsId: number;
+    name: string;
+    profile: string;
+    /** Best guess at the label's own website, empty when unknown */
+    officialUrl: string;
+    /** Every external link Discogs knows about (socials, Bandcamp, ...) */
+    urls: string[];
+    discogsUrl: string;
+    image: string;
 }
 
 export interface DiscogsReleaseResponse {
@@ -73,6 +104,7 @@ export interface DiscogsVersion {
 
 export interface DiscogsMasterVersionsResponse {
     versions: DiscogsVersion[];
+    pagination?: { pages: number };
 }
 
 // ===== Artist =====
@@ -96,7 +128,18 @@ export interface DiscogsArtistRelease {
 
 export interface DiscogsArtistReleasesResponse {
     releases: DiscogsArtistRelease[];
+    pagination?: { pages: number };
 }
+
+export interface DiscogsMasterSearchResponse {
+    results: DiscogsSearchResultExtended[];
+    pagination?: { pages: number };
+}
+
+/** An album or EP, versus a single or a derived pressing (promo, test pressing). */
+export type ArtistReleaseCategory = 'album' | 'other';
+
+/** How much of a discography to load: the fast default, or every credit. */
 
 // ===== API Response Types (cleaned for frontend) =====
 
@@ -106,6 +149,12 @@ export interface CleanedSearchResult {
     year: string;
     thumb: string;
     type: 'master' | 'release';
+    /** Format descriptors ("Vinyl", "LP", "Album"), so a pressing can be told apart in the list */
+    format?: string[];
+    /** First label only: search hits list every reissue label and the rest is noise here */
+    label?: string;
+    country?: string;
+    catno?: string;
 }
 
 export interface CleanedReleaseDetails {
@@ -128,6 +177,7 @@ export interface CleanedReleaseDetails {
         artist: string;
     }[];
     labels: {
+        discogsId?: number;
         name: string;
         catno: string;
     }[];
@@ -162,6 +212,7 @@ export interface CleanedArtistReleases {
         year: number;
         thumb: string;
         type: 'master' | 'release';
+        category: ArtistReleaseCategory;
     }[];
 }
 
@@ -175,4 +226,17 @@ export interface FoundAlbumInfo {
     thumb: string;
     cover_image: string;
     format?: 'Vinyl' | 'CD';
+}
+
+/** Marketplace price suggestions, one amount per condition grade. */
+export interface MarketplaceStats {
+    mint: number | null;
+    nearMint: number | null;
+    veryGoodPlus: number | null;
+    veryGood: number | null;
+    goodPlus: number | null;
+    good: number | null;
+    fair: number | null;
+    poor: number | null;
+    currency: string;
 }

@@ -1,19 +1,23 @@
 import SearchBar from "../components/Search/SearchBar";
 import { useEffect, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router";
+import { Link, useNavigate, useOutletContext } from "react-router";
 import { useTranslation } from 'react-i18next';
 import type { CollectionItem } from "../types/collection.types";
-import type { PrivateOutletContext } from "../components/Layout/PrivateLayout";
-import axios from "axios";
+import type { PrivateOutletContext } from "../types/auth.types";
 import { getImageUrl } from "../utils/imageUrl";
+import { getCollection } from "../api/collection";
+import CoverOverlay from "../components/Common/CoverOverlay";
+import { MusivaultMark } from "../components/Common/BrandIcons";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
+/** Number of recent covers shown in the "Freshly Added" grid. */
+const LATEST_COUNT = 6;
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { username, displayName } = useOutletContext<PrivateOutletContext>();
-  const [collection, setCollection] = useState<CollectionItem[]>([]);
+  const [latestAdditions, setLatestAdditions] = useState<CollectionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const nameToDisplay = displayName || username;
 
@@ -25,16 +29,15 @@ const HomePage: React.FC = () => {
     return t('home.greetingEvening', 'Good evening');
   };
 
+  // Only the 6 covers shown below are fetched — pulling the whole collection
+  // here meant downloading hundreds of items to render six.
   useEffect(() => {
     const fetchCollection = async () => {
       try {
-        const { data } = await axios.get<CollectionItem[]>(
-          `${API_BASE_URL}/api/collection?sort=latest`,
-          { withCredentials: true }
-        );
+        const data = await getCollection('latest', LATEST_COUNT);
 
         if (Array.isArray(data)) {
-          setCollection(data);
+          setLatestAdditions(data);
         }
       } catch (error) {
         console.error("Impossible de charger la collection", error);
@@ -45,9 +48,6 @@ const HomePage: React.FC = () => {
     fetchCollection();
   }, []);
 
-  // Get latest 6 for display
-  const latestAdditions = collection.slice(0, 6);
-
   const handleAlbumClick = (item: CollectionItem) => {
     navigate(`/app/album/${item._id}`, {
       state: { backTo: '/app/collection' }
@@ -56,6 +56,13 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* The desktop navbar is hidden below lg and the bottom dock carries no
+          branding, so this is the only place the mark appears on a phone. */}
+      <div className="flex items-center justify-center gap-2.5 lg:hidden">
+        <MusivaultMark className="w-9 h-9 shrink-0" />
+        <span className="font-brand text-3xl leading-none translate-y-[0.06em] tracking-wide bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
+      </div>
+
       {/* HEADER */}
       <div className="grid grid-cols-1 gap-6">
         {/* Welcome Card */}
@@ -68,7 +75,7 @@ const HomePage: React.FC = () => {
       </div>
 
       {/* SEARCH SECTION */}
-      <div className="bg-base-200 p-6 rounded-box shadow-md">
+      <div className="bg-base-200 p-6 rounded-box shadow-panel">
         <h3 className="text-xl font-bold mb-4 text-center ">{t('home.quickSearch', 'Quick Search')}</h3>
         <SearchBar />
       </div>
@@ -77,7 +84,7 @@ const HomePage: React.FC = () => {
       <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">{t('home.freshlyAdded', 'Freshly Added')}</h2>
-          <a href="/app/collection" className="btn btn-ghost btn-sm">{t('home.viewAll', 'View All')} &rarr;</a>
+          <Link to="/app/collection" className="btn btn-ghost btn-sm">{t('home.viewAll', 'View All')} &rarr;</Link>
         </div>
 
         {isLoading ? (
@@ -88,13 +95,16 @@ const HomePage: React.FC = () => {
               <div
                 key={item._id}
                 onClick={() => handleAlbumClick(item)}
-                className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                className="card bg-base-100 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 cursor-pointer"
               >
                 <figure className="aspect-square relative overflow-hidden">
                   <img src={getImageUrl(item.album.cover_image || "/placeholder-album.svg")} alt={item.album.title} className="object-cover w-full h-full" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="badge badge-primary">{item.format.name}</span>
-                  </div>
+                  <CoverOverlay
+                    date={new Date(item.addedAt).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    dateTitle={`${t('collection.added')}: ${new Date(item.addedAt).toLocaleDateString(i18n.language)}`}
+                    type={item.format.name}
+                    typeTitle={item.format.name}
+                  />
                 </figure>
                 <div className="card-body p-3 gap-1">
                   <h3 className="card-title text-sm leading-tight truncate block" title={item.album.title}>{item.album.title}</h3>
@@ -104,7 +114,7 @@ const HomePage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center p-12 bg-base-200 rounded-box border-2 border-dashed border-base-content/20">
+          <div className="text-center p-12 bg-base-200 rounded-box border-theme border-dashed border-base-content/20">
             <p className="text-lg opacity-60">{t('home.emptyVault', 'Your vault is empty.')}</p>
             <p className="text-sm opacity-50">{t('home.emptyVaultHint', 'Start by searching above!')}</p>
           </div>

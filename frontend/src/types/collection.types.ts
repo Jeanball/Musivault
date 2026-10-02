@@ -1,4 +1,4 @@
-import type { FormatDetails } from '../components/Modal/AddAlbumVersionModal';
+import type { FormatDetails } from './album.types';
 import type { CustomFieldValues } from './customFields.types';
 
 export interface Track {
@@ -11,6 +11,8 @@ export interface Track {
 export interface Label {
     name: string;
     catno: string;
+    /** Discogs label id, used to resolve the label's official website */
+    discogsId?: number;
 }
 
 export interface Album {
@@ -26,16 +28,24 @@ export interface Album {
     labels?: Label[];
 }
 
-export interface PriceCache {
-    mint?: number;
-    nearMint?: number;
-    veryGoodPlus?: number;
-    veryGood?: number;
-    goodPlus?: number;
-    good?: number;
-    fair?: number;
-    poor?: number;
+/**
+ * One amount per condition grade. Shared by the prices stored on a collection
+ * item and the live suggestions read from Discogs, so both can be priced and
+ * rendered by the same helpers.
+ */
+export interface ConditionPrices {
+    mint?: number | null;
+    nearMint?: number | null;
+    veryGoodPlus?: number | null;
+    veryGood?: number | null;
+    goodPlus?: number | null;
+    good?: number | null;
+    fair?: number | null;
+    poor?: number | null;
     currency: string;
+}
+
+export interface PriceCache extends ConditionPrices {
     updatedAt?: string;
 }
 
@@ -45,27 +55,6 @@ export interface FormatVerification {
     detectedDiscogsFormat?: string | null;
     checkedAt?: string | null;
     ignoredAt?: string | null;
-}
-
-/**
- * Get the effective value for a collection item based on its media condition.
- * Matches mediaCondition to the stored per-condition price. Defaults to VG+.
- */
-export function getItemValue(item: CollectionItem): number {
-    if (!item.priceCache) return 0;
-    const pc = item.priceCache;
-
-    switch (item.mediaCondition) {
-        case 'M': return pc.mint ?? pc.nearMint ?? 0;
-        case 'NM': return pc.nearMint ?? pc.mint ?? 0;
-        case 'VG+': return pc.veryGoodPlus ?? 0;
-        case 'VG': return pc.veryGood ?? 0;
-        case 'G+': return pc.goodPlus ?? 0;
-        case 'G': return pc.good ?? 0;
-        case 'F': return pc.fair ?? 0;
-        case 'P': return pc.poor ?? 0;
-        default: return pc.veryGoodPlus ?? pc.nearMint ?? 0;
-    }
 }
 
 export interface CollectionItem {
@@ -80,15 +69,20 @@ export interface CollectionItem {
     addedAt: string;
 }
 
-export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'addedAt' | 'price';
+export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'label' | 'addedAt' | 'price';
 export type SortOrder = 'asc' | 'desc';
+/** How the albums are drawn. */
 export type LayoutType = 'grid' | 'list' | 'table';
+
+/** What the collection page lists — a change of content, not of presentation. */
+export type CollectionViewMode = 'albums' | 'tracks' | 'labels';
 
 export interface FilterState {
     format: string;
     decade: string;
     addedPeriod: string;
     style: string;
+    label: string;
     issueStatus: string;
 }
 
@@ -97,6 +91,8 @@ export interface CollectionStats {
     formatCounts: Record<string, number>;
     decadeCounts: Record<string, number>;
     styleCounts: Record<string, number>;
+    labelCounts: Record<string, number>;
+    artistCounts: Record<string, number>;
     recentAdds: {
         thisWeek: number;
         thisMonth: number;
@@ -112,7 +108,12 @@ export interface CollectionStats {
     availableFormats: string[];
     availableDecades: string[];
     availableStyles: string[];
+    availableLabels: string[];
+    topLabel: {
+        name: string;
+        count: number;
+    } | null;
+    /** USD, like the stored prices: converted once, on render. */
     totalValue: number;
-    valueCurrency: string;
     itemsWithValue: number;
 }

@@ -3,6 +3,7 @@ import * as client from 'openid-client';
 import { getOIDCConfig, getOIDCRedirectUri, isOIDCEnabled } from '../config/oidc.config';
 import User from '../models/User';
 import { generateToken } from '../utils/token.utils';
+import { logger } from '../config/logger.config';
 
 // Validate and get frontend URL to prevent open redirect
 function getSafeFrontendUrl(): string {
@@ -11,12 +12,12 @@ function getSafeFrontendUrl(): string {
         const parsed = new URL(url);
         // Only allow http/https protocols
         if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-            console.warn('Invalid FRONTEND_URL protocol, using default');
+            logger.warn('Invalid FRONTEND_URL protocol, using default');
             return 'http://localhost:5173';
         }
         return url;
     } catch {
-        console.warn('Invalid FRONTEND_URL, using default');
+        logger.warn('Invalid FRONTEND_URL, using default');
         return 'http://localhost:5173';
     }
 }
@@ -57,7 +58,7 @@ export async function initiateOIDCLogin(req: Request, res: Response) {
 
         res.redirect(authorizationUrl.href);
     } catch (error) {
-        console.error('Error initiating OIDC login:', error);
+        logger.error({ err: error }, 'Error initiating OIDC login');
         res.status(500).json({ message: 'Failed to initiate OIDC login.' });
     }
 }
@@ -89,11 +90,10 @@ export async function handleOIDCCallback(req: Request, res: Response) {
         const queryParams = new URLSearchParams(req.query as Record<string, string>);
         currentUrl.search = queryParams.toString();
 
-        // Debug logging
-        console.log('OIDC Debug:', {
+        logger.debug({
             constructedUrl: currentUrl.href,
             configuredRedirectUri: redirectUri
-        });
+        }, 'OIDC callback URL');
 
         // Exchange code for tokens
         const tokens = await client.authorizationCodeGrant(config, currentUrl, {
@@ -165,7 +165,7 @@ export async function handleOIDCCallback(req: Request, res: Response) {
         const frontendUrl = getSafeFrontendUrl();
         res.redirect(`${frontendUrl}/app`);
     } catch (error) {
-        console.error('Error handling OIDC callback:', error);
+        logger.error({ err: error }, 'Error handling OIDC callback');
         const frontendUrl = getSafeFrontendUrl();
         res.redirect(`${frontendUrl}/login?error=oidc_failed`);
     }

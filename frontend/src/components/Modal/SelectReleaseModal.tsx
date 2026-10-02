@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { DiscogsResult } from '../../types';
+import type { DiscogsResult } from '../../types/discogs.types';
 import { parseTitle } from '../../utils/formatters';
 import { getImageUrl } from '../../utils/imageUrl';
 
@@ -35,7 +35,7 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
                     </button>
                 </div>
 
-                <p className="text-sm text-gray-400 mb-4">
+                <p className="text-sm text-base-content/70 mb-4">
                     {t('selectRelease.description')}
                 </p>
 
@@ -47,17 +47,17 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
                             <div
                                 key={result.id}
                                 onClick={() => onSelect(result)}
-                                className="flex items-center p-3 bg-base-200 rounded-lg hover:bg-base-300 cursor-pointer transition-colors"
+                                className="flex items-center p-3 bg-base-200 rounded-box hover:bg-base-300 cursor-pointer transition-colors"
                             >
                                 <img
                                     src={getImageUrl(result.thumb || '/placeholder-album.svg')}
                                     alt={album}
-                                    className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
+                                    className="w-16 h-16 object-cover rounded-field mr-4 shrink-0"
                                 />
-                                <div className="flex-grow min-w-0">
+                                <div className="grow min-w-0">
                                     <h4 className="font-semibold truncate">{album}</h4>
-                                    <p className="text-sm text-gray-400 truncate">{artist || t('common.unknownArtist')}</p>
-                                    <p className="text-xs text-gray-500">{result.year || t('common.na')}</p>
+                                    <p className="text-sm text-base-content/70 truncate">{artist || t('common.unknownArtist')}</p>
+                                    <p className="text-xs text-base-content/50">{result.year || t('common.na')}</p>
                                 </div>
                             </div>
                         );
@@ -65,7 +65,7 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
                 </div>
 
                 {isLoading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-2xl">
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-box">
                         <span className="loading loading-spinner loading-lg text-primary"></span>
                     </div>
                 )}

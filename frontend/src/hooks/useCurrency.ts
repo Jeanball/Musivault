@@ -1,57 +1,45 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useTheme } from '../context/ThemeContext';
+import { getExchangeRates } from '../api/preferences';
 
-// Module-level cache to prevent multiple fetches across components
-let cachedRates: Record<string, number> | null = null;
-let fetchPromise: Promise<Record<string, number>> | null = null;
+interface UseCurrency {
+    formatValue: (value: number, inputCurrency?: string) => string;
+    formatCompactValue: (value: number, inputCurrency?: string) => string;
+    getValue: (value: number, inputCurrency?: string) => number;
+    isLoading: boolean;
+    rates: Record<string, number> | null;
+    preferredCurrency: string;
+}
 
-export const useCurrency = () => {
+export const useCurrency = (): UseCurrency => {
     const { preferredCurrency } = useTheme();
-    const [rates, setRates] = useState<Record<string, number> | null>(cachedRates);
-    const [isLoading, setIsLoading] = useState<boolean>(!cachedRates);
+    const [rates, setRates] = useState<Record<string, number> | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        if (cachedRates) {
-            setRates(cachedRates);
-            setIsLoading(false);
-            return;
-        }
-
-        if (!fetchPromise) {
-            fetchPromise = axios.get('/api/preferences/exchange-rates', { withCredentials: true })
-                .then(res => {
-                    cachedRates = res.data.rates || { USD: 1 };
-                    return cachedRates as Record<string, number>;
-                })
-                .catch(err => {
-                    console.error('Failed to fetch exchange rates:', err);
-                    // Fallback to basic rates if it fails
-                    const fallback = { USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.35 };
-                    cachedRates = fallback;
-                    return fallback;
-                });
-        }
-
-        fetchPromise.then(resolvedRates => {
+        let active = true;
+        // Caching and in-flight deduplication live in api/preferences.
+        getExchangeRates().then(resolvedRates => {
+            if (!active) return;
             setRates(resolvedRates);
             setIsLoading(false);
         });
+        return () => { active = false; };
     }, []);
 
-    const formatValue = useCallback((value: number, inputCurrency: string = 'USD') => {
-        // If rates haven't loaded yet, or conversion fails, default to original
-        let convertedValue = value;
-        let targetCurrency = preferredCurrency;
-
+    // Shared by both formatters: without rates we can't convert, so we keep the
+    // amount as-is and label it with the currency it came in.
+    const convert = useCallback((value: number, inputCurrency: string) => {
         if (rates && rates[preferredCurrency] && rates[inputCurrency]) {
             // First convert input to USD (base), then USD to preferred
             const valueInUSD = value / rates[inputCurrency];
-            convertedValue = valueInUSD * rates[preferredCurrency];
-        } else {
-             // Fallback if missing rates
-             targetCurrency = inputCurrency;
+            return { value: valueInUSD * rates[preferredCurrency], currency: preferredCurrency };
         }
+        return { value, currency: inputCurrency };
+    }, [preferredCurrency, rates]);
+
+    const formatValue = useCallback((value: number, inputCurrency: string = 'USD') => {
+        const { value: convertedValue, currency: targetCurrency } = convert(value, inputCurrency);
 
         try {
             return new Intl.NumberFormat(undefined, {
@@ -63,15 +51,44 @@ export const useCurrency = () => {
         } catch {
             return `${targetCurrency} ${convertedValue.toFixed(2)}`;
         }
-    }, [preferredCurrency, rates]);
+    }, [convert]);
+
+    /**
+     * Abbreviated form for chart axes: "$1.9K" where formatValue gives
+     * "$1,900.00". A full currency label overflows the axis box Recharts
+     * reserves and gets clipped, which silently drops leading digits.
+     *
+     * narrowSymbol on top of that, because the default disambiguating form is
+     * what overflows: CAD renders as "CA$1.4K" but "$1.4K" fits. The ambiguity
+     * costs nothing on an axis, where the currency is fixed for the whole page
+     * and both the tooltip and the KPI still spell it out.
+     */
+    const formatCompactValue = useCallback((value: number, inputCurrency: string = 'USD') => {
+        const { value: convertedValue, currency: targetCurrency } = convert(value, inputCurrency);
+
+        const options: Intl.NumberFormatOptions = {
+            style: 'currency',
+            currency: targetCurrency,
+            notation: 'compact',
+            maximumFractionDigits: 1,
+        };
+
+        try {
+            return new Intl.NumberFormat(undefined, { ...options, currencyDisplay: 'narrowSymbol' }).format(convertedValue);
+        } catch {
+            // narrowSymbol is the newer option of the two, so it is what an old
+            // engine rejects: fall back to the default symbol before giving up.
+            try {
+                return new Intl.NumberFormat(undefined, options).format(convertedValue);
+            } catch {
+                return `${targetCurrency} ${Math.round(convertedValue)}`;
+            }
+        }
+    }, [convert]);
 
     const getValue = useCallback((value: number, inputCurrency: string = 'USD') => {
-         if (rates && rates[preferredCurrency] && rates[inputCurrency]) {
-             const valueInUSD = value / rates[inputCurrency];
-             return valueInUSD * rates[preferredCurrency];
-         }
-         return value;
-    }, [preferredCurrency, rates]);
+         return convert(value, inputCurrency).value;
+    }, [convert]);
 
-    return { formatValue, getValue, isLoading, rates, preferredCurrency };
+    return { formatValue, formatCompactValue, getValue, isLoading, rates, preferredCurrency };
 };

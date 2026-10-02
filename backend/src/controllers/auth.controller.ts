@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import User from '../models/User';
 import { generateToken } from '../utils/token.utils';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { logger } from '../config/logger.config';
 
 export async function signupUser(req: Request, res: Response, next: NextFunction) {
     try {
@@ -22,7 +23,7 @@ export async function signupUser(req: Request, res: Response, next: NextFunction
         res.status(201).json({ message: "User created successfully.", success: true, newUser })
 
     } catch (error) {
-        console.error("Error in createUser controller", error)
+        logger.error({ err: error }, "Error in createUser controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -39,7 +40,7 @@ export async function loginUser(req: Request, res: Response) {
             $or: [{ email: identifier }, { username: identifier }],
         });
         if (!user || !(await user.comparePassword(password))) {
-            console.log("Login failed: User not found.");
+            logger.warn("Login failed: User not found.");
             res.status(401).json({ message: "Invalid credentials" });
             return;
         }
@@ -65,7 +66,7 @@ export async function loginUser(req: Request, res: Response) {
         });
 
     } catch (error) {
-        console.error("Error in loginUser controller", error);
+        logger.error({ err: error }, "Error in loginUser controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -80,7 +81,7 @@ export async function logoutUser(req: Request, res: Response) {
         });
         res.status(200).json({ message: "User logged out successfully." });
     } catch (error) {
-        console.error("Error in logoutUser controller", error);
+        logger.error({ err: error }, "Error in logoutUser controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }

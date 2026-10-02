@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
+import { getUsers, updateUser, deleteUser } from '../api/users';
+import { verify } from '../api/auth';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { AdminUser } from '../types/admin.types';
@@ -20,11 +21,7 @@ const AdminPage: React.FC = () => {
         const verifyAndFetch = async () => {
             try {
                 // Verify current user is admin
-                const { data: verifyData } = await axios.post(
-                    '/api/auth/verify',
-                    {},
-                    { withCredentials: true }
-                );
+                const verifyData = await verify();
 
                 if (!verifyData.status || !verifyData.isAdmin) {
                     navigate('/app');
@@ -34,9 +31,7 @@ const AdminPage: React.FC = () => {
                 setIsAdmin(true);
 
                 // Get current user ID
-                const { data: allUsers } = await axios.get<AdminUser[]>('/api/users', {
-                    withCredentials: true,
-                });
+                const allUsers = await getUsers();
 
                 // Find current user by username
                 const currentUser = allUsers.find(
@@ -85,7 +80,7 @@ const AdminPage: React.FC = () => {
         }
 
         try {
-            await axios.delete(`/api/users/${userId}`, { withCredentials: true });
+            await deleteUser(userId);
             setUsers(users.filter((u) => u._id !== userId));
             toastService.success(t('admin.userDeleted', { username }));
         } catch (error) {
@@ -102,11 +97,7 @@ const AdminPage: React.FC = () => {
         }
 
         try {
-            await axios.put(
-                `/api/users/${userId}`,
-                { isAdmin: !currentIsAdmin },
-                { withCredentials: true }
-            );
+            await updateUser(userId, { isAdmin: !currentIsAdmin });
 
             setUsers(
                 users.map((u) =>
@@ -134,11 +125,7 @@ const AdminPage: React.FC = () => {
         }
 
         try {
-            await axios.put(
-                `/api/users/${userId}`,
-                { password: newPassword },
-                { withCredentials: true }
-            );
+            await updateUser(userId, { password: newPassword });
             toastService.success(t('admin.passwordUpdatedFor', { username }));
         } catch (error) {
             console.error('Error updating password:', error);
@@ -222,7 +209,7 @@ const AdminPage: React.FC = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="stat bg-base-200 rounded-box shadow">
+                <div className="stat bg-base-200 rounded-box shadow-panel">
                     <div className="stat-figure text-primary hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -243,7 +230,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-primary text-2xl sm:text-3xl">{totalUsers}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow">
+                <div className="stat bg-base-200 rounded-box shadow-panel">
                     <div className="stat-figure text-secondary hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -264,7 +251,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-secondary text-2xl sm:text-3xl">{totalAdmins}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow">
+                <div className="stat bg-base-200 rounded-box shadow-panel">
                     <div className="stat-figure text-accent hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -285,7 +272,7 @@ const AdminPage: React.FC = () => {
                     <div className="stat-value text-accent text-2xl sm:text-3xl">{totalAlbums}</div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-box shadow">
+                <div className="stat bg-base-200 rounded-box shadow-panel">
                     <div className="stat-figure text-info hidden sm:block">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -307,7 +294,7 @@ const AdminPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body p-4 sm:p-6 gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <div>
@@ -325,23 +312,23 @@ const AdminPage: React.FC = () => {
             </div>
 
             {/* Users Management */}
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                         <h2 className="card-title">{t('admin.userManagement')}</h2>
                         {/* Search */}
-                        <div className="form-control w-full sm:w-64">
-                            <div className="input-group">
+                        <div className="flex flex-col w-full sm:w-64">
+                            <div className="join">
                                 <input
                                     type="text"
                                     placeholder={t('admin.searchUsers')}
-                                    className="input input-bordered input-sm w-full"
+                                    className="input input-sm join-item w-full"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                                 {searchQuery && (
                                     <button
-                                        className="btn btn-sm btn-ghost"
+                                        className="btn btn-sm btn-ghost join-item"
                                         onClick={() => setSearchQuery('')}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -373,7 +360,7 @@ const AdminPage: React.FC = () => {
                                     <tr key={user._id} className={user._id === currentUserId ? 'bg-primary/10' : ''}>
                                         <td>
                                             <div className="flex items-center gap-2">
-                                                <div className="avatar placeholder">
+                                                <div className="avatar-placeholder avatar">
                                                     <div className="bg-neutral text-neutral-content rounded-full w-8">
                                                         <span className="text-sm">
                                                             {user.username.charAt(0).toUpperCase()}
@@ -437,7 +424,7 @@ const AdminPage: React.FC = () => {
                                             )}
                                         </td>
                                         <td>
-                                            {user.lastAlbumAdded ? formatDate(user.lastAlbumAdded) : <span className="text-gray-400 italic">{t('admin.none')}</span>}
+                                            {user.lastAlbumAdded ? formatDate(user.lastAlbumAdded) : <span className="text-base-content/70 italic">{t('admin.none')}</span>}
                                         </td>
                                         <td>{formatDate(user.createdAt)}</td>
                                         <td>
@@ -523,13 +510,13 @@ const AdminPage: React.FC = () => {
                         {filteredUsers.map((user) => (
                             <div
                                 key={user._id}
-                                className={`card bg-base-100 shadow ${user._id === currentUserId ? 'ring-2 ring-primary' : ''}`}
+                                className={`card bg-base-100 shadow-card ${user._id === currentUserId ? 'ring-2 ring-primary' : ''}`}
                             >
                                 <div className="card-body p-4">
                                     {/* Header row */}
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="avatar placeholder">
+                                            <div className="avatar-placeholder avatar">
                                                 <div className="bg-neutral text-neutral-content rounded-full w-10">
                                                     <span className="text-lg">
                                                         {user.username.charAt(0).toUpperCase()}

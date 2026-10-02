@@ -1,45 +1,31 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useCollectionStats } from '../hooks/collection/useCollectionStats';
-import CollectionStats from '../components/Collection/CollectionStats';
-import { getItemValue } from '../types/collection.types';
+import { useCollectionSyncInfo } from '../hooks/collection/useCollectionSyncInfo';
+import { useValueHistory } from '../hooks/collection/useValueHistory';
+import { useRefreshOnVisible } from '../hooks/useRefreshOnVisible';
+import StatsKpiRow from '../components/Stats/StatsKpiRow';
+import DistributionSection from '../components/Stats/DistributionSection';
+import TopValueItems from '../components/Stats/TopValueItems';
 import { useCurrency } from '../hooks/useCurrency';
-
-interface CollectionSyncInfo {
-    nextAutoSyncAt: string | null;
-    lastSyncedAt: string | null;
-    ttlHours: number;
-}
 
 const StatsPage: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { collection, isLoading } = useCollectionData();
+    const { collection, isLoading, refreshCollection } = useCollectionData();
     const stats = useCollectionStats(collection);
-    const [syncInfo, setSyncInfo] = useState<CollectionSyncInfo | null>(null);
-    const { formatValue } = useCurrency();
+    const syncInfo = useCollectionSyncInfo(collection.length > 0);
+    const { points, reload } = useValueHistory();
+    const { formatValue, formatCompactValue } = useCurrency();
 
-    useEffect(() => {
-        const loadSyncInfo = async () => {
-            try {
-                const { data } = await axios.get<CollectionSyncInfo>('/api/collection/sync-info', {
-                    withCredentials: true,
-                });
-                setSyncInfo(data);
-            } catch (error) {
-                console.error('Failed to load collection sync info:', error);
-                setSyncInfo(null);
-            }
-        };
-
-        if (collection.length > 0) {
-            loadSyncInfo();
-        } else {
-            setSyncInfo(null);
-        }
-    }, [collection]);
+    // The chart reads the snapshot table, the KPIs read the collection. Refresh
+    // both together or the last point of the curve stops matching the total
+    // value tile right above it.
+    useRefreshOnVisible(useCallback(() => {
+        void reload();
+        void refreshCollection();
+    }, [reload, refreshCollection]));
 
     const formatDateTime = (value: string) => {
         return new Date(value).toLocaleString(i18n.language, {
@@ -50,42 +36,6 @@ const StatsPage: React.FC = () => {
             minute: '2-digit',
         });
     };
-
-    // Compute chart data: Evolution of the collection's total value over time.
-    // We group items by their 'addedAt' date and calculate the cumulative value.
-    const chartData = useMemo(() => {
-        if (!collection || collection.length === 0) return [];
-
-        // Sort items by addition date
-        const sorted = [...collection].sort(
-            (a, b) => new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime()
-        );
-
-        // Group by day (YYYY-MM-DD) and sum the values
-        const dailyTotals: Record<string, number> = {};
-        for (const item of sorted) {
-            const dateObj = new Date(item.addedAt);
-            // Quick formatted date string e.g., '2023-10-01'
-            const dateKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-
-            const val = getItemValue(item);
-            dailyTotals[dateKey] = (dailyTotals[dateKey] || 0) + val;
-        }
-
-        // Build the cumulative time series (raw USD values). Conversion is handled on render so we don't apply it twice.
-        const series: { date: string; value: number }[] = [];
-        let cumulative = 0;
-
-        for (const [date, dailyValue] of Object.entries(dailyTotals)) {
-            cumulative += dailyValue;
-            series.push({
-                date,
-                value: Math.round(cumulative * 100) / 100,
-            });
-        }
-
-        return series;
-    }, [collection]);
 
     if (isLoading && collection.length === 0) {
         return (
@@ -103,30 +53,31 @@ const StatsPage: React.FC = () => {
                 <p className="text-base-content/60 mt-2">{t('stats.subtitle')}</p>
             </div>
 
-            <CollectionStats stats={stats} desktopExpanded />
+            <StatsKpiRow stats={stats} />
 
-            {/* Evolution Graph Section */}
-            {chartData.length > 0 && (
-                <div className="bg-base-100 rounded-box shadow-lg p-4 md:p-6">
-                    <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div className="flex flex-col gap-1">
-                            <h2 className="text-xl font-bold">{t('stats.evolutionTitle')}</h2>
-                            <p className="text-lg font-semibold text-warning">
-                                {t('stats.totalValue')}: {stats.totalValue > 0
-                                    ? formatValue(stats.totalValue)
-                                    : '—'}
-                            </p>
-                            <p className="text-sm text-base-content/70">
-                                {t('stats.nextAutoSync')}: {syncInfo?.nextAutoSyncAt
-                                    ? formatDateTime(syncInfo.nextAutoSyncAt)
-                                    : t('stats.noAutoSyncScheduled')}
-                            </p>
-                        </div>
+            <DistributionSection stats={stats} />
+
+            <TopValueItems collection={collection} />
+
+            {/* Evolution Graph Section. Two points minimum: a single one draws
+                no line and reads as a broken chart rather than a young one. */}
+            {points.length > 1 && (
+                <div className="bg-base-100 rounded-box shadow-panel p-4 md:p-6">
+                    {/* The sync belongs here rather than beside the record count:
+                        refresh-prices is what appends a point to this curve, and
+                        it moves nothing else on the page. */}
+                    <div className="mb-6 flex flex-col gap-1">
+                        <h2 className="text-xl font-bold">{t('stats.evolutionTitle')}</h2>
+                        <p className="text-sm text-base-content/60">
+                            {t('stats.nextAutoSync')}: {syncInfo?.nextAutoSyncAt
+                                ? formatDateTime(syncInfo.nextAutoSyncAt)
+                                : t('stats.noAutoSyncScheduled')}
+                        </p>
                     </div>
                     <div className="w-full h-[300px] md:h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                                data={chartData}
+                                data={points}
                                 margin={{
                                     top: 10,
                                     right: 10,
@@ -137,42 +88,52 @@ const StatsPage: React.FC = () => {
                                 <defs>
                                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                                         {/* Using Tailwind/DaisyUI primary color with opacity */}
-                                        <stop offset="5%" stopColor="oklch(var(--p))" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="oklch(var(--p))" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--bc) / 0.1)" vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--color-base-content) 10%, transparent)" vertical={false} />
                                 <XAxis
                                     dataKey="date"
-                                    stroke="oklch(var(--bc) / 0.5)"
+                                    stroke="color-mix(in oklab, var(--color-base-content) 50%, transparent)"
                                     fontSize={12}
                                     tickMargin={10}
+                                    minTickGap={24}
                                     tickFormatter={(val) => {
                                         // Shorten date for small screens or standard format
                                         const d = new Date(val);
                                         return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(2)}`;
                                     }}
                                 />
+                                {/* Compact ticks ("$1.9K"): a full "$1,900.00" overflows the
+                                    axis box on a phone and loses its leading digits. The
+                                    tooltip below still gives the exact amount.
+                                    width="auto" because label length follows the currency:
+                                    "$1.4K" is narrow, "CHF 123.4K" is not, and a fixed
+                                    width either clips the latter or wastes space on the
+                                    former. */}
                                 <YAxis
-                                    stroke="oklch(var(--bc) / 0.5)"
+                                    stroke="color-mix(in oklab, var(--color-base-content) 50%, transparent)"
                                     fontSize={12}
-                                    tickFormatter={(val) => formatValue(val)}
+                                    tickLine={false}
+                                    width="auto"
+                                    tickFormatter={(val) => formatCompactValue(val)}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: 'oklch(var(--b2))',
-                                        borderColor: 'oklch(var(--b3))',
+                                        backgroundColor: 'var(--color-base-200)',
+                                        borderColor: 'var(--color-base-300)',
                                         borderRadius: '0.5rem',
-                                        color: 'oklch(var(--bc))'
+                                        color: 'var(--color-base-content)'
                                     }}
-                                    itemStyle={{ color: 'oklch(var(--p))' }}
+                                    itemStyle={{ color: 'var(--color-primary)' }}
                                     formatter={(value: any) => [formatValue(value), t('stats.value')]}
                                     labelFormatter={(label) => `${t('stats.chartDateLabel')}: ${label}`}
                                 />
                                 <Area
                                     type="monotone"
                                     dataKey="value"
-                                    stroke="oklch(var(--p))"
+                                    stroke="var(--color-primary)"
                                     strokeWidth={3}
                                     fillOpacity={1}
                                     fill="url(#colorValue)"

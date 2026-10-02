@@ -18,6 +18,7 @@ import path from 'path';
 import CollectionItem from '../models/CollectionItem';
 import Album from '../models/Album';
 import '../models/User';
+import { logger } from '../config/logger.config';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
@@ -91,7 +92,7 @@ function ensureReportsDir() {
 
 async function connectDB() {
     await mongoose.connect(MONGO_URI);
-    console.log('Connected to MongoDB');
+    logger.info('Connected to MongoDB');
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -159,7 +160,7 @@ async function run() {
             .populate('user', 'username')
             .lean();
 
-        console.log(`Verifying ${items.length} collection items...`);
+        logger.info(`Verifying ${items.length} collection items...`);
 
         const entries: VerificationEntry[] = [];
         let matches = 0;
@@ -213,7 +214,7 @@ async function run() {
             }
 
             const storedFormat = normalizeStoredFormat(item.format?.name);
-            console.log(`[${index + 1}/${items.length}] Checking ${album.artist} - ${album.title} (${storedFormat})`);
+            logger.info(`[${index + 1}/${items.length}] Checking ${album.artist} - ${album.title} (${storedFormat})`);
 
             try {
                 const release = await fetchDiscogsRelease(album.discogsId);
@@ -307,20 +308,20 @@ async function run() {
 
         fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
-        console.log('\nFormat verification complete');
-        console.log(`Matches: ${matches}`);
-        console.log(`Mismatches: ${mismatches}`);
-        console.log(`Unknown: ${unknown}`);
-        console.log(`Errors: ${errors}`);
-        console.log(`Ignored: ${ignored}`);
-        console.log(`Manual skipped: ${manualSkipped}`);
-        console.log(`Report saved to: ${reportPath}`);
+        logger.info('\nFormat verification complete');
+        logger.info(`Matches: ${matches}`);
+        logger.info(`Mismatches: ${mismatches}`);
+        logger.info(`Unknown: ${unknown}`);
+        logger.info(`Errors: ${errors}`);
+        logger.info(`Ignored: ${ignored}`);
+        logger.info(`Manual skipped: ${manualSkipped}`);
+        logger.info(`Report saved to: ${reportPath}`);
     } finally {
         await mongoose.disconnect();
     }
 }
 
 run().catch(error => {
-    console.error('Format verification failed:', error);
+    logger.error({ err: error }, 'Format verification failed');
     process.exit(1);
 });

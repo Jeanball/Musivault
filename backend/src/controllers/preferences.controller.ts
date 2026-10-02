@@ -1,6 +1,16 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import ExchangeRates from '../models/ExchangeRates';
+import { logger } from '../config/logger.config';
+import { MIN_RADIUS_KM, MAX_RADIUS_KM } from '../utils/geo.utils';
+
+/**
+ * Mirrors THEMES in `frontend/src/constants/themes.ts`. An unknown name is not
+ * a harmless string: the frontend writes it straight to `data-theme`, where
+ * daisyUI silently falls back to the default theme, so the user's choice
+ * appears to save and then never applies.
+ */
+const ALLOWED_THEMES = ['light', 'dark', 'abyss', 'caramellatte'];
 
 export async function getExchangeRates(req: Request, res: Response) {
     try {
@@ -31,7 +41,7 @@ export async function getExchangeRates(req: Request, res: Response) {
             lastUpdated: exchangeRates.lastUpdated
         });
     } catch (error) {
-        console.error("Error in getExchangeRates:", error);
+        logger.error({ err: error }, "Error in getExchangeRates");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -54,7 +64,7 @@ export async function getPreferences(req: Request, res: Response) {
             publicShareId: user.preferences?.isPublic ? user.publicShareId : null
         });
     } catch (error) {
-        console.error("Error in getPreferences controller", error);
+        logger.error({ err: error }, "Error in getPreferences controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -66,7 +76,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency } = req.body;
+        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, discoverExcludedStyles, discoverLocation, discoverRadiusKm } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -76,6 +86,10 @@ export async function updatePreferences(req: Request, res: Response) {
 
         // Update preferences
         if (theme !== undefined) {
+            if (!ALLOWED_THEMES.includes(theme)) {
+                res.status(400).json({ message: `Unknown theme: ${theme}` });
+                return;
+            }
             user.preferences = { ...user.preferences, theme };
         }
         if (isPublic !== undefined) {
@@ -93,6 +107,38 @@ export async function updatePreferences(req: Request, res: Response) {
         if (preferredCurrency !== undefined) {
             user.preferences = { ...user.preferences, preferredCurrency };
         }
+        if (discoverExcludedStyles !== undefined) {
+            if (!Array.isArray(discoverExcludedStyles) || discoverExcludedStyles.some((s) => typeof s !== 'string')) {
+                res.status(400).json({ message: "discoverExcludedStyles must be an array of strings" });
+                return;
+            }
+            user.preferences = { ...user.preferences, discoverExcludedStyles };
+        }
+        if (discoverLocation !== undefined) {
+            // null clears a stored position (e.g. the user revokes the browser permission).
+            if (discoverLocation === null) {
+                user.preferences = { ...user.preferences, discoverLocation: undefined };
+            } else {
+                const { lat, lon, label, source } = discoverLocation || {};
+                const validCoords = typeof lat === 'number' && lat >= -90 && lat <= 90
+                    && typeof lon === 'number' && lon >= -180 && lon <= 180;
+                if (!validCoords || !['browser', 'ip', 'manual'].includes(source)) {
+                    res.status(400).json({ message: "discoverLocation must have valid lat, lon and source" });
+                    return;
+                }
+                user.preferences = {
+                    ...user.preferences,
+                    discoverLocation: { lat, lon, label: typeof label === 'string' ? label : undefined, source }
+                };
+            }
+        }
+        if (discoverRadiusKm !== undefined) {
+            if (!Number.isInteger(discoverRadiusKm) || discoverRadiusKm < MIN_RADIUS_KM || discoverRadiusKm > MAX_RADIUS_KM) {
+                res.status(400).json({ message: `discoverRadiusKm must be an integer between ${MIN_RADIUS_KM} and ${MAX_RADIUS_KM}` });
+                return;
+            }
+            user.preferences = { ...user.preferences, discoverRadiusKm };
+        }
 
         await user.save();
 
@@ -102,7 +148,7 @@ export async function updatePreferences(req: Request, res: Response) {
             publicShareId: user.preferences.isPublic ? user.publicShareId : null
         });
     } catch (error) {
-        console.error("Error in updatePreferences controller", error);
+        logger.error({ err: error }, "Error in updatePreferences controller");
         res.status(500).json({ message: "Internal server error" });
     }
 }

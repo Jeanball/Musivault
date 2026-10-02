@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import axios from "axios";
+import { MusivaultMark } from '../components/Common/BrandIcons';
 import { useTranslation } from 'react-i18next';
 import Footer from "../components/Navigation/Footer";
 import { toastService } from "../utils/toast";
+import { login, getOidcStatus, OIDC_LOGIN_URL } from "../api/auth";
+import { isApiError } from "../api/errors";
 
 // Interface for the form state
 interface LoginFormState {
     identifier: string;
     password: string;
 }
-
-// Interface for the login API response
-interface LoginApiResponse {
-    _id: string;
-    username: string;
-    email: string;
-}
-const API_BASE_URL = import.meta.env.API_URL || '';
 
 
 const LoginPage: React.FC = () => {
@@ -31,10 +25,10 @@ const LoginPage: React.FC = () => {
 
     useEffect(() => {
         // Check if OIDC is enabled and get provider name
-        axios.get<{ enabled: boolean; providerName: string }>(`${API_BASE_URL}/api/auth/oidc/status`)
-            .then(res => {
-                setOidcEnabled(res.data.enabled);
-                setOidcProviderName(res.data.providerName || 'SSO');
+        getOidcStatus()
+            .then(status => {
+                setOidcEnabled(status.enabled);
+                setOidcProviderName(status.providerName || 'SSO');
             })
             .catch(() => setOidcEnabled(false));
 
@@ -56,16 +50,13 @@ const LoginPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            await axios.post<LoginApiResponse>(
-                `${API_BASE_URL}/api/auth/login`,
-                { ...inputValue },
-                { withCredentials: true }
-            );
+            await login(inputValue);
             navigate("/app", { state: { showLoginSuccess: true } });
 
-        } catch (error: any) {
+        } catch (error) {
             console.log(error);
-            toastService.error(error.response?.data?.message || t('auth.loginError', 'Invalid credentials'));
+            const serverMessage = isApiError(error) ? error.serverMessage : undefined;
+            toastService.error(serverMessage || t('auth.loginError', 'Invalid credentials'));
         }
 
         setInputValue({
@@ -75,22 +66,22 @@ const LoginPage: React.FC = () => {
     };
 
     const handleSSOLogin = () => {
-        window.location.href = `${API_BASE_URL}/api/auth/oidc/login`;
+        window.location.href = OIDC_LOGIN_URL;
     };
 
     return (
         <div className="flex flex-col min-h-screen">
             <div className="flex-1 hero bg-base-200">
-                <div className="card shrink-0 w-full max-w-md shadow-2xl bg-base-100">
+                <div className="card shrink-0 w-full max-w-md shadow-card bg-base-100">
                     <form className="card-body" onSubmit={handleSubmit}>
                         <div className="flex flex-col items-center mb-4">
-                            <img src="/icons/icon-musivault.svg" alt="Musivault" className="w-16 h-16 mb-2" />
-                            <h1 className="text-3xl font-bold">Musivault</h1>
+                            <MusivaultMark className="w-16 h-16 mb-2" />
+                            <h1 className="font-brand text-4xl leading-none tracking-wide bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</h1>
                         </div>
                         <h2 className="card-title text-xl font-semibold self-center">{t('auth.login')}</h2>
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label" htmlFor="identifier">
-                                <span className="label-text">{t('auth.emailOrUsername')}</span>
+                                <span className="text-sm">{t('auth.emailOrUsername')}</span>
                             </label>
                             <input
                                 id="identifier"
@@ -99,13 +90,13 @@ const LoginPage: React.FC = () => {
                                 value={identifier}
                                 placeholder={t('auth.enterUsernameOrEmail')}
                                 onChange={handleOnChange}
-                                className="input input-bordered"
+                                className="input w-full"
                                 required
                             />
                         </div>
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label" htmlFor="password">
-                                <span className="label-text">{t('auth.password')}</span>
+                                <span className="text-sm">{t('auth.password')}</span>
                             </label>
                             <input
                                 id="password"
@@ -114,11 +105,11 @@ const LoginPage: React.FC = () => {
                                 value={password}
                                 placeholder={t('auth.enterPassword')}
                                 onChange={handleOnChange}
-                                className="input input-bordered"
+                                className="input w-full"
                                 required
                             />
                         </div>
-                        <div className="form-control mt-6">
+                        <div className="flex flex-col mt-6">
                             <button type="submit" className="btn btn-primary">{t('auth.login')}</button>
                         </div>
 

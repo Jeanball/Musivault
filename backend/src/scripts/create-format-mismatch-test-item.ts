@@ -5,6 +5,7 @@ import path from 'path';
 import User from '../models/User';
 import Album from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
+import { logger } from '../config/logger.config';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
@@ -144,8 +145,8 @@ async function run() {
             throw new Error('Selected album does not have a Discogs release ID');
         }
 
-        console.log(`Using user: ${user.username} (${user.email})`);
-        console.log(`Using album: ${album.artist} - ${album.title} [Discogs ${album.discogsId}]`);
+        logger.info(`Using user: ${user.username} (${user.email})`);
+        logger.info(`Using album: ${album.artist} - ${album.title} [Discogs ${album.discogsId}]`);
 
         const release = await fetchDiscogsRelease(album.discogsId);
         const detectedDiscogsFormat = detectDiscogsFormat(release.formats);
@@ -164,10 +165,10 @@ async function run() {
         }).populate('album');
 
         if (existingItem) {
-            console.log('A matching test item already exists.');
-            console.log(`Item ID: ${existingItem._id}`);
-            console.log(`Stored format: ${existingItem.format.name}`);
-            console.log(`Detected Discogs format: ${detectedDiscogsFormat}`);
+            logger.info('A matching test item already exists.');
+            logger.info(`Item ID: ${existingItem._id}`);
+            logger.info(`Stored format: ${existingItem.format.name}`);
+            logger.info(`Detected Discogs format: ${detectedDiscogsFormat}`);
             return;
         }
 
@@ -188,17 +189,17 @@ async function run() {
             }
         });
 
-        console.log('Created mismatch test item successfully.');
-        console.log(`Item ID: ${newItem._id}`);
-        console.log(`Stored format: ${mismatchedFormat}`);
-        console.log(`Detected Discogs format: ${detectedDiscogsFormat}`);
-        console.log('You can open this item in the collection UI to test Rematch and Ignore alert.');
+        logger.info('Created mismatch test item successfully.');
+        logger.info(`Item ID: ${newItem._id}`);
+        logger.info(`Stored format: ${mismatchedFormat}`);
+        logger.info(`Detected Discogs format: ${detectedDiscogsFormat}`);
+        logger.info('You can open this item in the collection UI to test Rematch and Ignore alert.');
     } finally {
         await mongoose.disconnect();
     }
 }
 
 run().catch(error => {
-    console.error('Failed to create mismatch test item:', error);
+    logger.error({ err: error }, 'Failed to create mismatch test item');
     process.exit(1);
 });

@@ -4,6 +4,7 @@ import CustomFieldDefinition, {
   ICustomFieldDefinition,
 } from "../models/CustomFieldDefinition";
 import CollectionItem from "../models/CollectionItem";
+import { logger } from '../config/logger.config';
 
 const MAX_FIELDS_PER_USER = 20;
 
@@ -30,7 +31,7 @@ export async function getCustomFieldDefinitions(req: Request, res: Response) {
 
     res.status(200).json(fields);
   } catch (error) {
-    console.error("Error fetching custom field definitions:", error);
+    logger.error({ err: error }, "Error fetching custom field definitions");
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -89,7 +90,7 @@ export async function createCustomFieldDefinition(req: Request, res: Response) {
     await field.save();
     res.status(201).json(field);
   } catch (error) {
-    console.error("Error creating custom field definition:", error);
+    logger.error({ err: error }, "Error creating custom field definition");
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -149,7 +150,7 @@ export async function updateCustomFieldDefinition(req: Request, res: Response) {
     await field.save();
     res.status(200).json(field);
   } catch (error) {
-    console.error("Error updating custom field definition:", error);
+    logger.error({ err: error }, "Error updating custom field definition");
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -180,7 +181,7 @@ export async function deleteCustomFieldDefinition(req: Request, res: Response) {
 
     res.status(200).json({ message: "Custom field deleted" });
   } catch (error) {
-    console.error("Error deleting custom field definition:", error);
+    logger.error({ err: error }, "Error deleting custom field definition");
     res.status(500).json({ message: "Internal server error" });
   }
 }

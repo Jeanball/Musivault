@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, SortColumn, SortOrder } from '../../types/collection.types';
-import { getItemValue } from '../../types/collection.types';
+import { getItemValue } from '../../utils/itemValue';
 
 const SORT_STORAGE_KEY = 'musivault_collection_sort';
 
@@ -66,6 +66,11 @@ export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
                 case 'format':
                     aValue = a.format.name.toLowerCase();
                     bValue = b.format.name.toLowerCase();
+                    break;
+                case 'label':
+                    // Albums without a label sort last in ascending order
+                    aValue = a.album.labels?.[0]?.name.toLowerCase() || '￿';
+                    bValue = b.album.labels?.[0]?.name.toLowerCase() || '￿';
                     break;
                 case 'addedAt':
                     aValue = new Date(a.addedAt).getTime();

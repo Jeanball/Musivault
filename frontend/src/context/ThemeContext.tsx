@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import axios from 'axios';
-
-type Theme = string;
+import { getPreferences } from '../api/preferences';
+import type { Preferences } from '../types/preferences.types';
+import { DEFAULT_THEME, isTheme, type Theme } from '../constants/themes';
 
 interface ThemeContextType {
     theme: Theme;
@@ -10,15 +10,16 @@ interface ThemeContextType {
     setWideScreenMode: (enabled: boolean) => void;
     preferredCurrency: string;
     setPreferredCurrency: (currency: string) => void;
-    syncPreferencesFromServer: () => Promise<void>;
+    syncPreferencesFromServer: () => Promise<Preferences | null>;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-    const [theme, setTheme] = useState<Theme>(
-        localStorage.getItem('theme') || 'dark'
-    );
+    const [theme, setTheme] = useState<Theme>(() => {
+        const stored = localStorage.getItem('theme');
+        return isTheme(stored) ? stored : DEFAULT_THEME;
+    });
     const [wideScreenMode, setWideScreenMode] = useState<boolean>(
         localStorage.getItem('wideScreenMode') === 'true' // Default to false
     );
@@ -30,6 +31,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
+
+        // Keep the mobile browser chrome on the theme's own background. Read
+        // back from the DOM rather than from a table of colours, so themes
+        // added to index.css are covered without touching this.
+        const meta = document.querySelector('meta[name="theme-color"]');
+        const background = getComputedStyle(document.documentElement).backgroundColor;
+        if (meta && background) {
+            meta.setAttribute('content', background);
+        }
     }, [theme]);
 
     // Apply wideScreenMode to localStorage
@@ -42,23 +52,34 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('preferredCurrency', preferredCurrency);
     }, [preferredCurrency]);
 
-    // Function to sync preferences from server (called after login)
-    const syncPreferencesFromServer = useCallback(async () => {
+    /**
+     * Called after login, so it bypasses the cache in case it still holds the
+     * previous user's values. Returns the preferences so callers don't need a
+     * second request to read the fields this context doesn't track.
+     *
+     * Deliberately dependency-free: this function is read by effects in the
+     * layouts, and a new identity on every preference change would re-run them.
+     * No need to compare against current state first either — React drops a
+     * re-render when a setter is handed the value it already holds.
+     */
+    const syncPreferencesFromServer = useCallback(async (): Promise<Preferences | null> => {
         try {
-            const { data } = await axios.get('/api/preferences', { withCredentials: true });
-            if (data.theme && data.theme !== theme) {
+            const data = await getPreferences(true);
+            if (isTheme(data.theme)) {
                 setTheme(data.theme);
             }
-            if (data.wideScreenMode !== undefined && data.wideScreenMode !== wideScreenMode) {
+            if (data.wideScreenMode !== undefined) {
                 setWideScreenMode(data.wideScreenMode);
             }
-            if (data.preferredCurrency && data.preferredCurrency !== preferredCurrency) {
+            if (data.preferredCurrency) {
                 setPreferredCurrency(data.preferredCurrency);
             }
+            return data;
         } catch {
             // Silent if not logged in or error - keep local preferences
+            return null;
         }
-    }, [theme, wideScreenMode, preferredCurrency]);
+    }, []);
 
 
 

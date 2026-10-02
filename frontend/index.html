@@ -5,14 +5,34 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="/favicon.ico" />
   <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Musivault" />
   <meta name="theme-color" content="#1a1b26" />
   <meta name="description" content="Manage your vinyl and CD collection" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!--
+    Discover's release covers come from Cover Art Archive, which answers with a
+    redirect to archive.org — so the first cover pays a DNS lookup and a TLS
+    handshake before a single byte of image moves. Opening the connection while
+    the page is still parsing gets that out of the way.
+  -->
+  <link rel="preconnect" href="https://coverartarchive.org" crossorigin />
   <title>Musivault</title>
+  <!--
+    Applied before the first paint. ThemeContext also sets data-theme, but only
+    from an effect, so without this every user whose theme isn't the daisyUI
+    default sees a flash of the light theme on each load. Kept dependency-free
+    and inline on purpose: an external script would be another round trip.
+    'dark' must match DEFAULT_THEME in src/constants/themes.ts.
+  -->
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
+    } catch (e) { /* localStorage can throw when cookies are blocked */ }
+  </script>
 </head>
 
 <body>

@@ -13,6 +13,8 @@ import Migration from '../models/Migration';
 import { migrateIndexes } from './migrate-indexes';
 import { cleanupArtistNames } from './cleanup-artist-names';
 import { migrateAlbumData } from './migrate-album-data';
+import { backfillValueSnapshots } from './backfill-value-snapshots';
+import { logger } from '../config/logger.config';
 
 interface MigrationDefinition {
   id: string;
@@ -56,6 +58,24 @@ const MIGRATIONS: MigrationDefinition[] = [
       return 'Album data backfill complete';
     }
   },
+  {
+    id: '2026-08-01_label-discogs-ids',
+    description: 'Backfill Discogs label ids so albums can link to the label official website',
+    type: 'background',
+    run: async () => {
+      await migrateAlbumData();
+      return 'Label ids backfill complete';
+    }
+  },
+  {
+    id: '2026-08-09_backfill-value-snapshots',
+    description: 'Seed the collection value history from each item addedAt date',
+    type: 'background',
+    run: async () => {
+      const points = await backfillValueSnapshots();
+      return `${points} value snapshot(s) written`;
+    }
+  },
 ];
 
 /**
@@ -76,14 +96,14 @@ export async function runPendingMigrations(): Promise<void> {
   });
 
   if (pending.length === 0) {
-    console.log('No pending migrations.');
+    logger.info('No pending migrations.');
     return;
   }
 
   const blockingMigrations = pending.filter(m => m.type === 'blocking');
   const backgroundMigrations = pending.filter(m => m.type === 'background');
 
-  console.log(`Found ${pending.length} pending migration(s): ${blockingMigrations.length} blocking, ${backgroundMigrations.length} background`);
+  logger.info(`Found ${pending.length} pending migration(s): ${blockingMigrations.length} blocking, ${backgroundMigrations.length} background`);
 
   // Run blocking migrations sequentially
   for (const migration of blockingMigrations) {
@@ -92,11 +112,11 @@ export async function runPendingMigrations(): Promise<void> {
 
   // Launch background migrations (non-blocking, fire-and-forget)
   if (backgroundMigrations.length > 0) {
-    console.log(`Launching ${backgroundMigrations.length} background migration(s)...`);
+    logger.info(`Launching ${backgroundMigrations.length} background migration(s)...`);
     for (const migration of backgroundMigrations) {
       activeBackgroundMigrations++;
       executeMigration(migration).catch(err => {
-        console.error(`Background migration ${migration.id} error:`, err);
+        logger.error({ err }, `Background migration ${migration.id} error`);
       }).finally(() => {
         activeBackgroundMigrations--;
       });
@@ -115,7 +135,7 @@ export function isBackgroundMigrationRunning(): boolean {
  */
 async function executeMigration(migration: MigrationDefinition): Promise<void> {
   const label = migration.type === 'blocking' ? 'BLOCKING' : 'BACKGROUND';
-  console.log(`[Migration] [${label}] Running: ${migration.id} - ${migration.description}`);
+  logger.info(`[Migration] [${label}] Running: ${migration.id} - ${migration.description}`);
   const start = Date.now();
 
   try {
@@ -135,7 +155,7 @@ async function executeMigration(migration: MigrationDefinition): Promise<void> {
       { upsert: true }
     );
 
-    console.log(`[Migration] ${migration.id} completed in ${durationMs}ms`);
+    logger.info(`[Migration] ${migration.id} completed in ${durationMs}ms`);
   } catch (error: any) {
     const durationMs = Date.now() - start;
 
@@ -152,7 +172,7 @@ async function executeMigration(migration: MigrationDefinition): Promise<void> {
       { upsert: true }
     );
 
-    console.error(`[Migration] ${migration.id} FAILED after ${durationMs}ms:`, error.message);
+    logger.error({ err: error }, `[Migration] ${migration.id} FAILED after ${durationMs}ms`);
     // Don't throw - allow other migrations to continue
   }
 }

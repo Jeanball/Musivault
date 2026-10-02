@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import axios from 'axios';
+import { verify } from '../api/auth';
+import { getTasks, runTask, subscribeTask, type TaskEvent } from '../api/admin';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { AdminTask } from '../types/admin.types';
@@ -15,76 +16,58 @@ const AdminTasksPage: React.FC = () => {
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
     const [activeTaskProgress, setActiveTaskProgress] = useState('');
     const [activeTaskSummary, setActiveTaskSummary] = useState('');
-    const activeReaderRef = useRef<ReadableStreamDefaultReader | null>(null);
+    // Aborted on unmount so a task still streaming can't setState afterwards.
+    const abortRef = useRef<AbortController | null>(null);
+
+    useEffect(() => () => abortRef.current?.abort(), []);
 
     const loadTasks = useCallback(async () => {
-        const { data } = await axios.get<AdminTask[]>('/api/admin/tasks', {
-            withCredentials: true,
-        });
+        const data = await getTasks();
         setTasks(data);
         return data;
     }, []);
 
     /**
-     * Read SSE events from a response body stream.
-     * Used for both starting a new task and subscribing to a running one.
+     * Turns the stream of task events into UI state. Transport, buffering and
+     * cancellation live in api/admin; translation and toasts stay here.
      */
-    const consumeSSEStream = useCallback(async (taskId: string, body: ReadableStream<Uint8Array>) => {
-        const reader = body.getReader();
-        activeReaderRef.current = reader;
-        const decoder = new TextDecoder();
-        let buffer = '';
-
+    const consumeEvents = useCallback(async (taskId: string, events: AsyncGenerator<TaskEvent>) => {
         try {
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (!line.startsWith('data: ')) continue;
-
-                    try {
-                        const event = JSON.parse(line.slice(6));
-                        if (event.type === 'progress') {
-                            setActiveTaskProgress(`${event.current}/${event.total} - ${event.artist} - ${event.title}`);
-                        } else if (event.type === 'complete') {
-                            let summary = '';
-                            if (taskId === 'refresh-prices') {
-                                const key = event.forceRefresh
-                                    ? 'admin.tasks.items.refreshPrices.successForce'
-                                    : 'admin.tasks.items.refreshPrices.successSync';
-                                summary = t(key, {
-                                    synced: event.synced ?? event.syncedReleases,
-                                    syncedItems: event.syncedItems,
-                                    total: event.total ?? event.totalReleases,
-                                    totalItems: event.totalItems,
-                                    skipped: event.skipped ?? ((event.skippedFresh ?? 0) + (event.skippedNoData ?? 0)),
-                                });
-                            } else if (taskId === 'refresh-exchange-rates') {
-                                summary = t('admin.tasks.items.refreshExchangeRates.success', 'Successfully refreshed exchange rates.');
-                            } else {
-                                summary = event.message || t('admin.tasks.runSuccess', 'Task completed successfully.');
-                            }
-
-                            setActiveTaskSummary(summary);
-                            toastService.success(summary);
-                        } else if (event.type === 'error') {
-                            toastService.error(event.message || t('admin.tasks.runError', 'Failed to run task. Please try again.'));
-                        }
-                    } catch (error) {
-                        if (error instanceof SyntaxError) continue;
-                        if (error instanceof Error) throw error;
+            for await (const event of events) {
+                if (event.type === 'progress') {
+                    setActiveTaskProgress(
+                        event.label
+                            ? `${event.current}/${event.total} - ${event.label}`
+                            : `${event.current}/${event.total} - ${event.artist} - ${event.title}`
+                    );
+                } else if (event.type === 'complete') {
+                    let summary = '';
+                    if (taskId === 'refresh-prices') {
+                        const key = event.forceRefresh
+                            ? 'admin.tasks.items.refreshPrices.successForce'
+                            : 'admin.tasks.items.refreshPrices.successSync';
+                        summary = t(key, {
+                            synced: event.synced ?? event.syncedReleases,
+                            syncedItems: event.syncedItems,
+                            total: event.total ?? event.totalReleases,
+                            totalItems: event.totalItems,
+                            skipped: event.skipped ?? ((event.skippedFresh ?? 0) + (event.skippedNoData ?? 0)),
+                        });
+                    } else if (taskId === 'refresh-exchange-rates') {
+                        summary = t('admin.tasks.items.refreshExchangeRates.success', 'Successfully refreshed exchange rates.');
+                    } else {
+                        summary = event.message || t('admin.tasks.runSuccess', 'Task completed successfully.');
                     }
+
+                    setActiveTaskSummary(summary);
+                    toastService.success(summary);
+                } else if (event.type === 'error') {
+                    toastService.error(event.message || t('admin.tasks.runError', 'Failed to run task. Please try again.'));
                 }
             }
         } catch {
             // Stream ended or errored — that's OK, task keeps running on the server
         } finally {
-            activeReaderRef.current = null;
             setActiveTaskId(null);
             setActiveTaskProgress('');
             await loadTasks();
@@ -100,27 +83,18 @@ const AdminTasksPage: React.FC = () => {
         setActiveTaskSummary('');
 
         try {
-            const response = await fetch(`/api/admin/tasks/${taskId}/subscribe`, {
-                credentials: 'include',
-            });
-
-            if (!response.ok || !response.body) return;
-
-            await consumeSSEStream(taskId, response.body);
+            abortRef.current = new AbortController();
+            await consumeEvents(taskId, subscribeTask(taskId, abortRef.current.signal));
         } catch {
             setActiveTaskId(null);
             setActiveTaskProgress('');
         }
-    }, [consumeSSEStream]);
+    }, [consumeEvents]);
 
     useEffect(() => {
         const verifyAndLoad = async () => {
             try {
-                const { data: verifyData } = await axios.post(
-                    '/api/auth/verify',
-                    {},
-                    { withCredentials: true }
-                );
+                const verifyData = await verify();
 
                 if (!verifyData.status || !verifyData.isAdmin) {
                     navigate('/app');
@@ -153,6 +127,8 @@ const AdminTasksPage: React.FC = () => {
                 return t('admin.tasks.items.refreshPrices.name', 'Refresh Prices');
             case 'refresh-exchange-rates':
                 return t('admin.tasks.items.refreshExchangeRates.name', 'Update Exchange Rates');
+            case 'refresh-upcoming-releases':
+                return t('admin.tasks.items.refreshUpcomingReleases.name', 'Refresh Upcoming Releases');
             default:
                 return taskId;
         }
@@ -170,6 +146,11 @@ const AdminTasksPage: React.FC = () => {
                     'admin.tasks.items.refreshExchangeRates.description',
                     'Fetch the latest currency exchange rates from the external API to ensure accurate collection valuations.'
                 );
+            case 'refresh-upcoming-releases':
+                return t(
+                    'admin.tasks.items.refreshUpcomingReleases.description',
+                    'Fetch every album and EP MusicBrainz lists for the coming weeks, then cache only those whose artists match a style already present in a collection, so each member sees the releases matching their own genres.'
+                );
             default:
                 return t('admin.tasks.defaultDescription', 'No description available yet.');
         }
@@ -181,18 +162,9 @@ const AdminTasksPage: React.FC = () => {
         setActiveTaskSummary('');
 
         try {
-            const response = await fetch(`/api/admin/tasks/${task.id}/run`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            if (!response.ok || !response.body) {
-                throw new Error('Task failed');
-            }
-
-            await consumeSSEStream(task.id, response.body);
-        } catch (error: any) {
+            abortRef.current = new AbortController();
+            await consumeEvents(task.id, runTask(task.id, abortRef.current.signal));
+        } catch (error) {
             console.error(`Error running admin task "${task.id}":`, error);
             setActiveTaskSummary('');
             toastService.error(t('admin.tasks.runError', 'Failed to run task. Please try again.'));
@@ -269,7 +241,7 @@ const AdminTasksPage: React.FC = () => {
                 <AdminTabs />
             </div>
 
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body p-4 sm:p-6 space-y-4">
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                         <div>

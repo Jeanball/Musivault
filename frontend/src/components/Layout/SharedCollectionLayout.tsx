@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import axios from 'axios';
+import { MusivaultMark } from '../Common/BrandIcons';
+import { verify, logout } from '../../api/auth';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../Navigation/Navbar';
 import Footer from '../Navigation/Footer';
@@ -27,11 +28,7 @@ const SharedCollectionLayout: React.FC = () => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const { data } = await axios.post(
-                    '/api/auth/verify',
-                    {},
-                    { withCredentials: true }
-                );
+                const data = await verify();
                 if (data.status) {
                     setAuthState({
                         isAuthenticated: true,
@@ -51,7 +48,7 @@ const SharedCollectionLayout: React.FC = () => {
 
     const handleLogout = async () => {
         try {
-            await axios.post('/api/auth/logout', {}, { withCredentials: true });
+            await logout();
             setAuthState({ isAuthenticated: false, username: '', isAdmin: false });
             navigate('/');
         } catch (error) {
@@ -71,7 +68,7 @@ const SharedCollectionLayout: React.FC = () => {
     if (authState.isAuthenticated) {
         return (
             <div className="flex flex-col min-h-screen">
-                <div className={`flex-1 p-4 md:p-8 ${wideScreenMode ? 'max-w-[1000px] mx-auto w-full' : ''}`}>
+                <div className={`flex-1 p-4 md:p-8 ${wideScreenMode ? 'max-w-250 mx-auto w-full' : ''}`}>
                     <Navbar
                         username={authState.username}
                         isAdmin={authState.isAdmin}
@@ -92,15 +89,11 @@ const SharedCollectionLayout: React.FC = () => {
     return (
         <div data-theme="dark" className="flex flex-col min-h-screen bg-base-100 text-base-content">
             {/* Generic Header */}
-            <header className="navbar bg-base-100 shadow-lg px-4 md:px-8">
+            <header className="navbar bg-base-100 shadow-panel px-4 md:px-8">
                 <div className="navbar-start">
-                    <Link to="/" className="btn btn-ghost normal-case gap-3 hover:bg-transparent">
-                        <div className="avatar">
-                            <div className="w-10 rounded-xl shadow-md ring ring-primary ring-offset-base-100 ring-offset-1">
-                                <img src="/icons/icon-192x192.png" alt="Musivault Logo" />
-                            </div>
-                        </div>
-                        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">MUSIVAULT</span>
+                    <Link to="/" className="flex items-center gap-2.5" aria-label="Musivault">
+                        <MusivaultMark className="w-10 h-10 shrink-0" />
+                        <span className="font-brand text-3xl leading-none translate-y-[0.06em] tracking-wide bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">MUSIVAULT</span>
                     </Link>
                 </div>
                 <div className="navbar-end">
@@ -111,7 +104,7 @@ const SharedCollectionLayout: React.FC = () => {
             </header>
 
             {/* Content */}
-            <main className="flex-1 p-4 md:p-8 max-w-[1000px] mx-auto w-full">
+            <main className="flex-1 p-4 md:p-8 max-w-250 mx-auto w-full">
                 <PublicCollectionPage isAuthenticated={false} />
             </main>
 

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../config/logger.config';
 
 /**
  * Middleware to require admin privileges.
@@ -18,7 +19,7 @@ const requireAdmin = async (req: Request, res: Response, next: NextFunction) => 
 
         next();
     } catch (error) {
-        console.error("Error in requireAdmin middleware:", error);
+        logger.error({ err: error }, "Error in requireAdmin middleware");
         res.status(500).json({ message: "Internal server error" });
     }
 };

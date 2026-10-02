@@ -76,11 +76,7 @@ export async function getArtistReleases(req: Request, res: Response) {
     const { sort = 'year', order = 'desc' } = req.query;
 
     try {
-        const result = await discogsService.getArtistReleases(
-            artistId,
-            String(sort),
-            String(order)
-        );
+        const result = await discogsService.getArtistReleases(artistId, String(sort), String(order));
         res.status(200).json(result);
     } catch (error) {
         handleDiscogsError(error, res, `fetching albums for artist ${artistId}`);
@@ -99,6 +95,56 @@ export async function getReleaseDetails(req: Request, res: Response) {
         res.status(200).json(result);
     } catch (error) {
         handleDiscogsError(error, res, 'fetching release details from Discogs');
+    }
+}
+
+/**
+ * Get marketplace price suggestions for a release
+ * GET /api/discogs/release/:releaseId/price
+ * Answers 200 with null when no price is available, so the UI can simply hide
+ * the block instead of treating a missing price as an error.
+ */
+export async function getReleasePrice(req: Request, res: Response) {
+    const releaseId = Number(req.params.releaseId);
+
+    if (!Number.isInteger(releaseId) || releaseId <= 0) {
+        res.status(400).json({ message: "The 'releaseId' parameter must be a positive integer." });
+        return;
+    }
+
+    try {
+        const stats = await discogsService.getMarketplaceStats(releaseId);
+        res.status(200).json(stats);
+    } catch (error) {
+        handleDiscogsError(error, res, `fetching price suggestions for release ${releaseId}`);
+    }
+}
+
+/**
+ * Get label info (official website, profile, Discogs page)
+ * GET /api/discogs/label?id=<discogsId> or GET /api/discogs/label?name=<label name>
+ */
+export async function getLabelInfo(req: Request, res: Response) {
+    const { id, name } = req.query;
+
+    if (!id && !name) {
+        res.status(400).json({ message: "Either the 'id' or the 'name' query parameter is required." });
+        return;
+    }
+
+    try {
+        const result = id
+            ? await discogsService.getLabelDetails(String(id))
+            : await discogsService.getLabelByName(String(name));
+
+        if (!result) {
+            res.status(404).json({ message: 'Label not found on Discogs' });
+            return;
+        }
+
+        res.status(200).json(result);
+    } catch (error) {
+        handleDiscogsError(error, res, 'fetching label details from Discogs');
     }
 }
 

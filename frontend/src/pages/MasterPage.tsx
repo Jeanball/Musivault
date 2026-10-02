@@ -1,13 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
-import axios from 'axios';
+import { getRelease, getMasterVersions } from '../api/discogs';
+import { addToCollection as apiAddToCollection, rematchAlbum } from '../api/collection';
+import { isApiError, isRateLimitError } from '../api/errors';
+import { getPreferences } from '../api/preferences';
+import { useReleasePrice } from '../hooks/useReleasePrice';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import { type AlbumDetails, type FormatDetails } from '../components/Modal/AddAlbumVersionModal';
-import ConditionModal from '../components/Modal/ConditionModal';
+import { type AlbumDetails, type FormatDetails } from '../types/album.types';
 import ConfirmAddModal from '../components/Modal/ConfirmAddModal';
+import BackButton from '../components/Common/BackButton';
+import PageLoadError from '../components/Common/PageLoadError';
 import { getFormatButtonStyle } from '../utils/formatColors';
 import { getImageUrl } from '../utils/imageUrl';
 
@@ -35,11 +40,12 @@ interface AddedAlbumInfo {
     title: string;
 }
 
-interface PreferencesResponse {
-    enableConditionGrading: boolean;
-}
-
 const VERSIONS_PER_PAGE = 5;
+
+/** Discogs dates come as "2005", "2005-05" or "2005-05-23". */
+function getReleaseYear(released: string): string {
+    return released?.slice(0, 4) || '';
+}
 
 const MasterPage: React.FC = () => {
     const { masterId } = useParams<{ masterId: string }>();
@@ -48,6 +54,9 @@ const MasterPage: React.FC = () => {
     const { t } = useTranslation();
     const [pageData, setPageData] = useState<VersionsPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loadError, setLoadError] = useState<unknown>(null);
+    /** Bumped by the retry button to re-run the fetch effect. */
+    const [retryCount, setRetryCount] = useState<number>(0);
     const rematchItemId = searchParams.get('rematchItemId');
     const requestedFormat = searchParams.get('format');
     const isRematchMode = !!rematchItemId;
@@ -57,9 +66,11 @@ const MasterPage: React.FC = () => {
 
     const [filter, setFilter] = useState<FormatFilter>(initialFilter);
     const [countryFilter, setCountryFilter] = useState<string>('all');
+    const [yearFilter, setYearFilter] = useState<string>('all');
 
-    // Display pagination
-    const [visibleCount, setVisibleCount] = useState<number>(VERSIONS_PER_PAGE);
+    // Display pagination: every visible version costs one release lookup
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const listRef = useRef<HTMLDivElement>(null);
 
     // Release details cache: releaseId -> AlbumDetails
     const [releaseDetailsCache, setReleaseDetailsCache] = useState<Map<number, AlbumDetails>>(new Map());
@@ -73,11 +84,8 @@ const MasterPage: React.FC = () => {
     const [confirmAlbum, setConfirmAlbum] = useState<AlbumDetails | null>(null);
     const [confirmFormat, setConfirmFormat] = useState<FormatDetails | null>(null);
 
-    // Condition grading state
+    // Condition grading is offered inside the confirmation modal
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
-    const [showConditionModal, setShowConditionModal] = useState<boolean>(false);
-    const [pendingFormat, setPendingFormat] = useState<FormatDetails | null>(null);
-    const [pendingAlbum, setPendingAlbum] = useState<AlbumDetails | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -90,23 +98,34 @@ const MasterPage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             if (!masterId) return;
+            setIsLoading(true);
+            setLoadError(null);
             try {
-                const [versionsRes, prefsRes] = await Promise.all([
-                    axios.get<VersionsPageData>(`/api/discogs/master/${masterId}/versions`, { withCredentials: true }),
-                    axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
+                const [versionsRes, prefs] = await Promise.all([
+                    getMasterVersions<VersionsPageData>(masterId),
+                    getPreferences()
                 ]);
-                setPageData(versionsRes.data);
-                setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
+                setPageData(versionsRes);
+                setConditionGradingEnabled(prefs.enableConditionGrading || false);
             } catch (error) {
-                console.log("Error charging versions on this album: ", error)
-                toastService.error(t('versions.errorLoadingVersions'));
-                navigate('/');
+                console.error('Error loading versions for this album:', error);
+                setLoadError(error);
             } finally {
                 setIsLoading(false);
             }
         };
         fetchData();
-    }, [masterId, navigate, t]);
+    }, [masterId, retryCount]);
+
+    /** Years present in the master, most recent first, with their version count. */
+    const yearCounts = useMemo(() => {
+        const counts = new Map<string, number>();
+        (pageData?.versions || []).forEach(version => {
+            const year = getReleaseYear(version.released);
+            if (year) counts.set(year, (counts.get(year) || 0) + 1);
+        });
+        return Array.from(counts.entries()).sort(([a], [b]) => b.localeCompare(a));
+    }, [pageData]);
 
     const filteredVersions = useMemo(() => {
         if (!pageData) return [];
@@ -115,19 +134,23 @@ const MasterPage: React.FC = () => {
                 version.majorFormat.toLowerCase().includes(filter.toLowerCase());
             const matchesCountry = countryFilter === 'all' ||
                 version.country === countryFilter;
-            return matchesFormat && matchesCountry;
+            const matchesYear = yearFilter === 'all' ||
+                getReleaseYear(version.released) === yearFilter;
+            return matchesFormat && matchesCountry && matchesYear;
         });
-    }, [pageData, filter, countryFilter]);
+    }, [pageData, filter, countryFilter, yearFilter]);
 
-    // Reset visible count when filters change
+    // Back to the first page when filters change
     useEffect(() => {
-        setVisibleCount(VERSIONS_PER_PAGE);
-    }, [filter, countryFilter]);
+        setCurrentPage(1);
+    }, [filter, countryFilter, yearFilter]);
 
-    // Visible versions (paginated display)
+    const totalPages = Math.max(1, Math.ceil(filteredVersions.length / VERSIONS_PER_PAGE));
+
     const visibleVersions = useMemo(() => {
-        return filteredVersions.slice(0, visibleCount);
-    }, [filteredVersions, visibleCount]);
+        const start = (currentPage - 1) * VERSIONS_PER_PAGE;
+        return filteredVersions.slice(start, start + VERSIONS_PER_PAGE);
+    }, [filteredVersions, currentPage]);
 
     // Group visible versions by attributes for rendering
     const groupedVisibleVersions = useMemo(() => {
@@ -156,10 +179,10 @@ const MasterPage: React.FC = () => {
 
         setLoadingReleaseIds(prev => new Set(prev).add(releaseId));
         try {
-            const response = await axios.get<AlbumDetails>(`/api/discogs/release/${releaseId}`, { withCredentials: true });
+            const release = await getRelease(releaseId);
             setReleaseDetailsCache(prev => {
                 const updated = new Map(prev);
-                updated.set(releaseId, response.data);
+                updated.set(releaseId, release);
                 return updated;
             });
         } catch (err) {
@@ -182,8 +205,15 @@ const MasterPage: React.FC = () => {
         });
     }, [visibleVersions]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleShowMore = () => {
-        setVisibleCount(prev => prev + VERSIONS_PER_PAGE);
+    /**
+     * The release being added. Priced once the user picks a format, and the add
+     * that follows reuses that lookup.
+     */
+    const { price, isLoading: isPriceLoading } = useReleasePrice(confirmAlbum?.discogsId ?? null);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+        listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     const handleFormatClick = (album: AlbumDetails, format: FormatDetails) => {
@@ -201,34 +231,25 @@ const MasterPage: React.FC = () => {
 
         setIsSubmitting(true);
         try {
-            await axios.post(
-                `/api/collection/${rematchItemId}/rematch`,
-                { newDiscogsId, format },
-                { withCredentials: true }
-            );
+            await rematchAlbum(rematchItemId, { newDiscogsId, format });
             toastService.success(t('rematch.success'));
             navigate(`/app/album/${rematchItemId}`, {
                 replace: true,
                 state: { backTo: '/app/collection' }
             });
-        } catch (error: any) {
+        } catch (error) {
             console.error('Rematch failed:', error);
-            toastService.error(error.response?.data?.message || t('rematch.failed'));
+            const message = isApiError(error) ? error.serverMessage : undefined;
+            toastService.error(message || t('rematch.failed'));
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleConfirmAdd = () => {
+    const handleConfirmAdd = (mediaCondition: string | null, sleeveCondition: string | null) => {
         setShowConfirmModal(false);
-        if (!confirmAlbum || !confirmFormat) return;
-
-        if (conditionGradingEnabled) {
-            setPendingFormat(confirmFormat);
-            setPendingAlbum(confirmAlbum);
-            setShowConditionModal(true);
-        } else {
-            addToCollection(confirmAlbum, confirmFormat, null, null);
+        if (confirmAlbum && confirmFormat) {
+            addToCollection(confirmAlbum, confirmFormat, mediaCondition, sleeveCondition);
         }
         setConfirmAlbum(null);
         setConfirmFormat(null);
@@ -240,20 +261,6 @@ const MasterPage: React.FC = () => {
         setConfirmFormat(null);
     };
 
-    const handleConditionConfirm = (mediaCondition: string | null, sleeveCondition: string | null) => {
-        setShowConditionModal(false);
-        if (pendingFormat && pendingAlbum) {
-            addToCollection(pendingAlbum, pendingFormat, mediaCondition, sleeveCondition);
-        }
-    };
-
-    const handleConditionSkip = () => {
-        setShowConditionModal(false);
-        if (pendingFormat && pendingAlbum) {
-            addToCollection(pendingAlbum, pendingFormat, null, null);
-        }
-    };
-
     const addToCollection = async (
         album: AlbumDetails,
         format: FormatDetails,
@@ -262,21 +269,20 @@ const MasterPage: React.FC = () => {
     ) => {
         setIsSubmitting(true);
         try {
-            const response = await axios.post('/api/collection', {
+            const { item } = await apiAddToCollection({
                 ...album,
                 format,
                 mediaCondition,
                 sleeveCondition
-            }, { withCredentials: true });
+            });
             toastService.success(t('common.addedSuccess', { title: album.title }));
             setAddedAlbum({
-                id: response.data.item._id,
+                id: item._id,
                 title: album.title
             });
-            setPendingFormat(null);
-            setPendingAlbum(null);
-        } catch (err: any) {
-            toastService.error(err.response?.data?.message || t('app.error'));
+        } catch (err) {
+            const message = isApiError(err) ? err.serverMessage : undefined;
+            toastService.error(message || t('app.error'));
         } finally {
             setIsSubmitting(false);
         }
@@ -298,31 +304,40 @@ const MasterPage: React.FC = () => {
         return <div className="flex justify-center items-center min-h-screen"><span className="loading loading-spinner loading-lg"></span></div>;
     }
 
+    if (loadError) {
+        return (
+            <PageLoadError
+                isRateLimited={isRateLimitError(loadError)}
+                message={t('versions.errorLoadingVersions')}
+                onRetry={() => setRetryCount(c => c + 1)}
+            />
+        );
+    }
+
     if (!pageData) {
         return <div className="text-center p-8">{t('versions.noData')}</div>
     }
 
-    const hasMore = visibleCount < filteredVersions.length;
-    const remaining = filteredVersions.length - visibleCount;
-
     return (
         <div className="p-4 md:p-8" >
+            <BackButton />
+
             <div className="flex flex-col md:flex-row gap-8">
 
-                <div className="md:w-1/3 lg:w-1/4 flex-shrink-0">
+                <div className="md:w-1/3 lg:w-1/4 shrink-0">
                     {pageData.coverImage && (
-                        <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-lg shadow-2xl" />
+                        <img src={pageData.coverImage} alt={`Pochette de ${pageData.masterTitle}`} className="w-full h-auto object-cover rounded-box shadow-card" />
                     )}
                     <h1 className="text-2xl font-bold mt-4">{pageData.masterTitle}</h1>
-                    <p className="text-gray-400">
+                    <p className="text-base-content/70">
                         {isRematchMode ? t('rematch.instructions') : t('versions.chooseVersion')}
                     </p>
                 </div>
 
                 <div className="flex-1">
                     {/* Helper Tooltip / Alert */}
-                    <div className="alert bg-base-200/50 border border-base-300 shadow-sm py-3 mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info flex-shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div className="alert bg-base-200/50 border border-base-300 shadow-panel py-3 mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <div>
                             <h3 className="font-bold">
                                 {isRematchMode
@@ -360,7 +375,7 @@ const MasterPage: React.FC = () => {
                             {/* Country filter dropdown */}
                             {Object.keys(pageData.countryCounts || {}).length > 1 && (
                                 <select
-                                    className="select select-sm select-bordered w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2"
+                                    className="select select-sm w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2"
                                     value={countryFilter}
                                     onChange={(e) => setCountryFilter(e.target.value)}
                                 >
@@ -375,27 +390,42 @@ const MasterPage: React.FC = () => {
                                     }
                                 </select>
                             )}
+
+                            {/* Year filter dropdown */}
+                            {yearCounts.length > 1 && (
+                                <select
+                                    className="select select-sm w-full sm:w-auto mt-2 sm:mt-0"
+                                    value={yearFilter}
+                                    onChange={(e) => setYearFilter(e.target.value)}
+                                >
+                                    <option value="all">{t('versions.allYears')}</option>
+                                    {yearCounts.map(([year, count]) => (
+                                        <option key={year} value={year}>
+                                            {year} ({count})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
-                        <button onClick={() => navigate(-1)} className="btn btn-sm btn-outline gap-2">
-                            <ArrowLeft size={16} /> {t('common.back')}
-                        </button>
                     </div>
+
+                    <div ref={listRef} className="scroll-mt-4" />
 
                     {filteredVersions.length === 0 ? (
                         pageData.versions.length === 0 ? (
                             <div className="text-center py-12">
                                 <div className="text-4xl mb-4">📁</div>
                                 <h3 className="text-lg font-semibold mb-2">{t('versions.noPhysicalVersions')}</h3>
-                                <p className="text-gray-400">{t('versions.digitalOnly')}</p>
+                                <p className="text-base-content/70">{t('versions.digitalOnly')}</p>
                                 <button onClick={() => navigate(-1)} className="btn btn-primary btn-sm mt-4">{t('versions.goBack')}</button>
                             </div>
                         ) : (
                             <div className="text-center py-12">
                                 <div className="text-4xl mb-4">🔍</div>
                                 <h3 className="text-lg font-semibold mb-2">{t('versions.noVersionsMatch')}</h3>
-                                <p className="text-gray-400">{t('versions.adjustFilters')}</p>
+                                <p className="text-base-content/70">{t('versions.adjustFilters')}</p>
                                 <button
-                                    onClick={() => { setFilter('all'); setCountryFilter('all'); }}
+                                    onClick={() => { setFilter('all'); setCountryFilter('all'); setYearFilter('all'); }}
                                     className="btn btn-outline btn-sm mt-4"
                                 >
                                     {t('versions.resetFilters')}
@@ -405,7 +435,7 @@ const MasterPage: React.FC = () => {
                     ) : (
                         <div className="space-y-4">
                             {groupedVisibleVersions.map((group, groupIdx) => (
-                                <div key={groupIdx} className="bg-base-200/30 rounded-lg p-4 border border-base-200 hover:border-base-300 transition-colors">
+                                <div key={groupIdx} className="bg-base-200/30 rounded-box p-4 border border-base-200 hover:border-base-300 transition-colors">
                                     {/* Group Header Info */}
                                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3">
                                         <span className="font-bold text-lg whitespace-nowrap">{group.header.released || 'N/A'}</span>
@@ -414,7 +444,7 @@ const MasterPage: React.FC = () => {
                                         <span className="text-base-content/40 hidden sm:inline">•</span>
                                         <span className="text-base-content/70 truncate max-w-[200px] sm:max-w-[250px]" title={group.header.label}>{group.header.label}</span>
                                         <span className="text-base-content/40 hidden sm:inline">•</span>
-                                        <span className="text-sm bg-base-200 px-2 py-0.5 rounded font-medium whitespace-nowrap">{group.header.country || t('versions.unknown')}</span>
+                                        <span className="text-sm bg-base-200 px-2 py-0.5 rounded-field font-medium whitespace-nowrap">{group.header.country || t('versions.unknown')}</span>
                                     </div>
 
                                     {/* Formats list for this group */}
@@ -476,16 +506,16 @@ const MasterPage: React.FC = () => {
                                                             <img 
                                                                 src={getImageUrl(details?.thumb || details?.cover_image || pageData.coverImage)} 
                                                                 alt="" 
-                                                                className="w-10 h-10 object-cover rounded shadow-sm bg-base-300 flex-shrink-0"
+                                                                className="w-10 h-10 object-cover rounded-field shadow-panel bg-base-300 shrink-0"
                                                                 loading="lazy"
                                                             />
                                                             <div className="flex flex-col items-start min-w-0 flex-1 w-full gap-0.5">
                                                                 <div className="flex items-center w-full">
-                                                                    <span className="font-bold whitespace-normal break-words overflow-hidden text-sm mr-1.5">{displayTitle}</span>
-                                                                    <Plus size={16} className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex-shrink-0" />
+                                                                    <span className="font-bold whitespace-normal wrap-break-word overflow-hidden text-sm mr-1.5">{displayTitle}</span>
+                                                                    <Plus size={16} className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto shrink-0" />
                                                                 </div>
                                                                 {/* Render a non-breaking space if empty to ensure uniform button height */}
-                                                                <span className="text-xs break-words whitespace-normal leading-tight mt-0.5 text-base-content/80 font-medium min-h-[1rem]">
+                                                                <span className="text-xs wrap-break-word whitespace-normal leading-tight mt-0.5 text-base-content/80 font-medium min-h-4">
                                                                     {displaySubtitle || '\u00A0'}
                                                                 </span>
                                                             </div>
@@ -500,15 +530,26 @@ const MasterPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* See more button */}
-                    {hasMore && (
-                        <div className="flex justify-center mt-6">
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 mt-6">
                             <button
-                                className="btn btn-ghost gap-2"
-                                onClick={handleShowMore}
+                                className="btn btn-sm btn-ghost gap-1"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
                             >
-                                <ChevronDown size={18} />
-                                {t('versions.seeMore', { remaining: remaining > VERSIONS_PER_PAGE ? VERSIONS_PER_PAGE : remaining, total: filteredVersions.length })}
+                                <ChevronLeft size={16} />
+                                <span className="hidden sm:inline">{t('versions.previousPage')}</span>
+                            </button>
+                            <span className="text-sm font-medium px-2">
+                                {t('versions.pageOf', { current: currentPage, total: totalPages })}
+                            </span>
+                            <button
+                                className="btn btn-sm btn-ghost gap-1"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                <span className="hidden sm:inline">{t('versions.nextPage')}</span>
+                                <ChevronRight size={16} />
                             </button>
                         </div>
                     )}
@@ -521,17 +562,11 @@ const MasterPage: React.FC = () => {
                     coverImage={confirmAlbum?.cover_image}
                     albumTitle={confirmAlbum?.title}
                     format={confirmFormat}
+                    price={price}
+                    isPriceLoading={isPriceLoading}
+                    conditionGradingEnabled={conditionGradingEnabled}
                     onConfirm={handleConfirmAdd}
                     onCancel={handleConfirmCancel}
-                />
-            )}
-
-            {!isRematchMode && (
-                <ConditionModal
-                    isOpen={showConditionModal}
-                    albumTitle={pendingAlbum?.title || ''}
-                    onSkip={handleConditionSkip}
-                    onConfirm={handleConditionConfirm}
                 />
             )}
 

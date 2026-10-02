@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { getTaskLogs, getTasks } from '../api/admin';
+import { verify } from '../api/auth';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { AdminTaskLog } from '../types/admin.types';
@@ -10,6 +11,8 @@ const AdminTaskLogsPage: React.FC = () => {
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
     const [logs, setLogs] = useState<AdminTaskLog[]>([]);
+    // Kept separate from `logs` so filtering down to one task never shrinks the filter itself.
+    const [taskIds, setTaskIds] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [filterTaskId, setFilterTaskId] = useState<string>('');
@@ -20,6 +23,8 @@ const AdminTaskLogsPage: React.FC = () => {
                 return t('admin.tasks.items.refreshPrices.name', 'Refresh Prices');
             case 'refresh-exchange-rates':
                 return t('admin.tasks.items.refreshExchangeRates.name', 'Update Exchange Rates');
+            case 'refresh-upcoming-releases':
+                return t('admin.tasks.items.refreshUpcomingReleases.name', 'Refresh Upcoming Releases');
             default:
                 return taskId;
         }
@@ -29,21 +34,13 @@ const AdminTaskLogsPage: React.FC = () => {
         const params: Record<string, string> = { limit: '50' };
         if (taskId) params.taskId = taskId;
 
-        const { data } = await axios.get<AdminTaskLog[]>('/api/admin/tasks/logs', {
-            withCredentials: true,
-            params,
-        });
-        setLogs(data);
+        setLogs(await getTaskLogs(params as { limit: string; taskId?: string }));
     };
 
     useEffect(() => {
         const verifyAndLoad = async () => {
             try {
-                const { data: verifyData } = await axios.post(
-                    '/api/auth/verify',
-                    {},
-                    { withCredentials: true }
-                );
+                const verifyData = await verify();
 
                 if (!verifyData.status || !verifyData.isAdmin) {
                     navigate('/app');
@@ -51,7 +48,9 @@ const AdminTaskLogsPage: React.FC = () => {
                 }
 
                 setIsAdmin(true);
-                await loadLogs();
+
+                const [tasks] = await Promise.all([getTasks(), loadLogs()]);
+                setTaskIds(tasks.map((task) => task.id));
             } catch (error) {
                 console.error('Error loading task logs:', error);
                 toastService.error(t('admin.accessDenied'));
@@ -90,9 +89,6 @@ const AdminTaskLogsPage: React.FC = () => {
         if (minutes === 0) return `${seconds}s`;
         return `${minutes}m ${seconds}s`;
     };
-
-    // Get unique task IDs for the filter dropdown
-    const uniqueTaskIds = [...new Set(logs.map(log => log.taskId))];
 
     if (isLoading) {
         return (
@@ -134,7 +130,7 @@ const AdminTaskLogsPage: React.FC = () => {
                 <AdminTabs />
             </div>
 
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body p-4 sm:p-6 space-y-4">
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                         <div>
@@ -144,12 +140,12 @@ const AdminTaskLogsPage: React.FC = () => {
                             </p>
                         </div>
                         <select
-                            className="select select-bordered select-sm w-full max-w-xs"
+                            className="select select-sm w-full max-w-xs"
                             value={filterTaskId}
                             onChange={(e) => handleFilterChange(e.target.value)}
                         >
                             <option value="">{t('admin.logs.filterAll', 'All tasks')}</option>
-                            {uniqueTaskIds.map((id) => (
+                            {taskIds.map((id) => (
                                 <option key={id} value={id}>{getTaskName(id)}</option>
                             ))}
                         </select>
@@ -249,7 +245,7 @@ const AdminTaskLogsPage: React.FC = () => {
                                             </div>
                                         </div>
                                         {log.details && (
-                                            <p className="text-sm text-base-content/70 break-words">{log.details}</p>
+                                            <p className="text-sm text-base-content/70 wrap-break-word">{log.details}</p>
                                         )}
                                     </div>
                                 ))}

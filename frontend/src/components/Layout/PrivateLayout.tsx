@@ -1,30 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../Navigation/Navbar';
 import Footer from '../Navigation/Footer';
 import { useTheme } from '../../context/ThemeContext';
 import { toastService } from '../../utils/toast';
 import { CollectionProvider } from '../../context/CollectionContext';
+import type { PrivateOutletContext } from '../../types/auth.types';
+import { verify, logout } from '../../api/auth';
 
-interface VerificationResponse {
-    status: boolean;
-    user: string;
-    userId: string;
-    email: string;
-    displayName: string;
-    isAdmin: boolean;
-}
-
-export interface PrivateOutletContext {
-    username: string;
-    email: string;
-    displayName: string;
-    userId: string;
-    isAdmin: boolean;
-    refreshUser: () => Promise<void>;
-}
 
 interface LocationState {
     showLoginSuccess?: boolean;
@@ -43,32 +27,30 @@ const PrivateLayout: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const hasShownLoginToast = useRef(false);
 
+    // Read through a ref so verifyUser can stay out of the mount effect's
+    // dependencies: re-running it on every navigation hammered /api/auth/verify.
+    const locationStateRef = useRef(location.state);
+    locationStateRef.current = location.state;
+
     const verifyUser = async () => {
         try {
-            const { data } = await axios.post<VerificationResponse>(
-                "/api/auth/verify", {}, { withCredentials: true }
-            );
+            const data = await verify();
             if (data.status) {
                 setUsername(data.user);
                 setEmail(data.email);
                 setDisplayName(data.displayName || '');
                 setUserId(data.userId);
                 setIsAdmin(data.isAdmin);
-                // Sync preferences from server once user is verified
-                await syncPreferencesFromServer();
-
-                // Explicitly sync language preference
-                try {
-                    const { data } = await axios.get('/api/preferences', { withCredentials: true });
-                    if (data.language && data.language !== i18n.language) {
-                        i18n.changeLanguage(data.language);
-                    }
-                } catch (error) {
-                    console.error('Failed to sync language', error);
+                // Sync preferences from server once user is verified. The
+                // returned value also carries the language, which this layout
+                // owns rather than the theme context.
+                const preferences = await syncPreferencesFromServer();
+                if (preferences?.language && preferences.language !== i18n.language) {
+                    i18n.changeLanguage(preferences.language);
                 }
 
                 // Show login success toast AFTER theme sync (only once)
-                const state = location.state as LocationState;
+                const state = locationStateRef.current as LocationState;
                 if (state?.showLoginSuccess && !hasShownLoginToast.current) {
                     hasShownLoginToast.current = true;
                     toastService.success(t('auth.loginSuccess', 'Connection successful!'));
@@ -88,13 +70,16 @@ const PrivateLayout: React.FC = () => {
         }
     };
 
+    // Once per mount. Callers that need fresh user data use the refreshUser
+    // handle passed down through the outlet context.
     useEffect(() => {
         verifyUser();
-    }, [navigate, syncPreferencesFromServer, location.state]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleLogout = async () => {
         try {
-            await axios.post("/api/auth/logout", {}, { withCredentials: true });
+            await logout();
             navigate("/");
         } catch (error) {
             console.error("Disconnection failed.", error);
@@ -111,7 +96,7 @@ const PrivateLayout: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <div className={`flex-1 p-4 md:p-8 ${wideScreenMode ? 'max-w-[1000px] mx-auto w-full' : ''}`}>
+            <div className={`flex-1 p-4 md:p-8 ${wideScreenMode ? 'max-w-250 mx-auto w-full' : ''}`}>
                 <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
                 <main>
                     <CollectionProvider>

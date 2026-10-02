@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import {
+    getCustomFields,
+    createCustomField,
+    updateCustomField,
+    deleteCustomField
+} from '../../api/customFields';
+import { isApiError } from '../../api/errors';
 import { ListPlus, Pencil, Trash2 } from 'lucide-react';
 import { toastService } from '../../utils/toast';
 import type { CustomFieldDefinition, CustomFieldType } from '../../types/customFields.types';
@@ -28,10 +34,7 @@ const CustomFieldsSettings: React.FC = () => {
 
     const fetchFields = async () => {
         try {
-            const response = await axios.get<CustomFieldDefinition[]>('/api/custom-fields', {
-                withCredentials: true,
-            });
-            setFields(response.data);
+            setFields(await getCustomFields());
         } catch (error) {
             console.error('Failed to fetch custom fields:', error);
             toastService.error(t('customFields.failedLoad'));
@@ -77,29 +80,21 @@ const CustomFieldsSettings: React.FC = () => {
             };
 
             if (editingId) {
-                const response = await axios.put<CustomFieldDefinition>(
-                    `/api/custom-fields/${editingId}`,
-                    payload,
-                    { withCredentials: true }
-                );
+                const updated = await updateCustomField(editingId, payload);
                 setFields((prev) =>
-                    prev.map((field) => (field._id === editingId ? response.data : field))
+                    prev.map((field) => (field._id === editingId ? updated : field))
                 );
                 toastService.success(t('customFields.updated'));
             } else {
-                const response = await axios.post<CustomFieldDefinition>(
-                    '/api/custom-fields',
-                    payload,
-                    { withCredentials: true }
-                );
-                setFields((prev) => [...prev, response.data]);
+                const created = await createCustomField(payload);
+                setFields((prev) => [...prev, created]);
                 toastService.success(t('customFields.created'));
             }
 
             resetForm();
-        } catch (error: any) {
+        } catch (error) {
             console.error('Failed to save custom field:', error);
-            const message = error.response?.data?.message;
+            const message = isApiError(error) ? error.serverMessage : undefined;
             toastService.error(message || t('customFields.failedSave'));
         } finally {
             setIsSaving(false);
@@ -113,7 +108,7 @@ const CustomFieldsSettings: React.FC = () => {
 
         setIsSaving(true);
         try {
-            await axios.delete(`/api/custom-fields/${fieldId}`, { withCredentials: true });
+            await deleteCustomField(fieldId);
             setFields((prev) => prev.filter((field) => field._id !== fieldId));
             toastService.success(t('customFields.deleted'));
         } catch (error) {
@@ -126,7 +121,7 @@ const CustomFieldsSettings: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="card bg-base-200 shadow-xl">
+            <div className="card bg-base-200 shadow-card">
                 <div className="card-body">
                     <div className="skeleton h-6 w-48 mb-4"></div>
                     <div className="skeleton h-4 w-full mb-2"></div>
@@ -137,14 +132,14 @@ const CustomFieldsSettings: React.FC = () => {
     }
 
     return (
-        <div className="card bg-base-200 shadow-xl">
+        <div className="card bg-base-200 shadow-card">
             <div className="card-body">
                 <h2 className="card-title flex items-center gap-2">
                     <ListPlus size={20} />
                     {t('customFields.title')}
                     {isSaving && <span className="loading loading-spinner loading-xs"></span>}
                 </h2>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-base-content/50 mb-4">
                     {t('customFields.description')}
                 </p>
 
@@ -207,18 +202,18 @@ const CustomFieldsSettings: React.FC = () => {
                 )}
 
                 {showForm ? (
-                    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-base-300 rounded-lg">
+                    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-base-300 rounded-box">
                         <h3 className="font-semibold">
                             {editingId ? t('customFields.editField') : t('customFields.addField')}
                         </h3>
 
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label">
-                                <span className="label-text">{t('customFields.fieldName')}</span>
+                                <span className="text-sm">{t('customFields.fieldName')}</span>
                             </label>
                             <input
                                 type="text"
-                                className="input input-bordered"
+                                className="input w-full"
                                 value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                                 placeholder={t('customFields.namePlaceholder')}
@@ -227,12 +222,12 @@ const CustomFieldsSettings: React.FC = () => {
                             />
                         </div>
 
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label">
-                                <span className="label-text">{t('customFields.fieldType')}</span>
+                                <span className="text-sm">{t('customFields.fieldType')}</span>
                             </label>
                             <select
-                                className="select select-bordered"
+                                className="select w-full"
                                 value={form.type}
                                 onChange={(e) =>
                                     setForm({ ...form, type: e.target.value as CustomFieldType })
@@ -243,20 +238,20 @@ const CustomFieldsSettings: React.FC = () => {
                             </select>
                         </div>
 
-                        <div className="form-control">
+                        <div className="flex flex-col">
                             <label className="label">
-                                <span className="label-text">{t('customFields.examplePlaceholder')}</span>
+                                <span className="text-sm">{t('customFields.examplePlaceholder')}</span>
                             </label>
                             <input
                                 type="text"
-                                className="input input-bordered"
+                                className="input w-full"
                                 value={form.placeholder}
                                 onChange={(e) => setForm({ ...form, placeholder: e.target.value })}
                                 placeholder={t('customFields.placeholderHint')}
                                 maxLength={500}
                             />
                             <label className="label">
-                                <span className="label-text-alt text-base-content/60">
+                                <span className="text-xs text-base-content/60">
                                     {t('customFields.placeholderDescription')}
                                 </span>
                             </label>

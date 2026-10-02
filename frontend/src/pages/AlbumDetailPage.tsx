@@ -1,27 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, CircleAlert, RefreshCw } from 'lucide-react';
+import { CircleAlert, RefreshCw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
-import axios from 'axios';
+import { getPreferences } from '../api/preferences';
+import { isApiError } from '../api/errors';
+import { getRelease } from '../api/discogs';
+import {
+    getCollectionItem,
+    updateCollectionItem,
+    syncItemPrice,
+    removeFromCollection,
+    ignoreFormatAlert,
+    restoreFormatAlert
+} from '../api/collection';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
-import { stripArtistSuffix } from '../utils/formatters';
+import { stripDiscogsSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
-import { getItemValue } from '../types/collection.types';
-import type { AlbumDetails } from '../components/Modal/AddAlbumVersionModal';
-import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../components/Modal/ConditionModal';
+import { getItemValue } from '../utils/itemValue';
+import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../utils/conditions';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { getImageUrl } from '../utils/imageUrl';
 import { getFormatVerificationMessage, hasActiveFormatVerificationIssue, hasIgnoredFormatVerificationIssue } from '../utils/formatVerification';
-import { SPOTIFY_BUTTON_STYLE, DISCOGS_BUTTON_STYLE } from '../utils/brandColors';
-import FormatVerificationBadge from '../components/Collection/FormatVerificationBadge';
-import FormatColorBadge from '../components/Collection/FormatColorBadge';
-import CustomFieldsEditor from '../components/Collection/CustomFieldsEditor';
-import SpecRow from '../components/Collection/SpecRow';
+import { SpotifyIcon, DiscogsIcon } from '../components/Common/BrandIcons';
+import FormatVerificationBadge from '../components/Common/FormatVerificationBadge';
+import FormatColorBadge from '../components/Common/FormatColorBadge';
+import CustomFieldsEditor from '../components/Common/CustomFieldsEditor';
+import LabelLink from '../components/Common/LabelLink';
+import FieldRow from '../components/Common/FieldRow';
+import BackButton from '../components/Common/BackButton';
 import { useCurrency } from '../hooks/useCurrency';
-
-interface PreferencesResponse {
-    enableConditionGrading: boolean;
-}
 
 interface AlbumDetailLocationState {
     backTo?: string;
@@ -63,12 +70,12 @@ const AlbumDetailPage: React.FC = () => {
 
     const fetchData = async (id: string) => {
         try {
-            const [itemRes, prefsRes] = await Promise.all([
-                axios.get(`/api/collection/${id}`, { withCredentials: true }),
-                axios.get<PreferencesResponse>('/api/preferences', { withCredentials: true })
+            const [itemRes, prefs] = await Promise.all([
+                getCollectionItem(id),
+                getPreferences()
             ]);
-            setItem(itemRes.data);
-            setConditionGradingEnabled(prefsRes.data.enableConditionGrading || false);
+            setItem(itemRes);
+            setConditionGradingEnabled(prefs.enableConditionGrading || false);
         } catch (error) {
             console.error('Failed to fetch collection item:', error);
             setLoading(false);
@@ -78,9 +85,7 @@ const AlbumDetailPage: React.FC = () => {
     const updateCondition = async (field: 'mediaCondition' | 'sleeveCondition', value: string | null) => {
         if (!item) return;
         try {
-            await axios.put(`/api/collection/${item._id}`, {
-                [field]: value
-            }, { withCredentials: true });
+            await updateCollectionItem(item._id, { [field]: value });
             setItem(prev => prev ? { ...prev, [field]: value } : null);
             toastService.success(t('condition.updated'));
         } catch (error) {
@@ -93,12 +98,12 @@ const AlbumDetailPage: React.FC = () => {
         if (!item) return;
         setIsSyncingPrice(true);
         try {
-            const res = await axios.post(`/api/collection/${item._id}/sync-price`, {}, { withCredentials: true });
-            setItem({ ...item, priceCache: res.data.priceCache });
+            const updated = await syncItemPrice(item._id);
+            setItem({ ...item, priceCache: updated.priceCache });
             toastService.success(t('album.priceUpdated'));
-        } catch (error: any) {
+        } catch (error) {
             console.error('Failed to sync price:', error);
-            if (error.response?.status === 404) {
+            if (isApiError(error) && error.status === 404) {
                toastService.error(t('album.priceUnavailable'));
             } else {
                toastService.error(t('album.failedSyncPrice'));
@@ -119,7 +124,7 @@ const AlbumDetailPage: React.FC = () => {
         }
 
         try {
-            await axios.delete(`/api/collection/${item?._id}`, { withCredentials: true });
+            await removeFromCollection(item!._id);
             toastService.success(t('album.removed'));
             navigate('/app');
         } catch (error) {
@@ -136,11 +141,9 @@ const AlbumDetailPage: React.FC = () => {
 
         setIsOpeningRematch(true);
         try {
-            const response = await axios.get<AlbumDetails>(`/api/discogs/release/${item.album.discogsId}`, {
-                withCredentials: true
-            });
+            const release = await getRelease(item.album.discogsId);
 
-            const masterId = response.data.master_id;
+            const masterId = release.master_id;
 
             if (masterId) {
                 navigate(`/app/master/${masterId}?rematchItemId=${item._id}&format=${encodeURIComponent(item.format.name)}`);
@@ -195,12 +198,7 @@ const AlbumDetailPage: React.FC = () => {
 
         setIsIgnoringFormatAlert(true);
         try {
-            const response = await axios.post<CollectionItem>(
-                `/api/collection/${item._id}/ignore-format-alert`,
-                {},
-                { withCredentials: true }
-            );
-            setItem(response.data);
+            setItem(await ignoreFormatAlert(item._id));
             await refreshCollection();
             toastService.success(t('formatVerification.ignoreSuccess'));
         } catch (error) {
@@ -218,12 +216,7 @@ const AlbumDetailPage: React.FC = () => {
 
         setIsRestoringFormatAlert(true);
         try {
-            const response = await axios.post<CollectionItem>(
-                `/api/collection/${item._id}/restore-format-alert`,
-                {},
-                { withCredentials: true }
-            );
-            setItem(response.data);
+            setItem(await restoreFormatAlert(item._id));
             await refreshCollection();
             toastService.success(t('formatVerification.undoSuccess'));
         } catch (error) {
@@ -236,17 +229,12 @@ const AlbumDetailPage: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto p-4">
-            {/* Header Actions */}
-            <div className="flex justify-start items-center mb-6">
-                <button onClick={handleBack} className="btn btn-ghost btn-sm gap-2">
-                    <ArrowLeft size={16} /> {t('common.back')}
-                </button>
-            </div>
+            <BackButton onClick={handleBack} />
 
             {/* Dossier */}
             <div className="flex flex-col lg:flex-row gap-8 sm:border sm:border-base-300 sm:p-6">
                 {/* Cover column */}
-                <div className="flex-shrink-0 lg:w-60 flex flex-col gap-4">
+                <div className="shrink-0 lg:w-60 flex flex-col gap-4">
                     <img
                         src={getImageUrl(album.cover_image || '/placeholder-album.svg')}
                         alt={album.title}
@@ -259,13 +247,10 @@ const AlbumDetailPage: React.FC = () => {
                                 href={spotifyUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn btn-sm flex-1"
-                                style={SPOTIFY_BUTTON_STYLE}
+                                className="btn btn-sm flex-1 btn-spotify"
                                 aria-label={t('album.listenOnSpotify')}
                             >
-                                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
-                                </svg>
+                                <SpotifyIcon className="w-3.5 h-3.5" />
                                 Spotify
                             </a>
                         )}
@@ -274,13 +259,10 @@ const AlbumDetailPage: React.FC = () => {
                                 href={`https://www.discogs.com/release/${album.discogsId}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn btn-sm flex-1"
-                                style={DISCOGS_BUTTON_STYLE}
+                                className="btn btn-sm flex-1 btn-discogs"
                                 aria-label={t('album.viewOnDiscogs')}
                             >
-                                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M1.7422 11.982c0-5.6682 4.61-10.2782 10.2758-10.2782 1.8238 0 3.5372.48 5.0251 1.3175l.8135-1.4879C16.1768.588 14.2474.036 12.1908.0024h-.1944C5.4091.0144.072 5.3107 0 11.886v.1152c.0072 3.4389 1.4567 6.5345 3.7748 8.7207l1.1855-1.2814c-1.9798-1.8743-3.218-4.526-3.218-7.4585zM20.362 3.4053l-1.1543 1.2406c1.903 1.867 3.0885 4.4636 3.0885 7.3361 0 5.6658-4.61 10.2758-10.2758 10.2758-1.783 0-3.4605-.456-4.922-1.2575l-.8542 1.5214c1.7086.9384 3.6692 1.4735 5.7546 1.4759C18.6245 23.9976 24 18.6246 24 11.9988c-.0048-3.3717-1.399-6.4146-3.638-8.5935zM1.963 11.982c0 2.8701 1.2119 5.4619 3.146 7.2953l1.1808-1.2767c-1.591-1.5166-2.587-3.6524-2.587-6.0186 0-4.586 3.7293-8.3152 8.3152-8.3152 1.483 0 2.875.3912 4.082 1.0751l.8351-1.5262C15.481 2.395 13.8034 1.927 12.018 1.927 6.4746 1.9246 1.963 6.4362 1.963 11.982zm18.3702 0c0 4.586-3.7293 8.3152-8.3152 8.3152-1.4327 0-2.7837-.3648-3.962-1.0055l-.852 1.5166c1.4303.7823 3.0718 1.2287 4.814 1.2287 5.5434 0 10.055-4.5116 10.055-10.055 0-2.8077-1.1567-5.3467-3.0165-7.1729l-1.183 1.2743c1.519 1.507 2.4597 3.5924 2.4597 5.8986zm-1.9486 0c0 3.5109-2.8558 6.3642-6.3642 6.3642a6.3286 6.3286 0 01-3.0069-.756l-.8471 1.507c1.147.624 2.4597.9768 3.854.9768 4.4636 0 8.0944-3.6308 8.0944-8.0944 0-2.239-.9143-4.2692-2.3902-5.7378l-1.1783 1.267c1.1351 1.152 1.8383 2.731 1.8383 4.4732zm-14.4586 0c0 2.3014.9671 4.382 2.515 5.8578l1.1734-1.2695c-1.207-1.159-1.9606-2.786-1.9606-4.5883 0-3.5108 2.8557-6.3642 6.3642-6.3642 1.1423 0 2.215.3048 3.1437.8352l.8303-1.5167c-1.1759-.6647-2.5317-1.0487-3.974-1.0487-4.4612 0-8.092 3.6308-8.092 8.0944zm12.5292 0c0 2.4502-1.987 4.4372-4.4372 4.4372a4.4192 4.4192 0 01-2.0614-.5088l-.8351 1.4879a6.1135 6.1135 0 002.8965.727c3.3885 0 6.1434-2.7548 6.1434-6.1433 0-1.6774-.6767-3.1989-1.7686-4.3076l-1.1615 1.2503c.7559.7967 1.2239 1.8718 1.2239 3.0573zm-10.5806 0c0 1.7374.7247 3.3069 1.8886 4.4252L8.92 15.1569l.0144.0144c-.8351-.8063-1.3559-1.9366-1.3559-3.1869 0-2.4502 1.9846-4.4372 4.4372-4.4372.8087 0 1.5646.2184 2.2174.5976l.8207-1.4975a6.097 6.097 0 00-3.0381-.8063c-3.3837-.0048-6.141 2.7525-6.141 6.141zm6.681 0c0 .2952-.2424.5351-.5376.5351-.2952 0-.5375-.24-.5375-.5351 0-.2976.24-.5375.5375-.5375.2952 0 .5375.24.5375.5375zm-3.9405 0c0-1.879 1.5239-3.4029 3.4005-3.4029 1.879 0 3.4005 1.5215 3.4005 3.4029 0 1.879-1.5239 3.4005-3.4005 3.4005S8.6151 13.861 8.6151 11.982zm.1488 0c.0048 1.7974 1.4567 3.2493 3.2517 3.2517 1.795 0 3.254-1.4567 3.254-3.2517-.0023-1.7974-1.4566-3.2517-3.254-3.254-1.795 0-3.2517 1.4566-3.2517 3.254Z" />
-                                </svg>
+                                <DiscogsIcon className="w-3.5 h-3.5" />
                                 Discogs
                             </a>
                         )}
@@ -293,7 +275,7 @@ const AlbumDetailPage: React.FC = () => {
                                     {t('condition.media')}
                                 </label>
                                 <select
-                                    className="select select-bordered select-sm w-full"
+                                    className="select select-sm w-full"
                                     value={item.mediaCondition || ''}
                                     onChange={(e) => updateCondition('mediaCondition', e.target.value || null)}
                                 >
@@ -310,7 +292,7 @@ const AlbumDetailPage: React.FC = () => {
                                     {t('condition.sleeve')}
                                 </label>
                                 <select
-                                    className="select select-bordered select-sm w-full"
+                                    className="select select-sm w-full"
                                     value={item.sleeveCondition || ''}
                                     onChange={(e) => updateCondition('sleeveCondition', e.target.value || null)}
                                 >
@@ -346,12 +328,12 @@ const AlbumDetailPage: React.FC = () => {
                     )}
 
                     <h1 className="text-4xl md:text-5xl font-bold mb-2">{album.title}</h1>
-                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-3">{stripArtistSuffix(album.artist)}</h2>
+                    <h2 className="text-2xl md:text-3xl text-base-content/70 mb-3">{stripDiscogsSuffix(album.artist)}</h2>
 
                     {(item.format.text || (item.format.descriptions && item.format.descriptions.length > 0)) && (
                         <div className="flex flex-wrap gap-2 mb-4">
                             {item.format.text && (
-                                <FormatColorBadge text={item.format.text} className="badge-accent badge-lg min-h-6 py-1" />
+                                <FormatColorBadge text={item.format.text} className="badge-lg min-h-6 py-1" />
                             )}
                             {item.format.descriptions?.map((desc, index) => (
                                 <FormatColorBadge key={index} text={desc} className="badge-lg min-h-6 py-1" />
@@ -379,20 +361,25 @@ const AlbumDetailPage: React.FC = () => {
 
                     <div className="mb-5">
                         {labels.length > 0 && (
-                            <SpecRow label={t('album.label')}>{labels[0].name}</SpecRow>
+                            <FieldRow label={t('album.label')}>
+                                <LabelLink label={labels[0]} />
+                                {labels[0].catno && labels[0].catno !== 'none' && (
+                                    <span className="text-base-content/50">· {labels[0].catno}</span>
+                                )}
+                            </FieldRow>
                         )}
-                        <SpecRow label={t('common.year')}>{album.year || '—'}</SpecRow>
+                        <FieldRow label={t('common.year')}>{album.year || '—'}</FieldRow>
                         {genres.length > 0 && (
-                            <SpecRow label={t('album.genres')}>{genres.join(' · ')}</SpecRow>
+                            <FieldRow label={t('album.genres')}>{genres.join(' · ')}</FieldRow>
                         )}
                         <CustomFieldsEditor
                             itemId={item._id}
                             values={item.customFields}
                             onUpdate={(customFields) => setItem((prev) => (prev ? { ...prev, customFields } : null))}
                         />
-                        <SpecRow label={t('collection.added')}>
+                        <FieldRow label={t('collection.added')}>
                             {new Date(item.addedAt).toLocaleDateString()}
-                        </SpecRow>
+                        </FieldRow>
                         {(() => {
                             const val = getItemValue(item);
                             const conditionLabel = item.mediaCondition || 'VG+';
@@ -407,8 +394,8 @@ const AlbumDetailPage: React.FC = () => {
                                 : null;
 
                             return (
-                                <SpecRow label={t('stats.value')}>
-                                    <span className={`font-mono text-xl font-bold tabular-nums ${val > 0 ? 'text-warning' : 'text-base-content/30'}`}>
+                                <FieldRow label={t('stats.value')}>
+                                    <span className={`font-mono text-xl font-bold tabular-nums ${val > 0 ? '' : 'text-base-content/30'}`}>
                                         {val > 0 ? formatValue(val) : 'N/A'}
                                     </span>
                                     <button
@@ -422,7 +409,7 @@ const AlbumDetailPage: React.FC = () => {
                                     <span className="text-xs text-base-content/50">
                                         {conditionLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}
                                     </span>
-                                </SpecRow>
+                                </FieldRow>
                             );
                         })()}
                     </div>
