@@ -9,6 +9,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.15.0] - 2026-10-02
+
+### Added
+- refactor(frontend): relocate misplaced components and drop dead code
+- refactor(frontend): move shared types and runtime logic out of components
+- refactor(frontend): drop dead AddAlbumVersionModal and rename TracksView
+- refactor(backend): move oidc, version and health endpoints into routes/
+- add centralized API client and drop VITE_API_URL
+- refactor(frontend): route system, public and auth calls through the API layer
+- refactor(frontend): serve preferences from a single cached API module
+- refactor(frontend): route collection and custom fields through the API layer
+- refactor(frontend): route discogs, users and admin through the API layer
+- chore(backend): replace unused winston with pino for startup logging
+- Refactor: backend logging to use centralized logger in pino and adding LOG_INFO as environment variable
+- feat: add timezone configuration for log timestamps in environment files and Docker configurations
+- feat: add CSV export functionality for user collections and update import settings
+- feat: implement collapsible password change form in profile settings
+- make the search bar resilient and restore searches from the URL
+- unify the back button and stop losing the page on a Discogs 429
+- compact public-collections grid and personalized upcoming releases via MusicBrainz. A weekly task caches Album/EP release-groups matched to collection styles, browsable on a dedicated tabbed page with search, style filter and saved genre preferences.
+- add refreshUpcomingReleases task with localization support
+- implement release grouping by week and enhance upcoming releases display
+- add label info retrieval and link to official websites
+- add label filtering and sorting to collection views
+- feat: add record shop discovery feature with geolocation support
+- add nearby concerts via the Ticketmaster Discovery API
+- docs(discover): document TICKETMASTER_API_KEY and drop the unused IPAPI key
+- show the full bill on concert cards and add an event detail modal
+- feat: add wait-on dependency and update dev script for improved backend startup
+- chore(frontend): upgrade to Tailwind CSS 4 and daisyUI 5
+- add the abyss and caramellatte themes
+- update icons and add maskable icon support
+- merge: bring the daisyUI 5 and Tailwind 4 upgrade into develop
+- perf(backend): index collection items and fold the public users N+1 into one aggregation
+- lead public collections with the community's latest additions
+- rebuild the page around distributions instead of category counts
+- add a labels view and fold the toolbar into one row
+- drop the mode selector for a single field that recognises what is typed
+- docs(screenshots): refresh every screenshot with reproducible capture tooling
+- docs(readme): group features by theme and lighten the page
+- show the date added on community covers
+- refactor(search): drop the tips block and move manual add beside the field
+- refactor(icons): share the Spotify and Discogs marks in one component
+- open a detail modal on radar releases
+- refactor(discover): move ConcertModal into the modal folder
+- store the collection value history
+- refactor(stats): type the value snapshot helpers
+- refactor(ui): let the theme decide radius, elevation and borders
+- share one grouped list between tracks and labels
+- show a release value before adding it
+- fetch full version lists and split artist views
+
+### Changed
+- refactor: reorganize shared UI components and extract condition constants
+- refactor: rename stripArtistSuffix to stripDiscogsSuffix
+
+### Fixed
+- use theme tokens instead of hardcoded grays
+- back off failed tasks instead of retrying them every minute
+- check isCancel before isAxiosError so axios's over-broad Cancel guard doesn't narrow the error to never
+- improve error handling for API errors
+- fix: update menu item classes for consistency across components
+- stop the session rate limiter from locking users out
+- correct the mobile dock active state and label wrapping
+- replace the dead text-md class with text-base
+- remove the load flash and give the theme list one source
+- show the recharts focus ring on keyboard focus only
+- keep the columns on one grid across every row
+- fix: remove catno column from labels list
+- fix: close the view-mode dropdown after picking a mode
+- fix: Fix the tiny icon of Spotify/Discogs button
+- let album values follow the theme instead of always rendering yellow
+- match the collection's variant badge colour
+- give each MusivaultMark its own gradient id
+- dedupe artist albums by title
+- build artist albums from the artist endpoint
+
+---
+
 ## [1.14.0] - 2026-07-31
 
 ### Added
@@ -409,7 +488,8 @@ Once configured, you can fetch prices from the **Admin Task Center**.
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.15.0...HEAD
+[1.15.0]: https://github.com/Jeanball/Musivault/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/Jeanball/Musivault/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/Jeanball/Musivault/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/Jeanball/Musivault/compare/v1.11.1...v1.12.0
