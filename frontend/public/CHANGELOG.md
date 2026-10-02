@@ -2,6 +2,33 @@
 
 Find all the new features and improvements added to the app right here!
 
+## [1.15.1] - 2026-10-02
+
+### What's New
+- **Upcoming Releases & Release Radar**: Personalized upcoming album and EP releases powered by MusicBrainz, cached weekly based on your collection styles, with search, genre filters, and weekly grouping.
+- **Record Shop Discovery**: Discover nearby physical record stores using geolocation support.
+- **Concert Finder**: Find upcoming nearby concerts for artists in your collection via the Ticketmaster Discovery API, with detailed event cards and full lineup modals.
+- **Collection CSV Export**: Easily export your entire music collection to CSV format for backup or external usage.
+- **Record Labels View & Filtering**: Dedicated Labels view to browse, sort, and filter your collection by record label, with links to official label websites.
+- **Collection Value History**: Track your total collection value over time with historical snapshots, and preview release values before adding items.
+- **Tailwind CSS 4 & daisyUI 5 Upgrade**: Modern UI makeover featuring dynamic theme-based borders, elevation, and two brand-new themes (`abyss` and `caramellatte`).
+
+### Improvements
+- **Smart Unified Search**: Single resilient search bar that automatically recognizes search input types and preserves search state in the URL.
+- **Enhanced Artist Views**: Full version listings, split artist discography views, and deduplicated album titles.
+- **Profile Security**: Added collapsible password change form directly inside profile settings.
+- **Resilient Navigation & Rate Limiting**: Improved back button handling and graceful recovery during Discogs rate limits (HTTP 429).
+- **Backend Architecture & Logging**: Centralized API client module, structured logging with Pino, configurable log timezone support, and background task backoff handling.
+- **Community Discovery**: Lead public collections with latest community additions and date added indicators.
+
+### Bug Fixes
+- **Theme Consistency**: Replaced hardcoded grays and colors with dynamic theme tokens across buttons, badges, and chart focus rings.
+- **Session Rate Limiter**: Resolved issue causing legitimate users to be locked out during heavy API navigation.
+- **Mobile Navigation Dock**: Fixed mobile dock active states, label wrapping, and text scaling issues.
+- **Collection & Label Grids**: Fixed row alignment issues, removed redundant catalog number column in label view, and closed view dropdown on selection.
+- **What's New Modal & Version Tracking**: Resolved an issue where `musivault_last_seen_version` stayed stuck at version 1.14 after upgrading. Improved version comparison, added support for `v`-prefixed versions, and ensured local storage updates reliably when closing the modal (including via `Esc` key).
+
+---
 ## [1.15.0] - 2026-10-02
 
 ### What's New

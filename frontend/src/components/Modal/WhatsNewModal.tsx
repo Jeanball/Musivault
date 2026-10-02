@@ -33,7 +33,7 @@ const sectionColors: Record<string, string> = {
 const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, currentVersion, onDismiss }) => {
     const { t } = useTranslation();
     return (
-        <dialog className="modal modal-open">
+        <dialog className="modal modal-open" onCancel={onDismiss}>
             <div className="modal-box max-w-2xl max-h-[80vh]">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">
