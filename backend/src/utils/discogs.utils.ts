@@ -153,7 +153,9 @@ export function handleDiscogsError(
 
 /**
  * Clean album title by removing artist prefix
- * Discogs returns titles as "Artist - Album Title"
+ * Discogs search results return titles as "Artist - Album Title".
+ * Only use this on /database/search titles: /releases/:id titles have no
+ * artist prefix and may themselves contain " - ".
  */
 export function cleanAlbumTitle(title: string): string {
     const separator = ' - ';

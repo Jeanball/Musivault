@@ -7,7 +7,7 @@ import { csvExportService } from '../services/export.service';
 import { getMarketplaceStats } from '../services/discogs.service';
 import { getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { getUserStyles } from '../services/collection.service';
-import { cleanAlbumTitle, discogsRequest } from '../utils/discogs.utils';
+import { discogsRequest } from '../utils/discogs.utils';
 import type { DiscogsReleaseResponse, MarketplaceStats } from '../types/discogs.types';
 import AdminTaskExecution from '../models/AdminTaskExecution';
 import { getValueForItem, getValueHistory, recordValueSnapshot } from '../services/valueSnapshot.service';
@@ -695,12 +695,11 @@ export async function rematchAlbum(req: Request, res: Response) {
     }
 
     const releaseData = await discogsRequest<DiscogsReleaseResponse>(`/releases/${newDiscogsId}`);
-    const cleanedTitle = cleanAlbumTitle(releaseData.title);
 
     // Update the album with new Discogs data
     const album = item.album as any;
     album.discogsId = newDiscogsId;
-    album.title = cleanedTitle;
+    album.title = releaseData.title;
     album.artist = (releaseData.artists?.map((a: any) => a.name).join(', ') || album.artist).replace(/\s\(\d+\)$/, '');
     album.year = releaseData.year?.toString() || album.year;
     album.cover_image = releaseData.images?.find((img: any) => img.type === 'primary')?.uri
