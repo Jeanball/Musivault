@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import CollectionContent from '../components/Collection/CollectionContent';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
+import { useRefreshOnVisible } from '../hooks/useRefreshOnVisible';
 
 const COLLECTION_SCROLL_KEY = 'musivault_collection_scroll_y';
 
@@ -11,8 +12,13 @@ interface CollectionPageLocationState {
 
 const CollectionPage: React.FC = () => {
     const location = useLocation();
-    const { collection, isLoading, isDeleting, handleDeleteItem } = useCollectionData();
+    const { collection, isLoading, isDeleting, handleDeleteItem, refreshCollection } = useCollectionData();
     const hasRestoredScroll = useRef(false);
+
+    // Imports, other tabs and the price sync change the collection behind this page.
+    useRefreshOnVisible(useCallback(() => {
+        void refreshCollection({ silent: true });
+    }, [refreshCollection]));
 
     useEffect(() => {
         const shouldRestore = (location.state as CollectionPageLocationState | null)?.restoreCollectionScroll;

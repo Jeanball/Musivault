@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- fix(collection): refresh the list when returning to the tab and after a CSV import
+
 ---
 
 ## [1.15.1] - 2026-10-02
