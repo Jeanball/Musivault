@@ -830,7 +830,7 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
 
         const data = response.data;
         const artist = data.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
-        const title = cleanAlbumTitle(data.title) || data.title;
+        const title = data.title;
         const coverImage = data.images?.[0]?.uri || data.thumb || '';
 
         let format: 'Vinyl' | 'CD' | undefined;
