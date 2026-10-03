@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- fix(discogs): strip the "(n)" suffix from every artist of multi-artist releases
+
 ---
 
 ## [1.15.1] - 2026-10-02

@@ -1,6 +1,6 @@
 /**
  * Migration script to cleanup artist names by removing Discogs numbering suffixes.
- * Example: "Alpha Wolf (2)" -> "Alpha Wolf"
+ * Example: "Alpha Wolf (2)" -> "Alpha Wolf", "Bane (2), Grade (2)" -> "Bane, Grade"
  * 
  * Usage: npx ts-node src/scripts/cleanup-artist-names.ts
  */
@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import Album from '../models/Album';
 import { logger } from '../config/logger.config';
+import { stripArtistSuffixes } from '../utils/discogs.utils';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env') });
@@ -34,12 +35,10 @@ export async function cleanupArtistNames(isStandalone = false) {
         logger.info(`Checking ${albums.length} albums for artist name suffixes...`);
 
         let updatedCount = 0;
-        const suffixRegex = /\s\(\d+\)$/;
-
         for (const album of albums) {
-            if (suffixRegex.test(album.artist)) {
+            const newName = stripArtistSuffixes(album.artist);
+            if (newName !== album.artist) {
                 const oldName = album.artist;
-                const newName = album.artist.replace(suffixRegex, '');
 
                 album.artist = newName;
                 await album.save();
