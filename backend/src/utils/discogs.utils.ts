@@ -165,6 +165,14 @@ export function cleanAlbumTitle(title: string): string {
 }
 
 /**
+ * Remove Discogs disambiguation suffixes from every name in a joined artist credit
+ * Example: "Bane (2), Grade (2), Unrestrained" -> "Bane, Grade, Unrestrained"
+ */
+export function stripArtistSuffixes(artist: string): string {
+    return artist.replace(/\s\(\d+\)(?=,|$)/g, '');
+}
+
+/**
  * Normalize a string for comparison: lowercase, remove special chars, normalize spaces
  */
 export function normalizeString(str: string): string {
