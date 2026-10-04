@@ -8,6 +8,7 @@ import ImportLog, { IImportLogEntry } from '../models/ImportLog';
 import User from '../models/User';
 import { discogsService } from './discogs.service';
 import { stripArtistSuffixes } from '../utils/discogs.utils';
+import { buildPriceCache } from '../utils/price.utils';
 import { FoundAlbumInfo } from '../types/discogs.types';
 import { logger } from '../config/logger.config';
 
@@ -179,6 +180,12 @@ export async function processImportRow(
         return { success: false, reason: 'No Discogs match found' };
     }
 
+    // Catalog-number and search matches only carry search data: fetch the release once so
+    // every imported album gets the same data as one added from search
+    if (matchMethod !== 'releaseId') {
+        found = await discogsService.fetchByReleaseId(found.discogsId) ?? found;
+    }
+
     // Determine format: use CSV value, or Discogs value, or default to Vinyl
     const format = row.format || found.format || 'Vinyl';
 
@@ -192,9 +199,22 @@ export async function processImportRow(
             year: found.year,
             thumb: found.thumb,
             cover_image: found.cover_image,
+            styles: found.styles || [],
+            tracklist: found.tracklist || [],
+            labels: found.labels || [],
         });
         await album.save();
         logger.debug(`[Import] Album created: ${album.title}`);
+    } else {
+        // Albums from older imports are bare: fill in what's missing, never overwrite
+        let filled = false;
+        if (!album.styles?.length && found.styles?.length) { album.styles = found.styles; filled = true; }
+        if (!album.tracklist?.length && found.tracklist?.length) { album.tracklist = found.tracklist; filled = true; }
+        if (!album.labels?.length && found.labels?.length) { album.labels = found.labels; filled = true; }
+        if (filled) {
+            await album.save();
+            logger.debug(`[Import] Album filled in: ${album.title}`);
+        }
     }
 
     // Check if already in collection
@@ -213,11 +233,13 @@ export async function processImportRow(
         };
     }
 
-    // Add to collection
+    // Add to collection, with the format details and price an item added from search gets
+    const formatDetails = found.formats?.find(f => f.name.toLowerCase() === format.toLowerCase());
     const newItem = new CollectionItem({
         user: userId,
         album: album._id,
-        format: { name: format, descriptions: [], text: format },
+        format: { name: format, descriptions: formatDetails?.descriptions || [], text: formatDetails?.text || '' },
+        priceCache: buildPriceCache(await discogsService.getMarketplaceStats(found.discogsId)),
         mediaCondition: row.mediaCondition || null,
         sleeveCondition: row.sleeveCondition || null
     });

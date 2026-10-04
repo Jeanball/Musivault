@@ -85,6 +85,15 @@ const MIGRATIONS: MigrationDefinition[] = [
       return 'Multi-artist names cleaned';
     }
   },
+  {
+    id: '2026-10-04_album-data-backfill-2',
+    description: 'Fill in labels, tracklist, styles, format details and prices of albums imported by CSV since 1.15',
+    type: 'background',
+    run: async () => {
+      await migrateAlbumData();
+      return 'Album data backfill complete';
+    }
+  },
 ];
 
 /**
