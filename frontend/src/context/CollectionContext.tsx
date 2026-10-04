@@ -4,11 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import type { CollectionItem } from '../types/collection.types';
 
+interface RefreshOptions {
+    /** Refetch in place, without the loading state, so the list, scroll and filters stay put */
+    silent?: boolean;
+}
+
 interface CollectionContextType {
     collection: CollectionItem[];
     isLoading: boolean;
     isDeleting: boolean;
-    refreshCollection: () => Promise<void>;
+    refreshCollection: (options?: RefreshOptions) => Promise<void>;
     handleDeleteItem: (itemId: string) => Promise<void>;
 }
 
@@ -20,15 +25,15 @@ export const CollectionProvider: React.FC<{ children: ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-    const fetchCollection = useCallback(async () => {
-        setIsLoading(true);
+    const fetchCollection = useCallback(async ({ silent = false }: RefreshOptions = {}) => {
+        if (!silent) setIsLoading(true);
         try {
             setCollection(await getCollection());
         } catch (error) {
             console.error("Error loading collection: ", error);
             // Optional: Show toast if not a 401 (auth handled by layout)
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     }, []);
 

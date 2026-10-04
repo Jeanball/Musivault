@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- fix(collection): refresh the list when returning to the tab and after a CSV import
 - fix(discogs): strip the "(n)" suffix from every artist of multi-artist releases
 
 ---
