@@ -76,6 +76,15 @@ const MIGRATIONS: MigrationDefinition[] = [
       return `${points} value snapshot(s) written`;
     }
   },
+  {
+    id: '2026-10-03_cleanup-multi-artist-suffixes',
+    description: 'Remove numeric suffixes from every artist of multi-artist releases (e.g. "Bane (2), Grade (2)" -> "Bane, Grade")',
+    type: 'blocking',
+    run: async () => {
+      await cleanupArtistNames();
+      return 'Multi-artist names cleaned';
+    }
+  },
 ];
 
 /**

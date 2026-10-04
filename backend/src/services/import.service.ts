@@ -7,6 +7,7 @@ import CollectionItem from '../models/CollectionItem';
 import ImportLog, { IImportLogEntry } from '../models/ImportLog';
 import User from '../models/User';
 import { discogsService } from './discogs.service';
+import { stripArtistSuffixes } from '../utils/discogs.utils';
 import { FoundAlbumInfo } from '../types/discogs.types';
 import { logger } from '../config/logger.config';
 
@@ -187,7 +188,7 @@ export async function processImportRow(
         album = new Album({
             discogsId: found.discogsId,
             title: found.title,
-            artist: found.artist.replace(/\s\(\d+\)$/, ''),
+            artist: stripArtistSuffixes(found.artist),
             year: found.year,
             thumb: found.thumb,
             cover_image: found.cover_image,
