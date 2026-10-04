@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import type { Express } from 'express';
 import Album, { IAlbum, ITrack, ILabel } from '../models/Album';
-import CollectionItem, { ICollectionItem, IPriceCache } from '../models/CollectionItem';
+import CollectionItem, { ICollectionItem } from '../models/CollectionItem';
 import { csvImportService } from '../services/import.service';
 import { csvExportService } from '../services/export.service';
-import { getMarketplaceStats } from '../services/discogs.service';
-import { getPriceTTLHours, isPriceStale } from '../utils/price.utils';
+import { getMarketplaceStats, mapReleaseToAlbumFields } from '../services/discogs.service';
+import { buildPriceCache, getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { getUserStyles } from '../services/collection.service';
 import { discogsRequest, stripArtistSuffixes } from '../utils/discogs.utils';
 import type { DiscogsReleaseResponse, MarketplaceStats } from '../types/discogs.types';
@@ -34,23 +34,6 @@ type AddToCollectionBody = {
 export type PopulatedCollectionItem = ICollectionItem & {
   album: IAlbum;
 };
-
-function buildPriceCache(stats: MarketplaceStats | null): IPriceCache | undefined {
-  if (!stats) return undefined;
-
-  return {
-    mint: stats.mint ?? undefined,
-    nearMint: stats.nearMint ?? undefined,
-    veryGoodPlus: stats.veryGoodPlus ?? undefined,
-    veryGood: stats.veryGood ?? undefined,
-    goodPlus: stats.goodPlus ?? undefined,
-    good: stats.good ?? undefined,
-    fair: stats.fair ?? undefined,
-    poor: stats.poor ?? undefined,
-    currency: stats.currency,
-    updatedAt: new Date(),
-  };
-}
 
 export interface PriceSyncResult {
   syncedReleases: number;
@@ -706,18 +689,10 @@ export async function rematchAlbum(req: Request, res: Response) {
       || releaseData.images?.[0]?.uri
       || album.cover_image;
     album.thumb = releaseData.images?.[0]?.uri150 || album.thumb;
-    album.styles = releaseData.styles || album.styles;
-    album.tracklist = releaseData.tracklist?.map((t: any) => ({
-      position: t.position || '',
-      title: t.title || '',
-      duration: t.duration || '',
-      artist: t.artists?.map((a: any) => a.name).join(', ') || ''
-    })) || [];
-    album.labels = releaseData.labels?.map((l: any) => ({
-      name: l.name || '',
-      catno: l.catno || '',
-      discogsId: l.id
-    })) || [];
+    const releaseFields = mapReleaseToAlbumFields(releaseData);
+    album.styles = releaseData.styles ? releaseFields.styles : album.styles;
+    album.tracklist = releaseFields.tracklist;
+    album.labels = releaseFields.labels;
 
     if (format?.name) {
       item.format = {

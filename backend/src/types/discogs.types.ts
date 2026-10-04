@@ -218,7 +218,15 @@ export interface CleanedArtistReleases {
 
 // ===== Service Types =====
 
-export interface FoundAlbumInfo {
+/** Album fields taken from a full release (GET /releases/:id) */
+export interface ReleaseAlbumFields {
+    styles: string[];
+    tracklist: { position: string; title: string; duration: string; artist: string }[];
+    labels: { name: string; catno: string; discogsId?: number }[];
+}
+
+/** The release fields and formats are only set when the full release was fetched */
+export interface FoundAlbumInfo extends Partial<ReleaseAlbumFields> {
     discogsId: number;
     title: string;
     artist: string;
@@ -226,6 +234,7 @@ export interface FoundAlbumInfo {
     thumb: string;
     cover_image: string;
     format?: 'Vinyl' | 'CD';
+    formats?: DiscogsFormat[];
 }
 
 /** Marketplace price suggestions, one amount per condition grade. */

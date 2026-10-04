@@ -22,7 +22,9 @@ import {
     CleanedMasterVersions,
     CleanedArtistReleases,
     FoundAlbumInfo,
-    MarketplaceStats
+    MarketplaceStats,
+    ReleaseAlbumFields,
+    DiscogsFormat
 } from '../types/discogs.types';
 import { getPriceTTLHours } from '../utils/price.utils';
 import {
@@ -801,6 +803,28 @@ async function searchReleasesInternal(
 }
 
 /**
+ * Map the album fields of a full release, so every path that saves an album stores the same data
+ */
+export function mapReleaseToAlbumFields(
+    release: Pick<DiscogsReleaseResponse, 'styles' | 'tracklist' | 'labels'>
+): ReleaseAlbumFields {
+    return {
+        styles: release.styles || [],
+        tracklist: release.tracklist?.map(t => ({
+            position: t.position || '',
+            title: t.title || '',
+            duration: t.duration || '',
+            artist: t.artists?.map(a => a.name).join(', ') || ''
+        })) || [],
+        labels: release.labels?.map(l => ({
+            name: l.name || '',
+            catno: l.catno || '',
+            discogsId: l.id
+        })) || []
+    };
+}
+
+/**
  * Fetch release by ID (for CSV import)
  */
 export async function fetchByReleaseId(releaseId: string | number): Promise<FoundAlbumInfo | null> {
@@ -822,8 +846,8 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
             year: number;
             thumb: string;
             images?: { uri: string }[];
-            formats?: { name: string; descriptions?: string[] }[];
-        }>(`${DISCOGS_BASE_URL}/releases/${releaseId}`, {
+            formats?: DiscogsFormat[];
+        } & Pick<DiscogsReleaseResponse, 'styles' | 'tracklist' | 'labels'>>(`${DISCOGS_BASE_URL}/releases/${releaseId}`, {
             headers: DISCOGS_HEADERS,
             params: { key: auth.key, secret: auth.secret }
         });
@@ -852,7 +876,9 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
             year: data.year?.toString() || '',
             thumb: data.thumb || '',
             cover_image: coverImage,
-            format
+            format,
+            formats: data.formats,
+            ...mapReleaseToAlbumFields(data)
         };
     } catch (err: any) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
@@ -1018,5 +1044,6 @@ export async function getMarketplaceStats(
 export const discogsService = {
     searchByArtistAlbum,
     fetchByReleaseId,
-    searchByCatalogNumber
+    searchByCatalogNumber,
+    getMarketplaceStats
 };

@@ -196,7 +196,8 @@ export async function migrateAlbumData(isStandalone = false) {
             const missingAlbumFields = checkMissingFields(album);
             const needsAlbumUpdate = hasMissingFields(missingAlbumFields);
             
-            const hasFormatText = item.format?.text && item.format.text.trim() !== '';
+            // The CSV import used to store the format name as its text ("Vinyl"), with no details
+            const hasFormatText = item.format?.text && item.format.text.trim() !== '' && item.format.text !== item.format.name;
             const hasFormatDescriptions = item.format?.descriptions && item.format.descriptions.length > 0;
             const needsFormatUpdate = !hasFormatText && !hasFormatDescriptions;
             

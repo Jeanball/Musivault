@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - fix(collection): refresh the list when returning to the tab and after a CSV import
 - fix(discogs): strip the "(n)" suffix from every artist of multi-artist releases
+- fix(import): give imported albums the same labels, tracklist, styles, format details and price as albums added from search
 - fix(discogs): keep " - " in titles from the release endpoint
 
 ---
