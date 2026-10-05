@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- ci: run lint, tests and type-check/build for frontend and backend on pull requests
+
 ### Fixed
 - fix(lint): resolve the frontend ESLint errors so `npm run lint` passes
 - fix(collection): refresh the list when returning to the tab and after a CSV import
