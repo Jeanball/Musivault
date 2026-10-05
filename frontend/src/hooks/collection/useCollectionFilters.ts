@@ -22,7 +22,7 @@ const getInitialFilters = (): FilterState => {
                 ...JSON.parse(stored)
             };
         }
-    } catch (e) {
+    } catch {
         // Ignore parse errors
     }
     return DEFAULT_FILTERS;
