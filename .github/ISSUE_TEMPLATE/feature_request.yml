@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest a new feature or an improvement
+labels: ['feature']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search [existing issues](https://github.com/Jeanball/Musivault/issues?q=is%3Aissue) first. Someone may have asked already.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would it solve?
+      description: The use case. What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How you imagine it could work. Mockups or examples welcome.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds
+      description: Anything you've tried or considered.
+
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Would you like to implement it?
+      options:
+        - No, just suggesting
+        - Yes, I'd like to open a PR

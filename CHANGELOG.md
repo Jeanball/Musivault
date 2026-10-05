@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - ci: run lint, tests and type-check/build for frontend and backend on pull requests
+- chore(github): add issue forms for bugs and feature requests, and a pull request template
 
 ### Fixed
 - fix(lint): resolve the frontend ESLint errors so `npm run lint` passes
