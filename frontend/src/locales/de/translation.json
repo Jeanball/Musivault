@@ -162,6 +162,26 @@
         "importStoppedErrors": "Import mit Fehlern gestoppt",
         "reason": "Grund"
     },
+    "discogsAccount": {
+        "title": "Discogs",
+        "syncToggle": "Mit Discogs synchronisieren",
+        "description": "Verbinde dein Discogs-Konto, damit Musivault mit deiner Discogs-Sammlung arbeiten kann. Standardmäßig aus.",
+        "useServer": "Das Discogs-Konto des Servers verwenden",
+        "orOwn": "oder füge dein eigenes persönliches Token ein",
+        "tokenLabel": "Persönliches Discogs-Token",
+        "tokenHelp": "Erstelle ein Token auf discogs.com/settings/developers",
+        "connect": "Verbinden",
+        "connectedAs": "Verbunden als {{username}}",
+        "sourceServer": "Verwendet das Konto des Servers",
+        "sourceOwn": "Verwendet dein eigenes Token",
+        "disconnect": "Trennen",
+        "needsReconnect": "Neu verbinden nötig: Discogs akzeptiert dieses Token nicht mehr. Erstelle ein neues und verbinde erneut.",
+        "connected": "Discogs-Konto verbunden",
+        "disconnected": "Discogs-Konto getrennt",
+        "tokenRejected": "Discogs hat dieses Token abgelehnt.",
+        "connectFailed": "Verbindung zu Discogs fehlgeschlagen. Versuche es gleich noch einmal.",
+        "loadFailed": "Deine Discogs-Verbindung konnte nicht geladen werden."
+    },
     "csvExport": {
         "title": "Sammlung exportieren (CSV)",
         "description": "Laden Sie eine CSV-Sicherung Ihrer gesamten Sammlung herunter.",

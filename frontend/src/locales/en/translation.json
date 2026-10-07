@@ -183,6 +183,26 @@
         "importStoppedErrors": "Import stopped with errors",
         "reason": "Reason"
     },
+    "discogsAccount": {
+        "title": "Discogs",
+        "syncToggle": "Sync with Discogs",
+        "description": "Connect your Discogs account so Musivault can work with your Discogs collection. Off by default.",
+        "useServer": "Use the server's Discogs account",
+        "orOwn": "or paste your own personal token",
+        "tokenLabel": "Discogs personal token",
+        "tokenHelp": "Create a token on discogs.com/settings/developers",
+        "connect": "Connect",
+        "connectedAs": "Connected as {{username}}",
+        "sourceServer": "Using the server's account",
+        "sourceOwn": "Using your own token",
+        "disconnect": "Disconnect",
+        "needsReconnect": "Needs reconnecting: Discogs no longer accepts this token. Generate a new one and connect again.",
+        "connected": "Discogs account connected",
+        "disconnected": "Discogs account disconnected",
+        "tokenRejected": "Discogs rejected this token.",
+        "connectFailed": "Could not connect to Discogs. Try again in a moment.",
+        "loadFailed": "Could not load your Discogs connection."
+    },
     "csvExport": {
         "title": "Export Collection (CSV)",
         "description": "Download a CSV backup of your full collection.",

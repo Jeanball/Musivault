@@ -165,6 +165,26 @@
         "importStoppedErrors": "导入因错误停止",
         "reason": "原因"
     },
+    "discogsAccount": {
+        "title": "Discogs",
+        "syncToggle": "与 Discogs 同步",
+        "description": "连接你的 Discogs 账户，让 Musivault 可以使用你的 Discogs 收藏。默认关闭。",
+        "useServer": "使用服务器的 Discogs 账户",
+        "orOwn": "或粘贴你自己的个人令牌",
+        "tokenLabel": "Discogs 个人令牌",
+        "tokenHelp": "在 discogs.com/settings/developers 创建令牌",
+        "connect": "连接",
+        "connectedAs": "已连接为 {{username}}",
+        "sourceServer": "正在使用服务器账户",
+        "sourceOwn": "正在使用你自己的令牌",
+        "disconnect": "断开连接",
+        "needsReconnect": "需要重新连接：Discogs 不再接受此令牌。请生成新令牌并重新连接。",
+        "connected": "Discogs 账户已连接",
+        "disconnected": "Discogs 账户已断开",
+        "tokenRejected": "Discogs 拒绝了此令牌。",
+        "connectFailed": "无法连接到 Discogs，请稍后再试。",
+        "loadFailed": "无法加载你的 Discogs 连接。"
+    },
     "csvExport": {
         "title": "导出收藏（CSV）",
         "description": "下载整个收藏的 CSV 备份。",

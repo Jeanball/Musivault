@@ -183,6 +183,26 @@
         "importStoppedErrors": "Import arrêté avec des erreurs",
         "reason": "Raison"
     },
+    "discogsAccount": {
+        "title": "Discogs",
+        "syncToggle": "Synchroniser avec Discogs",
+        "description": "Connectez votre compte Discogs pour que Musivault puisse travailler avec votre collection Discogs. Désactivé par défaut.",
+        "useServer": "Utiliser le compte Discogs du serveur",
+        "orOwn": "ou collez votre propre jeton personnel",
+        "tokenLabel": "Jeton personnel Discogs",
+        "tokenHelp": "Créez un jeton sur discogs.com/settings/developers",
+        "connect": "Connecter",
+        "connectedAs": "Connecté en tant que {{username}}",
+        "sourceServer": "Utilise le compte du serveur",
+        "sourceOwn": "Utilise votre propre jeton",
+        "disconnect": "Déconnecter",
+        "needsReconnect": "Reconnexion nécessaire : Discogs n'accepte plus ce jeton. Générez-en un nouveau et reconnectez-vous.",
+        "connected": "Compte Discogs connecté",
+        "disconnected": "Compte Discogs déconnecté",
+        "tokenRejected": "Discogs a refusé ce jeton.",
+        "connectFailed": "Impossible de se connecter à Discogs. Réessayez dans un instant.",
+        "loadFailed": "Impossible de charger votre connexion Discogs."
+    },
     "csvExport": {
         "title": "Exporter la collection (CSV)",
         "description": "Téléchargez une sauvegarde CSV de toute votre collection.",
