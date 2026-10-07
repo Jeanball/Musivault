@@ -1,0 +1,103 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this! Please search [existing issues](https://github.com/Jeanball/Musivault/issues?q=is%3Aissue) first.
+        Remove passwords, tokens and email addresses from anything you paste.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to …
+        2. Click …
+        3. See …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Musivault version
+      description: Shown in **Settings → About**.
+      placeholder: e.g. 1.15.1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: image-tag
+    attributes:
+      label: Image tag
+      options:
+        - latest
+        - beta
+        - develop / nightly
+        - A pinned version (e.g. 1.15.1)
+        - Built from source
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How do you run it?
+      options:
+        - Docker Compose
+        - Other Docker setup (Portainer, Unraid, Kubernetes, …)
+        - From source (npm run dev / build)
+    validations:
+      required: true
+
+  - type: input
+    id: reverse-proxy
+    attributes:
+      label: Reverse proxy and HTTPS
+      description: Matters for login, cookie and public link issues.
+      placeholder: e.g. none, plain http on LAN / nginx + Let's Encrypt / Traefik / Cloudflare Tunnel
+
+  - type: dropdown
+    id: auth
+    attributes:
+      label: Login method
+      options:
+        - Username and password
+        - OIDC / SSO
+        - Not related to login
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device (for UI issues)
+      placeholder: e.g. Firefox 140 on macOS, Safari on iPhone
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Backend logs (`docker compose logs backend`) and/or the browser console. Shown as code, no backticks needed.
+      render: shell
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, a Discogs release ID, a sample CSV row, …
