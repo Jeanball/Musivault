@@ -15,7 +15,7 @@ const getInitialSort = (): SortState => {
         if (stored) {
             return JSON.parse(stored);
         }
-    } catch (e) {
+    } catch {
         // Ignore parse errors
     }
     return { sortBy: 'artist', sortOrder: 'asc' };

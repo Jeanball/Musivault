@@ -20,9 +20,9 @@ const SelectReleaseModal: React.FC<SelectReleaseModalProps> = ({
     onSelect,
     isLoading = false,
 }) => {
-    if (!isOpen) return null;
-
     const { t } = useTranslation();
+
+    if (!isOpen) return null;
 
     return (
         <dialog className="modal modal-open">
