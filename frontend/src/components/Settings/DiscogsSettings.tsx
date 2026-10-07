@@ -4,6 +4,7 @@ import { AlertTriangle, Disc3 } from 'lucide-react';
 import { toastService } from '../../utils/toast';
 import { isApiError } from '../../api/errors';
 import { connectDiscogsAccount, disconnectDiscogsAccount } from '../../api/discogsAccount';
+import DiscogsCheckReport from './DiscogsCheckReport';
 import type { DiscogsAccountStatus } from '../../types/discogsAccount.types';
 
 interface DiscogsSettingsProps {
@@ -110,6 +111,8 @@ const DiscogsSettings: React.FC<DiscogsSettingsProps> = ({ status, onChanged }) 
                         </div>
                     </div>
                 )}
+
+                {connection && !connection.needsReconnect && <DiscogsCheckReport />}
 
                 {showTokenForm && (
                     <div className="mt-2 flex flex-col gap-3">

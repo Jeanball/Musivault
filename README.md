@@ -153,6 +153,8 @@ Settings has a **Discogs** section where each user can connect a Discogs account
    - **Everyone else**: create a personal token on [Discogs Developer Settings](https://www.discogs.com/settings/developers) ("Generate new token") and paste it once.
 3. Musivault checks the token with Discogs and shows **Connected as *your username***. Personal tokens don't expire. If Discogs later rejects it (you regenerated or revoked it), Settings shows **Needs reconnecting**.
 
+4. **Check against Discogs**: Once connected, **Check now** compares your Discogs collection with Musivault and shows a report: what is **new on Discogs**, what was **merged on Discogs** (a record whose release is no longer in your Discogs collection but has an entry with the same artist, title, format and year, so likely the same record), and what is **only in Musivault**. It also tells you how many matched items have a different date added than on Discogs. It runs in the background (about one Discogs request per 100 releases) and **never changes your collection**. Only one check runs at a time on an instance, because Discogs rate-limits per IP.
+
 Tokens are stored encrypted, never sent back to the browser, and deleted when you disconnect. Only admins can use the server's account, so other users can't read the owner's collection.
 
 </details>

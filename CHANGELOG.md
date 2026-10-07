@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - ci: run lint, tests and type-check/build for frontend and backend on pull requests
 - chore(github): add issue forms for bugs and feature requests, and a pull request template
+- feat(discogs): check your Discogs collection against Musivault in a read-only report (new on Discogs, merged on Discogs, only in Musivault)
 - feat(discogs): connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
 
 ### Fixed
