@@ -8,6 +8,7 @@ import {
     getCollectionItem,
     updateCollectionItem,
     syncItemPrice,
+    refreshItemFromDiscogs,
     removeFromCollection,
     ignoreFormatAlert,
     restoreFormatAlert
@@ -45,6 +46,7 @@ const AlbumDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState(false);
     const [isSyncingPrice, setIsSyncingPrice] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
     const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
     const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
@@ -110,6 +112,26 @@ const AlbumDetailPage: React.FC = () => {
             }
         } finally {
             setIsSyncingPrice(false);
+        }
+    };
+
+    const refreshFromDiscogs = async () => {
+        if (!item) return;
+        setIsRefreshing(true);
+        try {
+            const { item: updated, changed } = await refreshItemFromDiscogs(item._id);
+            setItem(updated);
+            if (changed.length > 0) {
+                void refreshCollection({ silent: true });
+                toastService.success(t('album.refreshed'));
+            } else {
+                toastService.success(t('album.alreadyUpToDate'));
+            }
+        } catch (error) {
+            console.error('Failed to refresh from Discogs:', error);
+            toastService.error(t('album.failedRefresh'));
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -265,6 +287,17 @@ const AlbumDetailPage: React.FC = () => {
                                 <DiscogsIcon className="w-3.5 h-3.5" />
                                 Discogs
                             </a>
+                        )}
+                        {album.discogsId && (
+                            <button
+                                onClick={refreshFromDiscogs}
+                                disabled={isRefreshing}
+                                className="btn btn-sm btn-square tooltip tooltip-top"
+                                data-tip={t('album.refreshFromDiscogs')}
+                                aria-label={t('album.refreshFromDiscogs')}
+                            >
+                                <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                            </button>
                         )}
                     </div>
 

@@ -18,7 +18,8 @@ import {
     addManualAlbum,
     getCollectionSyncInfo,
     getCollectionValueHistory,
-    syncItemPrice
+    syncItemPrice,
+    refreshItemFromDiscogs
 } from '../controllers/collection.controller';
 import protectRoute from '../middlewares/protectRoute.middleware';
 import { csvUpload, uploadCover } from '../middlewares/upload.middleware';
@@ -49,6 +50,7 @@ router.put('/:itemId', protectRoute, updateCollectionItem);
 router.post('/:itemId/ignore-format-alert', protectRoute, ignoreFormatVerificationAlert);
 router.post('/:itemId/restore-format-alert', protectRoute, restoreFormatVerificationAlert);
 router.post('/:itemId/sync-price', protectRoute, syncItemPrice);
+router.post('/:itemId/refresh', protectRoute, refreshItemFromDiscogs);
 router.post('/:itemId/rematch', protectRoute, rematchAlbum);
 router.delete('/:itemId', protectRoute, deleteFromCollection);
 

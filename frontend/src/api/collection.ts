@@ -71,6 +71,15 @@ export async function syncItemPrice(itemId: string): Promise<CollectionItem> {
     return data;
 }
 
+/**
+ * Re-read the album from Discogs and update what changed. Leaves the user's own data
+ * (condition, notes, custom fields, price) alone. `changed` lists the fields that differed.
+ */
+export async function refreshItemFromDiscogs(itemId: string): Promise<{ item: CollectionItem; changed: string[] }> {
+    const { data } = await client.post<{ item: CollectionItem; changed: string[] }>(`/collection/${itemId}/refresh`, {});
+    return data;
+}
+
 export async function rematchAlbum(
     itemId: string,
     payload: { newDiscogsId: number; format: FormatDetails }

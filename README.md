@@ -22,6 +22,7 @@
 
 - **Discogs Integration** : search and add albums by artist, title, Discogs ID or barcode, and pick the exact pressing you own.
 - **Condition Grading** : track the media and sleeve condition of your albums (opt-in from settings).
+- **Refresh from Discogs** : update a single record's details (title, year, cover, styles, tracklist, labels, format details) from Discogs in the record view. Your condition, notes, custom fields and price stay untouched.
 - **Price Tracking** : follow item values from the Discogs marketplace ([setup](#optional-setup-price-tracking)).
 - **Discogs Account** : connect your own Discogs account in Settings, with the server's token (admins) or a personal token ([setup](#optional-setup-discogs-account)). Off by default.
 - **Smart Insights** : collection statistics, format distribution and top artists.
