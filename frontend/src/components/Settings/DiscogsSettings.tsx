@@ -124,16 +124,18 @@ const DiscogsSettings: React.FC<DiscogsSettingsProps> = ({ status, onChanged }) 
                                 <p className="text-xs text-base-content/50">{t('discogsAccount.orOwn')}</p>
                             </>
                         )}
-                        <label className="form-control w-full">
-                            <span className="label-text mb-1">{t('discogsAccount.tokenLabel')}</span>
-                            <input
-                                type="password"
-                                autoComplete="off"
-                                className="input input-bordered input-sm w-full"
-                                value={token}
-                                onChange={e => setToken(e.target.value)}
-                                disabled={isBusy}
-                            />
+                        <div className="form-control w-full">
+                            <label className="flex flex-col">
+                                <span className="label-text mb-1">{t('discogsAccount.tokenLabel')}</span>
+                                <input
+                                    type="password"
+                                    autoComplete="off"
+                                    className="input input-bordered input-sm w-full"
+                                    value={token}
+                                    onChange={e => setToken(e.target.value)}
+                                    disabled={isBusy}
+                                />
+                            </label>
                             <a
                                 className="link text-xs mt-1"
                                 href="https://www.discogs.com/settings/developers"
@@ -142,7 +144,7 @@ const DiscogsSettings: React.FC<DiscogsSettingsProps> = ({ status, onChanged }) 
                             >
                                 {t('discogsAccount.tokenHelp')}
                             </a>
-                        </label>
+                        </div>
                         <button
                             className="btn btn-primary btn-sm self-start"
                             disabled={isBusy || !token.trim()}
