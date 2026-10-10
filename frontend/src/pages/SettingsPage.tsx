@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, User, Settings, Upload, Info } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ArrowLeft, User, Settings, Upload, Info, Disc3 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import ProfileSettings from '../components/Settings/ProfileSettings';
@@ -7,8 +7,11 @@ import PreferencesSettings from '../components/Settings/PreferencesSettings';
 import AboutSettings from '../components/Settings/AboutSettings';
 import ImportSettings from '../components/Settings/ImportSettings';
 import ExportSettings from '../components/Settings/ExportSettings';
+import DiscogsSettings from '../components/Settings/DiscogsSettings';
+import { getDiscogsAccount } from '../api/discogsAccount';
+import type { DiscogsAccountStatus } from '../types/discogsAccount.types';
 
-type SettingsSection = 'profile' | 'preferences' | 'import' | 'about';
+type SettingsSection = 'profile' | 'preferences' | 'discogs' | 'import' | 'about';
 
 interface MenuItem {
     id: SettingsSection;
@@ -21,10 +24,27 @@ const SettingsPage: React.FC = () => {
     const { t } = useTranslation();
     const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
     const [showMobileMenu, setShowMobileMenu] = useState(true);
+    const [discogsStatus, setDiscogsStatus] = useState<DiscogsAccountStatus | null>(null);
+
+    const loadDiscogsStatus = useCallback(async () => {
+        try {
+            setDiscogsStatus(await getDiscogsAccount());
+        } catch (error) {
+            console.error('Failed to fetch Discogs account status:', error);
+        }
+    }, []);
+
+    useEffect(() => {
+        void loadDiscogsStatus();
+    }, [loadDiscogsStatus]);
 
     const menuItems: MenuItem[] = [
         { id: 'profile', labelKey: 'settings.profile', icon: <User size={18} /> },
         { id: 'preferences', labelKey: 'settings.preferences', icon: <Settings size={18} /> },
+        // Hidden until the server confirms it can store tokens (ENCRYPTION_KEY set).
+        ...(discogsStatus?.available
+            ? [{ id: 'discogs' as const, labelKey: 'discogsAccount.title', icon: <Disc3 size={18} /> }]
+            : []),
         { id: 'import', labelKey: 'settings.import', icon: <Upload size={18} /> },
         { id: 'about', labelKey: 'settings.about', icon: <Info size={18} /> },
     ];
@@ -35,6 +55,10 @@ const SettingsPage: React.FC = () => {
                 return <ProfileSettings />;
             case 'preferences':
                 return <PreferencesSettings />;
+            case 'discogs':
+                return discogsStatus?.available
+                    ? <DiscogsSettings status={discogsStatus} onChanged={loadDiscogsStatus} />
+                    : <ProfileSettings />;
             case 'import':
                 return (
                     <div className="flex flex-col gap-6">

@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import type { Express } from 'express';
+import axios from 'axios';
 import Album, { IAlbum, ITrack, ILabel } from '../models/Album';
 import CollectionItem, { ICollectionItem } from '../models/CollectionItem';
 import { csvImportService } from '../services/import.service';
 import { csvExportService } from '../services/export.service';
-import { getMarketplaceStats, mapReleaseToAlbumFields } from '../services/discogs.service';
+import { getMarketplaceStats, mapReleaseToAlbumUpdate } from '../services/discogs.service';
 import { buildPriceCache, getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { getUserStyles } from '../services/collection.service';
 import { discogsRequest, stripArtistSuffixes } from '../utils/discogs.utils';
@@ -682,17 +683,7 @@ export async function rematchAlbum(req: Request, res: Response) {
     // Update the album with new Discogs data
     const album = item.album as any;
     album.discogsId = newDiscogsId;
-    album.title = releaseData.title;
-    album.artist = stripArtistSuffixes(releaseData.artists?.map((a: any) => a.name).join(', ') || album.artist);
-    album.year = releaseData.year?.toString() || album.year;
-    album.cover_image = releaseData.images?.find((img: any) => img.type === 'primary')?.uri
-      || releaseData.images?.[0]?.uri
-      || album.cover_image;
-    album.thumb = releaseData.images?.[0]?.uri150 || album.thumb;
-    const releaseFields = mapReleaseToAlbumFields(releaseData);
-    album.styles = releaseData.styles ? releaseFields.styles : album.styles;
-    album.tracklist = releaseFields.tracklist;
-    album.labels = releaseFields.labels;
+    Object.assign(album, mapReleaseToAlbumUpdate(releaseData, album));
 
     if (format?.name) {
       item.format = {
@@ -726,6 +717,85 @@ export async function rematchAlbum(req: Request, res: Response) {
       res.status(409).json({ message: 'This album already exists in your collection' });
       return;
     }
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+// ===== Album Refresh =====
+
+/** Album fields a refresh can change, in the order they are reported back. */
+const REFRESHABLE_ALBUM_FIELDS = ['title', 'artist', 'year', 'cover_image', 'thumb', 'styles', 'tracklist', 'labels'] as const;
+
+/**
+ * Re-read a single album from its Discogs release and update what changed (title, artist, year,
+ * images, styles, tracklist, labels, and the format's details), the way the price sync does for prices.
+ * Everything that belongs to the user's copy is left alone: condition, notes, custom fields,
+ * added date, price, and the format itself. A tracklist or labels the release no longer lists are kept.
+ * Replies with the updated item and `changed`, the names of the fields that differed (empty = up to date).
+ * The album is shared with every user who owns that release, so they see the update too.
+ */
+export async function refreshItemFromDiscogs(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { itemId } = req.params;
+    const item = await CollectionItem.findOne({ _id: itemId, user: req.user._id })
+      .populate<{ album: IAlbum }>('album');
+
+    if (!item) {
+      res.status(404).json({ message: 'Item not found in your collection' });
+      return;
+    }
+
+    const album = item.album;
+    if (!album || !album.discogsId) {
+      res.status(400).json({ message: 'Cannot refresh: No Discogs ID associated with this album' });
+      return;
+    }
+
+    const release = await discogsRequest<DiscogsReleaseResponse>(`/releases/${album.discogsId}`);
+    const fromRelease = mapReleaseToAlbumUpdate(release, album);
+    // A release that lists no tracks or labels is more likely incomplete data than a real removal.
+    const update = {
+      ...fromRelease,
+      tracklist: fromRelease.tracklist.length > 0 ? fromRelease.tracklist : album.tracklist,
+      labels: fromRelease.labels.length > 0 ? fromRelease.labels : album.labels
+    };
+
+    const changed = REFRESHABLE_ALBUM_FIELDS.filter(
+      field => JSON.stringify(update[field]) !== JSON.stringify(album.toObject()[field])
+    );
+    Object.assign(album, update);
+
+    const formatDetails = release.formats?.find(f => f.name.toLowerCase() === item.format.name.toLowerCase());
+    const descriptions = formatDetails?.descriptions || [];
+    const text = formatDetails?.text || '';
+    const formatChanged = !!formatDetails && (
+      text !== item.format.text || JSON.stringify(descriptions) !== JSON.stringify(item.format.descriptions)
+    );
+    if (formatChanged) {
+      item.format.descriptions = descriptions;
+      item.format.text = text;
+    }
+
+    if (changed.length > 0) await album.save();
+    if (formatChanged) await item.save();
+
+    const updatedItem = await CollectionItem.findById(itemId).populate('album');
+    res.status(200).json({ item: updatedItem, changed: formatChanged ? [...changed, 'format'] : changed });
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      res.status(404).json({ message: 'Release not found on Discogs' });
+      return;
+    }
+    if (axios.isAxiosError(error) && error.response?.status === 429) {
+      res.status(429).json({ message: 'Too many requests! Please wait about 30 seconds before trying again.' });
+      return;
+    }
+    logger.error({ err: error }, 'Error refreshing album from Discogs');
     res.status(500).json({ message: 'Internal server error' });
   }
 }

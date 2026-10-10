@@ -14,6 +14,8 @@ import { ensureUploadDirs } from "./config/uploads.config"
 // Routes
 import usersRoute from "./routes/users.route"
 import discogsRoute from './routes/discogs.route'
+import discogsAccountRoute from './routes/discogsAccount.route'
+import discogsSyncRoute from './routes/discogsSync.route'
 import authRoute from './routes/auth.route'
 import collectionRoute from './routes/collection.route'
 import publicRoute from './routes/public.route'
@@ -103,6 +105,8 @@ app.use((req, res, next) => {
 
 app.use('/api/users', usersRoute);
 app.use('/api/discogs', discogsRoute);
+app.use('/api/discogs-account', discogsAccountRoute);
+app.use('/api/discogs-sync', discogsSyncRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/collection', collectionRoute)
 app.use('/api/public', publicRoute)

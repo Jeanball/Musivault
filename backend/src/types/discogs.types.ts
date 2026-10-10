@@ -249,3 +249,25 @@ export interface MarketplaceStats {
     poor: number | null;
     currency: string;
 }
+
+// ===== User collection =====
+
+/** One entry of `/users/{username}/collection/folders/0/releases`. Only the fields the check reads. */
+export interface DiscogsCollectionRelease {
+    id: number;
+    instance_id: number;
+    date_added: string;
+    basic_information: {
+        id: number;
+        title: string;
+        year: number;
+        thumb?: string;
+        artists?: { name: string }[];
+        formats?: { name: string; descriptions?: string[] }[];
+    };
+}
+
+export interface DiscogsCollectionPage {
+    pagination: { page: number; pages: number; items: number };
+    releases: DiscogsCollectionRelease[];
+}

@@ -37,11 +37,13 @@ import {
     delay,
     discogsRequest,
     cleanAlbumTitle,
+    stripArtistSuffixes,
     normalizeString,
     calculateSimilarity,
     artistMatches
 } from '../utils/discogs.utils';
 import { logger } from '../config/logger.config';
+import type { IAlbum } from '../models/Album';
 
 // ===== Search Functions (for Controller) =====
 
@@ -821,6 +823,38 @@ export function mapReleaseToAlbumFields(
             catno: l.catno || '',
             discogsId: l.id
         })) || []
+    };
+}
+
+/** The album fields a release provides, each falling back to the album's current value when Discogs has none. */
+export interface AlbumUpdate extends ReleaseAlbumFields {
+    title: string;
+    artist: string;
+    year: string;
+    cover_image: string;
+    thumb: string;
+}
+
+/**
+ * Album fields from a full release, for rematching or refreshing an album.
+ * `current` supplies the value to keep wherever the release has nothing (artist, year, images, styles).
+ */
+export function mapReleaseToAlbumUpdate(
+    release: DiscogsReleaseResponse,
+    current: Pick<IAlbum, 'artist' | 'year' | 'cover_image' | 'thumb' | 'styles'>
+): AlbumUpdate {
+    const releaseFields = mapReleaseToAlbumFields(release);
+    return {
+        title: release.title,
+        artist: stripArtistSuffixes(release.artists?.map(a => a.name).join(', ') || current.artist),
+        year: release.year?.toString() || current.year,
+        cover_image: release.images?.find(img => img.type === 'primary')?.uri
+            || release.images?.[0]?.uri
+            || current.cover_image,
+        thumb: release.images?.[0]?.uri150 || current.thumb,
+        styles: release.styles ? releaseFields.styles : current.styles,
+        tracklist: releaseFields.tracklist,
+        labels: releaseFields.labels
     };
 }
 

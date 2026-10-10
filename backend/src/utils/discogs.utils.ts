@@ -61,14 +61,16 @@ export const delay = (ms: number): Promise<void> =>
 // ===== API Request Wrapper =====
 
 /**
- * Make a request to the Discogs API with authentication and proper headers
+ * Make a request to the Discogs API with authentication and proper headers.
+ * Auth is the instance key/secret by default, the instance `DISCOGS_PAT` with
+ * `useTokenAuth`, or a personal token passed as `token` (which wins).
  */
 export async function discogsRequest<T>(
     endpoint: string,
     params: Record<string, any> = {},
-    options: { useTokenAuth?: boolean; applyRateLimit?: boolean } = {}
+    options: { useTokenAuth?: boolean; applyRateLimit?: boolean; token?: string } = {}
 ): Promise<T> {
-    const { useTokenAuth = false, applyRateLimit = false } = options;
+    const { useTokenAuth = false, applyRateLimit = false, token } = options;
 
     if (applyRateLimit) {
         await delay(RATE_LIMIT_MS);
@@ -76,9 +78,10 @@ export async function discogsRequest<T>(
 
     const url = endpoint.startsWith('http') ? endpoint : `${DISCOGS_BASE_URL}${endpoint}`;
 
-    if (useTokenAuth) {
-        // PAT-based auth (required for marketplace/price_suggestions)
-        const pat = process.env.DISCOGS_PAT;
+    if (useTokenAuth || token) {
+        // Token auth (required for marketplace/price_suggestions and a user's own
+        // collection). An explicit `token` is a user's own; otherwise the instance PAT.
+        const pat = token ?? process.env.DISCOGS_PAT;
         if (!pat) {
             throw new Error('Discogs Personal Access Token (DISCOGS_PAT) not configured');
         }

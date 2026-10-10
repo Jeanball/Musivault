@@ -41,6 +41,7 @@ services:
       - DISCOGS_SECRET=${DISCOGS_SECRET}
       # Discogs Personal Access Token (optional - required for collection value estimation)
       - DISCOGS_PAT=${DISCOGS_PAT:-}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
       # Ticketmaster Discovery API Consumer Key (optional - required for nearby concerts)
       - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY:-}
       - CORS_ORIGINS=*
