@@ -26,7 +26,7 @@ export class DiscogsCheckError extends Error {
     }
 }
 
-/** A Musivault item reduced to what the comparison needs. */
+/** A Musivault item reduced to what the comparison needs. `discogsId` is missing on manually added albums. */
 export interface ComparableItem extends IDiscogsReportItem {
     addedAt: Date;
 }
@@ -55,7 +55,11 @@ function releaseOf(entry: DiscogsCollectionRelease): IDiscogsReportRelease {
 
 const pairKey = (artist: string, title: string) => `${normalizeString(artist)}|${normalizeString(title)}`;
 
-/** Whether a Discogs entry could be the release an item was meant to be: same format, same year if both have one. */
+/**
+ * Whether a Discogs entry could be the release an item was meant to be: the same format
+ * (compared by name, ignoring case; an item with no format fits any) and the same year
+ * (only compared when both sides have one; Discogs reports 0 for "unknown").
+ */
 function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease): boolean {
     const itemFormat = item.format?.toLowerCase();
     if (itemFormat && !entry.basic_information.formats?.some(f => f.name.toLowerCase() === itemFormat)) {
@@ -70,7 +74,9 @@ function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease
  * Compare a user's Discogs collection with their Musivault items. Pure: no I/O.
  *
  * Items match on the Discogs release id alone, never release + format, so an LP and a CD
- * release of the same album stay separate. Owning several copies of one release counts once.
+ * release of the same album stay separate, while an item matches its release whatever format
+ * Discogs lists. Owning several copies of one release counts once, and when copies differ the
+ * earliest `date_added` is the one that counts.
  *
  * - `matched`: the item's release is in the Discogs collection. `dateDiffers` counts those whose
  *   `addedAt` is more than a day from the earliest Discogs `date_added` (e.g. everything a CSV
@@ -82,6 +88,8 @@ function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease
  *   releases. Each Discogs entry is used at most once. A guess, shown as "likely"; when in doubt the
  *   item stays in `onlyInMusivault` and the release in `newOnDiscogs`.
  * - `onlyInMusivault`: items left over, including manually added albums with no Discogs id.
+ *
+ * Empty inputs give empty results. Never throws and never touches the arguments.
  */
 export function compareCollections(discogs: DiscogsCollectionRelease[], items: ComparableItem[]): ComparisonResult {
     const earliestByRelease = new Map<number, DiscogsCollectionRelease>();

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- test(backend): cover `compareCollections` and the token encryption, and document their behaviour
 - test(backend): set up Vitest for the backend with `npm test` and `npm run test:run`
 - ci: run lint, tests and type-check/build for frontend and backend on pull requests
 - chore(github): add issue forms for bugs and feature requests, and a pull request template
