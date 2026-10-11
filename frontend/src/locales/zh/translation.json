@@ -225,6 +225,12 @@
         "confirmLargeTitle": "添加大量唱片？",
         "confirmLargeBody": "这将添加 {{count}} 张新唱片。"
     },
+    "discogsPending": {
+        "message": "上次 Discogs 检查有 {{count}} 项变化待处理：新增 {{newOnDiscogs}}，已合并 {{merged}}。",
+        "review": "查看",
+        "dismiss": "忽略",
+        "badge": "{{count}} 项 Discogs 变化待处理"
+    },
     "discogsAccount": {
         "title": "Discogs",
         "syncToggle": "与 Discogs 同步",

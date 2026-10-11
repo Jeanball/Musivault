@@ -243,6 +243,12 @@
         "confirmLargeTitle": "Add many records?",
         "confirmLargeBody": "This adds {{count}} new records."
     },
+    "discogsPending": {
+        "message": "{{count}} changes from your last Discogs check are waiting: {{newOnDiscogs}} new, {{merged}} merged.",
+        "review": "Review",
+        "dismiss": "Dismiss",
+        "badge": "{{count}} Discogs changes waiting"
+    },
     "discogsAccount": {
         "title": "Discogs",
         "syncToggle": "Sync with Discogs",

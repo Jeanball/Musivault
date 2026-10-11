@@ -1,5 +1,5 @@
 import { client } from './client';
-import type { DiscogsApplySelection, DiscogsSyncReport } from '../types/discogsAccount.types';
+import type { DiscogsApplySelection, DiscogsPendingSummary, DiscogsSyncReport } from '../types/discogsAccount.types';
 
 /** Start a read-only check of the Discogs collection against Musivault. It runs in the background. */
 export async function startDiscogsCheck(): Promise<void> {
@@ -18,4 +18,10 @@ export async function getDiscogsReport(): Promise<DiscogsSyncReport | null> {
  */
 export async function applyDiscogsSelection(selection: DiscogsApplySelection): Promise<void> {
     await client.post('/discogs-sync/apply', selection);
+}
+
+/** What the last check left to act on, or `null` when sync is off or nothing was checked yet. */
+export async function getDiscogsSummary(): Promise<DiscogsPendingSummary | null> {
+    const { data } = await client.get<{ summary: DiscogsPendingSummary | null }>('/discogs-sync/summary');
+    return data.summary;
 }

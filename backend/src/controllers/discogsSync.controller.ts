@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { logger } from '../config/logger.config';
 import mongoose from 'mongoose';
 import { DiscogsApplyError, startApply } from '../services/discogsApply.service';
-import { DiscogsCheckError, getReport, startCheck } from '../services/discogsSync.service';
+import { DiscogsCheckError, getPendingSummary, getReport, startCheck } from '../services/discogsSync.service';
 
 /** Start a read-only check against the user's Discogs collection. Replies 202; poll `getDiscogsReport`. */
 export async function startDiscogsCheck(req: Request, res: Response) {
@@ -77,6 +77,21 @@ export async function startDiscogsApply(req: Request, res: Response) {
             return;
         }
         logger.error({ err: error }, 'Error in startDiscogsApply');
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+/** What the last check left to act on (`summary` is null when there is nothing to show). Cheap: no report rows. */
+export async function getDiscogsSummary(req: Request, res: Response) {
+    try {
+        if (!req.user) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+
+        res.status(200).json({ summary: await getPendingSummary(req.user) });
+    } catch (error) {
+        logger.error({ err: error }, 'Error in getDiscogsSummary');
         res.status(500).json({ message: 'Internal server error' });
     }
 }

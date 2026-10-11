@@ -438,6 +438,31 @@ export async function checkAllUsers(
     return result;
 }
 
+/** What the last check left to act on, for the badge and the notice. */
+export interface PendingSummary {
+    finishedAt: Date;
+    newOnDiscogs: number;
+    merged: number;
+}
+
+/**
+ * The counts the user can act on from their last completed check: records new on Discogs and merged
+ * ones. Date differences and "only in Musivault" are left out on purpose, since nobody is asked to do
+ * anything about them. Counts are of the stored result, so they drop as soon as an apply has run.
+ * Null when sync is off or needs reconnecting, or there is no completed check.
+ */
+export async function getPendingSummary(user: IUser): Promise<PendingSummary | null> {
+    if (!user.discogs?.enabled || user.discogs.needsReconnect) return null;
+    const report = await DiscogsSyncReport.findOne({ user: user._id, status: 'completed' })
+        .select('finishedAt startedAt counts');
+    if (!report) return null;
+    return {
+        finishedAt: report.finishedAt ?? report.startedAt,
+        newOnDiscogs: report.counts.newOnDiscogs,
+        merged: report.counts.merged
+    };
+}
+
 /** The user's latest check, or null if they never ran one. */
 export async function getReport(userId: mongoose.Types.ObjectId): Promise<IDiscogsSyncReport | null> {
     const report = await DiscogsSyncReport.findOne({ user: userId });

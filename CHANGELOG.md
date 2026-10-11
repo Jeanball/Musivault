@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(discogs): show how many Discogs changes are waiting as a badge in the navbar and a dismissible notice in Settings
 - feat(discogs): check the connected Discogs collections every week with a new Task Center task
 - test(discogs): cover the apply matching order, relinking that keeps the copy's own data, and the date handling
 - feat(discogs): apply the Discogs check: add new records, relink merged ones, take dates from Discogs, and remember each record's Discogs entry to detect merges exactly

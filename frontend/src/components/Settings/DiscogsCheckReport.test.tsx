@@ -11,7 +11,7 @@ vi.mock('react-i18next', () => ({
             options ? `${key}:${JSON.stringify(options)}` : key
     })
 }));
-const { refreshCollection } = vi.hoisted(() => ({ refreshCollection: vi.fn() }));
+const { refreshCollection, refreshPending } = vi.hoisted(() => ({ refreshCollection: vi.fn(), refreshPending: vi.fn() }));
 vi.mock('../../api/discogsSync', () => ({
     getDiscogsReport: vi.fn(),
     startDiscogsCheck: vi.fn(),
@@ -19,6 +19,9 @@ vi.mock('../../api/discogsSync', () => ({
 }));
 vi.mock('../../hooks/collection/useCollectionData', () => ({
     useCollectionData: () => ({ refreshCollection })
+}));
+vi.mock('../../context/DiscogsPendingContext', () => ({
+    useDiscogsPending: () => ({ refresh: refreshPending })
 }));
 vi.mock('../../utils/toast', () => ({ toastService: { success: vi.fn(), error: vi.fn() } }));
 
@@ -105,6 +108,23 @@ describe('DiscogsCheckReport', () => {
             await vi.advanceTimersByTimeAsync(10000);
         });
         expect(getDiscogsReport).toHaveBeenCalledTimes(2);
+    });
+
+    it('re-reads the navbar badge when a check finishes, and not before', async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        vi.mocked(getDiscogsReport)
+            .mockResolvedValueOnce(report({ status: 'running', progress: { page: 1, pages: 2 } }))
+            .mockResolvedValue(report());
+
+        render(<DiscogsCheckReport />);
+        await screen.findByText('discogsCheck.progress:{"page":1,"pages":2}');
+        expect(refreshPending).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(2100);
+        });
+
+        await waitFor(() => expect(refreshPending).toHaveBeenCalledTimes(1));
     });
 
     it('says everything is in sync when nothing differs', async () => {
@@ -461,6 +481,8 @@ describe('DiscogsCheckReport', () => {
             expect(await screen.findByText('discogsApply.done:{"added":2,"relinked":2}')).toBeInTheDocument();
             expect(refreshCollection).toHaveBeenCalledTimes(1);
             expect(refreshCollection).toHaveBeenCalledWith({ silent: true });
+            // The navbar badge counts what is left, so it is re-read when the apply is done.
+            expect(refreshPending).toHaveBeenCalledTimes(1);
             await act(async () => {
                 await vi.advanceTimersByTimeAsync(10000);
             });

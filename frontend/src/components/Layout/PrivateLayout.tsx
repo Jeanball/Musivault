@@ -6,6 +6,7 @@ import Footer from '../Navigation/Footer';
 import { useTheme } from '../../context/ThemeContext';
 import { toastService } from '../../utils/toast';
 import { CollectionProvider } from '../../context/CollectionContext';
+import { DiscogsPendingProvider } from '../../context/DiscogsPendingContext';
 import type { PrivateOutletContext } from '../../types/auth.types';
 import { verify, logout } from '../../api/auth';
 
@@ -95,6 +96,7 @@ const PrivateLayout: React.FC = () => {
     }
 
     return (
+        <DiscogsPendingProvider>
         <div className="flex flex-col min-h-screen">
             <div className={`flex-1 p-4 md:p-8 ${wideScreenMode ? 'max-w-250 mx-auto w-full' : ''}`}>
                 <Navbar username={username} isAdmin={isAdmin} onLogout={handleLogout} />
@@ -108,6 +110,7 @@ const PrivateLayout: React.FC = () => {
                 <Footer />
             </div>
         </div>
+        </DiscogsPendingProvider>
     );
 };
 

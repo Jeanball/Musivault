@@ -225,6 +225,12 @@
         "confirmLargeTitle": "Adicionar muitos discos?",
         "confirmLargeBody": "Isto adiciona {{count}} discos novos."
     },
+    "discogsPending": {
+        "message": "{{count}} alterações da sua última verificação do Discogs aguardam: {{newOnDiscogs}} novas, {{merged}} fundidas.",
+        "review": "Rever",
+        "dismiss": "Dispensar",
+        "badge": "{{count}} alterações do Discogs pendentes"
+    },
     "discogsAccount": {
         "title": "Discogs",
         "syncToggle": "Sincronizar com o Discogs",

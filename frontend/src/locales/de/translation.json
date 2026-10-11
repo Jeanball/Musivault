@@ -222,6 +222,12 @@
         "confirmLargeTitle": "Viele Platten hinzufügen?",
         "confirmLargeBody": "Das fügt {{count}} neue Platten hinzu."
     },
+    "discogsPending": {
+        "message": "{{count}} Änderungen deiner letzten Discogs-Prüfung warten: {{newOnDiscogs}} neu, {{merged}} zusammengeführt.",
+        "review": "Ansehen",
+        "dismiss": "Ausblenden",
+        "badge": "{{count}} Discogs-Änderungen warten"
+    },
     "discogsAccount": {
         "title": "Discogs",
         "syncToggle": "Mit Discogs synchronisieren",

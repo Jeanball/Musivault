@@ -243,6 +243,12 @@
         "confirmLargeTitle": "Ajouter beaucoup de disques ?",
         "confirmLargeBody": "Cela ajoute {{count}} nouveaux disques."
     },
+    "discogsPending": {
+        "message": "{{count}} changements de votre dernière vérification Discogs vous attendent : {{newOnDiscogs}} nouveaux, {{merged}} fusionnés.",
+        "review": "Voir",
+        "dismiss": "Ignorer",
+        "badge": "{{count}} changements Discogs en attente"
+    },
     "discogsAccount": {
         "title": "Discogs",
         "syncToggle": "Synchroniser avec Discogs",

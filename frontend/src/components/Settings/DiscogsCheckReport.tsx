@@ -7,6 +7,7 @@ import { useCollectionData } from '../../hooks/collection/useCollectionData';
 import { toastService } from '../../utils/toast';
 import type { DiscogsApplySelection, DiscogsSyncReport } from '../../types/discogsAccount.types';
 import DiscogsApplyStatus from './DiscogsApplyStatus';
+import { useDiscogsPending } from '../../context/DiscogsPendingContext';
 
 const POLL_MS = 2000;
 /** Rows rendered per section; the counts above always show the full numbers. */
@@ -118,6 +119,7 @@ interface Unticked {
 const DiscogsCheckReport: React.FC = () => {
     const { t } = useTranslation();
     const { refreshCollection } = useCollectionData();
+    const { refresh: refreshPending } = useDiscogsPending();
     const [report, setReport] = useState<DiscogsSyncReport | null>(null);
     const [isStarting, setIsStarting] = useState(false);
     // Every row of a result starts ticked, so what is kept is the rows the user unticked, for that result.
@@ -125,6 +127,7 @@ const DiscogsCheckReport: React.FC = () => {
     const [confirm, setConfirm] = useState<Confirm>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const wasApplying = useRef(false);
+    const wasChecking = useRef(false);
 
     const checking = report?.status === 'queued' || report?.status === 'running';
     const applying = report?.apply?.status === 'queued' || report?.apply?.status === 'running';
@@ -151,11 +154,16 @@ const DiscogsCheckReport: React.FC = () => {
         };
     }, [checking, applying, report, load]);
 
-    // The collection changed under the list: bring it up to date once the apply is done.
+    // When a check or an apply finishes: an apply changed the collection under the list, and both change
+    // what the navbar badge counts (what the last check left to do).
     useEffect(() => {
-        if (wasApplying.current && !applying) void refreshCollection({ silent: true });
+        const applyDone = wasApplying.current && !applying;
+        const checkDone = wasChecking.current && !checking;
+        if (applyDone) void refreshCollection({ silent: true });
+        if (applyDone || checkDone) void refreshPending();
         wasApplying.current = applying;
-    }, [applying, refreshCollection]);
+        wasChecking.current = checking;
+    }, [applying, checking, refreshCollection, refreshPending]);
 
     const resultKey = report?.status === 'completed' ? report.finishedAt ?? report.startedAt : null;
     const current = unticked.result === resultKey ? unticked : { result: resultKey, new: new Set<number>(), merged: new Set<string>() };

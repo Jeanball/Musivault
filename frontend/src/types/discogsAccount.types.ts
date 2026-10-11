@@ -93,3 +93,10 @@ export interface DiscogsSyncReport {
     onlyInMusivault: DiscogsReportItem[];
     apply?: DiscogsApply;
 }
+
+/** What the last check left to act on. Date differences and "only in Musivault" don't count. */
+export interface DiscogsPendingSummary {
+    finishedAt: string;
+    newOnDiscogs: number;
+    merged: number;
+}
