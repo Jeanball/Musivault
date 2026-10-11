@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- ci: run the backend tests on pull requests
 - feat(discogs): stop a long apply at any time, and show every row of a section to untick it
 - feat(discogs): show how many Discogs changes are waiting as a badge in the navbar and a dismissible notice in Settings
 - feat(discogs): check the connected Discogs collections every week with a new Task Center task
