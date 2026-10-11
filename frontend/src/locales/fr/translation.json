@@ -689,6 +689,10 @@
                 "refreshUpcomingReleases": {
                     "name": "Actualiser les sorties à venir",
                     "description": "Récupérer tous les albums et EP que MusicBrainz annonce pour les prochaines semaines, puis ne mettre en cache que ceux dont les artistes correspondent à un style déjà présent dans une collection, afin que chaque membre voie les sorties correspondant à ses propres genres."
+                },
+                "checkDiscogsCollections": {
+                    "name": "Vérifier les collections Discogs",
+                    "description": "Compare la collection Discogs de chaque utilisateur connecté avec Musivault et met à jour son rapport dans les paramètres. Lecture seule : rien n'est ajouté ni modifié tant que l'utilisateur n'applique pas."
                 }
             }
         },

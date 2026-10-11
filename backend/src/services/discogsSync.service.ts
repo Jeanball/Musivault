@@ -333,13 +333,18 @@ export function hasActiveJob(userId: mongoose.Types.ObjectId): boolean {
     return activeUsers.has(String(userId));
 }
 
-/** Run `job` after the jobs already queued. The user counts as busy until it settles; `job` must not throw. */
-export function enqueueJob(userId: mongoose.Types.ObjectId, job: () => Promise<void>): void {
+/**
+ * Run `job` after the jobs already queued. The user counts as busy until it settles.
+ * Returns a promise for when it has run; a job that throws doesn't block the ones after it.
+ */
+export function enqueueJob(userId: mongoose.Types.ObjectId, job: () => Promise<void>): Promise<void> {
     const key = String(userId);
     activeUsers.add(key);
-    queue = queue
+    const run = queue
         .then(job)
         .finally(() => { activeUsers.delete(key); });
+    queue = run.catch(() => undefined);
+    return run;
 }
 
 /**
@@ -350,6 +355,11 @@ export function enqueueJob(userId: mongoose.Types.ObjectId, job: () => Promise<v
  * @throws DiscogsCheckError if no account is connected or it needs reconnecting
  */
 export async function startCheck(userId: mongoose.Types.ObjectId): Promise<IDiscogsSyncReport> {
+    return (await beginCheck(userId)).report;
+}
+
+/** `startCheck`, also handing back a promise for when the check has run (already settled if one was running). */
+async function beginCheck(userId: mongoose.Types.ObjectId): Promise<{ report: IDiscogsSyncReport; finished: Promise<void> }> {
     const user = await User.findById(userId);
     if (!user?.discogs?.enabled) {
         throw new DiscogsCheckError('notConnected', 'No Discogs account is connected.');
@@ -360,7 +370,7 @@ export async function startCheck(userId: mongoose.Types.ObjectId): Promise<IDisc
 
     const existing = await DiscogsSyncReport.findOne({ user: userId });
     if (existing && hasActiveJob(userId)) {
-        return existing;
+        return { report: existing, finished: Promise.resolve() };
     }
 
     const report = await DiscogsSyncReport.findOneAndUpdate(
@@ -381,9 +391,51 @@ export async function startCheck(userId: mongoose.Types.ObjectId): Promise<IDisc
         { upsert: true, new: true }
     );
 
-    enqueueJob(userId, () => runCheck(userId));
+    return { report, finished: enqueueJob(userId, () => runCheck(userId)) };
+}
 
-    return report;
+/** How a `checkAllUsers` run went. */
+export interface CheckAllResult {
+    /** Checks that completed. */
+    checked: number;
+    /** Checks that failed, including those where Discogs rejected the token. */
+    failed: number;
+    /** Users left out because a check or an apply of theirs was already running. */
+    skipped: number;
+}
+
+/**
+ * Check the Discogs collection of every user who has sync on and a working token, one after another
+ * through the shared queue (so it never competes with a user's own check for Discogs' rate limit).
+ * Read-only: it refreshes each user's report and never applies anything. A user whose check fails
+ * doesn't stop the others; their report carries the error. Users that need reconnecting are not tried.
+ * `onUser` is called before each check, with its position.
+ */
+export async function checkAllUsers(
+    onUser?: (current: number, total: number, username: string) => void
+): Promise<CheckAllResult> {
+    const users = await User.find({ 'discogs.enabled': true, 'discogs.needsReconnect': { $ne: true } })
+        .select('_id discogs.username');
+    const result: CheckAllResult = { checked: 0, failed: 0, skipped: 0 };
+
+    for (const [index, user] of users.entries()) {
+        if (hasActiveJob(user._id)) {
+            result.skipped++;
+            continue;
+        }
+        onUser?.(index + 1, users.length, user.discogs?.username ?? '');
+        try {
+            const { finished } = await beginCheck(user._id);
+            await finished;
+            const report = await DiscogsSyncReport.findOne({ user: user._id });
+            if (report?.status === 'completed') result.checked++;
+            else result.failed++;
+        } catch (error) {
+            logger.warn({ err: error, userId: String(user._id) }, '[DiscogsCheck] Scheduled check could not start');
+            result.failed++;
+        }
+    }
+    return result;
 }
 
 /** The user's latest check, or null if they never ran one. */

@@ -5,6 +5,7 @@ import { executePriceSync } from '../controllers/collection.controller';
 import type { PopulatedCollectionItem } from '../controllers/collection.controller';
 import { getPriceTTLHours } from '../utils/price.utils';
 import { recordAllUserSnapshots } from './valueSnapshot.service';
+import { checkAllUsers } from './discogsSync.service';
 import ExchangeRates from '../models/ExchangeRates';
 import UpcomingRelease from '../models/UpcomingRelease';
 import { getAllDistinctStyles } from './collection.service';
@@ -111,6 +112,28 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
       return options.forceRefresh
         ? `Refreshed ${result.syncedReleases} releases (${result.syncedItems} items).`
         : `Synced ${result.syncedReleases} releases (${result.syncedItems} items). ${result.skippedFresh} already fresh.`;
+    },
+  },
+  {
+    id: 'check-discogs-collections',
+    intervalMs: 7 * 24 * 60 * 60 * 1000,
+    get intervalLabel() { return '7 days'; },
+    getNextExecutionAt: async (lastExecution) => {
+      if (!lastExecution) return new Date();
+      return rollForward(lastExecution.executedAt, 7 * 24 * 60 * 60 * 1000);
+    },
+    // Read-only: refreshes each connected user's Discogs report, never applies. The run fails only if
+    // every check failed, so the scheduler retries it with backoff; one bad token doesn't hide the rest.
+    runBackground: async (onProgress) => {
+      const result = await checkAllUsers((current, total, username) =>
+        onProgress({ type: 'progress', current, total, label: username })
+      );
+      const summary = `Checked ${result.checked} Discogs collection(s), ${result.failed} failed, ${result.skipped} skipped (busy).`;
+      if (result.checked === 0 && result.failed > 0) {
+        throw new Error(summary);
+      }
+      onProgress({ type: 'complete', message: summary });
+      return summary;
     },
   },
   {

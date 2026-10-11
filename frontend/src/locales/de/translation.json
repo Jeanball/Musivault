@@ -663,6 +663,10 @@
                 "refreshUpcomingReleases": {
                     "name": "Kommende Veröffentlichungen aktualisieren",
                     "description": "Ruft alle von MusicBrainz für die kommenden Wochen gelisteten Alben und EPs ab und speichert nur diejenigen zwischen, deren Künstler zu einem bereits in einer Sammlung vorhandenen Stil passen, sodass jedes Mitglied die zu seinen eigenen Genres passenden Veröffentlichungen sieht."
+                },
+                "checkDiscogsCollections": {
+                    "name": "Discogs-Sammlungen prüfen",
+                    "description": "Vergleicht die Discogs-Sammlung jedes verbundenen Nutzers mit Musivault und aktualisiert dessen Bericht in den Einstellungen. Nur lesend: Nichts wird hinzugefügt oder geändert, bis der Nutzer es übernimmt."
                 }
             }
         },
