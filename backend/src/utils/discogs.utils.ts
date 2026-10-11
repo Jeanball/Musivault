@@ -221,3 +221,20 @@ export function artistMatches(searchArtist: string, resultArtist: string): boole
         normSearch.includes(normResult) ||
         calculateSimilarity(normSearch, normResult) >= 0.8;
 }
+
+// ===== Collection fields =====
+
+const GRADE_CODES = new Set(['M', 'NM', 'VG+', 'VG', 'G+', 'G', 'F', 'P']);
+const SLEEVE_ONLY = new Map([['generic', 'Generic'], ['not graded', 'Not Graded'], ['no cover', 'No Cover']]);
+
+/**
+ * Musivault's condition code for a value of the user's Discogs "Media Condition" or "Sleeve Condition"
+ * field: "Near Mint (NM or M-)" -> `NM`, "Very Good Plus (VG+)" -> `VG+`. With `sleeve`, the sleeve-only
+ * values "Generic", "Not Graded" and "No Cover" are kept too. Returns undefined for an empty or unknown value.
+ */
+export function parseDiscogsCondition(value: string | undefined, { sleeve = false } = {}): string | undefined {
+    if (!value) return undefined;
+    const code = /\(([^)]+)\)/.exec(value)?.[1].split(' ')[0];
+    if (code && GRADE_CODES.has(code)) return code;
+    return sleeve ? SLEEVE_ONLY.get(value.trim().toLowerCase()) : undefined;
+}

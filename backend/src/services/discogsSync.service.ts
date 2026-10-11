@@ -11,13 +11,13 @@ import User, { IUser } from '../models/User';
 import { logger } from '../config/logger.config';
 import { DiscogsCollectionPage, DiscogsCollectionRelease } from '../types/discogs.types';
 import { decryptSecret } from '../utils/crypto.utils';
-import { delay, discogsRequest, normalizeString, stripArtistSuffixes } from '../utils/discogs.utils';
+import { delay, discogsRequest, normalizeString, parseDiscogsCondition, stripArtistSuffixes } from '../utils/discogs.utils';
 
 const PAGE_SIZE = 100;
 const RATE_LIMIT_RETRY_MS = 30_000;
 const MAX_RATE_LIMIT_RETRIES = 3;
 /** Added dates closer than this are the same day for our purposes (timezones, import time of day). */
-const DATE_TOLERANCE_MS = 24 * 60 * 60 * 1000;
+export const DATE_TOLERANCE_MS = 24 * 60 * 60 * 1000;
 
 /** Thrown by `startCheck` when the user can't run a check; `code` is what the API reports. */
 export class DiscogsCheckError extends Error {
@@ -26,14 +26,20 @@ export class DiscogsCheckError extends Error {
     }
 }
 
-/** A Musivault item reduced to what the comparison needs. `discogsId` is missing on manually added albums. */
+/**
+ * A Musivault item reduced to what the comparison needs. `discogsId` is missing on manually added albums;
+ * `instanceId` is the Discogs collection entry the item was linked to by an earlier apply, if any.
+ */
 export interface ComparableItem extends IDiscogsReportItem {
     addedAt: Date;
+    instanceId?: number;
 }
 
 export interface ComparisonResult {
     matched: number;
     dateDiffers: number;
+    /** The matched items with the Discogs entry (the earliest copy) they matched, for the apply step. */
+    matchedItems: { itemId: mongoose.Types.ObjectId; release: IDiscogsReportRelease }[];
     newOnDiscogs: IDiscogsReportRelease[];
     merged: IDiscogsReportMerged[];
     onlyInMusivault: IDiscogsReportItem[];
@@ -41,6 +47,7 @@ export interface ComparisonResult {
 
 function releaseOf(entry: DiscogsCollectionRelease): IDiscogsReportRelease {
     const info = entry.basic_information;
+    const field = (id: number) => entry.notes?.find(n => n.field_id === id)?.value;
     return {
         releaseId: entry.id,
         instanceId: entry.instance_id,
@@ -49,7 +56,9 @@ function releaseOf(entry: DiscogsCollectionRelease): IDiscogsReportRelease {
         year: info.year || undefined,
         thumb: info.thumb || undefined,
         format: info.formats?.[0]?.name,
-        dateAdded: new Date(entry.date_added)
+        dateAdded: new Date(entry.date_added),
+        mediaCondition: parseDiscogsCondition(field(1)),
+        sleeveCondition: parseDiscogsCondition(field(2), { sleeve: true })
     };
 }
 
@@ -73,27 +82,31 @@ function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease
 /**
  * Compare a user's Discogs collection with their Musivault items. Pure: no I/O.
  *
- * Items match on the Discogs release id alone, never release + format, so an LP and a CD
- * release of the same album stay separate, while an item matches its release whatever format
- * Discogs lists. Owning several copies of one release counts once, and when copies differ the
- * earliest `date_added` is the one that counts.
+ * An item is matched to Discogs in this order, each step only for items the one before left over:
+ * 1. **Release id.** The item's album is in the Discogs collection. Never release + format, so an LP
+ *    and a CD release of the same album stay separate, while an item matches its release whatever
+ *    format Discogs lists. Several copies of one release count once; the earliest `date_added` is
+ *    the one that counts.
+ * 2. **Instance id.** The item's stored `instanceId` is a Discogs entry whose release is not owned
+ *    by another item: Discogs moved the entry to another release, so the release was merged. Exact
+ *    (`match: 'instance'`). Instance ids are stored by the apply step, so this only works from then on.
+ * 3. **The guess.** The same normalized artist and title, the same format (an item's LP never pairs with
+ *    a CD or cassette release) and the same year when both are known, with a "new" Discogs entry. A
+ *    guess (`match: 'guess'`), shown as "likely". Each Discogs entry is used at most once; when in doubt
+ *    the item stays in `onlyInMusivault` and the release in `newOnDiscogs`.
  *
- * - `matched`: the item's release is in the Discogs collection. `dateDiffers` counts those whose
- *   `addedAt` is more than a day from the earliest Discogs `date_added` (e.g. everything a CSV
- *   import stamped with the import date).
- * - `newOnDiscogs`: releases in Discogs that no item has.
- * - `merged`: an item whose release is not in Discogs, paired with a "new" Discogs entry with the
- *   same normalized artist and title, the same format (an item's LP never pairs with a CD or cassette
- *   release) and the same year when both are known: probably the same record after Discogs merged
- *   releases. Each Discogs entry is used at most once. A guess, shown as "likely"; when in doubt the
- *   item stays in `onlyInMusivault` and the release in `newOnDiscogs`.
+ * - `matched`: items matched by release id. `dateDiffers` counts those whose `addedAt` is more than
+ *   a day from the Discogs `date_added` (e.g. everything a CSV import stamped with the import date).
+ * - `newOnDiscogs`: releases in Discogs that no item has and that no merge explains.
  * - `onlyInMusivault`: items left over, including manually added albums with no Discogs id.
  *
  * Empty inputs give empty results. Never throws and never touches the arguments.
  */
 export function compareCollections(discogs: DiscogsCollectionRelease[], items: ComparableItem[]): ComparisonResult {
     const earliestByRelease = new Map<number, DiscogsCollectionRelease>();
+    const byInstance = new Map<number, DiscogsCollectionRelease>();
     for (const entry of discogs) {
+        byInstance.set(entry.instance_id, entry);
         const known = earliestByRelease.get(entry.id);
         if (!known || new Date(entry.date_added) < new Date(known.date_added)) {
             earliestByRelease.set(entry.id, entry);
@@ -102,6 +115,7 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
 
     let matched = 0;
     let dateDiffers = 0;
+    const matchedItems: ComparisonResult['matchedItems'] = [];
     const unmatched: ComparableItem[] = [];
     const ownedReleaseIds = new Set<number>();
 
@@ -113,26 +127,39 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
         }
         matched++;
         ownedReleaseIds.add(entry.id);
+        matchedItems.push({ itemId: item.itemId, release: releaseOf(entry) });
         if (Math.abs(item.addedAt.getTime() - new Date(entry.date_added).getTime()) > DATE_TOLERANCE_MS) {
             dateDiffers++;
+        }
+    }
+
+    const merged: IDiscogsReportMerged[] = [];
+    const paired = new Set<number>();
+    const afterInstance: ComparableItem[] = [];
+    for (const comparable of unmatched) {
+        const entry = comparable.instanceId !== undefined ? byInstance.get(comparable.instanceId) : undefined;
+        if (entry && !ownedReleaseIds.has(entry.id) && !paired.has(entry.id)) {
+            const { addedAt: _addedAt, instanceId: _instanceId, ...item } = comparable;
+            merged.push({ item, release: releaseOf(entry), match: 'instance' });
+            paired.add(entry.id);
+        } else {
+            afterInstance.push(comparable);
         }
     }
 
     const candidates = new Map<string, DiscogsCollectionRelease[]>();
     const newOnDiscogs: IDiscogsReportRelease[] = [];
     for (const entry of earliestByRelease.values()) {
-        if (ownedReleaseIds.has(entry.id)) continue;
+        if (ownedReleaseIds.has(entry.id) || paired.has(entry.id)) continue;
         const release = releaseOf(entry);
         newOnDiscogs.push(release);
         const key = pairKey(release.artist, release.title);
         candidates.set(key, [...(candidates.get(key) ?? []), entry]);
     }
 
-    const merged: IDiscogsReportMerged[] = [];
     const onlyInMusivault: IDiscogsReportItem[] = [];
-    const paired = new Set<number>();
-    for (const comparable of unmatched) {
-        const { addedAt: _addedAt, ...item } = comparable;
+    for (const comparable of afterInstance) {
+        const { addedAt: _addedAt, instanceId: _instanceId, ...item } = comparable;
         const options = candidates.get(pairKey(item.artist, item.title)) ?? [];
         const index = options.findIndex(entry => couldBeSameRecord(comparable, entry));
         if (index === -1) {
@@ -140,21 +167,35 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
             continue;
         }
         const [entry] = options.splice(index, 1);
-        merged.push({ item, release: releaseOf(entry) });
+        merged.push({ item, release: releaseOf(entry), match: 'guess' });
         paired.add(entry.id);
     }
 
     return {
         matched,
         dateDiffers,
+        matchedItems,
         newOnDiscogs: newOnDiscogs.filter(r => !paired.has(r.releaseId)),
         merged,
         onlyInMusivault
     };
 }
 
+/**
+ * Log the merges found by stored instance id. Each one is proof that Discogs kept the entry's instance id
+ * when it merged the releases, which is what the exact matching relies on.
+ */
+export function logConfirmedMerges(result: ComparisonResult, context: string): void {
+    for (const { item, release } of result.merged.filter(m => m.match === 'instance')) {
+        logger.info(
+            { itemId: String(item.itemId), oldReleaseId: item.discogsId, newReleaseId: release.releaseId, instanceId: release.instanceId },
+            `[${context}] Discogs merged a release: the stored instance id now belongs to another release`
+        );
+    }
+}
+
 /** The token to call Discogs with for this user: the instance PAT for `server`, their own for `own`. */
-function resolveToken(user: IUser): string {
+export function resolveToken(user: IUser): string {
     const discogs = user.discogs;
     const token = discogs?.source === 'server'
         ? process.env.DISCOGS_PAT
@@ -182,7 +223,8 @@ async function fetchPage(username: string, token: string, page: number): Promise
     }
 }
 
-async function loadItems(userId: mongoose.Types.ObjectId): Promise<ComparableItem[]> {
+/** The user's items as the comparison reads them. Items whose album is gone are left out. */
+export async function loadItems(userId: mongoose.Types.ObjectId): Promise<ComparableItem[]> {
     const items = await CollectionItem.find({ user: userId })
         .populate<{ album: { discogsId?: number; title: string; artist: string; year: string } }>('album', 'discogsId title artist year')
         .lean();
@@ -195,54 +237,85 @@ async function loadItems(userId: mongoose.Types.ObjectId): Promise<ComparableIte
             year: item.album.year,
             format: item.format?.name,
             discogsId: item.album.discogsId,
-            addedAt: item.addedAt
+            addedAt: item.addedAt,
+            instanceId: item.discogsInstanceId
         }));
+}
+
+/**
+ * Read the user's whole Discogs collection, one call per 100 releases, calling `onPage` after each.
+ * @throws if the account was disconnected, no token is available, or Discogs fails (a 401 means the token was rejected)
+ */
+export async function fetchCollection(
+    userId: mongoose.Types.ObjectId,
+    onPage?: (page: number, pages: number) => Promise<void>
+): Promise<DiscogsCollectionRelease[]> {
+    const user = await User.findById(userId).select('+discogs.tokenEncrypted');
+    if (!user?.discogs) throw new Error('Discogs account was disconnected');
+    const { username } = user.discogs;
+    const token = resolveToken(user);
+
+    const releases: DiscogsCollectionRelease[] = [];
+    let page = 1;
+    let pages = 1;
+    do {
+        const data = await fetchPage(username, token, page);
+        pages = data.pagination.pages;
+        releases.push(...data.releases);
+        await onPage?.(page, pages);
+        page++;
+    } while (page <= pages);
+    return releases;
+}
+
+/** Store a comparison as the user's report, replacing the previous result (the apply state is kept). */
+export async function saveResult(
+    userId: mongoose.Types.ObjectId,
+    releases: DiscogsCollectionRelease[],
+    result: ComparisonResult
+): Promise<void> {
+    await DiscogsSyncReport.updateOne({ user: userId }, {
+        $set: {
+            status: 'completed',
+            finishedAt: new Date(),
+            counts: {
+                discogs: new Set(releases.map(r => r.id)).size,
+                matched: result.matched,
+                newOnDiscogs: result.newOnDiscogs.length,
+                merged: result.merged.length,
+                onlyInMusivault: result.onlyInMusivault.length,
+                dateDiffers: result.dateDiffers
+            },
+            newOnDiscogs: result.newOnDiscogs,
+            merged: result.merged,
+            onlyInMusivault: result.onlyInMusivault
+        }
+    });
+}
+
+/** Whether Discogs rejected the token, in which case the connection is marked as needing a reconnect. */
+export async function flagRejectedToken(userId: mongoose.Types.ObjectId, error: unknown): Promise<boolean> {
+    const rejected = axios.isAxiosError(error) && error.response?.status === 401;
+    if (rejected) {
+        await User.updateOne({ _id: userId }, { $set: { 'discogs.needsReconnect': true } });
+    }
+    return rejected;
 }
 
 async function runCheck(userId: mongoose.Types.ObjectId): Promise<void> {
     try {
         await DiscogsSyncReport.updateOne({ user: userId }, { $set: { status: 'running' } });
 
-        const user = await User.findById(userId).select('+discogs.tokenEncrypted');
-        if (!user?.discogs) throw new Error('Discogs account was disconnected');
-        const { username } = user.discogs;
-        const token = resolveToken(user);
-
-        const releases: DiscogsCollectionRelease[] = [];
-        let page = 1;
-        let pages = 1;
-        do {
-            const data = await fetchPage(username, token, page);
-            pages = data.pagination.pages;
-            releases.push(...data.releases);
-            await DiscogsSyncReport.updateOne({ user: userId }, { $set: { progress: { page, pages } } });
-            page++;
-        } while (page <= pages);
+        const releases = await fetchCollection(userId, (page, pages) =>
+            DiscogsSyncReport.updateOne({ user: userId }, { $set: { progress: { page, pages } } }).then(() => undefined)
+        );
 
         const result = compareCollections(releases, await loadItems(userId));
-        await DiscogsSyncReport.updateOne({ user: userId }, {
-            $set: {
-                status: 'completed',
-                finishedAt: new Date(),
-                counts: {
-                    discogs: new Set(releases.map(r => r.id)).size,
-                    matched: result.matched,
-                    newOnDiscogs: result.newOnDiscogs.length,
-                    merged: result.merged.length,
-                    onlyInMusivault: result.onlyInMusivault.length,
-                    dateDiffers: result.dateDiffers
-                },
-                newOnDiscogs: result.newOnDiscogs,
-                merged: result.merged,
-                onlyInMusivault: result.onlyInMusivault
-            }
-        });
+        logConfirmedMerges(result, 'DiscogsCheck');
+        await saveResult(userId, releases, result);
         logger.info({ userId: String(userId), releases: releases.length }, '[DiscogsCheck] Completed');
     } catch (error) {
-        const rejected = axios.isAxiosError(error) && error.response?.status === 401;
-        if (rejected) {
-            await User.updateOne({ _id: userId }, { $set: { 'discogs.needsReconnect': true } });
-        }
+        const rejected = await flagRejectedToken(userId, error);
         logger.error({ err: error, userId: String(userId) }, '[DiscogsCheck] Failed');
         await DiscogsSyncReport.updateOne({ user: userId }, {
             $set: { status: 'error', errorCode: rejected ? 'needsReconnect' : 'failed', finishedAt: new Date() }
@@ -250,9 +323,24 @@ async function runCheck(userId: mongoose.Types.ObjectId): Promise<void> {
     }
 }
 
-// One check at a time across the instance: Discogs rate-limits per IP, so every user shares one budget.
+// One Discogs job (check or apply) at a time across the instance: Discogs rate-limits per IP,
+// so every user shares one budget.
 const activeUsers = new Set<string>();
 let queue: Promise<void> = Promise.resolve();
+
+/** Whether this user has a check or an apply queued or running. */
+export function hasActiveJob(userId: mongoose.Types.ObjectId): boolean {
+    return activeUsers.has(String(userId));
+}
+
+/** Run `job` after the jobs already queued. The user counts as busy until it settles; `job` must not throw. */
+export function enqueueJob(userId: mongoose.Types.ObjectId, job: () => Promise<void>): void {
+    const key = String(userId);
+    activeUsers.add(key);
+    queue = queue
+        .then(job)
+        .finally(() => { activeUsers.delete(key); });
+}
 
 /**
  * Start a read-only check of the user's Discogs collection against their items, in the background.
@@ -270,9 +358,8 @@ export async function startCheck(userId: mongoose.Types.ObjectId): Promise<IDisc
         throw new DiscogsCheckError('needsReconnect', 'Discogs no longer accepts the stored token.');
     }
 
-    const key = String(userId);
     const existing = await DiscogsSyncReport.findOne({ user: userId });
-    if (existing && activeUsers.has(key)) {
+    if (existing && hasActiveJob(userId)) {
         return existing;
     }
 
@@ -289,15 +376,12 @@ export async function startCheck(userId: mongoose.Types.ObjectId): Promise<IDisc
                 merged: [],
                 onlyInMusivault: []
             },
-            $unset: { errorCode: '', finishedAt: '' }
+            $unset: { errorCode: '', finishedAt: '', apply: '' }
         },
         { upsert: true, new: true }
     );
 
-    activeUsers.add(key);
-    queue = queue
-        .then(() => runCheck(userId))
-        .finally(() => { activeUsers.delete(key); });
+    enqueueJob(userId, () => runCheck(userId));
 
     return report;
 }
@@ -305,12 +389,20 @@ export async function startCheck(userId: mongoose.Types.ObjectId): Promise<IDisc
 /** The user's latest check, or null if they never ran one. */
 export async function getReport(userId: mongoose.Types.ObjectId): Promise<IDiscogsSyncReport | null> {
     const report = await DiscogsSyncReport.findOne({ user: userId });
-    // A check that was queued or running when the server restarted would otherwise show "running" forever.
-    if (report && (report.status === 'queued' || report.status === 'running') && !activeUsers.has(String(userId))) {
-        report.status = 'error';
-        report.errorCode = 'failed';
-        report.finishedAt = new Date();
-        await report.save();
+    // A job that was queued or running when the server restarted would otherwise show "running" forever.
+    if (report && !hasActiveJob(userId)) {
+        const interrupted = (status?: string) => status === 'queued' || status === 'running';
+        if (interrupted(report.status)) {
+            report.status = 'error';
+            report.errorCode = 'failed';
+            report.finishedAt = new Date();
+        }
+        if (report.apply && interrupted(report.apply.status)) {
+            report.apply.status = 'error';
+            report.apply.errorCode = 'failed';
+            report.apply.finishedAt = new Date();
+        }
+        if (report.isModified()) await report.save();
     }
     return report;
 }

@@ -125,6 +125,50 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
     });
 }
 
+/** What a caller other than the CSV import can set on the item it adds. */
+export interface ImportRowOptions {
+    /** The item's format name, as is (e.g. `Cassette`); wins over the row's `Vinyl`/`CD`. */
+    formatName?: string;
+    /** The item's date added; now when omitted. */
+    addedAt?: Date;
+    /** The Discogs collection entry the item stands for. */
+    discogsInstanceId?: number;
+}
+
+/**
+ * Find the album for a Discogs release in the shared albums, or create it from the release data.
+ * An album that exists but is bare (older CSV imports) gets its missing styles, tracklist and labels
+ * filled in; data already there is never overwritten.
+ */
+export async function upsertAlbumFromDiscogs(found: FoundAlbumInfo) {
+    let album = await Album.findOne({ discogsId: found.discogsId });
+    if (!album) {
+        album = new Album({
+            discogsId: found.discogsId,
+            title: found.title,
+            artist: stripArtistSuffixes(found.artist),
+            year: found.year,
+            thumb: found.thumb,
+            cover_image: found.cover_image,
+            styles: found.styles || [],
+            tracklist: found.tracklist || [],
+            labels: found.labels || [],
+        });
+        await album.save();
+        logger.debug(`[Import] Album created: ${album.title}`);
+    } else {
+        let filled = false;
+        if (!album.styles?.length && found.styles?.length) { album.styles = found.styles; filled = true; }
+        if (!album.tracklist?.length && found.tracklist?.length) { album.tracklist = found.tracklist; filled = true; }
+        if (!album.labels?.length && found.labels?.length) { album.labels = found.labels; filled = true; }
+        if (filled) {
+            await album.save();
+            logger.debug(`[Import] Album filled in: ${album.title}`);
+        }
+    }
+    return album;
+}
+
 /**
  * Process a single import row: search Discogs, create/find album, add to collection
  * Returns detailed result including matched data for logging
@@ -133,10 +177,15 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
  * 1. If releaseId provided -> Direct lookup (most precise)
  * 2. If catalogNumber provided -> Search by catno
  * 3. Fallback -> Search by artist/album
+ *
+ * Skips (without error) a row whose album is already in the user's collection in the same format.
+ * Makes one Discogs call for the release and one for its price, each paced by `RATE_LIMIT_MS`.
+ * `options` is for callers that know more than a CSV row does, like the Discogs sync.
  */
 export async function processImportRow(
     row: CsvRow,
-    userId: any
+    userId: any,
+    options: ImportRowOptions = {}
 ): Promise<ProcessRowResult> {
     // Validate row - need at least artist/album OR releaseId
     if (!row.releaseId && (!row.artist || !row.album)) {
@@ -186,36 +235,10 @@ export async function processImportRow(
         found = await discogsService.fetchByReleaseId(found.discogsId) ?? found;
     }
 
-    // Determine format: use CSV value, or Discogs value, or default to Vinyl
-    const format = row.format || found.format || 'Vinyl';
+    // Determine format: the caller's, then the CSV value, then Discogs', then Vinyl
+    const format = options.formatName || row.format || found.format || 'Vinyl';
 
-    // Find or create album
-    let album = await Album.findOne({ discogsId: found.discogsId });
-    if (!album) {
-        album = new Album({
-            discogsId: found.discogsId,
-            title: found.title,
-            artist: stripArtistSuffixes(found.artist),
-            year: found.year,
-            thumb: found.thumb,
-            cover_image: found.cover_image,
-            styles: found.styles || [],
-            tracklist: found.tracklist || [],
-            labels: found.labels || [],
-        });
-        await album.save();
-        logger.debug(`[Import] Album created: ${album.title}`);
-    } else {
-        // Albums from older imports are bare: fill in what's missing, never overwrite
-        let filled = false;
-        if (!album.styles?.length && found.styles?.length) { album.styles = found.styles; filled = true; }
-        if (!album.tracklist?.length && found.tracklist?.length) { album.tracklist = found.tracklist; filled = true; }
-        if (!album.labels?.length && found.labels?.length) { album.labels = found.labels; filled = true; }
-        if (filled) {
-            await album.save();
-            logger.debug(`[Import] Album filled in: ${album.title}`);
-        }
-    }
+    const album = await upsertAlbumFromDiscogs(found);
 
     // Check if already in collection
     const exists = await CollectionItem.findOne({
@@ -241,7 +264,9 @@ export async function processImportRow(
         format: { name: format, descriptions: formatDetails?.descriptions || [], text: formatDetails?.text || '' },
         priceCache: buildPriceCache(await discogsService.getMarketplaceStats(found.discogsId)),
         mediaCondition: row.mediaCondition || null,
-        sleeveCondition: row.sleeveCondition || null
+        sleeveCondition: row.sleeveCondition || null,
+        addedAt: options.addedAt,
+        discogsInstanceId: options.discogsInstanceId
     });
     await newItem.save();
     logger.debug(`[Import] Added to collection: ${album.title} (${format})`);

@@ -15,6 +15,9 @@ vi.mock('../../api/discogsSync', () => ({
     getDiscogsReport: vi.fn(),
     startDiscogsCheck: vi.fn()
 }));
+vi.mock('../../hooks/collection/useCollectionData', () => ({
+    useCollectionData: () => ({ refreshCollection: vi.fn() })
+}));
 vi.mock('../../utils/toast', () => ({ toastService: { success: vi.fn(), error: vi.fn() } }));
 
 const report = (overrides: Partial<DiscogsSyncReport> = {}): DiscogsSyncReport => ({
@@ -120,7 +123,8 @@ describe('DiscogsCheckReport', () => {
             }],
             merged: [{
                 item: { itemId: 'a', artist: 'Pink Floyd', title: 'The Wall' },
-                release: { releaseId: 7, instanceId: 17, artist: 'Pink Floyd', title: 'The Wall', dateAdded: '2022-01-01T00:00:00Z' }
+                release: { releaseId: 7, instanceId: 17, artist: 'Pink Floyd', title: 'The Wall', dateAdded: '2022-01-01T00:00:00Z' },
+                match: 'guess'
             }]
         }));
 

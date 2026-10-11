@@ -48,6 +48,7 @@ describe('compareCollections', () => {
         expect(compareCollections([], [])).toEqual({
             matched: 0,
             dateDiffers: 0,
+            matchedItems: [],
             newOnDiscogs: [],
             merged: [],
             onlyInMusivault: []
