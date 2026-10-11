@@ -133,6 +133,8 @@ export interface ImportRowOptions {
     addedAt?: Date;
     /** The Discogs collection entry the item stands for. */
     discogsInstanceId?: number;
+    /** Wait and retry when Discogs throttles a call, instead of failing the row. For long background jobs. */
+    retryOnRateLimit?: boolean;
 }
 
 /**
@@ -198,7 +200,7 @@ export async function processImportRow(
     // Priority 1: Direct release ID lookup
     if (row.releaseId) {
         logger.debug(`[Import] Trying direct release ID lookup: ${row.releaseId}`);
-        found = await discogsService.fetchByReleaseId(row.releaseId);
+        found = await discogsService.fetchByReleaseId(row.releaseId, { retryOnRateLimit: options.retryOnRateLimit });
         if (found) {
             matchMethod = 'releaseId';
             logger.debug(`[Import] Matched via release ID: ${found.artist} - ${found.title}`);
@@ -232,7 +234,7 @@ export async function processImportRow(
     // Catalog-number and search matches only carry search data: fetch the release once so
     // every imported album gets the same data as one added from search
     if (matchMethod !== 'releaseId') {
-        found = await discogsService.fetchByReleaseId(found.discogsId) ?? found;
+        found = await discogsService.fetchByReleaseId(found.discogsId, { retryOnRateLimit: options.retryOnRateLimit }) ?? found;
     }
 
     // Determine format: the caller's, then the CSV value, then Discogs', then Vinyl
@@ -262,7 +264,7 @@ export async function processImportRow(
         user: userId,
         album: album._id,
         format: { name: format, descriptions: formatDetails?.descriptions || [], text: formatDetails?.text || '' },
-        priceCache: buildPriceCache(await discogsService.getMarketplaceStats(found.discogsId)),
+        priceCache: buildPriceCache(await discogsService.getMarketplaceStats(found.discogsId, { retryOnRateLimit: options.retryOnRateLimit })),
         mediaCondition: row.mediaCondition || null,
         sleeveCondition: row.sleeveCondition || null,
         addedAt: options.addedAt,

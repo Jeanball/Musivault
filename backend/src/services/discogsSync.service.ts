@@ -11,11 +11,9 @@ import User, { IUser } from '../models/User';
 import { logger } from '../config/logger.config';
 import { DiscogsCollectionPage, DiscogsCollectionRelease } from '../types/discogs.types';
 import { decryptSecret } from '../utils/crypto.utils';
-import { delay, discogsRequest, normalizeString, parseDiscogsCondition, stripArtistSuffixes } from '../utils/discogs.utils';
+import { discogsRequest, normalizeString, parseDiscogsCondition, stripArtistSuffixes, withRateLimitRetry } from '../utils/discogs.utils';
 
 const PAGE_SIZE = 100;
-const RATE_LIMIT_RETRY_MS = 30_000;
-const MAX_RATE_LIMIT_RETRIES = 3;
 /** Added dates closer than this are the same day for our purposes (timezones, import time of day). */
 export const DATE_TOLERANCE_MS = 24 * 60 * 60 * 1000;
 
@@ -206,21 +204,15 @@ export function resolveToken(user: IUser): string {
     return token;
 }
 
-async function fetchPage(username: string, token: string, page: number): Promise<DiscogsCollectionPage> {
-    for (let attempt = 0; ; attempt++) {
-        try {
-            return await discogsRequest<DiscogsCollectionPage>(
-                `/users/${encodeURIComponent(username)}/collection/folders/0/releases`,
-                { sort: 'added', sort_order: 'asc', per_page: PAGE_SIZE, page },
-                { token, applyRateLimit: page > 1 }
-            );
-        } catch (error) {
-            const throttled = axios.isAxiosError(error) && error.response?.status === 429;
-            if (!throttled || attempt >= MAX_RATE_LIMIT_RETRIES) throw error;
-            logger.warn({ page, attempt }, '[DiscogsCheck] Rate limited by Discogs, waiting before retrying');
-            await delay(RATE_LIMIT_RETRY_MS);
-        }
-    }
+function fetchPage(username: string, token: string, page: number): Promise<DiscogsCollectionPage> {
+    return withRateLimitRetry(
+        () => discogsRequest<DiscogsCollectionPage>(
+            `/users/${encodeURIComponent(username)}/collection/folders/0/releases`,
+            { sort: 'added', sort_order: 'asc', per_page: PAGE_SIZE, page },
+            { token, applyRateLimit: page > 1 }
+        ),
+        { context: `collection page ${page}` }
+    );
 }
 
 /** The user's items as the comparison reads them. Items whose album is gone are left out. */

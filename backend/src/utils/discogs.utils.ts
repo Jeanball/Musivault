@@ -12,6 +12,9 @@ import { logger } from '../config/logger.config';
 export const DISCOGS_BASE_URL = 'https://api.discogs.com';
 export const DISCOGS_HEADERS = { 'User-Agent': 'Musivault/1.0' };
 export const RATE_LIMIT_MS = 1100;
+/** How long to wait after Discogs answers 429, and how many times to try again before giving up. */
+export const RATE_LIMIT_RETRY_MS = 30_000;
+export const MAX_RATE_LIMIT_RETRIES = 3;
 
 // ===== Authentication =====
 
@@ -57,6 +60,28 @@ export function hasPAT(): boolean {
  */
 export const delay = (ms: number): Promise<void> =>
     new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Run a Discogs request, and when Discogs throttles it (429) wait and try again, up to
+ * `MAX_RATE_LIMIT_RETRIES` times. Any other error, or a 429 that outlasts the retries, is thrown.
+ * For long background jobs, where waiting half a minute beats failing a record; the limit is shared
+ * by every user and task on the server's IP, so a busy moment is normal.
+ */
+export async function withRateLimitRetry<T>(
+    request: () => Promise<T>,
+    { context, waitMs = RATE_LIMIT_RETRY_MS }: { context: string; waitMs?: number }
+): Promise<T> {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await request();
+        } catch (error) {
+            const throttled = axios.isAxiosError(error) && error.response?.status === 429;
+            if (!throttled || attempt >= MAX_RATE_LIMIT_RETRIES) throw error;
+            logger.warn({ context, attempt }, '[Discogs] Rate limited by Discogs, waiting before retrying');
+            await delay(waitMs);
+        }
+    }
+}
 
 // ===== API Request Wrapper =====
 

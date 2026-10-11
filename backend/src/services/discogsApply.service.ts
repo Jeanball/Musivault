@@ -53,7 +53,7 @@ type Failure = IDiscogsApplyFailure;
  * condition, notes, custom fields, added date and the format it was stored with. What follows the new
  * release: the album (found or created from the release, never edited in place, so other users who
  * own the old release are not affected), the format details, the price, and the Discogs instance id.
- * Makes two Discogs calls (release, price).
+ * Makes two Discogs calls (release, price), retrying after a wait when Discogs throttles them.
  * @returns a reason when the item was not relinked, because it would duplicate another item
  * @throws if Discogs does not return the release
  */
@@ -65,7 +65,7 @@ export async function relinkItem(
     const item = await CollectionItem.findOne({ _id: itemId, user: userId });
     if (!item) return 'Item no longer in your collection';
 
-    const found = await discogsService.fetchByReleaseId(release.releaseId);
+    const found = await discogsService.fetchByReleaseId(release.releaseId, { retryOnRateLimit: true });
     if (!found) throw new Error('Release not found on Discogs');
     const album = await upsertAlbumFromDiscogs(found);
 
@@ -85,7 +85,7 @@ export async function relinkItem(
     item.album = album._id as mongoose.Types.ObjectId;
     item.discogsInstanceId = release.instanceId;
     item.formatVerification = null;
-    item.priceCache = buildPriceCache(await discogsService.getMarketplaceStats(release.releaseId));
+    item.priceCache = buildPriceCache(await discogsService.getMarketplaceStats(release.releaseId, { retryOnRateLimit: true }));
     await item.save();
     return undefined;
 }
@@ -215,7 +215,7 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
                             sleeveCondition: release.sleeveCondition
                         },
                         userId,
-                        { formatName: release.format, addedAt: release.dateAdded, discogsInstanceId: release.instanceId }
+                        { formatName: release.format, addedAt: release.dateAdded, discogsInstanceId: release.instanceId, retryOnRateLimit: true }
                     );
                     if (row.success) {
                         added++;

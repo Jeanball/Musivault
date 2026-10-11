@@ -40,7 +40,8 @@ import {
     stripArtistSuffixes,
     normalizeString,
     calculateSimilarity,
-    artistMatches
+    artistMatches,
+    withRateLimitRetry
 } from '../utils/discogs.utils';
 import { logger } from '../config/logger.config';
 import type { IAlbum } from '../models/Album';
@@ -859,9 +860,14 @@ export function mapReleaseToAlbumUpdate(
 }
 
 /**
- * Fetch release by ID (for CSV import)
+ * Fetch release by ID (for CSV import and the Discogs sync).
+ * Returns null when the release isn't found or the call fails, whatever the reason; with
+ * `retryOnRateLimit`, a throttled call (429) is retried after a wait first, for long background jobs.
  */
-export async function fetchByReleaseId(releaseId: string | number): Promise<FoundAlbumInfo | null> {
+export async function fetchByReleaseId(
+    releaseId: string | number,
+    { retryOnRateLimit = false }: { retryOnRateLimit?: boolean } = {}
+): Promise<FoundAlbumInfo | null> {
     logger.debug(`[Discogs] Direct lookup for release ID: ${releaseId}`);
 
     if (!hasCredentials()) {
@@ -873,7 +879,7 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
         await delay(RATE_LIMIT_MS);
         const auth = getAuthParams();
 
-        const response = await axios.get<{
+        const request = () => axios.get<{
             id: number;
             title: string;
             artists: { name: string }[];
@@ -885,6 +891,9 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
             headers: DISCOGS_HEADERS,
             params: { key: auth.key, secret: auth.secret }
         });
+        const response = retryOnRateLimit
+            ? await withRateLimitRetry(request, { context: `release ${releaseId}` })
+            : await request();
 
         const data = response.data;
         const artist = data.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
@@ -1028,10 +1037,12 @@ function cachePriceSuggestions(releaseId: number, stats: MarketplaceStats | null
  * Requires DISCOGS_PAT (Personal Access Token)
  * The user must have a Discogs seller account for this to work
  * Pass forceRefresh for the explicit sync paths, which must hit Discogs.
+ * Returns null when there is no data or the call fails; with `retryOnRateLimit` a throttled call (429)
+ * is retried after a wait first, for long background jobs.
  */
 export async function getMarketplaceStats(
     releaseId: number,
-    { forceRefresh = false }: { forceRefresh?: boolean } = {}
+    { forceRefresh = false, retryOnRateLimit = false }: { forceRefresh?: boolean; retryOnRateLimit?: boolean } = {}
 ): Promise<MarketplaceStats | null> {
     if (!hasPAT()) {
         return null;
@@ -1043,11 +1054,14 @@ export async function getMarketplaceStats(
     try {
         await delay(RATE_LIMIT_MS);
 
-        const suggestions = await discogsRequest<Record<string, { value: number; currency: string }>>(
+        const request = () => discogsRequest<Record<string, { value: number; currency: string }>>(
             `/marketplace/price_suggestions/${releaseId}`,
             {},
             { useTokenAuth: true }
         );
+        const suggestions = retryOnRateLimit
+            ? await withRateLimitRetry(request, { context: `price of release ${releaseId}` })
+            : await request();
 
         // If empty response, no data available
         if (!suggestions || Object.keys(suggestions).length === 0) {
