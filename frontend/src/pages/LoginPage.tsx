@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Footer from "../components/Navigation/Footer";
 import { toastService } from "../utils/toast";
 import { login, getOidcStatus, OIDC_LOGIN_URL } from "../api/auth";
-import { isApiError } from "../api/errors";
+import { isApiError, isServerUnavailable } from "../api/errors";
 
 // Interface for the form state
 interface LoginFormState {
@@ -55,8 +55,12 @@ const LoginPage: React.FC = () => {
 
         } catch (error) {
             console.log(error);
-            const serverMessage = isApiError(error) ? error.serverMessage : undefined;
-            toastService.error(serverMessage || t('auth.loginError', 'Invalid credentials'));
+            if (isServerUnavailable(error)) {
+                toastService.error(t('auth.serverUnavailable', 'Cannot reach the server. Try again in a moment.'));
+            } else {
+                const serverMessage = isApiError(error) ? error.serverMessage : undefined;
+                toastService.error(serverMessage || t('auth.loginError', 'Invalid credentials'));
+            }
         }
 
         setInputValue({

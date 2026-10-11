@@ -73,7 +73,8 @@
         "ssoFailed": "SSO-Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut oder verwenden Sie die lokale Anmeldung.",
         "loginSuccess": "Verbindung erfolgreich!",
         "loginError": "Ungültige Anmeldedaten",
-        "signupError": "Registrierung fehlgeschlagen"
+        "signupError": "Registrierung fehlgeschlagen",
+        "serverUnavailable": "Der Server ist nicht erreichbar. Versuche es gleich noch einmal."
     },
     "home": {
         "greetingMorning": "Guten Morgen",

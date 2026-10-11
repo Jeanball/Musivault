@@ -73,7 +73,8 @@
         "ssoFailed": "SSO登录失败。请重试或使用本地登录。",
         "loginSuccess": "连接成功！",
         "loginError": "凭证无效",
-        "signupError": "注册失败"
+        "signupError": "注册失败",
+        "serverUnavailable": "无法连接到服务器，请稍后重试。"
     },
     "home": {
         "greetingMorning": "早上好",

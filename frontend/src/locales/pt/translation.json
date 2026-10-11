@@ -73,7 +73,8 @@
         "ssoFailed": "Login SSO falhou. Tente novamente ou use login local.",
         "loginSuccess": "Conexão bem-sucedida!",
         "loginError": "Credenciais inválidas",
-        "signupError": "Falha no registro"
+        "signupError": "Falha no registro",
+        "serverUnavailable": "Não foi possível contactar o servidor. Tente novamente dentro de instantes."
     },
     "home": {
         "greetingMorning": "Bom dia",

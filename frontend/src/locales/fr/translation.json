@@ -75,7 +75,8 @@
         "ssoFailed": "La connexion SSO a échoué. Veuillez réessayer ou utiliser la connexion locale.",
         "loginSuccess": "Connexion réussie !",
         "loginError": "Identifiants invalides",
-        "signupError": "L'inscription a échoué"
+        "signupError": "L'inscription a échoué",
+        "serverUnavailable": "Impossible de joindre le serveur. Réessayez dans un instant."
     },
     "home": {
         "greetingMorning": "Bonjour",

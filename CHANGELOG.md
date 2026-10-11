@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(discogs): connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
 
 ### Fixed
+- fix(auth): say the server cannot be reached on login and signup instead of "Invalid credentials" when it is down
 - fix(lint): resolve the frontend ESLint errors so `npm run lint` passes
 - fix(collection): refresh the list when returning to the tab and after a CSV import
 - fix(discogs): strip the "(n)" suffix from every artist of multi-artist releases

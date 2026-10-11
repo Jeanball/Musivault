@@ -75,7 +75,8 @@
         "ssoFailed": "SSO login failed. Please try again or use local login.",
         "loginSuccess": "Connection successful!",
         "loginError": "Invalid credentials",
-        "signupError": "Registration failed"
+        "signupError": "Registration failed",
+        "serverUnavailable": "Cannot reach the server. Try again in a moment."
     },
     "home": {
         "greetingMorning": "Good morning",

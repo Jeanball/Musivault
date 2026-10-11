@@ -4,7 +4,7 @@ import { MusivaultMark } from '../components/Common/BrandIcons';
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../utils/toast";
 import { signup, getOidcStatus, OIDC_LOGIN_URL } from "../api/auth";
-import { isApiError } from "../api/errors";
+import { isApiError, isServerUnavailable } from "../api/errors";
 
 // Interface for the form state, now with 'username'
 interface SignupFormState {
@@ -54,8 +54,12 @@ const SignupPage: React.FC = () => {
             }
         } catch (error) {
             console.log(error);
-            const serverMessage = isApiError(error) ? error.serverMessage : undefined;
-            toastService.error(serverMessage || t('auth.signupError', 'Registration failed'));
+            if (isServerUnavailable(error)) {
+                toastService.error(t('auth.serverUnavailable', 'Cannot reach the server. Try again in a moment.'));
+            } else {
+                const serverMessage = isApiError(error) ? error.serverMessage : undefined;
+                toastService.error(serverMessage || t('auth.signupError', 'Registration failed'));
+            }
         }
 
         setInputValue({
