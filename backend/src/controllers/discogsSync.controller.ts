@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { logger } from '../config/logger.config';
 import mongoose from 'mongoose';
-import { DiscogsApplyError, startApply } from '../services/discogsApply.service';
+import { DiscogsApplyError, startApply, stopApply } from '../services/discogsApply.service';
 import { DiscogsCheckError, getPendingSummary, getReport, startCheck } from '../services/discogsSync.service';
 
 /** Start a read-only check against the user's Discogs collection. Replies 202; poll `getDiscogsReport`. */
@@ -72,7 +72,7 @@ export async function startDiscogsApply(req: Request, res: Response) {
         res.status(202).json({ status: 'queued' });
     } catch (error) {
         if (error instanceof DiscogsApplyError) {
-            const conflict = error.code === 'needsReconnect' || error.code === 'busy';
+            const conflict = error.code === 'needsReconnect' || error.code === 'busy' || error.code === 'notRunning';
             res.status(conflict ? 409 : 400).json({ code: error.code, message: error.message });
             return;
         }
@@ -92,6 +92,26 @@ export async function getDiscogsSummary(req: Request, res: Response) {
         res.status(200).json({ summary: await getPendingSummary(req.user) });
     } catch (error) {
         logger.error({ err: error }, 'Error in getDiscogsSummary');
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+/** Ask the running apply to stop after the record it is on. Replies 202; 409 when none is running. */
+export async function stopDiscogsApply(req: Request, res: Response) {
+    try {
+        if (!req.user) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+
+        await stopApply(req.user._id);
+        res.status(202).json({ status: 'stopping' });
+    } catch (error) {
+        if (error instanceof DiscogsApplyError) {
+            res.status(409).json({ code: error.code, message: error.message });
+            return;
+        }
+        logger.error({ err: error }, 'Error in stopDiscogsApply');
         res.status(500).json({ message: 'Internal server error' });
     }
 }

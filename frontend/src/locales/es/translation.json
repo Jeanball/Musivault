@@ -223,7 +223,13 @@
         "durationHoursMinutes": "~ {{hours}} h {{minutes}} min",
         "longWarning": "Cada disco nuevo tarda unos 5 segundos porque Discogs limita la velocidad de las peticiones: añadir {{count}} discos tarda {{duration}}. Sigue en marcha si sales de la página. Para ir por partes, desmarca filas y aplica por lotes.",
         "confirmLargeTitle": "¿Añadir muchos discos?",
-        "confirmLargeBody": "Esto añade {{count}} discos nuevos."
+        "confirmLargeBody": "Esto añade {{count}} discos nuevos.",
+        "stop": "Detener",
+        "stopping": "Deteniendo tras el disco actual…",
+        "stoppedDone": "Detenido tras {{done}} de {{total}} discos: {{added}} añadidos, {{relinked}} reenlazados. El resto no se aplicó.",
+        "stopFailed": "No se pudo detener. Inténtalo de nuevo en un momento.",
+        "moreHidden": "y {{count}} más sin mostrar. Mostrar todo para verlos y desmarcarlos.",
+        "showAll": "Mostrar todo"
     },
     "discogsPending": {
         "message": "{{count}} cambios de tu última comprobación de Discogs esperan: {{newOnDiscogs}} nuevos, {{merged}} fusionados.",

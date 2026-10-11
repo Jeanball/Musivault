@@ -4,10 +4,12 @@ import type { DiscogsApply } from '../../types/discogsAccount.types';
 
 interface Props {
     apply: DiscogsApply;
+    /** Ask the job to stop. Without it there is no Stop button. */
+    onStop?: () => void;
 }
 
 /** Progress of the running apply, or what the last one did. */
-const DiscogsApplyStatus: React.FC<Props> = ({ apply }) => {
+const DiscogsApplyStatus: React.FC<Props> = ({ apply, onStop }) => {
     const { t } = useTranslation();
 
     // Running states get an info box with a spinner, so it is clear something is happening on the server.
@@ -27,7 +29,13 @@ const DiscogsApplyStatus: React.FC<Props> = ({ apply }) => {
                         <progress className="progress w-full max-w-xs" value={apply.done} max={Math.max(apply.total, 1)}></progress>
                     )}
                     {apply.status === 'running' && <p className="text-xs opacity-80">{t('discogsApply.canLeave')}</p>}
+                    {apply.stopRequested && <p className="text-xs font-medium">{t('discogsApply.stopping')}</p>}
                 </div>
+                {onStop && (
+                    <button className="btn btn-sm btn-outline shrink-0" disabled={apply.stopRequested} onClick={onStop}>
+                        {t('discogsApply.stop')}
+                    </button>
+                )}
             </div>
         );
     }
@@ -42,9 +50,15 @@ const DiscogsApplyStatus: React.FC<Props> = ({ apply }) => {
 
     return (
         <div className="flex flex-col gap-1 text-sm" data-testid="apply-result">
-            <p className="text-success">
-                {t('discogsApply.done', { added: apply.added, relinked: apply.relinked })}
-            </p>
+            {apply.stopped ? (
+                <p className="text-warning">
+                    {t('discogsApply.stoppedDone', { done: apply.done, total: apply.total, added: apply.added, relinked: apply.relinked })}
+                </p>
+            ) : (
+                <p className="text-success">
+                    {t('discogsApply.done', { added: apply.added, relinked: apply.relinked })}
+                </p>
+            )}
             {apply.datesUpdated > 0 && <p>{t('discogsApply.datesDone', { count: apply.datesUpdated })}</p>}
             {apply.instanceIdsStored > 0 && (
                 <p className="text-base-content/70">{t('discogsApply.linked', { count: apply.instanceIdsStored })}</p>

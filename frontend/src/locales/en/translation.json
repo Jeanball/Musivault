@@ -241,7 +241,13 @@
         "durationHoursMinutes": "~ {{hours}} hrs {{minutes}} mins",
         "longWarning": "Each new record takes about 5 seconds because Discogs limits how fast it can be asked, so adding {{count}} records takes {{duration}}. It keeps running if you leave this page. To go in smaller steps, untick rows and apply in batches.",
         "confirmLargeTitle": "Add many records?",
-        "confirmLargeBody": "This adds {{count}} new records."
+        "confirmLargeBody": "This adds {{count}} new records.",
+        "stop": "Stop",
+        "stopping": "Stopping after the current record…",
+        "stoppedDone": "Stopped after {{done}} of {{total}} records: {{added}} added, {{relinked}} relinked. The rest was not applied.",
+        "stopFailed": "Could not stop. Try again in a moment.",
+        "moreHidden": "and {{count}} more not shown. Show all to see and untick them.",
+        "showAll": "Show all"
     },
     "discogsPending": {
         "message": "{{count}} changes from your last Discogs check are waiting: {{newOnDiscogs}} new, {{merged}} merged.",

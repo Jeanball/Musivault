@@ -220,7 +220,13 @@
         "durationHoursMinutes": "~ {{hours}} Std. {{minutes}} Min.",
         "longWarning": "Jede neue Platte braucht etwa 5 Sekunden, weil Discogs begrenzt, wie schnell man anfragen darf: {{count}} Platten hinzuzufügen dauert {{duration}}. Es läuft weiter, wenn du die Seite verlässt. Um in kleineren Schritten vorzugehen, hake Zeilen ab und übernimm in Etappen.",
         "confirmLargeTitle": "Viele Platten hinzufügen?",
-        "confirmLargeBody": "Das fügt {{count}} neue Platten hinzu."
+        "confirmLargeBody": "Das fügt {{count}} neue Platten hinzu.",
+        "stop": "Stopp",
+        "stopping": "Wird nach der aktuellen Platte gestoppt…",
+        "stoppedDone": "Gestoppt nach {{done}} von {{total}} Platten: {{added}} hinzugefügt, {{relinked}} neu verknüpft. Der Rest wurde nicht übernommen.",
+        "stopFailed": "Stoppen nicht möglich. Versuche es gleich noch einmal.",
+        "moreHidden": "und {{count}} weitere nicht angezeigt. Alle anzeigen, um sie zu sehen und abzuwählen.",
+        "showAll": "Alle anzeigen"
     },
     "discogsPending": {
         "message": "{{count}} Änderungen deiner letzten Discogs-Prüfung warten: {{newOnDiscogs}} neu, {{merged}} zusammengeführt.",

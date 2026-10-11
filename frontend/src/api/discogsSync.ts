@@ -25,3 +25,8 @@ export async function getDiscogsSummary(): Promise<DiscogsPendingSummary | null>
     const { data } = await client.get<{ summary: DiscogsPendingSummary | null }>('/discogs-sync/summary');
     return data.summary;
 }
+
+/** Ask the running apply to stop after the record it is on. Rejects with a 409 when none is running. */
+export async function stopDiscogsApply(): Promise<void> {
+    await client.post('/discogs-sync/apply/stop');
+}

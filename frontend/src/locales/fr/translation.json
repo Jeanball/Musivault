@@ -241,7 +241,13 @@
         "durationHoursMinutes": "~ {{hours}} h {{minutes}} min",
         "longWarning": "Chaque nouveau disque prend environ 5 secondes, car Discogs limite la vitesse des requêtes : ajouter {{count}} disques prend {{duration}}. La tâche continue si vous quittez la page. Pour procéder par étapes, décochez des lignes et appliquez par lots.",
         "confirmLargeTitle": "Ajouter beaucoup de disques ?",
-        "confirmLargeBody": "Cela ajoute {{count}} nouveaux disques."
+        "confirmLargeBody": "Cela ajoute {{count}} nouveaux disques.",
+        "stop": "Arrêter",
+        "stopping": "Arrêt après le disque en cours…",
+        "stoppedDone": "Arrêté après {{done}} disques sur {{total}} : {{added}} ajoutés, {{relinked}} reliés. Le reste n'a pas été appliqué.",
+        "stopFailed": "Impossible d'arrêter. Réessayez dans un instant.",
+        "moreHidden": "et {{count}} de plus non affichés. Tout afficher pour les voir et les décocher.",
+        "showAll": "Tout afficher"
     },
     "discogsPending": {
         "message": "{{count}} changements de votre dernière vérification Discogs vous attendent : {{newOnDiscogs}} nouveaux, {{merged}} fusionnés.",

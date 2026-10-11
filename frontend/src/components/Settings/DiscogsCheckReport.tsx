@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { applyDiscogsSelection, getDiscogsReport, startDiscogsCheck } from '../../api/discogsSync';
+import { applyDiscogsSelection, getDiscogsReport, startDiscogsCheck, stopDiscogsApply } from '../../api/discogsSync';
 import { useCollectionData } from '../../hooks/collection/useCollectionData';
 import { toastService } from '../../utils/toast';
 import type { DiscogsApplySelection, DiscogsSyncReport } from '../../types/discogsAccount.types';
@@ -70,7 +70,10 @@ interface SectionProps {
 
 const Section: React.FC<SectionProps> = ({ title, hint, count, children, selected, onSelectAll, onSelectNone }) => {
     const { t } = useTranslation();
+    const [showAll, setShowAll] = useState(false);
     if (count === 0) return null;
+    // Rows that can be ticked are all ticked to start with, so the ones past the cap can be revealed to untick them.
+    const tickable = !!onSelectAll;
     return (
         <details className="collapse collapse-arrow bg-base-100">
             <summary className="collapse-title font-medium">
@@ -86,11 +89,16 @@ const Section: React.FC<SectionProps> = ({ title, hint, count, children, selecte
                     </div>
                 )}
                 <ul className="divide-y divide-base-300 max-h-80 overflow-y-auto">
-                    {children.slice(0, MAX_ROWS)}
+                    {showAll ? children : children.slice(0, MAX_ROWS)}
                 </ul>
-                {count > MAX_ROWS && (
+                {count > MAX_ROWS && !showAll && (
                     <p className="text-xs text-base-content/50 mt-2">
-                        {t('discogsCheck.moreRows', { count: count - MAX_ROWS })}
+                        {t(tickable ? 'discogsApply.moreHidden' : 'discogsCheck.moreRows', { count: count - MAX_ROWS })}
+                        {tickable && (
+                            <button type="button" className="btn btn-ghost btn-xs ml-1" onClick={() => setShowAll(true)}>
+                                {t('discogsApply.showAll')}
+                            </button>
+                        )}
                     </p>
                 )}
             </div>
@@ -198,6 +206,15 @@ const DiscogsCheckReport: React.FC = () => {
         }
     };
 
+    const stop = async () => {
+        try {
+            await stopDiscogsApply();
+            await load();
+        } catch {
+            toastService.error(t('discogsApply.stopFailed'));
+        }
+    };
+
     const completed = report?.status === 'completed' ? report : null;
 
     const selectionOf = (all: boolean): DiscogsApplySelection => ({
@@ -255,7 +272,7 @@ const DiscogsCheckReport: React.FC = () => {
                 </div>
             )}
 
-            {report?.apply && <DiscogsApplyStatus apply={report.apply} />}
+            {report?.apply && <DiscogsApplyStatus apply={report.apply} onStop={() => void stop()} />}
 
             {completed && (
                 <div className="flex flex-col gap-2">

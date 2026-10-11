@@ -63,6 +63,10 @@ export interface IDiscogsApply {
     skipped: number;
     failed: number;
     useDiscogsDates: boolean;
+    /** The user asked to stop; the job finishes the record it is on. */
+    stopRequested?: boolean;
+    /** The job ended early because it was stopped; `done` of `total` records were handled. */
+    stopped?: boolean;
     datesUpdated: number;
     /** Items linked to their Discogs instance for the first time. */
     instanceIdsStored: number;
@@ -143,6 +147,8 @@ const applySchema = new Schema<IDiscogsApply>({
     skipped: { type: Number, default: 0 },
     failed: { type: Number, default: 0 },
     useDiscogsDates: { type: Boolean, default: false },
+    stopRequested: { type: Boolean, default: false },
+    stopped: { type: Boolean, default: false },
     datesUpdated: { type: Number, default: 0 },
     instanceIdsStored: { type: Number, default: 0 },
     failures: { type: [applyFailureSchema], default: [] }

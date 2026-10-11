@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DiscogsCheckReport from './DiscogsCheckReport';
-import { applyDiscogsSelection, getDiscogsReport, startDiscogsCheck } from '../../api/discogsSync';
+import { applyDiscogsSelection, getDiscogsReport, startDiscogsCheck, stopDiscogsApply } from '../../api/discogsSync';
 import { toastService } from '../../utils/toast';
 import type { DiscogsApply, DiscogsSyncReport } from '../../types/discogsAccount.types';
 
@@ -15,7 +15,8 @@ const { refreshCollection, refreshPending } = vi.hoisted(() => ({ refreshCollect
 vi.mock('../../api/discogsSync', () => ({
     getDiscogsReport: vi.fn(),
     startDiscogsCheck: vi.fn(),
-    applyDiscogsSelection: vi.fn()
+    applyDiscogsSelection: vi.fn(),
+    stopDiscogsApply: vi.fn()
 }));
 vi.mock('../../hooks/collection/useCollectionData', () => ({
     useCollectionData: () => ({ refreshCollection })
@@ -356,6 +357,33 @@ describe('DiscogsCheckReport', () => {
                 merged: []
             });
 
+            it('says how many rows are not shown, and shows them all on request, still ticked', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(many(120));
+
+                render(<DiscogsCheckReport />);
+                await screen.findByText('discogsCheck.newTitle');
+                expect(screen.getAllByRole('checkbox')).toHaveLength(100);
+                expect(screen.getByText(/discogsApply.moreHidden:\{"count":20\}/)).toBeInTheDocument();
+
+                fireEvent.click(screen.getByRole('button', { name: 'discogsApply.showAll' }));
+
+                const boxes = screen.getAllByRole('checkbox');
+                expect(boxes).toHaveLength(120);
+                boxes.forEach(box => expect(box).toBeChecked());
+                expect(screen.queryByRole('button', { name: 'discogsApply.showAll' })).not.toBeInTheDocument();
+            });
+
+            it('applies the rows that are not shown too, because they are ticked', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(many(120));
+
+                render(<DiscogsCheckReport />);
+                fireEvent.click(await applyButton('discogsApply.applySelected'));
+                fireEvent.click(screen.getByRole('button', { name: 'discogsApply.confirm' }));
+
+                await waitFor(() => expect(applyDiscogsSelection).toHaveBeenCalledTimes(1));
+                expect(vi.mocked(applyDiscogsSelection).mock.calls[0][0].add).toHaveLength(120);
+            });
+
             it('applies up to 100 ticked records straight away', async () => {
                 vi.mocked(getDiscogsReport).mockResolvedValue(many(100));
 
@@ -462,6 +490,51 @@ describe('DiscogsCheckReport', () => {
             expect(screen.getByRole('button', { name: 'discogsCheck.checkNow' })).toBeDisabled();
             expect(await applyButton('discogsApply.applyAll')).toBeDisabled();
             expect(screen.getByRole('button', { name: 'discogsApply.useDates' })).toBeDisabled();
+        });
+
+        describe('stopping', () => {
+            it('offers Stop while it runs, and asks the server to stop', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(drift({ apply: apply() }));
+                vi.mocked(stopDiscogsApply).mockResolvedValue(undefined);
+
+                render(<DiscogsCheckReport />);
+                fireEvent.click(await screen.findByRole('button', { name: 'discogsApply.stop' }));
+
+                await waitFor(() => expect(stopDiscogsApply).toHaveBeenCalledTimes(1));
+                // The status is re-read, so "stopping" shows as soon as the server has the request.
+                await waitFor(() => expect(getDiscogsReport).toHaveBeenCalledTimes(2));
+            });
+
+            it('says it is stopping, and cannot be asked twice', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(drift({ apply: apply({ stopRequested: true }) }));
+
+                render(<DiscogsCheckReport />);
+
+                expect(await screen.findByText('discogsApply.stopping')).toBeInTheDocument();
+                expect(screen.getByRole('button', { name: 'discogsApply.stop' })).toBeDisabled();
+            });
+
+            it('tells the user when the stop could not be sent', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(drift({ apply: apply() }));
+                vi.mocked(stopDiscogsApply).mockRejectedValue(new Error('boom'));
+
+                render(<DiscogsCheckReport />);
+                fireEvent.click(await screen.findByRole('button', { name: 'discogsApply.stop' }));
+
+                await waitFor(() => expect(toastService.error).toHaveBeenCalledWith('discogsApply.stopFailed'));
+            });
+
+            it('reports a stopped apply as stopped, with how far it got', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(drift({
+                    apply: apply({ status: 'completed', stopped: true, done: 120, total: 1467, added: 118, relinked: 2 })
+                }));
+
+                render(<DiscogsCheckReport />);
+
+                expect(await screen.findByText('discogsApply.stoppedDone:{"done":120,"total":1467,"added":118,"relinked":2}')).toBeInTheDocument();
+                expect(screen.queryByText(/discogsApply.done/)).not.toBeInTheDocument();
+                expect(screen.queryByRole('button', { name: 'discogsApply.stop' })).not.toBeInTheDocument();
+            });
         });
 
         it('keeps polling until the apply is done, then refreshes the collection once', async () => {

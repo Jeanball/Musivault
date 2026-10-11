@@ -223,7 +223,13 @@
         "durationHoursMinutes": "约 {{hours}} 小时 {{minutes}} 分钟",
         "longWarning": "由于 Discogs 限制请求速度，每张新唱片约需 5 秒，因此添加 {{count}} 张唱片需要{{duration}}。离开此页面后任务会继续运行。如需分步进行，可取消勾选部分行，分批应用。",
         "confirmLargeTitle": "添加大量唱片？",
-        "confirmLargeBody": "这将添加 {{count}} 张新唱片。"
+        "confirmLargeBody": "这将添加 {{count}} 张新唱片。",
+        "stop": "停止",
+        "stopping": "将在当前唱片完成后停止…",
+        "stoppedDone": "已在 {{done}} / {{total}} 张唱片后停止：添加 {{added}} 张，重新关联 {{relinked}} 张。其余未应用。",
+        "stopFailed": "无法停止，请稍后重试。",
+        "moreHidden": "另有 {{count}} 项未显示。点击“显示全部”可查看并取消勾选。",
+        "showAll": "显示全部"
     },
     "discogsPending": {
         "message": "上次 Discogs 检查有 {{count}} 项变化待处理：新增 {{newOnDiscogs}}，已合并 {{merged}}。",

@@ -41,12 +41,15 @@ export interface ApplySelection {
 
 /** Thrown by `startApply`; `code` is what the API reports. */
 export class DiscogsApplyError extends Error {
-    constructor(readonly code: 'notConnected' | 'needsReconnect' | 'noReport' | 'busy' | 'nothingSelected', message: string) {
+    constructor(readonly code: 'notConnected' | 'needsReconnect' | 'noReport' | 'busy' | 'nothingSelected' | 'notRunning', message: string) {
         super(message);
     }
 }
 
 type Failure = IDiscogsApplyFailure;
+
+// Users who asked to stop their running apply. Checked between records, so a stop never leaves one half done.
+const stopRequests = new Set<string>();
 
 /**
  * Point an item at the release Discogs merged its release into. The item keeps everything of its own:
@@ -141,12 +144,19 @@ function pushFailure(failures: Failure[], failure: Failure): void {
 }
 
 async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelection): Promise<void> {
+    const key = String(userId);
+    const stopRequested = () => stopRequests.has(key);
     const update = (fields: Record<string, unknown>) => {
         const set = Object.fromEntries(Object.entries(fields).map(([key, value]) => [`apply.${key}`, value]));
         return DiscogsSyncReport.updateOne({ user: userId }, { $set: set });
     };
 
     try {
+        // Stopped while still queued: end without reading Discogs or touching anything.
+        if (stopRequested()) {
+            await update({ status: 'completed', finishedAt: new Date(), stopped: true });
+            return;
+        }
         await update({ status: 'running', phase: 'collection' });
 
         // Read Discogs afresh: the check may be old, and what is ticked is validated against today's state.
@@ -176,7 +186,9 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
         let added = 0;
         const progress = () => update({ done, failed, skipped, relinked, added, failures });
 
+        let stopped = false;
         for (const { itemId, releaseId, merged } of plan.relinks) {
+            if (stopRequested()) { stopped = true; break; }
             if (!merged) {
                 skipped++;
             } else {
@@ -199,7 +211,8 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
             await progress();
         }
 
-        for (const { releaseId, release } of plan.adds) {
+        for (const { releaseId, release } of stopped ? [] : plan.adds) {
+            if (stopRequested()) { stopped = true; break; }
             if (!release) {
                 skipped++;
             } else {
@@ -236,7 +249,8 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
             await progress();
         }
 
-        const datesUpdated = plan.dateUpdates.length;
+        // A stopped apply leaves the dates alone too: the user asked for it to end, not to finish part of the rest.
+        const datesUpdated = stopped ? 0 : plan.dateUpdates.length;
         if (datesUpdated > 0) {
             await update({ phase: 'dates' });
             await CollectionItem.bulkWrite(plan.dateUpdates.map(d => ({
@@ -252,15 +266,17 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
 
         // What is left to do, from what was just read and done; no second pass over Discogs.
         await saveResult(userId, releases, compareCollections(releases, await loadItems(userId)));
-        await update({ status: 'completed', finishedAt: new Date(), datesUpdated });
+        await update({ status: 'completed', finishedAt: new Date(), datesUpdated, stopped });
         logger.info(
-            { userId: String(userId), added, relinked, skipped, failed, datesUpdated },
+            { userId: String(userId), added, relinked, skipped, failed, datesUpdated, stopped },
             '[DiscogsApply] Completed'
         );
     } catch (error) {
         const rejected = await flagRejectedToken(userId, error);
         logger.error({ err: error, userId: String(userId) }, '[DiscogsApply] Failed');
         await update({ status: 'error', errorCode: rejected ? 'needsReconnect' : 'failed', finishedAt: new Date() });
+    } finally {
+        stopRequests.delete(key);
     }
 }
 
@@ -290,6 +306,7 @@ export async function startApply(userId: mongoose.Types.ObjectId, selection: App
         throw new DiscogsApplyError('busy', 'A Discogs job is already running.');
     }
 
+    stopRequests.delete(String(userId));
     // Settles a job a server restart interrupted, so it doesn't block a new one.
     await getReport(userId);
     // The filter is the lock: two requests can't both start an apply.
@@ -314,4 +331,20 @@ export async function startApply(userId: mongoose.Types.ObjectId, selection: App
     }
 
     enqueueJob(userId, () => runApply(userId, selection));
+}
+
+/**
+ * Ask the user's running apply to stop. It finishes the record it is on, keeps everything already
+ * done, and ends as completed with `stopped` set; dates are not touched. The rest can be applied later
+ * from a new check. Works on a queued apply too, which then ends without doing anything.
+ * @throws DiscogsApplyError `notRunning` when no apply is queued or running
+ */
+export async function stopApply(userId: mongoose.Types.ObjectId): Promise<void> {
+    const running = hasActiveJob(userId)
+        && await DiscogsSyncReport.exists({ user: userId, 'apply.status': { $in: ['queued', 'running'] } });
+    if (!running) {
+        throw new DiscogsApplyError('notRunning', 'No apply is running.');
+    }
+    stopRequests.add(String(userId));
+    await DiscogsSyncReport.updateOne({ user: userId }, { $set: { 'apply.stopRequested': true } });
 }

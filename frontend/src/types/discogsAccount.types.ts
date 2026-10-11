@@ -61,6 +61,10 @@ export interface DiscogsApply {
     skipped: number;
     failed: number;
     useDiscogsDates: boolean;
+    /** The user asked to stop; the job ends after the record it is on. */
+    stopRequested?: boolean;
+    /** The job ended early because it was stopped. */
+    stopped?: boolean;
     datesUpdated: number;
     instanceIdsStored: number;
     failures: DiscogsApplyFailure[];
