@@ -17,7 +17,19 @@ import { logger } from '../config/logger.config';
 
 // ===== Constants =====
 
-export const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+/**
+ * Public Overpass instances, tried in order. The main one regularly answers
+ * 504 for minutes at a time even to trivial queries, so one dead server must
+ * not take the feature down. `OVERPASS_URL` pins a single endpoint, e.g. a
+ * self-hosted instance.
+ */
+export const OVERPASS_URLS: string[] = process.env.OVERPASS_URL
+  ? [process.env.OVERPASS_URL]
+  : [
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.openstreetmap.fr/api/interpreter',
+      'https://lz4.overpass-api.de/api/interpreter',
+    ];
 export const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 export const OSM_HEADERS = {
   'User-Agent': 'Musivault/1.0 (https://github.com/musivault)',
@@ -172,20 +184,18 @@ function normalizeElement(element: OverpassElement): ICachedShop | null {
 async function fetchTileFromOverpass(lat: number, lon: number, bandKm: number): Promise<ICachedShop[]> {
   await delay(OSM_RATE_LIMIT_MS);
 
-  const { data } = await requestWithRetry(async () => {
-    const response = await axios.post<OverpassResponse>(
-      OVERPASS_URL,
-      new URLSearchParams({ data: buildOverpassQuery(lat, lon, bandKm) }).toString(),
-      {
-        headers: { ...OSM_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' },
-        // Must outlast the server-side timeout baked into the query itself.
-        timeout: bandKm > 200 ? WIDE_OVERPASS_TIMEOUT_MS : OVERPASS_TIMEOUT_MS,
-      }
-    );
+  const query = new URLSearchParams({ data: buildOverpassQuery(lat, lon, bandKm) }).toString();
+
+  const requestFrom = async (url: string) => {
+    const response = await axios.post<OverpassResponse>(url, query, {
+      headers: { ...OSM_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' },
+      // Must outlast the server-side timeout baked into the query itself.
+      timeout: bandKm > 200 ? WIDE_OVERPASS_TIMEOUT_MS : OVERPASS_TIMEOUT_MS,
+    });
 
     // When the dispatcher is down, Overpass answers 200 with an HTML error
     // page. Left unchecked that reads as "no shops here" and would be cached
-    // as an empty tile for a month — so treat it as a retryable failure.
+    // as an empty tile for a month — so treat it as a failure.
     if (!Array.isArray(response.data?.elements)) {
       throw new Error('Overpass returned a non-JSON response (service likely unavailable)');
     }
@@ -196,12 +206,28 @@ async function fetchTileFromOverpass(lat: number, lon: number, bandKm: number): 
       throw new Error(`Overpass query did not complete: ${response.data.remark}`);
     }
     return response;
-  });
+  };
+
+  // Moving to the next instance is the retry: backing off against a server
+  // that is down only delays the one that might answer.
+  let data: OverpassResponse | undefined;
+  let lastError: unknown;
+  for (const [index, url] of OVERPASS_URLS.entries()) {
+    try {
+      if (index > 0) await delay(OSM_RATE_LIMIT_MS);
+      data = (await requestFrom(url)).data;
+      break;
+    } catch (error) {
+      lastError = error;
+      logger.warn({ err: error, url }, 'Overpass instance failed, trying the next one');
+    }
+  }
+  if (!data) throw lastError;
 
   const shops: ICachedShop[] = [];
   const seen = new Set<string>();
 
-  for (const element of data.elements || []) {
+  for (const element of data.elements) {
     const shop = normalizeElement(element);
     if (!shop) continue;
     // A shop mapped as both a node and a building way would otherwise appear twice.
