@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import React, { useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router";
 import { MusivaultMark } from '../components/Common/BrandIcons';
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../utils/toast";
-import { signup, getOidcStatus, OIDC_LOGIN_URL } from "../api/auth";
+import { signup, OIDC_LOGIN_URL } from "../api/auth";
+import { useAuthConfig } from "../hooks/useAuthConfig";
 import { isApiError, isServerUnavailable } from "../api/errors";
 
 // Interface for the form state, now with 'username'
@@ -18,19 +19,9 @@ const SignupPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [inputValue, setInputValue] = useState<SignupFormState>({ email: "", password: "", username: "" });
-    const [oidcEnabled, setOidcEnabled] = useState(false);
-    const [oidcProviderName, setOidcProviderName] = useState('SSO');
+    const { config, loading } = useAuthConfig();
+    const { oidcEnabled, oidcProviderName, signupEnabled } = config;
     const { email, password, username } = inputValue;
-
-    useEffect(() => {
-        // Check if OIDC is enabled and get provider name
-        getOidcStatus()
-            .then(status => {
-                setOidcEnabled(status.enabled);
-                setOidcProviderName(status.providerName || 'SSO');
-            })
-            .catch(() => setOidcEnabled(false));
-    }, []);
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -73,6 +64,12 @@ const SignupPage: React.FC = () => {
     const handleSSOSignup = () => {
         window.location.href = OIDC_LOGIN_URL;
     };
+
+    // The server refuses /auth/signup too; this only keeps the page from
+    // offering a form that cannot work.
+    if (!loading && !signupEnabled) {
+        return <Navigate to="/login" replace />;
+    }
 
     return (
         <div className="hero min-h-screen bg-base-200">

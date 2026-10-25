@@ -171,9 +171,3 @@ export async function handleOIDCCallback(req: Request, res: Response) {
     }
 }
 
-export async function getOIDCStatus(req: Request, res: Response) {
-    res.json({
-        enabled: isOIDCEnabled(),
-        providerName: process.env.OIDC_PROVIDER_NAME || 'SSO'
-    });
-}

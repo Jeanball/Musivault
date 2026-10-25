@@ -1,7 +1,7 @@
 
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { loginUser, logoutUser, signupUser, userVerification } from '../controllers/auth.controller';
+import { getAuthConfig, loginUser, logoutUser, signupUser, userVerification } from '../controllers/auth.controller';
 import oidcRoute from './oidc.route';
 
 const router = Router();
@@ -19,6 +19,7 @@ const credentialsLimiter = rateLimit({
     message: { message: 'Too many attempts. Try again in a few minutes.' }
 });
 
+router.get('/config', getAuthConfig);
 router.post('/verify', userVerification);
 router.post('/login', credentialsLimiter, loginUser);
 router.post('/signup', credentialsLimiter, signupUser);

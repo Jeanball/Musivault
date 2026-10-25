@@ -11,7 +11,7 @@ vi.mock('react-i18next', () => ({
 }));
 vi.mock('../api/auth', () => ({
     login: vi.fn(),
-    getOidcStatus: vi.fn().mockResolvedValue({ enabled: false }),
+    getAuthConfig: vi.fn().mockResolvedValue({ signupEnabled: true, oidcEnabled: false, oidcProviderName: 'SSO' }),
     OIDC_LOGIN_URL: '/oidc'
 }));
 vi.mock('../utils/toast', () => ({ toastService: { success: vi.fn(), error: vi.fn() } }));

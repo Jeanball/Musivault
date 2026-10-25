@@ -45,6 +45,8 @@ services:
       - ADMIN_EMAIL=${ADMIN_EMAIL:-}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      # Set to false to close public registration
+      - SIGNUP_ENABLED=${SIGNUP_ENABLED:-true}
       # OIDC/SSO Configuration (optional)
       - OIDC_ISSUER=${OIDC_ISSUER:-}
       - OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-}

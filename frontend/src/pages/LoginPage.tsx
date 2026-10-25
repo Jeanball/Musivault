@@ -4,7 +4,8 @@ import { MusivaultMark } from '../components/Common/BrandIcons';
 import { useTranslation } from 'react-i18next';
 import Footer from "../components/Navigation/Footer";
 import { toastService } from "../utils/toast";
-import { login, getOidcStatus, OIDC_LOGIN_URL } from "../api/auth";
+import { login, OIDC_LOGIN_URL } from "../api/auth";
+import { useAuthConfig } from "../hooks/useAuthConfig";
 import { isApiError, isServerUnavailable } from "../api/errors";
 
 // Interface for the form state
@@ -19,19 +20,11 @@ const LoginPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const { t } = useTranslation();
     const [inputValue, setInputValue] = useState<LoginFormState>({ identifier: "", password: "", });
-    const [oidcEnabled, setOidcEnabled] = useState(false);
-    const [oidcProviderName, setOidcProviderName] = useState('SSO');
+    const { config } = useAuthConfig();
+    const { oidcEnabled, oidcProviderName, signupEnabled } = config;
     const { identifier, password } = inputValue;
 
     useEffect(() => {
-        // Check if OIDC is enabled and get provider name
-        getOidcStatus()
-            .then(status => {
-                setOidcEnabled(status.enabled);
-                setOidcProviderName(status.providerName || 'SSO');
-            })
-            .catch(() => setOidcEnabled(false));
-
         // Check for OIDC error in URL
         const error = searchParams.get('error');
         if (error === 'oidc_failed') {
@@ -133,12 +126,14 @@ const LoginPage: React.FC = () => {
                             </>
                         )}
 
-                        <div className="text-center mt-4">
-                            <span className="text-sm">
-                                {t('auth.noAccount')}{" "}
-                                <Link to="/signup" className="link link-primary">{t('auth.signup')}</Link>
-                            </span>
-                        </div>
+                        {signupEnabled && (
+                            <div className="text-center mt-4">
+                                <span className="text-sm">
+                                    {t('auth.noAccount')}{" "}
+                                    <Link to="/signup" className="link link-primary">{t('auth.signup')}</Link>
+                                </span>
+                            </div>
+                        )}
                     </form>
                 </div>
             </div>

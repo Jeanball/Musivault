@@ -116,6 +116,7 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `ADMIN_EMAIL` | Initial admin email | - | No |
 | `ADMIN_USERNAME` | Initial admin username | - | No |
 | `ADMIN_PASSWORD` | Initial admin password | - | No |
+| `SIGNUP_ENABLED` | Set to `false` to close public registration. Existing users and SSO sign-in keep working | true | No |
 | `OIDC_ISSUER` | OIDC Issuer URL | - | No |
 | `OIDC_CLIENT_ID` | OIDC Client ID | - | No |
 | `OIDC_CLIENT_SECRET` | OIDC Client Secret | - | No |
