@@ -11,8 +11,10 @@ import PublicAlbumModal from '../Modal/PublicAlbumModal';
 import { useCollectionFilters } from '../../hooks/collection/useCollectionFilters';
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
+import { useArtistSortPreference } from '../../hooks/useArtistSortPreference';
 import type { CollectionItem, LayoutType, CollectionViewMode } from '../../types/collection.types';
 import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
+import { compareArtistNames } from '../../utils/artistSort';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
 const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
@@ -97,7 +99,8 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         collection,
         isAggregateMode ? '' : deferredSearchTerm
     );
-    const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection);
+    const ignoreLeadingArticle = useArtistSortPreference();
+    const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection, ignoreLeadingArticle);
     const stats = useCollectionStats(collection);
     // Format mismatches are a private housekeeping signal, so a visitor never gets
     // the toggle even though the shared items carry the flag.
@@ -112,9 +115,9 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     // as the order: every album of an artist still lands side by side.
     const gridItems = useMemo(
         () => Object.entries(groupedByArtist)
-            .sort(([a], [b]) => a.localeCompare(b))
+            .sort(([a], [b]) => compareArtistNames(a, b, ignoreLeadingArticle))
             .flatMap(([, artistItems]) => artistItems),
-        [groupedByArtist]
+        [groupedByArtist, ignoreLeadingArticle]
     );
 
     const handleClearAll = () => {
@@ -189,12 +192,14 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                     collection={filteredCollection}
                     searchTerm={deferredSearchTerm}
                     onAlbumClick={handleItemIdClick}
+                    ignoreLeadingArticle={ignoreLeadingArticle}
                 />
             ) : viewMode === 'labels' ? (
                 <CollectionLabelsView
                     collection={filteredCollection}
                     searchTerm={deferredSearchTerm}
                     onItemClick={handleItemIdClick}
+                    ignoreLeadingArticle={ignoreLeadingArticle}
                 />
             ) : (
                 <>

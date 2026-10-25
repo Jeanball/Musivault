@@ -76,7 +76,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, discoverExcludedStyles, discoverLocation, discoverRadiusKm } = req.body;
+        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, sortIgnoreLeadingArticle, discoverExcludedStyles, discoverLocation, discoverRadiusKm } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -106,6 +106,9 @@ export async function updatePreferences(req: Request, res: Response) {
         }
         if (preferredCurrency !== undefined) {
             user.preferences = { ...user.preferences, preferredCurrency };
+        }
+        if (sortIgnoreLeadingArticle !== undefined) {
+            user.preferences = { ...user.preferences, sortIgnoreLeadingArticle };
         }
         if (discoverExcludedStyles !== undefined) {
             if (!Array.isArray(discoverExcludedStyles) || discoverExcludedStyles.some((s) => typeof s !== 'string')) {

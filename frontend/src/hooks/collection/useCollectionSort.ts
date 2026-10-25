@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, SortColumn, SortOrder } from '../../types/collection.types';
 import { getItemValue } from '../../utils/itemValue';
+import { artistSortKey } from '../../utils/artistSort';
 
 const SORT_STORAGE_KEY = 'musivault_collection_sort';
 
@@ -21,7 +22,7 @@ const getInitialSort = (): SortState => {
     return { sortBy: 'artist', sortOrder: 'asc' };
 };
 
-export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
+export const useCollectionSort = (filteredCollection: CollectionItem[], ignoreLeadingArticle = false) => {
     const initialSort = getInitialSort();
     const [sortBy, setSortBy] = useState<SortColumn>(initialSort.sortBy);
     const [sortOrder, setSortOrder] = useState<SortOrder>(initialSort.sortOrder);
@@ -52,8 +53,8 @@ export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
 
             switch (sortBy) {
                 case 'artist':
-                    aValue = a.album.artist.toLowerCase();
-                    bValue = b.album.artist.toLowerCase();
+                    aValue = artistSortKey(a.album.artist, ignoreLeadingArticle);
+                    bValue = artistSortKey(b.album.artist, ignoreLeadingArticle);
                     break;
                 case 'album':
                     aValue = a.album.title.toLowerCase();
@@ -92,7 +93,7 @@ export const useCollectionSort = (filteredCollection: CollectionItem[]) => {
                 return sortOrder === 'asc' ? comparison : -comparison;
             }
         });
-    }, [filteredCollection, sortBy, sortOrder]);
+    }, [filteredCollection, sortBy, sortOrder, ignoreLeadingArticle]);
 
     const resetSort = () => {
         setSortBy('artist');

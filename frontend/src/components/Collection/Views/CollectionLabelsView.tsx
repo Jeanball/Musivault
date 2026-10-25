@@ -13,6 +13,8 @@ interface CollectionLabelsViewProps {
     /** Typed in the toolbar, which keeps its place across the view modes. */
     searchTerm: string;
     onItemClick: (itemId: string) => void;
+    /** Mirrors the collection's artist sort: skips a leading "The" when set. */
+    ignoreLeadingArticle: boolean;
 }
 
 /**
@@ -21,9 +23,9 @@ interface CollectionLabelsViewProps {
  * co-issued by two labels appears under both, so the per-label counts
  * legitimately sum past the collection size.
  */
-const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection, searchTerm, onItemClick }) => {
+const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection, searchTerm, onItemClick, ignoreLeadingArticle }) => {
     const { t } = useTranslation();
-    const labels = useLabelAggregation(collection);
+    const labels = useLabelAggregation(collection, ignoreLeadingArticle);
     const [expandedLabelId, setExpandedLabelId] = useState<string | null>(null);
     // Biggest imprints first: the shape of a collection is the point, and an
     // alphabetical list buries it.
