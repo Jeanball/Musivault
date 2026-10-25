@@ -15,7 +15,7 @@ const KEY_SALT = 'musivault-encryption-key';
 
 let cachedKey: { source: string; key: Buffer } | null = null;
 
-/** Whether `ENCRYPTION_KEY` is set, i.e. whether secrets can be stored. */
+/** Whether `ENCRYPTION_KEY` is set and not empty, i.e. whether secrets can be stored. */
 export function hasEncryptionKey(): boolean {
     return !!process.env.ENCRYPTION_KEY;
 }
@@ -32,7 +32,10 @@ function getKey(): Buffer {
 }
 
 /**
- * Encrypt a string into `iv:authTag:ciphertext` (base64 parts).
+ * Encrypt a string into `iv:authTag:ciphertext` (base64 parts). A fresh random IV is used
+ * every time, so encrypting the same text twice gives different values. Any string is fine,
+ * including an empty one. The key is read from `ENCRYPTION_KEY` on each call, so changing it
+ * takes effect immediately.
  * @throws Error if `ENCRYPTION_KEY` is not configured
  */
 export function encryptSecret(plaintext: string): string {
@@ -44,7 +47,8 @@ export function encryptSecret(plaintext: string): string {
 
 /**
  * Decrypt a value produced by `encryptSecret`.
- * @throws Error if the key is missing or changed, or the value was tampered with
+ * @throws Error `Malformed encrypted value` if it doesn't have the three parts; any other Error
+ * if the key is missing or differs from the one used to encrypt, or the value was tampered with
  */
 export function decryptSecret(payload: string): string {
     const [iv, authTag, encrypted] = payload.split(':').map(p => Buffer.from(p, 'base64'));

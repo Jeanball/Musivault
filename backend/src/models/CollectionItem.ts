@@ -36,6 +36,11 @@ export interface ICollectionItem extends Document {
   formatVerification?: IFormatVerification | null;
   customFields?: Map<string, string>;
   addedAt: Date;
+  /**
+   * The Discogs collection entry (instance) this item was linked to. Discogs keeps it when it merges
+   * releases, so a stored id shows which entry an item became. Set by the Discogs sync.
+   */
+  discogsInstanceId?: number;
 }
 
 const priceCacheSchema = new Schema<IPriceCache>({
@@ -104,11 +109,16 @@ const collectionItemSchema = new Schema<ICollectionItem>({
     type: Date,
     default: Date.now,
   },
+  discogsInstanceId: {
+    type: Number,
+  },
 });
 
 // Every read starts from a user and orders by date added: the community feed,
 // the latest additions per public collection, a shared collection's listing.
 collectionItemSchema.index({ user: 1, addedAt: -1 });
+// Finds the item behind a Discogs collection entry; most items have no instance id.
+collectionItemSchema.index({ user: 1, discogsInstanceId: 1 }, { sparse: true });
 
 const CollectionItem = mongoose.model<ICollectionItem>(
   "CollectionItem",

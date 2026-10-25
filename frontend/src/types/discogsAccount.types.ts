@@ -20,6 +20,8 @@ export interface DiscogsReportRelease {
     thumb?: string;
     format?: string;
     dateAdded: string;
+    mediaCondition?: string;
+    sleeveCondition?: string;
 }
 
 export interface DiscogsReportItem {
@@ -34,6 +36,45 @@ export interface DiscogsReportItem {
 export interface DiscogsReportMerged {
     item: DiscogsReportItem;
     release: DiscogsReportRelease;
+    /** `instance`: the item's stored Discogs entry moved to this release (exact). `guess`: paired by artist, title, format and year. */
+    match: 'instance' | 'guess';
+}
+
+export interface DiscogsApplyFailure {
+    kind: 'add' | 'relink';
+    artist: string;
+    title: string;
+    releaseId: number;
+    reason: string;
+}
+
+export interface DiscogsApply {
+    status: 'queued' | 'running' | 'completed' | 'error';
+    errorCode?: 'needsReconnect' | 'failed';
+    phase: 'collection' | 'records' | 'dates';
+    startedAt: string;
+    finishedAt?: string;
+    total: number;
+    done: number;
+    added: number;
+    relinked: number;
+    skipped: number;
+    failed: number;
+    useDiscogsDates: boolean;
+    /** The user asked to stop; the job ends after the record it is on. */
+    stopRequested?: boolean;
+    /** The job ended early because it was stopped. */
+    stopped?: boolean;
+    datesUpdated: number;
+    instanceIdsStored: number;
+    failures: DiscogsApplyFailure[];
+}
+
+/** What to apply: the rows the user ticked, and whether to take the dates added from Discogs. */
+export interface DiscogsApplySelection {
+    add: number[];
+    relink: { itemId: string; releaseId: number }[];
+    useDiscogsDates: boolean;
 }
 
 export interface DiscogsSyncReport {
@@ -54,4 +95,12 @@ export interface DiscogsSyncReport {
     newOnDiscogs: DiscogsReportRelease[];
     merged: DiscogsReportMerged[];
     onlyInMusivault: DiscogsReportItem[];
+    apply?: DiscogsApply;
+}
+
+/** What the last check left to act on. Date differences and "only in Musivault" don't count. */
+export interface DiscogsPendingSummary {
+    finishedAt: string;
+    newOnDiscogs: number;
+    merged: number;
 }

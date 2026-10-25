@@ -75,7 +75,8 @@
         "ssoFailed": "SSO login failed. Please try again or use local login.",
         "loginSuccess": "Connection successful!",
         "loginError": "Invalid credentials",
-        "signupError": "Registration failed"
+        "signupError": "Registration failed",
+        "serverUnavailable": "Cannot reach the server. Try again in a moment."
     },
     "home": {
         "greetingMorning": "Good morning",
@@ -198,13 +199,61 @@
         "inSync": "Musivault and Discogs are in sync.",
         "newTitle": "New on Discogs",
         "newHint": "In your Discogs collection but not in Musivault.",
-        "mergedTitle": "Merged on Discogs (likely)",
-        "mergedHint": "Not in your Discogs collection under this release, but Discogs has an entry with the same artist, title, format and year. Probably the same record after Discogs merged releases.",
+        "mergedTitle": "Merged on Discogs",
+        "mergedHint": "No longer in your Discogs collection under this release. Discogs moved the entry to the release shown, or has an entry with the same artist, title, format and year. Applying points the record to the new release and keeps your condition, notes and custom fields.",
         "mergedDetail": "now Discogs release {{id}}",
         "onlyTitle": "Only in Musivault",
         "onlyHint": "In Musivault but not in your Discogs collection. For information only, nothing will be removed.",
         "moreRows": "and {{count}} more",
-        "openOnDiscogs": "Open on Discogs"
+        "openOnDiscogs": "Open on Discogs",
+        "mergedExact": "confirmed",
+        "mergedLikely": "likely"
+    },
+    "discogsApply": {
+        "queued": "Waiting for another Discogs job to finish…",
+        "reading": "Reading your Discogs collection…",
+        "progress": "Applying: {{done}} of {{total}} records",
+        "canLeave": "You can leave this page, it keeps running.",
+        "updatingDates": "Updating dates and the value history…",
+        "failed": "Applying failed. Try again in a moment.",
+        "done": "Done: {{added}} added, {{relinked}} relinked.",
+        "datesDone": "{{count}} dates added updated from Discogs.",
+        "linked": "{{count}} records linked to their Discogs entry.",
+        "skipped": "{{count}} rows were skipped because they no longer applied.",
+        "failedCount": "{{count}} rows failed.",
+        "details": "Details",
+        "busy": "Another Discogs job is running. Try again when it is done.",
+        "startFailed": "Could not start. Try again in a moment.",
+        "selected": "{{selected}} of {{count}} ticked",
+        "selectAll": "Tick all",
+        "selectNone": "Untick all",
+        "applySelected": "Apply selected ({{count}})",
+        "applyAll": "Apply all ({{count}})",
+        "useDates": "Use Discogs dates",
+        "confirmAllTitle": "Apply everything?",
+        "confirmAllBody": "This adds {{added}} new records and relinks {{relinked}} merged ones, ticked or not. Each new record takes a couple of seconds, so a large list can take a while. It keeps running if you leave this page.",
+        "confirmDatesTitle": "Use the dates from Discogs?",
+        "confirmDatesBody": "The date added of {{count}} records is set to the date you added them on Discogs, and the collection value history is rebuilt from those dates.",
+        "cancel": "Cancel",
+        "confirm": "Apply",
+        "durationMinutes": "~ {{minutes}} mins",
+        "durationHours": "~ {{hours}} hrs",
+        "durationHoursMinutes": "~ {{hours}} hrs {{minutes}} mins",
+        "longWarning": "Each new record takes about 5 seconds because Discogs limits how fast it can be asked, so adding {{count}} records takes {{duration}}. It keeps running if you leave this page. To go in smaller steps, untick rows and apply in batches.",
+        "confirmLargeTitle": "Add many records?",
+        "confirmLargeBody": "This adds {{count}} new records.",
+        "stop": "Stop",
+        "stopping": "Stopping after the current record…",
+        "stoppedDone": "Stopped after {{done}} of {{total}} records: {{added}} added, {{relinked}} relinked. The rest was not applied.",
+        "stopFailed": "Could not stop. Try again in a moment.",
+        "moreHidden": "and {{count}} more not shown. Show all to see and untick them.",
+        "showAll": "Show all"
+    },
+    "discogsPending": {
+        "message": "{{count}} changes from your last Discogs check are waiting: {{newOnDiscogs}} new, {{merged}} merged.",
+        "review": "Review",
+        "dismiss": "Dismiss",
+        "badge": "{{count}} Discogs changes waiting"
     },
     "discogsAccount": {
         "title": "Discogs",
@@ -654,6 +703,10 @@
                 "refreshUpcomingReleases": {
                     "name": "Refresh Upcoming Releases",
                     "description": "Fetch every album and EP MusicBrainz lists for the coming weeks, then cache only those whose artists match a style already present in a collection, so each member sees the releases matching their own genres."
+                },
+                "checkDiscogsCollections": {
+                    "name": "Check Discogs Collections",
+                    "description": "Compare the Discogs collection of every connected user with Musivault and refresh their report in Settings. Read-only: nothing is added or changed until the user applies it."
                 }
             }
         },

@@ -134,3 +134,74 @@ export async function getValueHistory(
     itemCount: snapshot.itemCount,
   }));
 }
+
+/** Whether a snapshot was written by the history rebuild (stamped at local midnight) rather than measured. */
+function isSeeded(snapshot: { day: string; capturedAt: Date }): boolean {
+  return snapshot.capturedAt.getTime() === new Date(`${snapshot.day}T00:00:00`).getTime();
+}
+
+/**
+ * Rebuild a user's value history from their items' `addedAt`, the way the browser used to derive it:
+ * each item's current price counted from the day it was added, accumulated day by day.
+ * Used by the `2026-08-09_backfill-value-snapshots` migration and after the Discogs sync changes dates.
+ *
+ * By default it only writes (or overwrites) the days the curve covers. With `replaceSeeded`, the rows
+ * an earlier rebuild wrote are removed first, so days that no longer carry items disappear, while rows
+ * measured by the price sync are kept and win over the curve on their day.
+ * Returns the number of snapshots written.
+ */
+export async function rebuildValueHistory(
+  userId: mongoose.Types.ObjectId | string,
+  { replaceSeeded = false }: { replaceSeeded?: boolean } = {}
+): Promise<number> {
+  const items = await CollectionItem.find({ user: userId })
+    .select('priceCache mediaCondition addedAt')
+    .sort({ addedAt: 1 })
+    .lean();
+
+  const measuredDays = new Set<string>();
+  if (replaceSeeded) {
+    const existing = await ValueSnapshot.find({ user: userId }).select('day capturedAt').lean();
+    const seeded = existing.filter(isSeeded);
+    existing.filter(s => !isSeeded(s)).forEach(s => measuredDays.add(s.day));
+    await ValueSnapshot.deleteMany({ _id: { $in: seeded.map(s => s._id) } });
+  }
+
+  // Sum per day first, then walk the days in order to accumulate.
+  const dailyValue = new Map<string, number>();
+  const dailyCount = new Map<string, number>();
+
+  for (const item of items) {
+    const value = getValueForItem(item);
+    if (value <= 0) continue;
+
+    const day = toDayKey(new Date(item.addedAt));
+    dailyValue.set(day, (dailyValue.get(day) || 0) + value);
+    dailyCount.set(day, (dailyCount.get(day) || 0) + 1);
+  }
+
+  let cumulativeValue = 0;
+  let cumulativeCount = 0;
+  let written = 0;
+
+  for (const day of [...dailyValue.keys()].sort()) {
+    cumulativeValue += dailyValue.get(day)!;
+    cumulativeCount += dailyCount.get(day)!;
+    if (measuredDays.has(day)) continue;
+
+    await ValueSnapshot.findOneAndUpdate(
+      { user: userId, day },
+      {
+        $set: {
+          totalValue: Math.round(cumulativeValue * 100) / 100,
+          itemCount: cumulativeCount,
+          capturedAt: new Date(`${day}T00:00:00`),
+        }
+      },
+      { upsert: true }
+    );
+    written++;
+  }
+
+  return written;
+}

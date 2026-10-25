@@ -73,7 +73,8 @@
         "ssoFailed": "SSO-Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut oder verwenden Sie die lokale Anmeldung.",
         "loginSuccess": "Verbindung erfolgreich!",
         "loginError": "Ungültige Anmeldedaten",
-        "signupError": "Registrierung fehlgeschlagen"
+        "signupError": "Registrierung fehlgeschlagen",
+        "serverUnavailable": "Der Server ist nicht erreichbar. Versuche es gleich noch einmal."
     },
     "home": {
         "greetingMorning": "Guten Morgen",
@@ -177,13 +178,61 @@
         "inSync": "Musivault und Discogs sind synchron.",
         "newTitle": "Neu auf Discogs",
         "newHint": "In deiner Discogs-Sammlung, aber nicht in Musivault.",
-        "mergedTitle": "Auf Discogs zusammengeführt (wahrscheinlich)",
-        "mergedHint": "Diese Veröffentlichung ist nicht mehr in deiner Discogs-Sammlung, aber Discogs hat einen Eintrag mit gleichem Künstler, Titel, Format und Jahr. Wahrscheinlich dieselbe Platte nach einer Zusammenführung auf Discogs.",
+        "mergedTitle": "Auf Discogs zusammengeführt",
+        "mergedHint": "Nicht mehr unter dieser Veröffentlichung in deiner Discogs-Sammlung. Discogs hat den Eintrag zur gezeigten Veröffentlichung verschoben oder hat einen Eintrag mit gleichem Künstler, Titel, Format und Jahr. Übernehmen verknüpft die Platte mit der neuen Veröffentlichung und behält Zustand, Notizen und eigene Felder.",
         "mergedDetail": "jetzt Discogs-Release {{id}}",
         "onlyTitle": "Nur in Musivault",
         "onlyHint": "In Musivault, aber nicht in deiner Discogs-Sammlung. Nur zur Information, es wird nichts entfernt.",
         "moreRows": "und {{count}} weitere",
-        "openOnDiscogs": "Auf Discogs öffnen"
+        "openOnDiscogs": "Auf Discogs öffnen",
+        "mergedExact": "bestätigt",
+        "mergedLikely": "wahrscheinlich"
+    },
+    "discogsApply": {
+        "queued": "Warte auf das Ende eines anderen Discogs-Auftrags…",
+        "reading": "Deine Discogs-Sammlung wird gelesen…",
+        "progress": "Übernehme: {{done}} von {{total}} Platten",
+        "canLeave": "Du kannst diese Seite verlassen, es läuft weiter.",
+        "updatingDates": "Daten und Wertverlauf werden aktualisiert…",
+        "failed": "Das Übernehmen ist fehlgeschlagen. Versuche es gleich noch einmal.",
+        "done": "Fertig: {{added}} hinzugefügt, {{relinked}} neu verknüpft.",
+        "datesDone": "{{count}} Hinzufügedaten von Discogs übernommen.",
+        "linked": "{{count}} Platten mit ihrem Discogs-Eintrag verknüpft.",
+        "skipped": "{{count}} Zeilen wurden übersprungen, weil sie nicht mehr zutrafen.",
+        "failedCount": "{{count}} Zeilen sind fehlgeschlagen.",
+        "details": "Details",
+        "busy": "Ein anderer Discogs-Auftrag läuft. Versuche es nach dessen Ende erneut.",
+        "startFailed": "Start nicht möglich. Versuche es gleich noch einmal.",
+        "selected": "{{selected}} von {{count}} angehakt",
+        "selectAll": "Alle anhaken",
+        "selectNone": "Alle abwählen",
+        "applySelected": "Auswahl übernehmen ({{count}})",
+        "applyAll": "Alle übernehmen ({{count}})",
+        "useDates": "Discogs-Daten verwenden",
+        "confirmAllTitle": "Alles übernehmen?",
+        "confirmAllBody": "Das fügt {{added}} neue Platten hinzu und verknüpft {{relinked}} zusammengeführte neu, angehakt oder nicht. Jede neue Platte braucht ein paar Sekunden, eine lange Liste kann also dauern. Es läuft weiter, wenn du die Seite verlässt.",
+        "confirmDatesTitle": "Daten von Discogs verwenden?",
+        "confirmDatesBody": "Das Hinzufügedatum von {{count}} Platten wird auf das Datum gesetzt, an dem du sie auf Discogs hinzugefügt hast, und der Wertverlauf der Sammlung wird daraus neu aufgebaut.",
+        "cancel": "Abbrechen",
+        "confirm": "Übernehmen",
+        "durationMinutes": "~ {{minutes}} Min.",
+        "durationHours": "~ {{hours}} Std.",
+        "durationHoursMinutes": "~ {{hours}} Std. {{minutes}} Min.",
+        "longWarning": "Jede neue Platte braucht etwa 5 Sekunden, weil Discogs begrenzt, wie schnell man anfragen darf: {{count}} Platten hinzuzufügen dauert {{duration}}. Es läuft weiter, wenn du die Seite verlässt. Um in kleineren Schritten vorzugehen, hake Zeilen ab und übernimm in Etappen.",
+        "confirmLargeTitle": "Viele Platten hinzufügen?",
+        "confirmLargeBody": "Das fügt {{count}} neue Platten hinzu.",
+        "stop": "Stopp",
+        "stopping": "Wird nach der aktuellen Platte gestoppt…",
+        "stoppedDone": "Gestoppt nach {{done}} von {{total}} Platten: {{added}} hinzugefügt, {{relinked}} neu verknüpft. Der Rest wurde nicht übernommen.",
+        "stopFailed": "Stoppen nicht möglich. Versuche es gleich noch einmal.",
+        "moreHidden": "und {{count}} weitere nicht angezeigt. Alle anzeigen, um sie zu sehen und abzuwählen.",
+        "showAll": "Alle anzeigen"
+    },
+    "discogsPending": {
+        "message": "{{count}} Änderungen deiner letzten Discogs-Prüfung warten: {{newOnDiscogs}} neu, {{merged}} zusammengeführt.",
+        "review": "Ansehen",
+        "dismiss": "Ausblenden",
+        "badge": "{{count}} Discogs-Änderungen warten"
     },
     "discogsAccount": {
         "title": "Discogs",
@@ -627,6 +676,10 @@
                 "refreshUpcomingReleases": {
                     "name": "Kommende Veröffentlichungen aktualisieren",
                     "description": "Ruft alle von MusicBrainz für die kommenden Wochen gelisteten Alben und EPs ab und speichert nur diejenigen zwischen, deren Künstler zu einem bereits in einer Sammlung vorhandenen Stil passen, sodass jedes Mitglied die zu seinen eigenen Genres passenden Veröffentlichungen sieht."
+                },
+                "checkDiscogsCollections": {
+                    "name": "Discogs-Sammlungen prüfen",
+                    "description": "Vergleicht die Discogs-Sammlung jedes verbundenen Nutzers mit Musivault und aktualisiert dessen Bericht in den Einstellungen. Nur lesend: Nichts wird hinzugefügt oder geändert, bis der Nutzer es übernimmt."
                 }
             }
         },

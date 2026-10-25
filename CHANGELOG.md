@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- ci: run the backend tests on pull requests
+- feat(discogs): stop a long apply at any time, and show every row of a section to untick it
+- feat(discogs): show how many Discogs changes are waiting as a badge in the navbar and a dismissible notice in Settings
+- feat(discogs): check the connected Discogs collections every week with a new Task Center task
+- test(discogs): cover the apply matching order, relinking that keeps the copy's own data, and the date handling
+- feat(discogs): apply the Discogs check: add new records, relink merged ones, take dates from Discogs, and remember each record's Discogs entry to detect merges exactly
+- test(backend): cover `compareCollections` and the token encryption, and document their behaviour
+- test(backend): set up Vitest for the backend with `npm test` and `npm run test:run`
 - ci: run lint, tests and type-check/build for frontend and backend on pull requests
 - chore(github): add issue forms for bugs and feature requests, and a pull request template
 - feat(collection): refresh a single album from Discogs in the record detail view, keeping the copy's own data
@@ -15,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(discogs): connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
 
 ### Fixed
+- fix(discogs): wait and retry when Discogs throttles a call while applying a check, instead of failing the record
+- fix(auth): say the server cannot be reached on login and signup instead of "Invalid credentials" when it is down
 - fix(lint): resolve the frontend ESLint errors so `npm run lint` passes
 - fix(collection): refresh the list when returning to the tab and after a CSV import
 - fix(discogs): strip the "(n)" suffix from every artist of multi-artist releases

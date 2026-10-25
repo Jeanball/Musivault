@@ -14,8 +14,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import CollectionItem from '../models/CollectionItem';
-import ValueSnapshot from '../models/ValueSnapshot';
-import { getValueForItem, toDayKey } from '../services/valueSnapshot.service';
+import { rebuildValueHistory } from '../services/valueSnapshot.service';
 import { logger } from '../config/logger.config';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
@@ -40,45 +39,7 @@ export async function backfillValueSnapshots(isStandalone = false) {
         let writtenPoints = 0;
 
         for (const userId of userIds) {
-            const items = await CollectionItem.find({ user: userId })
-                .select('priceCache mediaCondition addedAt')
-                .sort({ addedAt: 1 })
-                .lean();
-
-            // Sum per day first, then walk the days in order to accumulate.
-            const dailyValue = new Map<string, number>();
-            const dailyCount = new Map<string, number>();
-
-            for (const item of items) {
-                const value = getValueForItem(item);
-                if (value <= 0) continue;
-
-                const day = toDayKey(new Date(item.addedAt));
-                dailyValue.set(day, (dailyValue.get(day) || 0) + value);
-                dailyCount.set(day, (dailyCount.get(day) || 0) + 1);
-            }
-
-            const days = [...dailyValue.keys()].sort();
-            let cumulativeValue = 0;
-            let cumulativeCount = 0;
-
-            for (const day of days) {
-                cumulativeValue += dailyValue.get(day)!;
-                cumulativeCount += dailyCount.get(day)!;
-
-                await ValueSnapshot.findOneAndUpdate(
-                    { user: userId, day },
-                    {
-                        $set: {
-                            totalValue: Math.round(cumulativeValue * 100) / 100,
-                            itemCount: cumulativeCount,
-                            capturedAt: new Date(`${day}T00:00:00`),
-                        }
-                    },
-                    { upsert: true }
-                );
-                writtenPoints++;
-            }
+            writtenPoints += await rebuildValueHistory(userId);
         }
 
         logger.info(`[ValueSnapshotBackfill] Done: ${writtenPoints} snapshot(s) written.`);

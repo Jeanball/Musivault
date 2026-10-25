@@ -8,6 +8,8 @@ import AboutSettings from '../components/Settings/AboutSettings';
 import ImportSettings from '../components/Settings/ImportSettings';
 import ExportSettings from '../components/Settings/ExportSettings';
 import DiscogsSettings from '../components/Settings/DiscogsSettings';
+import DiscogsPendingNotice from '../components/Settings/DiscogsPendingNotice';
+import { useDiscogsPending } from '../context/DiscogsPendingContext';
 import { getDiscogsAccount } from '../api/discogsAccount';
 import type { DiscogsAccountStatus } from '../types/discogsAccount.types';
 
@@ -22,6 +24,7 @@ interface MenuItem {
 const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { count: pending } = useDiscogsPending();
     const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
     const [showMobileMenu, setShowMobileMenu] = useState(true);
     const [discogsStatus, setDiscogsStatus] = useState<DiscogsAccountStatus | null>(null);
@@ -89,6 +92,17 @@ const SettingsPage: React.FC = () => {
         setShowMobileMenu(false);
     };
 
+    const openDiscogs = () => {
+        setActiveSection('discogs');
+        setShowMobileMenu(false);
+    };
+
+    // The count belongs on the Discogs entry of the menu; while that section is open the notice is redundant.
+    const pendingBadge = (id: SettingsSection) => id === 'discogs' && pending > 0
+        ? <span className="badge badge-primary badge-sm ml-auto">{pending}</span>
+        : null;
+    const notice = activeSection === 'discogs' && !showMobileMenu ? null : <DiscogsPendingNotice onReview={openDiscogs} />;
+
     const activeItemLabel = menuItems.find(i => i.id === activeSection)?.labelKey || 'settings.title';
 
     return (
@@ -124,6 +138,7 @@ const SettingsPage: React.FC = () => {
                                 >
                                     {item.icon}
                                     {t(item.labelKey)}
+                                    {pendingBadge(item.id)}
                                 </button>
                             </li>
                         ))}
@@ -137,12 +152,14 @@ const SettingsPage: React.FC = () => {
                         <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
                     </div>
 
+                    {notice}
                     {renderContent()}
                 </div>
             </div>
 
             {/* Mobile Layout (Hidden on Desktop) */}
             <div className="md:hidden">
+                {notice}
                 {showMobileMenu ? (
                     /* Mobile Menu Grid */
                     <div className="grid grid-cols-2 gap-4 p-2">
@@ -156,6 +173,7 @@ const SettingsPage: React.FC = () => {
                                     {React.cloneElement(item.icon, { size: 32 })}
                                 </span>
                                 <span className="font-bold text-lg text-center leading-tight">{t(item.labelKey)}</span>
+                                {pendingBadge(item.id)}
                             </button>
                         ))}
                     </div>

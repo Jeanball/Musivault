@@ -73,7 +73,8 @@
         "ssoFailed": "Login SSO falhou. Tente novamente ou use login local.",
         "loginSuccess": "Conexão bem-sucedida!",
         "loginError": "Credenciais inválidas",
-        "signupError": "Falha no registro"
+        "signupError": "Falha no registro",
+        "serverUnavailable": "Não foi possível contactar o servidor. Tente novamente dentro de instantes."
     },
     "home": {
         "greetingMorning": "Bom dia",
@@ -180,13 +181,61 @@
         "inSync": "O Musivault e o Discogs estão sincronizados.",
         "newTitle": "Novo no Discogs",
         "newHint": "Na sua coleção do Discogs mas não no Musivault.",
-        "mergedTitle": "Fundido no Discogs (provável)",
-        "mergedHint": "Esta edição já não está na sua coleção do Discogs, mas o Discogs tem uma entrada com o mesmo artista, título, formato e ano. Provavelmente o mesmo disco após uma fusão de edições no Discogs.",
+        "mergedTitle": "Fundido no Discogs",
+        "mergedHint": "Já não está na sua coleção do Discogs com esta edição. O Discogs moveu a entrada para a edição indicada, ou tem uma entrada com o mesmo artista, título, formato e ano. Ao aplicar, o disco passa a apontar para a nova edição e mantém o seu estado, notas e campos personalizados.",
         "mergedDetail": "agora a edição do Discogs {{id}}",
         "onlyTitle": "Apenas no Musivault",
         "onlyHint": "No Musivault mas não na sua coleção do Discogs. Apenas informativo, nada será removido.",
         "moreRows": "e mais {{count}}",
-        "openOnDiscogs": "Abrir no Discogs"
+        "openOnDiscogs": "Abrir no Discogs",
+        "mergedExact": "confirmado",
+        "mergedLikely": "provável"
+    },
+    "discogsApply": {
+        "queued": "A aguardar o fim de outra tarefa do Discogs…",
+        "reading": "A ler a sua coleção do Discogs…",
+        "progress": "A aplicar: {{done}} de {{total}} discos",
+        "canLeave": "Pode sair desta página, continua a correr.",
+        "updatingDates": "A atualizar datas e o histórico de valor…",
+        "failed": "A aplicação falhou. Tente novamente dentro de instantes.",
+        "done": "Concluído: {{added}} adicionados, {{relinked}} religados.",
+        "datesDone": "{{count}} datas de adição atualizadas a partir do Discogs.",
+        "linked": "{{count}} discos ligados à sua entrada do Discogs.",
+        "skipped": "{{count}} linhas foram ignoradas porque já não se aplicavam.",
+        "failedCount": "{{count}} linhas falharam.",
+        "details": "Detalhes",
+        "busy": "Há outra tarefa do Discogs em curso. Tente novamente quando terminar.",
+        "startFailed": "Não foi possível iniciar. Tente novamente dentro de instantes.",
+        "selected": "{{selected}} de {{count}} selecionados",
+        "selectAll": "Selecionar tudo",
+        "selectNone": "Desmarcar tudo",
+        "applySelected": "Aplicar seleção ({{count}})",
+        "applyAll": "Aplicar tudo ({{count}})",
+        "useDates": "Usar as datas do Discogs",
+        "confirmAllTitle": "Aplicar tudo?",
+        "confirmAllBody": "Isto adiciona {{added}} discos novos e religa {{relinked}} fundidos, selecionados ou não. Cada disco novo demora alguns segundos, por isso uma lista longa pode demorar. Continua a correr se sair da página.",
+        "confirmDatesTitle": "Usar as datas do Discogs?",
+        "confirmDatesBody": "A data de adição de {{count}} discos passa a ser a data em que os adicionou no Discogs, e o histórico de valor da coleção é reconstruído a partir delas.",
+        "cancel": "Cancelar",
+        "confirm": "Aplicar",
+        "durationMinutes": "~ {{minutes}} min",
+        "durationHours": "~ {{hours}} h",
+        "durationHoursMinutes": "~ {{hours}} h {{minutes}} min",
+        "longWarning": "Cada disco novo demora cerca de 5 segundos porque o Discogs limita a velocidade dos pedidos: adicionar {{count}} discos demora {{duration}}. Continua a correr se sair da página. Para avançar por partes, desmarque linhas e aplique em lotes.",
+        "confirmLargeTitle": "Adicionar muitos discos?",
+        "confirmLargeBody": "Isto adiciona {{count}} discos novos.",
+        "stop": "Parar",
+        "stopping": "A parar depois do disco atual…",
+        "stoppedDone": "Parado após {{done}} de {{total}} discos: {{added}} adicionados, {{relinked}} religados. O resto não foi aplicado.",
+        "stopFailed": "Não foi possível parar. Tente novamente dentro de instantes.",
+        "moreHidden": "e mais {{count}} não mostrados. Mostrar tudo para os ver e desmarcar.",
+        "showAll": "Mostrar tudo"
+    },
+    "discogsPending": {
+        "message": "{{count}} alterações da sua última verificação do Discogs aguardam: {{newOnDiscogs}} novas, {{merged}} fundidas.",
+        "review": "Rever",
+        "dismiss": "Dispensar",
+        "badge": "{{count}} alterações do Discogs pendentes"
     },
     "discogsAccount": {
         "title": "Discogs",
@@ -631,6 +680,10 @@
                 "refreshUpcomingReleases": {
                     "name": "Atualizar próximos lançamentos",
                     "description": "Obtém todos os álbuns e EPs que o MusicBrainz anuncia para as próximas semanas e armazena em cache apenas aqueles cujos artistas correspondem a um estilo já presente numa coleção, para que cada membro veja os lançamentos que correspondem aos seus próprios géneros."
+                },
+                "checkDiscogsCollections": {
+                    "name": "Verificar coleções do Discogs",
+                    "description": "Compara a coleção do Discogs de cada utilizador ligado com o Musivault e atualiza o seu relatório nas definições. Só de leitura: nada é adicionado ou alterado até o utilizador aplicar."
                 }
             }
         },

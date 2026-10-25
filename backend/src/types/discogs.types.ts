@@ -257,6 +257,8 @@ export interface DiscogsCollectionRelease {
     id: number;
     instance_id: number;
     date_added: string;
+    /** The user's own fields on this copy; `field_id` 1 is the media condition, 2 the sleeve condition. */
+    notes?: { field_id: number; value: string }[];
     basic_information: {
         id: number;
         title: string;

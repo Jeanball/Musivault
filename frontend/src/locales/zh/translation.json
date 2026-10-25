@@ -73,7 +73,8 @@
         "ssoFailed": "SSO登录失败。请重试或使用本地登录。",
         "loginSuccess": "连接成功！",
         "loginError": "凭证无效",
-        "signupError": "注册失败"
+        "signupError": "注册失败",
+        "serverUnavailable": "无法连接到服务器，请稍后重试。"
     },
     "home": {
         "greetingMorning": "早上好",
@@ -180,13 +181,61 @@
         "inSync": "Musivault 与 Discogs 已同步。",
         "newTitle": "Discogs 上的新增",
         "newHint": "在你的 Discogs 收藏中，但不在 Musivault 中。",
-        "mergedTitle": "在 Discogs 上已合并（可能）",
-        "mergedHint": "此版本已不在你的 Discogs 收藏中，但 Discogs 上有艺术家、标题、格式和年份都相同的条目，很可能是 Discogs 合并版本后的同一张唱片。",
+        "mergedTitle": "在 Discogs 上已合并",
+        "mergedHint": "此版本已不在你的 Discogs 收藏中。Discogs 已将该条目移到所示版本，或有艺术家、标题、格式和年份都相同的条目。应用后，这张唱片会指向新版本，并保留你的品相、备注和自定义字段。",
         "mergedDetail": "现为 Discogs 版本 {{id}}",
         "onlyTitle": "仅在 Musivault 中",
         "onlyHint": "在 Musivault 中，但不在你的 Discogs 收藏中。仅供参考，不会删除任何内容。",
         "moreRows": "还有 {{count}} 项",
-        "openOnDiscogs": "在 Discogs 上打开"
+        "openOnDiscogs": "在 Discogs 上打开",
+        "mergedExact": "已确认",
+        "mergedLikely": "可能"
+    },
+    "discogsApply": {
+        "queued": "正在等待其他 Discogs 任务完成…",
+        "reading": "正在读取你的 Discogs 收藏…",
+        "progress": "正在应用：{{done}} / {{total}} 张唱片",
+        "canLeave": "你可以离开此页面，任务会继续运行。",
+        "updatingDates": "正在更新日期和价值历史…",
+        "failed": "应用失败，请稍后重试。",
+        "done": "完成：添加 {{added}} 张，重新关联 {{relinked}} 张。",
+        "datesDone": "已按 Discogs 更新 {{count}} 个添加日期。",
+        "linked": "{{count}} 张唱片已关联到其 Discogs 条目。",
+        "skipped": "有 {{count}} 行因不再适用而被跳过。",
+        "failedCount": "有 {{count}} 行失败。",
+        "details": "详情",
+        "busy": "另一个 Discogs 任务正在运行，请在其完成后重试。",
+        "startFailed": "无法开始，请稍后重试。",
+        "selected": "已勾选 {{selected}} / {{count}}",
+        "selectAll": "全选",
+        "selectNone": "全不选",
+        "applySelected": "应用所选（{{count}}）",
+        "applyAll": "全部应用（{{count}}）",
+        "useDates": "使用 Discogs 的日期",
+        "confirmAllTitle": "全部应用？",
+        "confirmAllBody": "这将添加 {{added}} 张新唱片并重新关联 {{relinked}} 张已合并的唱片，无论是否勾选。每张新唱片需要几秒钟，列表较长时可能需要一段时间。离开此页面后任务会继续运行。",
+        "confirmDatesTitle": "使用 Discogs 的日期？",
+        "confirmDatesBody": "{{count}} 张唱片的添加日期将改为你在 Discogs 上添加它们的日期，收藏的价值历史也会据此重建。",
+        "cancel": "取消",
+        "confirm": "应用",
+        "durationMinutes": "约 {{minutes}} 分钟",
+        "durationHours": "约 {{hours}} 小时",
+        "durationHoursMinutes": "约 {{hours}} 小时 {{minutes}} 分钟",
+        "longWarning": "由于 Discogs 限制请求速度，每张新唱片约需 5 秒，因此添加 {{count}} 张唱片需要{{duration}}。离开此页面后任务会继续运行。如需分步进行，可取消勾选部分行，分批应用。",
+        "confirmLargeTitle": "添加大量唱片？",
+        "confirmLargeBody": "这将添加 {{count}} 张新唱片。",
+        "stop": "停止",
+        "stopping": "将在当前唱片完成后停止…",
+        "stoppedDone": "已在 {{done}} / {{total}} 张唱片后停止：添加 {{added}} 张，重新关联 {{relinked}} 张。其余未应用。",
+        "stopFailed": "无法停止，请稍后重试。",
+        "moreHidden": "另有 {{count}} 项未显示。点击“显示全部”可查看并取消勾选。",
+        "showAll": "显示全部"
+    },
+    "discogsPending": {
+        "message": "上次 Discogs 检查有 {{count}} 项变化待处理：新增 {{newOnDiscogs}}，已合并 {{merged}}。",
+        "review": "查看",
+        "dismiss": "忽略",
+        "badge": "{{count}} 项 Discogs 变化待处理"
     },
     "discogsAccount": {
         "title": "Discogs",
@@ -626,6 +675,10 @@
                 "refreshUpcomingReleases": {
                     "name": "刷新即将发行",
                     "description": "获取 MusicBrainz 列出的未来数周内所有专辑和 EP，仅缓存其艺人风格与某个收藏中已有风格相符的条目，让每位成员都能看到与自己收藏风格相符的新作。"
+                },
+                "checkDiscogsCollections": {
+                    "name": "检查 Discogs 收藏",
+                    "description": "将每位已连接用户的 Discogs 收藏与 Musivault 对比，并在设置中更新其报告。只读：在用户应用之前不会添加或更改任何内容。"
                 }
             }
         },
