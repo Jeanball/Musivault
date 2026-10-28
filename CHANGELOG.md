@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Follow styles that are not in your collection, with suggested styles when there is nothing to base Discover on yet
+
+### Fixed
+- Fetch upcoming releases with one MusicBrainz search per wanted style, so the refresh no longer fails past MusicBrainz's 500-result limit
+
 ---
 
 ## [1.16.2] - 2026-11-17

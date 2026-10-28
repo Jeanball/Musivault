@@ -17,6 +17,7 @@ const serverPreferences: Preferences = {
     sortIgnoreLeadingArticle: false,
     tableColumns: [],
     discoverExcludedStyles: [],
+    discoverIncludedStyles: [],
     discoverRadiusKm: 25,
     publicShareId: null
 };
