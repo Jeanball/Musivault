@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(discover): fetch a newly followed or un-excluded style right away, debounced and through the same rate-limited MusicBrainz queue as the weekly task
 - feat(discover): follow styles that are not in your collection, with suggested styles when there is nothing to base Discover on yet
 - ci: run the backend tests on pull requests
 - feat(discogs): stop a long apply at any time, and show every row of a section to untick it

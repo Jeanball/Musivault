@@ -9,10 +9,8 @@ import { checkAllUsers } from './discogsSync.service';
 import ExchangeRates from '../models/ExchangeRates';
 import UpcomingRelease from '../models/UpcomingRelease';
 import { getAllDistinctStyles } from './collection.service';
-import {
-  fetchReleaseGroupsForStyle,
-  buildCoverArtUrl,
-} from './musicbrainz.service';
+import { delay, MB_RATE_LIMIT_MS } from './musicbrainz.service';
+import { upcomingWindow, runExclusive, refreshStyle } from './upcomingReleases.service';
 
 // ===== Types =====
 
@@ -184,52 +182,30 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
         return 'No styles found across any collection — nothing to fetch.';
       }
 
-      const now = new Date();
-      const dateFrom = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      const dateTo = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const window = upcomingWindow();
+      const { dateFrom } = window;
 
       // One search per style: MusicBrainz serves at most 500 results per search,
       // far fewer than the window holds when it is not scoped by style.
+      // Held exclusively so a follow-triggered fetch cannot overlap it.
       let matchedCount = 0;
       const seenMbids = new Set<string>();
-      for (let i = 0; i < styles.length; i++) {
-        const style = styles[i];
-        const releaseGroups = (
-          await fetchReleaseGroupsForStyle(style, dateFrom, dateTo, (pass, maxPasses, current, total) =>
+      await runExclusive(async () => {
+        for (let i = 0; i < styles.length; i++) {
+          const style = styles[i];
+          const mbids = await refreshStyle(style, window, (pass, maxPasses, current, total) =>
             onProgress({
               type: 'progress',
               current,
               total,
               label: `"${style}" (${i + 1}/${styles.length}, pass ${pass}/${maxPasses})`,
             })
-          )
-        ).filter(
-          (rg) =>
-            rg.datePrecision !== 'year' &&
-            (rg.primaryType === 'Album' || rg.primaryType === 'EP')
-        );
-
-        for (const rg of releaseGroups) {
-          seenMbids.add(rg.mbid);
-          await UpcomingRelease.findOneAndUpdate(
-            { mbid: rg.mbid, style },
-            {
-              mbid: rg.mbid,
-              title: rg.title,
-              artist: rg.artist,
-              style,
-              firstReleaseDate: rg.firstReleaseDate,
-              datePrecision: rg.datePrecision,
-              primaryType: rg.primaryType,
-              secondaryTypes: rg.secondaryTypes,
-              coverArtUrl: buildCoverArtUrl(rg.mbid),
-              fetchedAt: new Date(),
-            },
-            { upsert: true, new: true }
           );
-          matchedCount++;
+          mbids.forEach((mbid) => seenMbids.add(mbid));
+          matchedCount += mbids.length;
+          if (i < styles.length - 1) await delay(MB_RATE_LIMIT_MS);
         }
-      }
+      });
 
       // Clean up entries that fell out of the display window (dates before dateFrom).
       // Entries for styles nobody wants any more (or stored under an older casing) go too.

@@ -4,6 +4,7 @@ import ExchangeRates from '../models/ExchangeRates';
 import { logger } from '../config/logger.config';
 import { MIN_RADIUS_KM, MAX_RADIUS_KM } from '../utils/geo.utils';
 import { normalizeStyle } from '../services/musicbrainz.service';
+import { queueStyleFetch } from '../services/upcomingReleases.service';
 
 /** Each followed style costs the weekly task one MusicBrainz search, so the list is bounded. */
 const MAX_FOLLOWED_STYLES = 50;
@@ -89,6 +90,8 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
+        const newlyFollowed: string[] = [];
+
         // Update preferences
         if (theme !== undefined) {
             if (!ALLOWED_THEMES.includes(theme)) {
@@ -120,6 +123,11 @@ export async function updatePreferences(req: Request, res: Response) {
                 res.status(400).json({ message: "discoverExcludedStyles must be an array of strings" });
                 return;
             }
+            // A style the member stops excluding becomes wanted, possibly for the first time.
+            const stillExcluded = new Set(discoverExcludedStyles.map(normalizeStyle));
+            const unexcluded = (user.preferences?.discoverExcludedStyles || [])
+                .filter((style) => !stillExcluded.has(normalizeStyle(style)));
+            newlyFollowed.push(...unexcluded);
             user.preferences = { ...user.preferences, discoverExcludedStyles };
         }
         if (discoverIncludedStyles !== undefined) {
@@ -133,6 +141,8 @@ export async function updatePreferences(req: Request, res: Response) {
             }
             // Lowercased like MusicBrainz tags, so "Jazz" and "jazz" are one follow.
             const normalized = Array.from(new Set(discoverIncludedStyles.map(normalizeStyle)));
+            const previous = new Set(user.preferences?.discoverIncludedStyles || []);
+            newlyFollowed.push(...normalized.filter((style) => !previous.has(style)));
             user.preferences = { ...user.preferences, discoverIncludedStyles: normalized };
         }
         if (discoverLocation !== undefined) {
@@ -162,6 +172,7 @@ export async function updatePreferences(req: Request, res: Response) {
         }
 
         await user.save();
+        queueStyleFetch(newlyFollowed);
 
         res.status(200).json({
             message: "Preferences updated successfully",
