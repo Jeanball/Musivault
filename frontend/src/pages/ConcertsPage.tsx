@@ -8,6 +8,7 @@ import ConcertCard from '../components/Discover/ConcertCard';
 import NearbyControls from '../components/Discover/NearbyControls';
 import TicketmasterAttribution from '../components/Discover/TicketmasterAttribution';
 import { RESULTS_GRID_CLASS } from '../components/Discover/constants';
+import { useDiscoverFeatures } from '../hooks/useDiscoverFeatures';
 import { useNearby, useNearbySearch } from '../hooks/useNearbySearch';
 import type { Concert } from '../types/discover.types';
 import { getConcerts } from '../api/discover';
@@ -35,12 +36,15 @@ const ConcertsPage: React.FC = () => {
         (lat: number, lon: number, radiusKm: number) => getConcerts(lat, lon, radiusKm, days || undefined, scope),
         [days, scope]
     );
-    const { items: concerts, isLoading, error, unavailable } = useNearbySearch<Concert>(
+    const features = useDiscoverFeatures();
+    const { items: concerts, isLoading, error, unavailable: rejected } = useNearbySearch<Concert>(
         nearby,
         fetcher,
         'discover.failedLoadConcerts',
-        [days, scope]
+        [days, scope],
+        !!features?.concerts
     );
+    const unavailable = rejected || features?.concerts === false;
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -137,7 +141,7 @@ const ConcertsPage: React.FC = () => {
             </div>
 
             {/* Also covers radius, window and scope changes, which all refetch. */}
-            {nearby.status === 'resolving' || (nearby.location && isLoading) ? (
+            {!unavailable && (nearby.status === 'resolving' || (nearby.location && isLoading)) ? (
                 <div className={RESULTS_GRID_CLASS}>
                     <CardSkeleton count={9} variant="media" />
                 </div>
