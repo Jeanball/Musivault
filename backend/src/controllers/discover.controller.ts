@@ -6,6 +6,7 @@ import {
   getConcertsForPosition,
   getConcertDetails as fetchConcertDetails,
   MissingTicketmasterKeyError,
+  isTicketmasterConfigured,
   ConcertNotFoundError,
   MAX_CONCERT_DAYS,
 } from '../services/ticketmaster.service';
@@ -115,6 +116,18 @@ function parseSearchArea(req: Request): { lat: number; lon: number; radius: numb
   }
 
   return { lat, lon, radius };
+}
+
+/**
+ * Which optional Discover features this instance can serve, so the client
+ * does not request one that is not configured. Concerts need a Ticketmaster key.
+ */
+export function getDiscoverFeatures(req: Request, res: Response) {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+  res.status(200).json({ concerts: isTicketmasterConfigured() });
 }
 
 export async function getRecordShops(req: Request, res: Response) {
