@@ -13,6 +13,16 @@ export async function getApproximateLocation(): Promise<ApproximateLocation> {
     return data;
 }
 
+/** Optional Discover features this server is configured for. */
+export interface DiscoverFeatures {
+    concerts: boolean;
+}
+
+export async function getDiscoverFeatures(): Promise<DiscoverFeatures> {
+    const { data } = await client.get<DiscoverFeatures>('/discover/features');
+    return data;
+}
+
 export async function getRecordShops(lat: number, lon: number, radiusKm: number): Promise<RecordShop[]> {
     const { data } = await client.get<RecordShop[]>('/discover/record-shops', {
         params: { lat, lon, radius: radiusKm },
