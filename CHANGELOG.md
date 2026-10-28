@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(discover): follow styles that are not in your collection, with suggested styles when there is nothing to base Discover on yet
 - ci: run the backend tests on pull requests
 - feat(discogs): stop a long apply at any time, and show every row of a section to untick it
 - feat(discogs): show how many Discogs changes are waiting as a badge in the navbar and a dismissible notice in Settings
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(discogs): connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
 
 ### Fixed
+- fix(discover): fetch upcoming releases with one MusicBrainz search per wanted style, so the refresh no longer fails past MusicBrainz's 500-result limit
 - fix(discover): do not request concerts when `TICKETMASTER_API_KEY` is not set, so Discover stops logging a warning on every load
 - fix(discover): say the map service is temporarily unavailable when record shops cannot load
 - fix(discover): fall back to other Overpass servers when the main one is down, with an optional `OVERPASS_URL` override

@@ -16,6 +16,7 @@ const serverPreferences: Preferences = {
     preferredCurrency: 'CAD',
     sortIgnoreLeadingArticle: false,
     discoverExcludedStyles: [],
+    discoverIncludedStyles: [],
     discoverRadiusKm: 25,
     publicShareId: null
 };

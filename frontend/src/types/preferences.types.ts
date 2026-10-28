@@ -13,6 +13,8 @@ export interface Preferences {
     sortIgnoreLeadingArticle: boolean;
     /** Styles unchecked in Discover's upcoming releases. Empty = show all. */
     discoverExcludedStyles: string[];
+    /** Styles followed on top of the collection's own, so a new member still gets upcoming releases. */
+    discoverIncludedStyles: string[];
     /** Last position used by the "near you" sections, so we don't re-prompt every visit. */
     discoverLocation?: UserLocation | null;
     /** Search radius shared by every "near you" section — shops and concerts alike. */
