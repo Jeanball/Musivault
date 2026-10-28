@@ -3,9 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('./discogsSync.service', () => ({ checkAllUsers: vi.fn() }));
 vi.mock('../controllers/collection.controller', () => ({ executePriceSync: vi.fn() }));
 vi.mock('./musicbrainz.service', () => ({
-    fetchReleaseGroupsInWindow: vi.fn(),
-    fetchArtistTagsBatch: vi.fn(),
-    normalizeStyle: vi.fn(),
+    fetchReleaseGroupsForStyle: vi.fn(),
     buildCoverArtUrl: vi.fn()
 }));
 
