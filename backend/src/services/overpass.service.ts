@@ -252,6 +252,9 @@ const inFlight = new Map<string, Promise<ICachedShop[]>>();
  *
  * Distance filtering is the caller's job: a whole band is fetched at once so
  * that nudging the radius slider inside it never triggers a refetch.
+ *
+ * A cache miss tries each of `OVERPASS_URLS` in turn. When all of them fail it
+ * serves a stale cached tile if there is one, and throws otherwise.
  */
 export async function getShopsForPosition(lat: number, lon: number, radiusKm: number): Promise<ICachedShop[]> {
   const tile = roundToTile(lat, lon);
