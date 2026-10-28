@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import UpcomingRelease from '../models/UpcomingRelease';
-import { getUserStyles, getUserArtists } from '../services/collection.service';
+import { getUserStyles, getUserArtists, resolveMemberStyles, toMusicBrainzStyles } from '../services/collection.service';
 import { getShopsForPosition, geocodePlace } from '../services/overpass.service';
 import {
   getConcertsForPosition,
@@ -23,14 +23,19 @@ export async function getUpcomingReleases(req: Request, res: Response) {
       return;
     }
 
-    const excluded = new Set(req.user.preferences?.discoverExcludedStyles || []);
-    const userStyles = (await getUserStyles(req.user._id)).filter((s) => !excluded.has(s));
+    const { discoverIncludedStyles, discoverExcludedStyles } = req.user.preferences || {};
+    const userStyles = toMusicBrainzStyles(
+      resolveMemberStyles(await getUserStyles(req.user._id), discoverIncludedStyles, discoverExcludedStyles)
+    );
     if (userStyles.length === 0) {
       res.status(200).json([]);
       return;
     }
 
+    // Case-insensitive: rows stored before the per-style fetch keep Discogs' spelling
+    // ("Punk") until the next refresh rewrites them lowercase.
     const entries = await UpcomingRelease.find({ style: { $in: userStyles } })
+      .collation({ locale: 'en', strength: 2 })
       .sort({ firstReleaseDate: 1 })
       .lean();
 
@@ -190,12 +195,12 @@ export async function getConcerts(req: Request, res: Response) {
     }
     const includeUnmatched = String(req.query.scope) === 'all';
 
-    const excluded = new Set(req.user.preferences?.discoverExcludedStyles || []);
+    const { discoverIncludedStyles, discoverExcludedStyles } = req.user.preferences || {};
     const [styles, artists] = await Promise.all([
       getUserStyles(req.user._id),
       getUserArtists(req.user._id),
     ]);
-    const stylesByGenre = discogsStylesToTmGenres(styles.filter((s) => !excluded.has(s)));
+    const stylesByGenre = discogsStylesToTmGenres(resolveMemberStyles(styles, discoverIncludedStyles, discoverExcludedStyles));
     const ownedArtists = new Set(
       artists.filter((artist) => !isPlaceholderArtist(artist)).map(normalizeArtistName)
     );

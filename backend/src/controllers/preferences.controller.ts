@@ -3,6 +3,11 @@ import User from '../models/User';
 import ExchangeRates from '../models/ExchangeRates';
 import { logger } from '../config/logger.config';
 import { MIN_RADIUS_KM, MAX_RADIUS_KM } from '../utils/geo.utils';
+import { normalizeStyle } from '../services/musicbrainz.service';
+
+/** Each followed style costs the weekly task one MusicBrainz search, so the list is bounded. */
+const MAX_FOLLOWED_STYLES = 50;
+const MAX_STYLE_LENGTH = 60;
 
 /**
  * Mirrors THEMES in `frontend/src/constants/themes.ts`. An unknown name is not
@@ -76,7 +81,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, sortIgnoreLeadingArticle, discoverExcludedStyles, discoverLocation, discoverRadiusKm } = req.body;
+        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, sortIgnoreLeadingArticle, discoverExcludedStyles, discoverIncludedStyles, discoverLocation, discoverRadiusKm } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -116,6 +121,19 @@ export async function updatePreferences(req: Request, res: Response) {
                 return;
             }
             user.preferences = { ...user.preferences, discoverExcludedStyles };
+        }
+        if (discoverIncludedStyles !== undefined) {
+            if (
+                !Array.isArray(discoverIncludedStyles) ||
+                discoverIncludedStyles.length > MAX_FOLLOWED_STYLES ||
+                discoverIncludedStyles.some((s) => typeof s !== 'string' || !s.trim() || s.length > MAX_STYLE_LENGTH)
+            ) {
+                res.status(400).json({ message: `discoverIncludedStyles must be an array of at most ${MAX_FOLLOWED_STYLES} non-empty strings` });
+                return;
+            }
+            // Lowercased like MusicBrainz tags, so "Jazz" and "jazz" are one follow.
+            const normalized = Array.from(new Set(discoverIncludedStyles.map(normalizeStyle)));
+            user.preferences = { ...user.preferences, discoverIncludedStyles: normalized };
         }
         if (discoverLocation !== undefined) {
             // null clears a stored position (e.g. the user revokes the browser permission).

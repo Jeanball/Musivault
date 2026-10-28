@@ -21,6 +21,8 @@ export interface IUserPreferences {
   sortIgnoreLeadingArticle: boolean
   /** Styles the user unchecked in Discover's upcoming releases. Empty = show all. */
   discoverExcludedStyles: string[]
+  /** Styles the user follows on top of those in their collection (lowercase). Feeds the upcoming releases fetch. */
+  discoverIncludedStyles: string[]
   /** Last position used by the "near you" sections, so we don't re-prompt on every visit. */
   discoverLocation?: IDiscoverLocation
   /** Search radius shared by every "near you" section — shops and concerts alike. */
@@ -110,6 +112,10 @@ const userSchema = new Schema<IUser>({
       default: false
     },
     discoverExcludedStyles: {
+      type: [String],
+      default: []
+    },
+    discoverIncludedStyles: {
       type: [String],
       default: []
     },

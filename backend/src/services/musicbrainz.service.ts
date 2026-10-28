@@ -122,6 +122,26 @@ function escapeLuceneDate(date: string): string {
   return date;
 }
 
+/**
+ * Quote a style for a Lucene phrase query, so multi-word styles ("hard rock")
+ * match as one tag instead of two terms.
+ */
+export function quoteLuceneTerm(term: string): string {
+  return `"${normalizeStyle(term).replace(/(["\\])/g, '\\$1')}"`;
+}
+
+/**
+ * MusicBrainz rejects search requests whose offset + limit exceed this with a
+ * 400, which used to fail the whole task. A search that matches more is cut
+ * to its first MB_MAX_SEARCH_RESULTS.
+ */
+export const MB_MAX_SEARCH_RESULTS = 500;
+
+/** The release-group search query for one style inside a date window. */
+export function buildStyleWindowQuery(style: string, dateFrom: string, dateTo: string): string {
+  return `artisttag:${quoteLuceneTerm(style)} AND firstreleasedate:[${escapeLuceneDate(dateFrom)} TO ${escapeLuceneDate(dateTo)}]`;
+}
+
 // ===== Release groups =====
 
 /**
@@ -144,7 +164,7 @@ async function paginateReleaseGroupsOnce(
   let offset = 0;
   let total = Infinity;
 
-  while (offset < total) {
+  while (offset < Math.min(total, MB_MAX_SEARCH_RESULTS)) {
     const response = await requestWithRetry(() =>
       axios.get<ReleaseGroupSearchResponse>(`${MUSICBRAINZ_BASE_URL}/release-group`, {
         headers: MUSICBRAINZ_HEADERS,
@@ -159,6 +179,11 @@ async function paginateReleaseGroupsOnce(
 
     const data = response.data;
     total = data.count;
+    if (offset === 0 && total > MB_MAX_SEARCH_RESULTS) {
+      logger.warn(
+        `[MusicBrainz] ${total} results for ${query}, MusicBrainz serves at most ${MB_MAX_SEARCH_RESULTS}; keeping the first ${MB_MAX_SEARCH_RESULTS}`
+      );
+    }
 
     for (const rg of data['release-groups'] || []) {
       if (resultsByMbid.has(rg.id)) continue;
@@ -188,9 +213,10 @@ async function paginateReleaseGroupsOnce(
     }
 
     offset += MB_PAGE_SIZE;
-    onPage?.(Math.min(offset, total), total);
+    const reachable = Math.min(total, MB_MAX_SEARCH_RESULTS);
+    onPage?.(Math.min(offset, reachable), reachable);
 
-    if (offset < total) {
+    if (offset < reachable) {
       await delay(MB_RATE_LIMIT_MS);
     }
   }
@@ -199,16 +225,20 @@ async function paginateReleaseGroupsOnce(
 }
 
 /**
- * Fetch all release-groups with a first-release-date inside [dateFrom, dateTo]
- * (inclusive, "YYYY-MM-DD"), paginating sequentially with rate-limit delays.
- * No genre/tag filter — release-group level tags are too sparse (see plan).
+ * Fetch the release-groups whose artist carries the tag `style` and whose
+ * first-release-date is inside [dateFrom, dateTo] (inclusive, "YYYY-MM-DD"),
+ * paginating sequentially with rate-limit delays. Scoping by style up front
+ * keeps each search far below MB_MAX_SEARCH_RESULTS; a style that still goes
+ * past it is truncated with a warning rather than failing. Year-only dates
+ * and non Album/EP types are not filtered here.
  */
-export async function fetchReleaseGroupsInWindow(
+export async function fetchReleaseGroupsForStyle(
+  style: string,
   dateFrom: string,
   dateTo: string,
   onProgress?: (pass: number, maxPasses: number, current: number, total: number) => void
 ): Promise<ParsedReleaseGroup[]> {
-  const query = `firstreleasedate:[${escapeLuceneDate(dateFrom)} TO ${escapeLuceneDate(dateTo)}]`;
+  const query = buildStyleWindowQuery(style, dateFrom, dateTo);
   const resultsByMbid = new Map<string, ParsedReleaseGroup>();
 
   for (let pass = 1; pass <= MB_MAX_PAGINATION_PASSES; pass++) {
@@ -216,7 +246,7 @@ export async function fetchReleaseGroupsInWindow(
       onProgress?.(pass, MB_MAX_PAGINATION_PASSES, current, total)
     );
     logger.info(
-      `[MusicBrainz] Release-group pass ${pass}: ${newCount} new, ${resultsByMbid.size} total unique`
+      `[MusicBrainz] "${style}" pass ${pass}: ${newCount} new, ${resultsByMbid.size} total unique`
     );
     if (pass > 1 && newCount === 0) break;
     if (pass < MB_MAX_PAGINATION_PASSES) {

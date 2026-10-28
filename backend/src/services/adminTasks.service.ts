@@ -10,9 +10,7 @@ import ExchangeRates from '../models/ExchangeRates';
 import UpcomingRelease from '../models/UpcomingRelease';
 import { getAllDistinctStyles } from './collection.service';
 import {
-  fetchReleaseGroupsInWindow,
-  fetchArtistTagsBatch,
-  normalizeStyle,
+  fetchReleaseGroupsForStyle,
   buildCoverArtUrl,
 } from './musicbrainz.service';
 
@@ -190,46 +188,29 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
       const dateFrom = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       const dateTo = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-      const releaseGroups = (
-        await fetchReleaseGroupsInWindow(dateFrom, dateTo, (pass, maxPasses, current, total) =>
-          onProgress({
-            type: 'progress',
-            current,
-            total,
-            label: `Release groups (pass ${pass}/${maxPasses})`,
-          })
-        )
-      ).filter(
-        (rg) =>
-          rg.datePrecision !== 'year' &&
-          (rg.primaryType === 'Album' || rg.primaryType === 'EP')
-      );
-
-      const uniqueArtistIds = Array.from(new Set(releaseGroups.flatMap((rg) => rg.artistIds)));
-
-      const tagsByArtist = await fetchArtistTagsBatch(uniqueArtistIds, (current, total) =>
-        onProgress({
-          type: 'progress',
-          current,
-          total,
-          label: `Artist tags (${uniqueArtistIds.length} artists)`,
-        })
-      );
-
+      // One search per style: MusicBrainz serves at most 500 results per search,
+      // far fewer than the window holds when it is not scoped by style.
       let matchedCount = 0;
-      for (const rg of releaseGroups) {
-        const artistTags = new Set<string>();
-        for (const artistId of rg.artistIds) {
-          for (const tag of tagsByArtist.get(artistId) || []) {
-            artistTags.add(tag);
-          }
-        }
-        if (artistTags.size === 0) continue;
+      const seenMbids = new Set<string>();
+      for (let i = 0; i < styles.length; i++) {
+        const style = styles[i];
+        const releaseGroups = (
+          await fetchReleaseGroupsForStyle(style, dateFrom, dateTo, (pass, maxPasses, current, total) =>
+            onProgress({
+              type: 'progress',
+              current,
+              total,
+              label: `"${style}" (${i + 1}/${styles.length}, pass ${pass}/${maxPasses})`,
+            })
+          )
+        ).filter(
+          (rg) =>
+            rg.datePrecision !== 'year' &&
+            (rg.primaryType === 'Album' || rg.primaryType === 'EP')
+        );
 
-        const matchedStyles = styles.filter((style) => artistTags.has(normalizeStyle(style)));
-        if (matchedStyles.length === 0) continue;
-
-        for (const style of matchedStyles) {
+        for (const rg of releaseGroups) {
+          seenMbids.add(rg.mbid);
           await UpcomingRelease.findOneAndUpdate(
             { mbid: rg.mbid, style },
             {
@@ -251,11 +232,14 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
       }
 
       // Clean up entries that fell out of the display window (dates before dateFrom).
-      const staleResult = await UpcomingRelease.deleteMany({ firstReleaseDate: { $lt: dateFrom } });
+      // Entries for styles nobody wants any more (or stored under an older casing) go too.
+      const staleResult = await UpcomingRelease.deleteMany({
+        $or: [{ firstReleaseDate: { $lt: dateFrom } }, { style: { $nin: styles } }],
+      });
 
       onProgress({ type: 'complete' });
 
-      return `Matched ${matchedCount} (release, style) pairs from ${releaseGroups.length} release groups and ${uniqueArtistIds.length} artists. Removed ${staleResult.deletedCount} stale entries.`;
+      return `Matched ${matchedCount} (release, style) pairs across ${seenMbids.size} release groups and ${styles.length} styles. Removed ${staleResult.deletedCount} stale entries.`;
     },
   },
 ];
