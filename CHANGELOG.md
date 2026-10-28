@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(discogs): connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
 
 ### Fixed
+- fix(discover): say the map service is temporarily unavailable when record shops cannot load
 - fix(discover): fall back to other Overpass servers when the main one is down, with an optional `OVERPASS_URL` override
 - fix(discogs): wait and retry when Discogs throttles a call while applying a check, instead of failing the record
 - fix(auth): say the server cannot be reached on login and signup instead of "Invalid credentials" when it is down

@@ -570,7 +570,7 @@
         "noShopsHint": "Versuchen Sie, den Radius zu vergrößern. Die Daten stammen von OpenStreetMap; fehlt ein Laden, können Sie ihn dort ergänzen.",
         "noShopsMatchSearch": "Kein Laden passt zu \"{{query}}\".",
         "widenSearch": "Suche erweitern",
-        "failedLoadShops": "Plattenläden in der Nähe konnten nicht geladen werden.",
+        "failedLoadShops": "Der Kartendienst ist vorübergehend nicht verfügbar. Bitte versuche es später erneut.",
         "geolocationDenied": "Standortberechtigung verweigert. Sie können stattdessen eine Stadt eingeben.",
         "geolocationUnavailable": "Ihre Position konnte nicht ermittelt werden.",
         "geolocationTimeout": "Die Standortbestimmung hat zu lange gedauert. Bitte erneut versuchen.",

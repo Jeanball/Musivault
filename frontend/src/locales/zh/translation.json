@@ -569,7 +569,7 @@
         "noShopsHint": "请尝试扩大半径。店铺数据来自 OpenStreetMap；如果您知道遗漏的店铺，可以在那里添加。",
         "noShopsMatchSearch": "没有与\"{{query}}\"匹配的店铺。",
         "widenSearch": "扩大搜索范围",
-        "failedLoadShops": "加载附近唱片店失败。",
+        "failedLoadShops": "地图服务暂时不可用,请稍后再试。",
         "geolocationDenied": "位置权限被拒绝。您可以改为输入城市。",
         "geolocationUnavailable": "无法确定您的位置。",
         "geolocationTimeout": "定位耗时过长，请重试。",
