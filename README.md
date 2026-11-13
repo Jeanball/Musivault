@@ -41,7 +41,7 @@ Releases and concerts are both filtered by the same **preferred genres**, deduce
 ### Self-hosting
 
 - **Multi-user** : private collections per user, plus OIDC SSO for Authentik, Keycloak and friends.
-- **Multi-language** : English, German and French, translated on [Weblate](https://hosted.weblate.org/projects/musivault/).
+- **Multi-language** : English, French, German, Spanish, Italian, Portuguese and Chinese, translated on [Weblate](https://hosted.weblate.org/projects/musivault/).
 - **Runs anywhere** : Docker Compose deployment, installable PWA, responsive layout, dark and light themes.
 - **Admin dashboard** : users, background tasks and execution logs.
 

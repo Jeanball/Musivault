@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(i18n): add the Italian translation
 - feat(collection): include label, genres, value, tracklist and custom fields in the CSV export/import, restore manual albums on import, and skip custom fields that do not exist on the target instance
 - feat(collection): enter label, genres, value and tracklist when adding a manual album, edit it later, and add or change its cover
 - feat(admin): fall back to AllRatesToday when open.er-api.com is unreachable during the daily exchange-rate refresh

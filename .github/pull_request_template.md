@@ -19,6 +19,6 @@ Fixes #
 - [ ] Line added to `CHANGELOG.md` under `## [Unreleased]`
 - [ ] Frontend: `npm run lint`, `npm run test:run` and `npm run build` pass
 - [ ] Backend: `npm run build` passes
-- [ ] New UI strings added to all 6 locales (`frontend/src/locales/*/translation.json`)
+- [ ] New UI strings added to all locales (`frontend/src/locales/*/translation.json`)
 - [ ] Data changes come with a migration in `backend/src/scripts/migration-runner.ts`
 - [ ] Screenshots attached for UI changes

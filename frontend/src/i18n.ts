@@ -6,6 +6,7 @@ import en from './locales/en/translation.json';
 import fr from './locales/fr/translation.json';
 import de from './locales/de/translation.json';
 import es from './locales/es/translation.json';
+import it from './locales/it/translation.json';
 import pt from './locales/pt/translation.json';
 import zh from './locales/zh/translation.json';
 
@@ -35,6 +36,9 @@ i18n
             },
             es: {
                 translation: es
+            },
+            it: {
+                translation: it
             },
             pt: {
                 translation: pt
