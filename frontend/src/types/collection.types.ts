@@ -23,6 +23,8 @@ export interface Album {
     thumb: string;
     year: string;
     discogsId?: number;
+    /** True for albums added by hand, which have no Discogs release behind them. */
+    isManual?: boolean;
     styles?: string[];
     tracklist?: Track[];
     labels?: Label[];
@@ -64,6 +66,8 @@ export interface CollectionItem {
     mediaCondition?: string | null;
     sleeveCondition?: string | null;
     priceCache?: PriceCache | null;
+    /** Hand-entered value (USD) for a manually added album. */
+    manualValue?: number | null;
     formatVerification?: FormatVerification | null;
     customFields?: CustomFieldValues | null;
     addedAt: string;

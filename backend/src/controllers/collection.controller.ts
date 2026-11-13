@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import type { Express } from 'express';
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 import Album, { IAlbum, ITrack, ILabel } from '../models/Album';
 import CollectionItem, { ICollectionItem } from '../models/CollectionItem';
 import { csvImportService } from '../services/import.service';
@@ -13,6 +15,7 @@ import type { DiscogsReleaseResponse, MarketplaceStats } from '../types/discogs.
 import AdminTaskExecution from '../models/AdminTaskExecution';
 import { getValueForItem, getValueHistory, recordValueSnapshot } from '../services/valueSnapshot.service';
 import { validateCustomFieldValues } from './customFields.controller';
+import { COVERS_DIR } from '../config/uploads.config';
 import { logger } from '../config/logger.config';
 
 // ===== Types =====
@@ -214,12 +217,36 @@ export async function streamPriceSync(
 // ===== CSV Import =====
 
 export async function downloadTemplate(req: Request, res: Response) {
-  const csvContent = [
-    'Artist,Album,Format (Vinyl or CD),Year (Optional),Release ID (Optional),Catalog Number (Optional),Media Condition (Optional),Sleeve Condition (Optional)',
-    'Daft Punk,Discovery,Vinyl,2001,,,,',
-    'Radiohead,OK Computer,CD,1997,1252837,CDNODATA 29,NM,VG+',
-    'Pink Floyd,The Dark Side Of The Moon,Vinyl,1973,249504,,,'
-  ].join('\n');
+  const headers = [
+    'Artist',
+    'Album',
+    'Format (Vinyl or CD)',
+    'Year (Optional)',
+    'Release ID (Optional)',
+    'Catalog Number (Optional)',
+    'Label (Optional)',
+    'Genres (Optional)',
+    'Value (Optional)',
+    'Tracklist (Optional)',
+    'Manual (Optional)',
+    'Media Condition (Optional)',
+    'Sleeve Condition (Optional)'
+  ];
+
+  const rows = [
+    ['Daft Punk', 'Discovery', 'Vinyl', '2001', '', '', '', '', '', '', '', '', ''],
+    ['Radiohead', 'OK Computer', 'CD', '1997', '1252837', 'CDNODATA 29', 'Parlophone', 'Alternative Rock', '', '', '', 'NM', 'VG+'],
+    ['Pink Floyd', 'The Dark Side Of The Moon', 'Vinyl', '1973', '249504', '', 'Harvest', 'Psychedelic Rock', '', '', '', '', ''],
+    ['Local Band', 'Live at Home', 'Cassette', '2020', '', '', 'Self-released', 'Rock', '12.50', '[]', 'true', '', '']
+  ];
+
+  const escape = (value: string) => /[",\n\r]/.test(value)
+    ? `"${value.replace(/"/g, '""')}"`
+    : value;
+
+  const csvContent = [headers, ...rows]
+    .map(columns => columns.map(escape).join(','))
+    .join('\n');
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="musivault_import_template.csv"');
@@ -821,10 +848,92 @@ export async function getStyles(req: Request, res: Response) {
 // ===== Manual Album Entry =====
 
 interface ManualAlbumBody {
-  title: string;
-  artist: string;
+  title?: string;
+  artist?: string;
   year?: string;
-  format: string;
+  format?: string;
+  /** Free-text label name; the catalog number is a separate field. */
+  label?: string;
+  catno?: string;
+  /** Comma- or semicolon-separated list, stored on the album as styles. */
+  genres?: string;
+  /** Hand-entered value in USD. */
+  value?: string;
+  /** JSON array of { position, title, duration, artist }. */
+  tracklist?: string;
+  /** 'true' clears the existing cover during an edit. */
+  removeCover?: string;
+}
+
+function trimmedString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function parseManualGenres(raw: unknown): string[] {
+  const value = trimmedString(raw);
+  if (!value) return [];
+  return Array.from(new Set(
+    value.split(/[,;]/).map(part => part.trim()).filter(Boolean)
+  ));
+}
+
+function parseManualLabels(rawLabel: unknown, rawCatno: unknown): ILabel[] {
+  const name = trimmedString(rawLabel);
+  if (!name) return [];
+  return [{ name, catno: trimmedString(rawCatno) }];
+}
+
+/** `null` means malformed input; an array (possibly empty) is valid. */
+function parseManualTracklist(raw: unknown): ITrack[] | null {
+  const value = trimmedString(raw);
+  if (!value) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parsed)) return null;
+
+  return parsed
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object')
+    .map(entry => ({
+      position: trimmedString(entry.position),
+      title: trimmedString(entry.title),
+      duration: trimmedString(entry.duration),
+      artist: trimmedString(entry.artist)
+    }))
+    .filter(track => track.position || track.title || track.duration || track.artist);
+}
+
+/**
+ * `undefined` when the field was not sent, `null` when it should be cleared.
+ * Throws on malformed amounts so the caller can reply with a 400.
+ */
+function parseManualValue(raw: unknown): number | null | undefined {
+  if (raw === undefined) return undefined;
+  const value = trimmedString(raw);
+  if (!value) return null;
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount < 0) {
+    throw new Error('Value must be a valid positive number');
+  }
+  return Math.round(amount * 100) / 100;
+}
+
+function manualCoverPath(file: Express.Multer.File | undefined): string {
+  return file ? `/uploads/covers/${file.filename}` : '';
+}
+
+/** Keep the uploads directory tidy when a manual cover is replaced or cleared. */
+async function removeStoredCover(coverPath: string | null | undefined): Promise<void> {
+  if (!coverPath || !coverPath.startsWith('/uploads/covers/')) return;
+  const filename = path.basename(coverPath);
+  try {
+    await fs.promises.unlink(path.join(COVERS_DIR, filename));
+  } catch (err) {
+    logger.warn({ err, coverPath }, '[ManualAlbum] Could not remove old cover');
+  }
 }
 
 export async function addManualAlbum(req: Request, res: Response) {
@@ -834,7 +943,10 @@ export async function addManualAlbum(req: Request, res: Response) {
       return;
     }
 
-    const { title, artist, year, format } = req.body as ManualAlbumBody;
+    const body = req.body as ManualAlbumBody;
+    const title = trimmedString(body.title);
+    const artist = trimmedString(body.artist);
+    const format = trimmedString(body.format);
 
     // Validate required fields
     if (!title || !artist || !format) {
@@ -842,25 +954,34 @@ export async function addManualAlbum(req: Request, res: Response) {
       return;
     }
 
-    // Handle cover image if uploaded
-    let coverImagePath = '';
-    const file = (req as any).file as Express.Multer.File | undefined;
-    if (file) {
-      // The file path is relative to the uploads directory
-      coverImagePath = `/uploads/covers/${file.filename}`;
+    const tracklist = parseManualTracklist(body.tracklist);
+    if (tracklist === null) {
+      res.status(400).json({ message: 'Tracklist must be a valid list of tracks' });
+      return;
     }
+
+    let manualValue: number | null;
+    try {
+      manualValue = parseManualValue(body.value) ?? null;
+    } catch {
+      res.status(400).json({ message: 'Value must be a valid positive number' });
+      return;
+    }
+
+    // Handle cover image if uploaded
+    const coverImagePath = manualCoverPath((req as any).file as Express.Multer.File | undefined);
 
     // Create manual album
     const album = new Album({
       isManual: true,
-      title: title.trim(),
-      artist: artist.trim(),
-      year: year?.trim() || '',
+      title,
+      artist,
+      year: trimmedString(body.year),
       thumb: coverImagePath,
       cover_image: coverImagePath,
-      styles: [],
-      tracklist: [],
-      labels: []
+      styles: parseManualGenres(body.genres),
+      tracklist,
+      labels: parseManualLabels(body.label, body.catno)
     });
     await album.save();
 
@@ -872,7 +993,8 @@ export async function addManualAlbum(req: Request, res: Response) {
         name: format,
         descriptions: [],
         text: format
-      }
+      },
+      manualValue
     });
     await newItem.save();
 
@@ -883,6 +1005,94 @@ export async function addManualAlbum(req: Request, res: Response) {
     });
   } catch (error) {
     logger.error({ err: error }, 'Error adding manual album');
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+/**
+ * Edit a hand-added album and the user's copy of it: title, artist, year,
+ * format, label, genres, value, tracklist and cover. Discogs albums are left
+ * alone — their metadata is refreshed or rematched, never hand-edited.
+ */
+export async function updateManualAlbum(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { itemId } = req.params;
+    const item = await CollectionItem.findOne({ _id: itemId, user: req.user._id })
+      .populate<{ album: IAlbum }>('album');
+
+    if (!item) {
+      res.status(404).json({ message: 'Item not found in your collection' });
+      return;
+    }
+
+    const album = item.album;
+    if (!album || !album.isManual) {
+      res.status(400).json({ message: 'Only manually added albums can be edited' });
+      return;
+    }
+
+    const body = req.body as ManualAlbumBody;
+    const title = body.title !== undefined ? trimmedString(body.title) : album.title;
+    const artist = body.artist !== undefined ? trimmedString(body.artist) : album.artist;
+    const format = body.format !== undefined ? trimmedString(body.format) : item.format.name;
+
+    if (!title || !artist || !format) {
+      res.status(400).json({ message: 'Title, artist, and format are required' });
+      return;
+    }
+
+    if (body.tracklist !== undefined) {
+      const tracklist = parseManualTracklist(body.tracklist);
+      if (tracklist === null) {
+        res.status(400).json({ message: 'Tracklist must be a valid list of tracks' });
+        return;
+      }
+      album.tracklist = tracklist;
+    }
+
+    if (body.value !== undefined) {
+      try {
+        item.manualValue = parseManualValue(body.value) ?? null;
+      } catch {
+        res.status(400).json({ message: 'Value must be a valid positive number' });
+        return;
+      }
+    }
+
+    if (body.title !== undefined) album.title = title;
+    if (body.artist !== undefined) album.artist = artist;
+    if (body.year !== undefined) album.year = trimmedString(body.year);
+    if (body.genres !== undefined) album.styles = parseManualGenres(body.genres);
+    if (body.label !== undefined) album.labels = parseManualLabels(body.label, body.catno);
+
+    if (body.format !== undefined && format !== item.format.name) {
+      item.format = { name: format, descriptions: [], text: format };
+    }
+
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (file) {
+      const newCover = manualCoverPath(file);
+      await removeStoredCover(album.cover_image);
+      album.cover_image = newCover;
+      album.thumb = newCover;
+    } else if (trimmedString(body.removeCover) === 'true') {
+      await removeStoredCover(album.cover_image);
+      album.cover_image = '';
+      album.thumb = '';
+    }
+
+    await album.save();
+    await item.save();
+
+    const updatedItem = await CollectionItem.findById(item._id).populate('album');
+    res.status(200).json({ message: 'Manual album updated!', item: updatedItem });
+  } catch (error) {
+    logger.error({ err: error }, 'Error updating manual album');
     res.status(500).json({ message: 'Internal server error' });
   }
 }

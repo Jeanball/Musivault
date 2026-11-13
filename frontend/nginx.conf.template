@@ -81,6 +81,13 @@ http {
             add_header Cache-Control "public, immutable";
         }
 
+        # SPA entry point. The HTML shell must never be cached: it is what
+        # points the browser to the current hashed bundle. Without this, a
+        # rebuilt frontend keeps loading the previous bundle from cache.
+        location = /index.html {
+            add_header Cache-Control "no-store";
+        }
+
         # SPA routing - fallback to index.html for client-side routing
         location / {
             try_files $uri $uri/ /index.html;

@@ -33,6 +33,11 @@ export interface ICollectionItem extends Document {
   mediaCondition?: string;
   sleeveCondition?: string;
   priceCache?: IPriceCache;
+  /**
+   * Value entered by hand for a manually added album, in USD like priceCache.
+   * It is what getValueForItem returns, so manual items count in totals.
+   */
+  manualValue?: number | null;
   formatVerification?: IFormatVerification | null;
   customFields?: Map<string, string>;
   addedAt: Date;
@@ -94,6 +99,10 @@ const collectionItemSchema = new Schema<ICollectionItem>({
   },
   priceCache: {
     type: priceCacheSchema,
+    default: null,
+  },
+  manualValue: {
+    type: Number,
     default: null,
   },
   formatVerification: {

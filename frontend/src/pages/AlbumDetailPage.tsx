@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CircleAlert, RefreshCw } from 'lucide-react';
+import { CircleAlert, ImagePlus, Pencil, RefreshCw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { getPreferences } from '../api/preferences';
 import { isApiError } from '../api/errors';
@@ -29,6 +29,7 @@ import CustomFieldsEditor from '../components/Common/CustomFieldsEditor';
 import LabelLink from '../components/Common/LabelLink';
 import FieldRow from '../components/Common/FieldRow';
 import BackButton from '../components/Common/BackButton';
+import ManualAlbumEditModal from '../components/Modal/ManualAlbumEditModal';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface AlbumDetailLocationState {
@@ -50,6 +51,7 @@ const AlbumDetailPage: React.FC = () => {
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
     const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
     const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
+    const [isEditingManual, setIsEditingManual] = useState(false);
     const { formatValue } = useCurrency();
     const backTarget = (location.state as AlbumDetailLocationState | null)?.backTo || '/app/collection';
 
@@ -249,6 +251,12 @@ const AlbumDetailPage: React.FC = () => {
         }
     };
 
+    const handleManualSaved = (updated: CollectionItem) => {
+        setItem(updated);
+        setIsEditingManual(false);
+        void refreshCollection({ silent: true });
+    };
+
     return (
         <div className="max-w-6xl mx-auto p-4">
             <BackButton onClick={handleBack} />
@@ -262,6 +270,17 @@ const AlbumDetailPage: React.FC = () => {
                         alt={album.title}
                         className="w-full aspect-square object-cover border border-base-300"
                     />
+
+                    {album.isManual && (
+                        <button
+                            type="button"
+                            onClick={() => setIsEditingManual(true)}
+                            className="btn btn-sm btn-outline gap-2"
+                        >
+                            <ImagePlus size={14} />
+                            {album.cover_image ? t('album.changeCover') : t('album.addCover')}
+                        </button>
+                    )}
 
                     <div className="flex gap-2">
                         {spotifyUrl && (
@@ -415,6 +434,7 @@ const AlbumDetailPage: React.FC = () => {
                         </FieldRow>
                         {(() => {
                             const val = getItemValue(item);
+                            const isManual = Boolean(album.isManual);
                             const conditionLabel = item.mediaCondition || 'VG+';
                             const lastUpdated = item.priceCache?.updatedAt
                                 ? new Date(item.priceCache.updatedAt).toLocaleString(undefined, {
@@ -431,16 +451,20 @@ const AlbumDetailPage: React.FC = () => {
                                     <span className={`font-mono text-xl font-bold tabular-nums ${val > 0 ? '' : 'text-base-content/30'}`}>
                                         {val > 0 ? formatValue(val) : 'N/A'}
                                     </span>
-                                    <button
-                                        onClick={syncPrice}
-                                        disabled={isSyncingPrice}
-                                        className="btn btn-ghost btn-xs btn-circle tooltip tooltip-top"
-                                        data-tip={t('album.syncPrice')}
-                                    >
-                                        <RefreshCw size={13} className={isSyncingPrice ? 'animate-spin' : ''} />
-                                    </button>
+                                    {!isManual && (
+                                        <button
+                                            onClick={syncPrice}
+                                            disabled={isSyncingPrice}
+                                            className="btn btn-ghost btn-xs btn-circle tooltip tooltip-top"
+                                            data-tip={t('album.syncPrice')}
+                                        >
+                                            <RefreshCw size={13} className={isSyncingPrice ? 'animate-spin' : ''} />
+                                        </button>
+                                    )}
                                     <span className="text-xs text-base-content/50">
-                                        {conditionLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}
+                                        {isManual
+                                            ? t('album.manualValue')
+                                            : <>{conditionLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}</>}
                                     </span>
                                 </FieldRow>
                             );
@@ -469,17 +493,29 @@ const AlbumDetailPage: React.FC = () => {
                     )}
 
                     <div className="flex flex-wrap gap-3">
-                        <button
-                            onClick={handleOpenRematchVersions}
-                            className={`btn btn-warning btn-outline ${isOpeningRematch ? 'loading' : ''}`}
-                            title={t('album.rematch')}
-                            disabled={isOpeningRematch}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            {t('album.rematch')}
-                        </button>
+                        {album.isManual && (
+                            <button
+                                onClick={() => setIsEditingManual(true)}
+                                className="btn btn-outline gap-1"
+                                title={t('album.editManual')}
+                            >
+                                <Pencil size={18} />
+                                {t('common.edit')}
+                            </button>
+                        )}
+                        {!album.isManual && (
+                            <button
+                                onClick={handleOpenRematchVersions}
+                                className={`btn btn-warning btn-outline ${isOpeningRematch ? 'loading' : ''}`}
+                                title={t('album.rematch')}
+                                disabled={isOpeningRematch}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                {t('album.rematch')}
+                            </button>
+                        )}
                         <button onClick={handleDelete} className="btn btn-error btn-outline" title="Remove from collection">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -489,6 +525,14 @@ const AlbumDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {isEditingManual && (
+                <ManualAlbumEditModal
+                    item={item}
+                    onClose={() => setIsEditingManual(false)}
+                    onSaved={handleManualSaved}
+                />
+            )}
         </div>
     );
 };

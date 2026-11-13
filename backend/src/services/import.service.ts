@@ -2,8 +2,9 @@ import { Readable } from 'stream';
 import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
-import Album from '../models/Album';
+import Album, { ITrack } from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
+import CustomFieldDefinition from '../models/CustomFieldDefinition';
 import ImportLog, { IImportLogEntry } from '../models/ImportLog';
 import User from '../models/User';
 import { discogsService } from './discogs.service';
@@ -38,10 +39,26 @@ export interface CsvRow {
     album: string;
     year?: string;
     format?: 'Vinyl' | 'CD';
+    /** Raw Format column, so manual albums keep names like Cassette. */
+    formatName?: string;
     releaseId?: string;
     catalogNumber?: string;
+    label?: string;
+    genres?: string[];
+    /** Hand-entered value in USD. */
+    value?: number;
+    tracklist?: ITrack[];
+    /** The row was added by hand, so it has no Discogs release to look up. */
+    manual?: boolean;
     mediaCondition?: string;
     sleeveCondition?: string;
+    addedAt?: Date;
+    /**
+     * Columns that are not part of the base format, keyed by lower-cased
+     * header. They are matched to the importing user's custom fields by name;
+     * columns with no matching field are ignored.
+     */
+    customFieldColumns?: Record<string, string>;
 }
 
 export interface ImportResult {
@@ -63,7 +80,9 @@ interface ProcessRowResult {
 // ===== Helpers =====
 
 function normalizeHeader(header: string): string {
-    return header.toLowerCase().replace(/\(.*\)/g, '').trim();
+    // Exports start with a UTF-8 BOM so Excel reads accents; drop it before
+    // matching, otherwise "Artist" becomes "\uFEFFartist".
+    return header.replace(/^\uFEFF/, '').toLowerCase().replace(/\(.*\)/g, '').trim();
 }
 
 function normalizeType(input?: string): 'Vinyl' | 'CD' | undefined {
@@ -72,6 +91,88 @@ function normalizeType(input?: string): 'Vinyl' | 'CD' | undefined {
     if (['vinyl', 'vinyle', 'lp', '33', '33t', '45', '45t', 'records'].some(k => v.includes(k))) return 'Vinyl';
     if (['cd', 'compact disc', 'compact-disc'].some(k => v.includes(k))) return 'CD';
     return undefined;
+}
+
+/** Lower-cased column headers the importer understands itself. */
+const BASE_COLUMN_KEYS = new Set([
+    'artist', 'album', 'format', 'year',
+    'release id', 'releaseid', 'release_id', 'discogs id', 'discogs_id', 'discogsid',
+    'catalog number', 'catalognumber', 'catalog_number', 'catno', 'cat_no',
+    'label', 'genres', 'genre', 'value', 'tracklist', 'manual',
+    'media condition', 'mediacondition', 'media_condition', 'media',
+    'sleeve condition', 'sleevecondition', 'sleeve_condition', 'sleeve',
+    'added at', 'addedat', 'added_at'
+]);
+
+function parseGenres(raw?: string): string[] {
+    if (!raw) return [];
+    return Array.from(new Set(raw.split(/[,;]/).map(part => part.trim()).filter(Boolean)));
+}
+
+/** Exported tracklists are a JSON array; anything malformed is ignored. */
+function parseTracklist(raw?: string): ITrack[] {
+    if (!raw) return [];
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(raw);
+    } catch {
+        return [];
+    }
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+        .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object')
+        .map(entry => ({
+            position: String(entry.position ?? '').trim(),
+            title: String(entry.title ?? '').trim(),
+            duration: String(entry.duration ?? '').trim(),
+            artist: String(entry.artist ?? '').trim()
+        }))
+        .filter(track => track.position || track.title || track.duration || track.artist);
+}
+
+function parseValue(raw?: string): number | undefined {
+    const text = raw?.trim();
+    if (!text) return undefined;
+    const amount = Number(text);
+    if (!Number.isFinite(amount) || amount < 0) return undefined;
+    return Math.round(amount * 100) / 100;
+}
+
+function parseAddedAt(raw?: string): Date | undefined {
+    const text = raw?.trim();
+    if (!text) return undefined;
+    const date = new Date(text);
+    return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function isTrue(raw?: string): boolean {
+    return ['true', '1', 'yes', 'y'].includes(raw?.trim().toLowerCase() || '');
+}
+
+export function normalizeCustomFieldName(name: string): string {
+    return name.trim().toLowerCase();
+}
+
+/**
+ * Map exported custom-field columns to definition ids. Columns whose name has
+ * no definition on the target instance are skipped silently, so an export from
+ * another instance still imports without errors.
+ */
+function resolveCustomFieldValues(
+    columns: Record<string, string> | undefined,
+    definitions: Map<string, string> | undefined
+): Record<string, string> {
+    if (!columns || !definitions) return {};
+
+    const values: Record<string, string> = {};
+    for (const [name, value] of Object.entries(columns)) {
+        const fieldId = definitions.get(normalizeCustomFieldName(name));
+        if (!fieldId) continue;
+        const trimmed = value?.trim();
+        if (trimmed) values[fieldId] = trimmed;
+    }
+    return values;
 }
 
 // ===== Service Functions =====
@@ -93,12 +194,17 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
 
     return rawRows.map((r) => {
         const mapped: Record<string, string | undefined> = {};
+        const customFieldColumns: Record<string, string> = {};
+
         Object.keys(r).forEach((k) => {
             mapped[normalizeHeader(k)] = r[k];
+            if (!BASE_COLUMN_KEYS.has(normalizeHeader(k))) {
+                customFieldColumns[normalizeCustomFieldName(k)] = r[k] ?? '';
+            }
         });
 
         // Extract release_id (various header formats)
-        const releaseIdRaw = mapped['release_id'] || mapped['releaseid'] || mapped['release id'] || mapped['discogs_id'] || mapped['discogsid'] || '';
+        const releaseIdRaw = mapped['release_id'] || mapped['releaseid'] || mapped['release id'] || mapped['discogs_id'] || mapped['discogsid'] || mapped['discogs id'] || '';
         const releaseId = releaseIdRaw.toString().trim() || undefined;
 
         // Extract catalog number (various header formats)
@@ -112,15 +218,28 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
         const sleeveConditionRaw = mapped['sleeve_condition'] || mapped['sleevecondition'] || mapped['sleeve condition'] || mapped['sleeve'] || '';
         const sleeveCondition = sleeveConditionRaw.toString().trim() || undefined;
 
+        const formatRaw = (mapped['format'] || '').toString().trim() || undefined;
+        const valueRaw = mapped['value']?.toString();
+        const manualRaw = mapped['manual']?.toString();
+        const addedAtRaw = mapped['added at'] || mapped['added_at'] || mapped['addedat'];
+
         return {
             artist: (mapped['artist'] || '').toString().trim(),
             album: (mapped['album'] || '').toString().trim(),
             year: (mapped['year'] || '').toString().trim() || undefined,
-            format: normalizeType(mapped['format']),
+            format: normalizeType(formatRaw),
+            formatName: formatRaw,
             releaseId,
             catalogNumber,
+            label: (mapped['label'] || '').toString().trim() || undefined,
+            genres: parseGenres((mapped['genres'] || mapped['genre'] || '').toString()),
+            value: parseValue(valueRaw),
+            tracklist: parseTracklist(mapped['tracklist']?.toString()),
+            manual: isTrue(manualRaw),
             mediaCondition,
-            sleeveCondition
+            sleeveCondition,
+            addedAt: parseAddedAt(addedAtRaw?.toString()),
+            customFieldColumns: Object.keys(customFieldColumns).length ? customFieldColumns : undefined
         };
     });
 }
@@ -135,6 +254,85 @@ export interface ImportRowOptions {
     discogsInstanceId?: number;
     /** Wait and retry when Discogs throttles a call, instead of failing the row. For long background jobs. */
     retryOnRateLimit?: boolean;
+    /**
+     * Lower-cased custom field name -> definition id for the importing user.
+     * Exported columns with no entry here are ignored.
+     */
+    customFieldDefinitions?: Map<string, string>;
+}
+
+/** A hand-added album has no Discogs release, so rebuild it from the CSV row. */
+async function createManualAlbumFromRow(
+    row: CsvRow,
+    userId: any,
+    options: ImportRowOptions,
+    customFields: Record<string, string>
+): Promise<ProcessRowResult> {
+    const format = row.formatName || row.format || 'Vinyl';
+
+    let album = await Album.findOne({ isManual: true, title: row.album, artist: row.artist });
+    if (!album) {
+        album = new Album({
+            isManual: true,
+            title: row.album,
+            artist: row.artist,
+            year: row.year || '',
+            thumb: '',
+            cover_image: '',
+            styles: row.genres || [],
+            tracklist: row.tracklist || [],
+            labels: row.label ? [{ name: row.label, catno: row.catalogNumber || '' }] : []
+        });
+        await album.save();
+        logger.debug(`[Import] Manual album created: ${album.title}`);
+    } else {
+        // Fill in what an older manual album is missing; never overwrite data.
+        let filled = false;
+        if (!album.year && row.year) { album.year = row.year; filled = true; }
+        if (!album.styles?.length && row.genres?.length) { album.styles = row.genres; filled = true; }
+        if (!album.tracklist?.length && row.tracklist?.length) { album.tracklist = row.tracklist; filled = true; }
+        if (!album.labels?.length && row.label) {
+            album.labels = [{ name: row.label, catno: row.catalogNumber || '' }];
+            filled = true;
+        }
+        if (filled) {
+            await album.save();
+            logger.debug(`[Import] Manual album filled in: ${album.title}`);
+        }
+    }
+
+    const exists = await CollectionItem.findOne({
+        user: userId,
+        album: album._id,
+        'format.name': format
+    });
+    if (exists) {
+        return { success: false, skipped: true, reason: 'Already in collection' };
+    }
+
+    const newItem = new CollectionItem({
+        user: userId,
+        album: album._id,
+        format: { name: format, descriptions: [], text: format },
+        mediaCondition: row.mediaCondition || null,
+        sleeveCondition: row.sleeveCondition || null,
+        manualValue: row.value ?? null,
+        customFields,
+        addedAt: options.addedAt ?? row.addedAt
+    });
+    await newItem.save();
+    logger.debug(`[Import] Added manual album to collection: ${album.title} (${format})`);
+
+    return { success: true };
+}
+
+function isManualRow(row: CsvRow): boolean {
+    if (row.manual) return true;
+    // Exports from older versions have no Manual column. Rows with hand-entered
+    // data and no Discogs id can only have come from a manual album.
+    return !row.releaseId && Boolean(
+        row.label || row.genres?.length || row.tracklist?.length || row.value !== undefined
+    );
 }
 
 /**
@@ -192,6 +390,13 @@ export async function processImportRow(
     // Validate row - need at least artist/album OR releaseId
     if (!row.releaseId && (!row.artist || !row.album)) {
         return { success: false, reason: 'Missing Artist/Album or Release ID' };
+    }
+
+    const customFields = resolveCustomFieldValues(row.customFieldColumns, options.customFieldDefinitions);
+
+    // Manual rows have no Discogs release to fetch: rebuild the album from the row.
+    if (isManualRow(row)) {
+        return createManualAlbumFromRow(row, userId, options, customFields);
     }
 
     let found: FoundAlbumInfo | null = null;
@@ -267,7 +472,9 @@ export async function processImportRow(
         priceCache: buildPriceCache(await discogsService.getMarketplaceStats(found.discogsId, { retryOnRateLimit: options.retryOnRateLimit })),
         mediaCondition: row.mediaCondition || null,
         sleeveCondition: row.sleeveCondition || null,
-        addedAt: options.addedAt,
+        manualValue: row.value ?? null,
+        customFields,
+        addedAt: options.addedAt ?? row.addedAt,
         discogsInstanceId: options.discogsInstanceId
     });
     await newItem.save();
@@ -286,6 +493,7 @@ export async function importFromCsv(
     fileName?: string
 ): Promise<{ logId: string; totalRows: number }> {
     const rows = await parseCsvBuffer(buffer);
+    const customFieldDefinitions = await loadCustomFieldDefinitions(userId);
 
     // Create initial import log
     const importLog = new ImportLog({
@@ -304,7 +512,7 @@ export async function importFromCsv(
     logger.info(`[Import] Started import ${logId} with ${rows.length} rows`);
 
     // Run processing in background (no await)
-    processImportBackground(rows, importLog, userId).catch(err => {
+    processImportBackground(rows, importLog, userId, customFieldDefinitions).catch(err => {
         logger.error({ err }, `[Import] Background process failed for ${logId}`);
         importLog.status = 'error';
         importLog.save();
@@ -316,13 +524,20 @@ export async function importFromCsv(
     };
 }
 
+/** Custom fields are matched by name; an export from another instance may have others. */
+async function loadCustomFieldDefinitions(userId: any): Promise<Map<string, string>> {
+    const definitions = await CustomFieldDefinition.find({ user: userId });
+    return new Map(definitions.map(field => [normalizeCustomFieldName(field.name), String(field._id)]));
+}
+
 /**
  * Background processor for import rows
  */
 async function processImportBackground(
     rows: CsvRow[],
     importLog: any,
-    userId: any
+    userId: any,
+    customFieldDefinitions: Map<string, string>
 ) {
     let imported = 0;
     let skipped = 0;
@@ -335,14 +550,14 @@ async function processImportBackground(
             inputArtist: row.artist,
             inputAlbum: row.album,
             inputYear: row.year,
-            inputFormat: row.format || '',
+            inputFormat: row.formatName || row.format || '',
             inputReleaseId: row.releaseId,
             inputCatalogNumber: row.catalogNumber,
             status: 'failed'
         };
 
         try {
-            const result = await processImportRow(row, userId);
+            const result = await processImportRow(row, userId, { customFieldDefinitions });
 
             if (result.matchedData) {
                 logEntry.matchedArtist = result.matchedData.artist;

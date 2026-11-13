@@ -16,6 +16,7 @@ import {
     rematchAlbum,
     getStyles,
     addManualAlbum,
+    updateManualAlbum,
     getCollectionSyncInfo,
     getCollectionValueHistory,
     syncItemPrice,
@@ -41,6 +42,7 @@ router.get('/value-history', protectRoute, getCollectionValueHistory);
 
 // Manual album entry (must be before /:itemId to avoid route conflicts)
 router.post('/manual', protectRoute, uploadCover, addManualAlbum);
+router.put('/:itemId/manual', protectRoute, uploadCover, updateManualAlbum);
 
 // Collection CRUD
 router.post('/', protectRoute, addToCollection);

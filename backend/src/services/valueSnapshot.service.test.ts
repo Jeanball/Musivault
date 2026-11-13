@@ -16,13 +16,27 @@ vi.mock('../models/ValueSnapshot', () => ({
 }));
 
 import ValueSnapshot from '../models/ValueSnapshot';
-import { rebuildValueHistory } from './valueSnapshot.service';
+import { getValueForItem, rebuildValueHistory } from './valueSnapshot.service';
 
 const user = new mongoose.Types.ObjectId();
 const priced = (addedAt: Date, veryGoodPlus: number) => ({ addedAt, priceCache: { veryGoodPlus, currency: 'USD' } });
 const written = () => vi.mocked(ValueSnapshot.findOneAndUpdate).mock.calls.map(([filter, update]) => {
     const { totalValue, itemCount } = (update as { $set: { totalValue: number; itemCount: number } }).$set;
     return { day: (filter as { day: string }).day, totalValue, itemCount };
+});
+
+describe('getValueForItem', () => {
+    it('prefers the hand-entered value of a manual album over a cached price', () => {
+        expect(getValueForItem({ manualValue: 42.5, priceCache: { veryGoodPlus: 10 } })).toBe(42.5);
+    });
+
+    it('falls back to the condition price when no manual value is set', () => {
+        expect(getValueForItem({ manualValue: null, mediaCondition: 'VG+', priceCache: { veryGoodPlus: 10, currency: 'USD' } })).toBe(10);
+    });
+
+    it('ignores a zero manual value so it cannot mask a cached price', () => {
+        expect(getValueForItem({ manualValue: 0, priceCache: { veryGoodPlus: 10, currency: 'USD' } })).toBe(10);
+    });
 });
 
 describe('rebuildValueHistory', () => {
@@ -53,6 +67,14 @@ describe('rebuildValueHistory', () => {
         await rebuildValueHistory(user);
 
         expect(written()).toEqual([{ day: '2020-01-06', totalValue: 8, itemCount: 1 }]);
+    });
+
+    it('counts a manual album by its hand-entered value', async () => {
+        items.push({ addedAt: new Date(2020, 0, 5, 9), manualValue: 12.5, priceCache: null });
+
+        await rebuildValueHistory(user);
+
+        expect(written()).toEqual([{ day: '2020-01-05', totalValue: 12.5, itemCount: 1 }]);
     });
 
     it('stamps each snapshot at local midnight of its day, and removes nothing by default', async () => {

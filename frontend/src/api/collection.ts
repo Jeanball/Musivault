@@ -101,8 +101,18 @@ export async function restoreFormatAlert(itemId: string): Promise<CollectionItem
  * Manual album entry. Content-Type is deliberately left unset: axios derives
  * multipart/form-data and appends the boundary itself for a FormData body.
  */
-export async function addManualAlbum(form: FormData): Promise<void> {
-    await client.post('/collection/manual', form);
+export async function addManualAlbum(form: FormData): Promise<{ item: CollectionItem }> {
+    const { data } = await client.post<{ item: CollectionItem }>('/collection/manual', form);
+    return data;
+}
+
+/**
+ * Edit a manually added album. Multipart because a replacement cover can come
+ * with the same request as the metadata.
+ */
+export async function updateManualAlbum(itemId: string, form: FormData): Promise<{ item: CollectionItem }> {
+    const { data } = await client.put<{ item: CollectionItem }>(`/collection/${itemId}/manual`, form);
+    return data;
 }
 
 export async function startCsvImport(file: File): Promise<ImportStarted> {

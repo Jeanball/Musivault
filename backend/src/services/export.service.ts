@@ -11,6 +11,11 @@ const BASE_HEADERS = [
     'Year',
     'Release ID',
     'Catalog Number',
+    'Label',
+    'Genres',
+    'Value',
+    'Tracklist',
+    'Manual',
     'Media Condition',
     'Sleeve Condition',
     'Added At'
@@ -31,8 +36,9 @@ function toCsvLine(values: unknown[]): string {
 
 /**
  * Build a CSV backup of a user's collection.
- * Custom field values are appended as extra columns: the importer ignores
- * unknown headers, so they are a backup only and are not restored on import.
+ * Custom field values are appended as extra columns named after the field, so
+ * an import can restore them when the same field name exists on the target
+ * instance. Unknown custom fields are ignored by the importer.
  */
 export async function buildCollectionCsv(userId: any): Promise<string> {
     const [items, customFields] = await Promise.all([
@@ -52,6 +58,7 @@ export async function buildCollectionCsv(userId: any): Promise<string> {
 
         // Discogs release ids are on the album; manual entries have none.
         const catalogNumber = album.labels?.find(l => l.catno)?.catno || '';
+        const labelName = album.labels?.[0]?.name || '';
 
         const values: unknown[] = [
             album.artist,
@@ -60,6 +67,11 @@ export async function buildCollectionCsv(userId: any): Promise<string> {
             album.year || '',
             album.discogsId || '',
             catalogNumber,
+            labelName,
+            album.styles?.join(', ') || '',
+            item.manualValue ?? '',
+            album.tracklist?.length ? JSON.stringify(album.tracklist) : '',
+            album.isManual ? 'true' : 'false',
             item.mediaCondition || '',
             item.sleeveCondition || '',
             item.addedAt ? item.addedAt.toISOString() : ''
