@@ -261,9 +261,10 @@ export async function exportCollectionCSV(req: Request, res: Response) {
     }
 
     const csvContent = await csvExportService.buildCollectionCsv(req.user._id);
-    const date = new Date().toISOString().slice(0, 10);
+    // Date and time, so several exports in one day keep separate files.
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
     const safeUsername = String(req.user.username || 'collection').replace(/[^a-zA-Z0-9_-]/g, '_');
-    const filename = `musivault_${safeUsername}_${date}.csv`;
+    const filename = `musivault_${safeUsername}_${timestamp}.csv`;
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
