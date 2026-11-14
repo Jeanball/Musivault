@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(collection): fill in your custom fields when adding or editing a manual album
 - feat(collection): identify custom fields by a hidden uuid in CSV export/import, so their values still import after a field is renamed
 - feat(collection): choose the columns shown in the collection table, including custom fields
 - feat(i18n): add the Italian translation

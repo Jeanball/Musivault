@@ -1,10 +1,13 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { addManualAlbum, updateManualAlbum } from '../../api/collection';
+import { getCustomFields } from '../../api/customFields';
 import { isApiError } from '../../api/errors';
 import { toastService } from '../../utils/toast';
 import { getImageUrl } from '../../utils/imageUrl';
+import { normalizeCustomFieldValues } from '../../utils/customFields';
 import type { CollectionItem, Track } from '../../types/collection.types';
+import type { CustomFieldDefinition } from '../../types/customFields.types';
 import { Upload, X, Music, Plus, Trash2 } from 'lucide-react';
 
 
@@ -51,12 +54,26 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
     const [genres, setGenres] = useState((item?.album.styles || []).join(', '));
     const [value, setValue] = useState(item?.manualValue != null ? String(item.manualValue) : '');
     const [tracks, setTracks] = useState<TrackDraft[]>(initialTracks);
+    const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>(
+        () => normalizeCustomFieldValues(item?.customFields)
+    );
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [coverPreview, setCoverPreview] = useState<string | null>(currentCover ? getImageUrl(currentCover) : null);
     const [removeCover, setRemoveCover] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        getCustomFields()
+            .then(setCustomFieldDefinitions)
+            .catch((error) => console.error('Failed to fetch custom field definitions:', error));
+    }, []);
+
+    const setCustomFieldValue = (fieldId: string, fieldValue: string) => {
+        setCustomFieldValues(prev => ({ ...prev, [fieldId]: fieldValue }));
+    };
 
     const resetForm = () => {
         setTitle('');
@@ -68,6 +85,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
         setGenres('');
         setValue('');
         setTracks([createTrackDraft()]);
+        setCustomFieldValues({});
         setCoverFile(null);
         setCoverPreview(null);
         setRemoveCover(false);
@@ -147,6 +165,17 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
                 }))
                 .filter(track => track.position || track.title || track.duration || track.artist);
             formData.append('tracklist', JSON.stringify(filledTracks));
+
+            // Only fields that still exist and have a value; blanks are omitted
+            // so an empty box clears the stored value instead of saving "".
+            const customFields = customFieldDefinitions.reduce<Record<string, string>>((acc, field) => {
+                const fieldValue = (customFieldValues[field._id] || '').trim();
+                if (fieldValue) acc[field._id] = fieldValue;
+                return acc;
+            }, {});
+            if (customFieldDefinitions.length > 0) {
+                formData.append('customFields', JSON.stringify(customFields));
+            }
 
             if (coverFile) {
                 formData.append('cover', coverFile);
@@ -367,6 +396,41 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
                             />
                         </div>
                     </div>
+
+                    {/* Custom fields */}
+                    {customFieldDefinitions.length > 0 && (
+                        <div className="flex flex-col gap-2 mt-2">
+                            <label className="label p-0">
+                                <span className="text-sm">{t('customFields.itemSectionTitle')}</span>
+                            </label>
+                            {customFieldDefinitions.map((field) => (
+                                <div key={field._id} className="flex flex-col">
+                                    <label className="label w-full justify-between" htmlFor={`manual-custom-field-${field._id}`}>
+                                        <span className="text-sm">{field.name}</span>
+                                        <span className="text-xs text-base-content/50">{t('search.optional')}</span>
+                                    </label>
+                                    {field.type === 'textarea' ? (
+                                        <textarea
+                                            id={`manual-custom-field-${field._id}`}
+                                            value={customFieldValues[field._id] || ''}
+                                            onChange={(e) => setCustomFieldValue(field._id, e.target.value)}
+                                            placeholder={field.placeholder || undefined}
+                                            className="textarea w-full h-20"
+                                        />
+                                    ) : (
+                                        <input
+                                            id={`manual-custom-field-${field._id}`}
+                                            type="text"
+                                            value={customFieldValues[field._id] || ''}
+                                            onChange={(e) => setCustomFieldValue(field._id, e.target.value)}
+                                            placeholder={field.placeholder || undefined}
+                                            className="input w-full"
+                                        />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Tracklist */}
                     <div className="flex flex-col mt-2">

@@ -861,6 +861,8 @@ interface ManualAlbumBody {
   value?: string;
   /** JSON array of { position, title, duration, artist }. */
   tracklist?: string;
+  /** JSON object of custom field id -> value, from the form's own fields. */
+  customFields?: string;
   /** 'true' clears the existing cover during an edit. */
   removeCover?: string;
 }
@@ -921,6 +923,33 @@ function parseManualValue(raw: unknown): number | null | undefined {
   return Math.round(amount * 100) / 100;
 }
 
+/**
+ * Custom field values arrive as a JSON object from the manual form, keyed by
+ * definition id. `null` means malformed input; blank values are dropped so the
+ * saved map only holds actual answers.
+ */
+function parseManualCustomFields(raw: unknown): Record<string, string> | null {
+  const value = trimmedString(raw);
+  if (!value) return {};
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return null;
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return null;
+  }
+
+  const values: Record<string, string> = {};
+  for (const [fieldId, fieldValue] of Object.entries(parsed as Record<string, unknown>)) {
+    if (typeof fieldValue !== 'string') return null;
+    const trimmed = fieldValue.trim();
+    if (trimmed) values[fieldId] = trimmed;
+  }
+  return values;
+}
+
 function manualCoverPath(file: Express.Multer.File | undefined): string {
   return file ? `/uploads/covers/${file.filename}` : '';
 }
@@ -968,6 +997,21 @@ export async function addManualAlbum(req: Request, res: Response) {
       return;
     }
 
+    const customFields = parseManualCustomFields(body.customFields);
+    if (customFields === null) {
+      res.status(400).json({ message: 'Custom fields must be a valid object' });
+      return;
+    }
+
+    const customFieldValidation = await validateCustomFieldValues(
+      req.user._id.toString(),
+      customFields
+    );
+    if (!customFieldValidation.valid) {
+      res.status(400).json({ message: customFieldValidation.error });
+      return;
+    }
+
     // Handle cover image if uploaded
     const coverImagePath = manualCoverPath((req as any).file as Express.Multer.File | undefined);
 
@@ -994,7 +1038,8 @@ export async function addManualAlbum(req: Request, res: Response) {
         descriptions: [],
         text: format
       },
-      manualValue
+      manualValue,
+      customFields: customFieldValidation.sanitized ?? {}
     });
     await newItem.save();
 
@@ -1062,6 +1107,22 @@ export async function updateManualAlbum(req: Request, res: Response) {
         res.status(400).json({ message: 'Value must be a valid positive number' });
         return;
       }
+    }
+
+    if (body.customFields !== undefined) {
+      const customFields = parseManualCustomFields(body.customFields);
+      if (customFields === null) {
+        res.status(400).json({ message: 'Custom fields must be a valid object' });
+        return;
+      }
+
+      const validation = await validateCustomFieldValues(req.user._id.toString(), customFields);
+      if (!validation.valid) {
+        res.status(400).json({ message: validation.error });
+        return;
+      }
+
+      item.customFields = new Map(Object.entries(validation.sanitized ?? {}));
     }
 
     if (body.title !== undefined) album.title = title;

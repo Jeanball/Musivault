@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { isValidObjectId } from "mongoose";
 import CustomFieldDefinition, {
   CustomFieldType,
   ICustomFieldDefinition,
@@ -194,6 +195,13 @@ export async function validateCustomFieldValues(
 
   if (fieldIds.length === 0) {
     return { valid: true, sanitized: {} };
+  }
+
+  // A malformed id cannot belong to any definition and would make the query
+  // below throw a cast error, so reject it before touching the database.
+  const malformed = fieldIds.find((fieldId) => !isValidObjectId(fieldId));
+  if (malformed) {
+    return { valid: false, error: `Unknown custom field: ${malformed}` };
   }
 
   const definitions = await CustomFieldDefinition.find({
