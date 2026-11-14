@@ -44,7 +44,7 @@ describe('CSV fields', () => {
         expect(row.tracklist).toEqual([{ position: 'A1', title: 'Intro', duration: '3:20', artist: '' }]);
         expect(row.manual).toBe(true);
         expect(row.addedAt?.toISOString()).toBe('2020-01-02T03:04:05.000Z');
-        expect(row.customFieldColumns).toEqual({ 'custom note': 'Signed' });
+        expect(row.customFieldColumns).toEqual([{ name: 'custom note', value: 'Signed' }]);
     });
 
     it('ignores the UTF-8 BOM that exported files start with', async () => {
@@ -67,10 +67,18 @@ describe('CSV fields', () => {
                 tracklist: [{ position: 'A1', title: 'Intro', duration: '3:20', artist: '' }],
                 value: 12.5,
                 manual: true,
-                customFieldColumns: { 'custom note': 'Signed', 'field from another instance': 'ignored' }
+                customFieldColumns: [
+                    { name: 'custom note', value: 'Signed' },
+                    { name: 'field from another instance', value: 'ignored' }
+                ]
             },
             'user-1',
-            { customFieldDefinitions: new Map([['custom note', 'field-1']]) }
+            {
+                customFieldDefinitions: {
+                    byUuid: new Map(),
+                    byName: new Map([['custom note', 'field-1']])
+                }
+            }
         );
 
         expect(result.success).toBe(true);
@@ -103,10 +111,77 @@ describe('CSV fields', () => {
                 artist: 'A',
                 album: 'T',
                 releaseId: '7',
-                customFieldColumns: { 'custom note': 'Signed' }
+                customFieldColumns: [{ name: 'custom note', value: 'Signed' }]
             },
             'user-1',
-            { customFieldDefinitions: new Map([['custom note', 'field-1']]) }
+            {
+                customFieldDefinitions: {
+                    byUuid: new Map(),
+                    byName: new Map([['custom note', 'field-1']])
+                }
+            }
+        );
+
+        expect(result.success).toBe(true);
+        expect(vi.mocked(CollectionItem)).toHaveBeenCalledWith(expect.objectContaining({
+            customFields: { 'field-1': 'Signed' }
+        }));
+    });
+
+    it('finds the field by uuid after it was renamed', async () => {
+        const uuid = '2f6c1a5e-9d3b-4f0a-8c7e-123456789abc';
+        const buffer = Buffer.from([
+            `Artist,Album,Format,Release ID,Old Binder Name [cf:${uuid}]`,
+            'A,T,Vinyl,7,Shelf A'
+        ].join('\n'));
+
+        const [row] = await parseCsvBuffer(buffer);
+        expect(row.customFieldColumns).toEqual([
+            { name: 'old binder name', uuid, value: 'Shelf A' }
+        ]);
+
+        vi.mocked(discogsService.fetchByReleaseId).mockResolvedValue({
+            discogsId: 7, title: 'T', artist: 'A', year: '1990', thumb: '', cover_image: '',
+            formats: [{ name: 'Vinyl', qty: '1' }]
+        });
+        vi.mocked(discogsService.getMarketplaceStats).mockResolvedValue(null);
+
+        const result = await processImportRow(row, 'user-1', {
+            customFieldDefinitions: {
+                byUuid: new Map([[uuid, 'field-renamed']]),
+                byName: new Map([['new binder name', 'field-renamed']])
+            }
+        });
+
+        expect(result.success).toBe(true);
+        expect(vi.mocked(CollectionItem)).toHaveBeenCalledWith(expect.objectContaining({
+            customFields: { 'field-renamed': 'Shelf A' }
+        }));
+    });
+
+    it('falls back to the name when the uuid belongs to another instance', async () => {
+        vi.mocked(discogsService.fetchByReleaseId).mockResolvedValue({
+            discogsId: 7, title: 'T', artist: 'A', year: '1990', thumb: '', cover_image: '',
+            formats: [{ name: 'Vinyl', qty: '1' }]
+        });
+        vi.mocked(discogsService.getMarketplaceStats).mockResolvedValue(null);
+
+        const result = await processImportRow(
+            {
+                artist: 'A',
+                album: 'T',
+                releaseId: '7',
+                customFieldColumns: [
+                    { name: 'custom note', uuid: 'uuid-from-another-instance', value: 'Signed' }
+                ]
+            },
+            'user-1',
+            {
+                customFieldDefinitions: {
+                    byUuid: new Map(),
+                    byName: new Map([['custom note', 'field-1']])
+                }
+            }
         );
 
         expect(result.success).toBe(true);

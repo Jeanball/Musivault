@@ -14,6 +14,7 @@ import { migrateIndexes } from './migrate-indexes';
 import { cleanupArtistNames } from './cleanup-artist-names';
 import { migrateAlbumData } from './migrate-album-data';
 import { backfillValueSnapshots } from './backfill-value-snapshots';
+import { backfillCustomFieldUuids } from './backfill-custom-field-uuids';
 import { logger } from '../config/logger.config';
 
 interface MigrationDefinition {
@@ -92,6 +93,15 @@ const MIGRATIONS: MigrationDefinition[] = [
     run: async () => {
       await migrateAlbumData();
       return 'Album data backfill complete';
+    }
+  },
+  {
+    id: '2026-11-14_custom-field-uuids',
+    description: 'Give existing custom fields a hidden uuid so CSV exports survive a rename',
+    type: 'background',
+    run: async () => {
+      const fields = await backfillCustomFieldUuids();
+      return `${fields} custom field uuid(s) assigned`;
     }
   },
 ];

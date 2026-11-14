@@ -10,6 +10,7 @@ import { buildCollectionCsv } from './export.service';
 function chain<T>(value: T) {
     return {
         populate: () => chain(value),
+        select: () => chain(value),
         sort: () => chain(value),
         exec: async () => value
     };
@@ -41,14 +42,14 @@ describe('buildCollectionCsv', () => {
 
         vi.mocked(CollectionItem.find).mockReturnValue(chain([item]) as never);
         vi.mocked(CustomFieldDefinition.find).mockReturnValue(
-            chain([{ _id: 'field-1', name: 'Custom Note' }]) as never
+            chain([{ _id: 'field-1', name: 'Custom Note', uuid: '11111111-1111-4111-8111-111111111111' }]) as never
         );
 
         const csv = await buildCollectionCsv('user-1');
         const [header, row] = csv.split('\n');
 
         expect(header).toBe(
-            'Artist,Album,Format,Year,Release ID,Catalog Number,Label,Genres,Value,Tracklist,Manual,Media Condition,Sleeve Condition,Added At,Custom Note'
+            'Artist,Album,Format,Year,Release ID,Catalog Number,Label,Genres,Value,Tracklist,Manual,Media Condition,Sleeve Condition,Added At,Custom Note [cf:11111111-1111-4111-8111-111111111111]'
         );
         expect(row).toContain('Local Band');
         expect(row).toContain('"Live, at Home"');

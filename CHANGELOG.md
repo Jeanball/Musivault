@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(collection): identify custom fields by a hidden uuid in CSV export/import, so their values still import after a field is renamed
 - feat(collection): choose the columns shown in the collection table, including custom fields
 - feat(i18n): add the Italian translation
 - feat(collection): include label, genres, value, tracklist and custom fields in the CSV export/import, restore manual albums on import, and skip custom fields that do not exist on the target instance

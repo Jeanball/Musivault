@@ -4,11 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import Album, { ITrack } from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
-import CustomFieldDefinition from '../models/CustomFieldDefinition';
 import ImportLog, { IImportLogEntry } from '../models/ImportLog';
 import User from '../models/User';
 import { discogsService } from './discogs.service';
+import { loadCustomFieldsWithUuids } from './customFields.service';
 import { stripArtistSuffixes } from '../utils/discogs.utils';
+import { parseCustomFieldHeader } from '../utils/customFields.utils';
 import { buildPriceCache } from '../utils/price.utils';
 import { FoundAlbumInfo } from '../types/discogs.types';
 import { logger } from '../config/logger.config';
@@ -34,6 +35,21 @@ interface CsvRowRaw {
     [key: string]: string | undefined;
 }
 
+/** One non-base CSV column, optionally carrying the field's hidden uuid. */
+export interface CustomFieldColumn {
+    /** Lower-cased visible name, used for files exported before uuids. */
+    name: string;
+    /** Stable field identity written by newer exports. */
+    uuid?: string;
+    value: string;
+}
+
+/** How an imported column finds a definition: uuid first, name as fallback. */
+export interface CustomFieldLookup {
+    byUuid: Map<string, string>;
+    byName: Map<string, string>;
+}
+
 export interface CsvRow {
     artist: string;
     album: string;
@@ -54,11 +70,11 @@ export interface CsvRow {
     sleeveCondition?: string;
     addedAt?: Date;
     /**
-     * Columns that are not part of the base format, keyed by lower-cased
-     * header. They are matched to the importing user's custom fields by name;
-     * columns with no matching field are ignored.
+     * Columns that are not part of the base format. Newer exports carry the
+     * field's uuid in the header; older ones only carry the name (already
+     * lower-cased). Columns with no matching field are ignored.
      */
-    customFieldColumns?: Record<string, string>;
+    customFieldColumns?: CustomFieldColumn[];
 }
 
 export interface ImportResult {
@@ -155,21 +171,23 @@ export function normalizeCustomFieldName(name: string): string {
 }
 
 /**
- * Map exported custom-field columns to definition ids. Columns whose name has
- * no definition on the target instance are skipped silently, so an export from
- * another instance still imports without errors.
+ * Map imported custom-field columns to definition ids. The uuid wins, because
+ * the field may have been renamed since the file was written; the name keeps
+ * files exported before uuids (and files from another instance) working.
  */
 function resolveCustomFieldValues(
-    columns: Record<string, string> | undefined,
-    definitions: Map<string, string> | undefined
+    columns: CustomFieldColumn[] | undefined,
+    definitions: CustomFieldLookup | undefined
 ): Record<string, string> {
-    if (!columns || !definitions) return {};
+    if (!columns?.length || !definitions) return {};
 
     const values: Record<string, string> = {};
-    for (const [name, value] of Object.entries(columns)) {
-        const fieldId = definitions.get(normalizeCustomFieldName(name));
+    for (const column of columns) {
+        const fieldId =
+            (column.uuid ? definitions.byUuid.get(column.uuid) : undefined) ??
+            definitions.byName.get(normalizeCustomFieldName(column.name));
         if (!fieldId) continue;
-        const trimmed = value?.trim();
+        const trimmed = column.value?.trim();
         if (trimmed) values[fieldId] = trimmed;
     }
     return values;
@@ -194,12 +212,18 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
 
     return rawRows.map((r) => {
         const mapped: Record<string, string | undefined> = {};
-        const customFieldColumns: Record<string, string> = {};
+        const customFieldColumns: CustomFieldColumn[] = [];
 
         Object.keys(r).forEach((k) => {
-            mapped[normalizeHeader(k)] = r[k];
-            if (!BASE_COLUMN_KEYS.has(normalizeHeader(k))) {
-                customFieldColumns[normalizeCustomFieldName(k)] = r[k] ?? '';
+            const header = normalizeHeader(k);
+            mapped[header] = r[k];
+            if (!BASE_COLUMN_KEYS.has(header)) {
+                const { name, uuid } = parseCustomFieldHeader(k);
+                customFieldColumns.push({
+                    name: normalizeCustomFieldName(name),
+                    uuid,
+                    value: r[k] ?? ''
+                });
             }
         });
 
@@ -239,7 +263,7 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
             mediaCondition,
             sleeveCondition,
             addedAt: parseAddedAt(addedAtRaw?.toString()),
-            customFieldColumns: Object.keys(customFieldColumns).length ? customFieldColumns : undefined
+            customFieldColumns: customFieldColumns.length ? customFieldColumns : undefined
         };
     });
 }
@@ -255,10 +279,10 @@ export interface ImportRowOptions {
     /** Wait and retry when Discogs throttles a call, instead of failing the row. For long background jobs. */
     retryOnRateLimit?: boolean;
     /**
-     * Lower-cased custom field name -> definition id for the importing user.
-     * Exported columns with no entry here are ignored.
+     * How to find the importing user's custom fields. Columns whose uuid and
+     * name both miss are ignored.
      */
-    customFieldDefinitions?: Map<string, string>;
+    customFieldDefinitions?: CustomFieldLookup;
 }
 
 /** A hand-added album has no Discogs release, so rebuild it from the CSV row. */
@@ -524,10 +548,24 @@ export async function importFromCsv(
     };
 }
 
-/** Custom fields are matched by name; an export from another instance may have others. */
-async function loadCustomFieldDefinitions(userId: any): Promise<Map<string, string>> {
-    const definitions = await CustomFieldDefinition.find({ user: userId });
-    return new Map(definitions.map(field => [normalizeCustomFieldName(field.name), String(field._id)]));
+/**
+ * Lookup tables for the importing user's custom fields, by hidden uuid and by
+ * name. An export from another instance has unknown uuids but may still match
+ * by name.
+ */
+async function loadCustomFieldDefinitions(userId: any): Promise<CustomFieldLookup> {
+    const definitions = await loadCustomFieldsWithUuids(userId);
+    const byUuid = new Map<string, string>();
+    const byName = new Map<string, string>();
+
+    for (const field of definitions) {
+        const id = String(field._id);
+        if (field.uuid && !byUuid.has(field.uuid)) byUuid.set(field.uuid, id);
+        const name = normalizeCustomFieldName(field.name);
+        if (!byName.has(name)) byName.set(name, id);
+    }
+
+    return { byUuid, byName };
 }
 
 /**
@@ -537,7 +575,7 @@ async function processImportBackground(
     rows: CsvRow[],
     importLog: any,
     userId: any,
-    customFieldDefinitions: Map<string, string>
+    customFieldDefinitions: CustomFieldLookup
 ) {
     let imported = 0;
     let skipped = 0;

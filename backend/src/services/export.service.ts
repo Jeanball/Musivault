@@ -1,6 +1,7 @@
 import CollectionItem from '../models/CollectionItem';
-import CustomFieldDefinition from '../models/CustomFieldDefinition';
 import { IAlbum } from '../models/Album';
+import { loadCustomFieldsWithUuids } from './customFields.service';
+import { formatCustomFieldHeader } from '../utils/customFields.utils';
 
 // Headers are kept compatible with the import parser so an export can be
 // re-imported as-is (see normalizeHeader in import.service).
@@ -36,9 +37,10 @@ function toCsvLine(values: unknown[]): string {
 
 /**
  * Build a CSV backup of a user's collection.
- * Custom field values are appended as extra columns named after the field, so
- * an import can restore them when the same field name exists on the target
- * instance. Unknown custom fields are ignored by the importer.
+ * Custom field values are appended as extra columns named after the field.
+ * Newer headers also carry the field's hidden uuid, so an import restores the
+ * values even when the field has been renamed since the export. Unknown custom
+ * fields are ignored by the importer.
  */
 export async function buildCollectionCsv(userId: any): Promise<string> {
     const [items, customFields] = await Promise.all([
@@ -46,10 +48,10 @@ export async function buildCollectionCsv(userId: any): Promise<string> {
             .populate<{ album: IAlbum }>('album')
             .sort({ addedAt: -1 })
             .exec(),
-        CustomFieldDefinition.find({ user: userId }).sort({ order: 1 }).exec()
+        loadCustomFieldsWithUuids(userId)
     ]);
 
-    const headers = [...BASE_HEADERS, ...customFields.map(f => f.name)];
+    const headers = [...BASE_HEADERS, ...customFields.map(f => formatCustomFieldHeader(f.name, f.uuid))];
     const lines = [toCsvLine(headers)];
 
     for (const item of items) {
