@@ -4,6 +4,7 @@ import { getRelease } from '../api/discogs';
 import { addToCollection as apiAddToCollection } from '../api/collection';
 import { isApiError, isRateLimitError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
+import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useReleasePrice } from '../hooks/useReleasePrice';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -24,6 +25,7 @@ const ReleasePage: React.FC = () => {
     const { releaseId } = useParams<{ releaseId: string }>();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { refreshCollection } = useCollectionData();
     const [albumDetails, setAlbumDetails] = useState<AlbumDetails | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [loadError, setLoadError] = useState<unknown>(null);
@@ -103,6 +105,7 @@ const ReleasePage: React.FC = () => {
                 sleeveCondition
             });
             toastService.success(t('common.addedSuccess', { title: albumDetails.title }));
+            void refreshCollection({ silent: true });
             setAddedAlbum({
                 id: item._id,
                 title: albumDetails.title

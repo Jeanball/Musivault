@@ -189,8 +189,10 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
                 toastService.success(t('search.manualUpdateSuccess', { title: trimmedTitle }));
                 onSaved?.(updated);
             } else {
-                await addManualAlbum(formData);
+                const { item: created } = await addManualAlbum(formData);
                 toastService.success(t('search.manualSuccess', { title: trimmedTitle }));
+                // Let the surrounding page resync the collection without a reload.
+                onSaved?.(created);
                 resetForm();
             }
         } catch (err) {

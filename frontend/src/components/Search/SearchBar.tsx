@@ -14,6 +14,7 @@ import ManualAlbumForm from './ManualAlbumForm';
 import type { DiscogsResult, ArtistResult } from '../../types/discogs.types';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useRecentSearches } from '../../hooks/useRecentSearches';
+import { useCollectionData } from '../../hooks/collection/useCollectionData';
 import { detectIntent } from '../../utils/searchIntent';
 import SearchField from './SearchField';
 import { ScanFrameIcon } from './SearchIcons';
@@ -66,6 +67,7 @@ const SearchBar: React.FC = () => {
 
     const inputRef = useRef<HTMLInputElement>(null);
     const { recents, remember, clear: clearRecents } = useRecentSearches();
+    const { refreshCollection } = useCollectionData();
 
     // Mobile detection: drives the shorter placeholder, and suppresses autofocus
     // so landing on the home page doesn't pop the keyboard over the content.
@@ -274,6 +276,8 @@ const SearchBar: React.FC = () => {
             await addToCollection({ ...releaseDetails, format });
 
             toastService.success(t('search.addedToCollection', { title: releaseDetails.title }));
+            // Keep the collection page in sync when the user goes back to it.
+            void refreshCollection({ silent: true });
         } catch (err: unknown) {
             console.error('Error adding to collection:', err);
             if (isApiError(err) && err.serverMessage) {
@@ -366,7 +370,7 @@ const SearchBar: React.FC = () => {
                     <ArrowLeft className="w-4 h-4" />
                     {t('search.backToSearch')}
                 </button>
-                <ManualAlbumForm />
+                <ManualAlbumForm onSaved={() => { void refreshCollection({ silent: true }); }} />
             </div>
         );
     }

@@ -77,7 +77,10 @@ describe('ManualAlbumForm custom fields', () => {
     });
 
     it('saves the filled custom fields when adding an album', async () => {
-        render(<ManualAlbumForm />);
+        const created = manualItem({ 'field-binder': 'Shelf 3' });
+        vi.mocked(addManualAlbum).mockResolvedValue({ item: created } as never);
+        const onSaved = vi.fn();
+        render(<ManualAlbumForm onSaved={onSaved} />);
 
         expect(await screen.findByText('Binder')).toBeInTheDocument();
         expect(screen.getByText('Notes')).toBeInTheDocument();
@@ -100,6 +103,8 @@ describe('ManualAlbumForm custom fields', () => {
         await waitFor(() => expect(addManualAlbum).toHaveBeenCalledTimes(1));
         const form = vi.mocked(addManualAlbum).mock.calls[0][0];
         expect(customFieldsFrom(form)).toEqual({ 'field-binder': 'Shelf 3' });
+        // The search page uses this callback to refresh the collection list.
+        expect(onSaved).toHaveBeenCalledWith(created);
     });
 
     it('shows the saved values when editing an album', async () => {
