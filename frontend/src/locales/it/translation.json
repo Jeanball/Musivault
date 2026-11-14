@@ -19,6 +19,7 @@
         "album": "Album",
         "format": "Formato",
         "formats": "Formati",
+        "genres": "Generi",
         "albums": "Album",
         "tracks": "Brani",
         "labels": "Etichette",
@@ -319,6 +320,8 @@
         "goToMusivault": "Vai a Musivault",
         "addAlbum": "Aggiungi un album",
         "filters": "Filtri",
+        "columns": "Colonne",
+        "resetColumns": "Ripristina",
         "showingCount": "{{shown}} di {{total}}",
         "releasesInGroup_one": "{{count}} disco",
         "releasesInGroup_other": "{{count}} dischi"

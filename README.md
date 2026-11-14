@@ -27,6 +27,7 @@
 - **Discogs Account** : connect your own Discogs account in Settings, with the server's token (admins) or a personal token ([setup](#optional-setup-discogs-account)). Off by default.
 - **Smart Insights** : collection statistics, format distribution and top artists.
 - **Advanced Filtering** : sort and filter by format, decade, date added and more.
+- **Custom Table Columns** : choose which fields the table view shows, including your own custom fields.
 - **Custom Fields** : add your own per-album fields (purchase price, storage location, notes) as short text or long text, ordered the way you want.
 - **Import & Export** : import a Discogs CSV straight in, matched by release ID, catalog number, then artist and title, with a detailed log of every row. Export the whole collection back to CSV at any time.
 

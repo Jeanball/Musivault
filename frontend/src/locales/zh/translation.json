@@ -19,6 +19,7 @@
         "album": "专辑",
         "format": "格式",
         "formats": "格式",
+        "genres": "流派",
         "albums": "专辑",
         "tracks": "曲目",
         "labels": "厂牌",
@@ -301,6 +302,8 @@
         "goToMusivault": "前往 Musivault",
         "addAlbum": "添加专辑",
         "filters": "筛选",
+        "columns": "列",
+        "resetColumns": "重置",
         "showingCount": "{{total}} 中的 {{shown}}",
         "releasesInGroup_other": "{{count}} 张唱片"
     },

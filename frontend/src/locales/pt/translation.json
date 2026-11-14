@@ -19,6 +19,7 @@
         "album": "Álbum",
         "format": "Formato",
         "formats": "Formatos",
+        "genres": "Gêneros",
         "albums": "Álbuns",
         "tracks": "Faixas",
         "labels": "Editoras",
@@ -301,6 +302,8 @@
         "goToMusivault": "Ir para Musivault",
         "addAlbum": "Adicionar um álbum",
         "filters": "Filtros",
+        "columns": "Colunas",
+        "resetColumns": "Redefinir",
         "showingCount": "{{shown}} de {{total}}",
         "releasesInGroup_one": "{{count}} disco",
         "releasesInGroup_other": "{{count}} discos"

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { CircleAlert, SlidersHorizontal, Search, X, LayoutGrid, Rows3, Table2, Disc3, Music, Tag, ChevronDown } from 'lucide-react';
+import { CircleAlert, SlidersHorizontal, Search, X, LayoutGrid, Rows3, Table2, Disc3, Music, Tag, ChevronDown, Columns3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { FilterState, LayoutType, CollectionViewMode } from '../../types/collection.types';
+import type { CustomFieldDefinition } from '../../types/customFields.types';
+import { BASE_TABLE_COLUMNS, customColumnKey, type TableColumnKey } from '../../constants/tableColumns';
 
 interface CollectionFiltersProps {
     filters: FilterState;
@@ -26,6 +28,12 @@ interface CollectionFiltersProps {
     /** Omitted where the layouts have nothing to draw. */
     layout?: LayoutType;
     onLayoutChange?: (layout: LayoutType) => void;
+    /** Columns currently drawn by the table view; the picker only edits these. */
+    tableColumns?: TableColumnKey[];
+    onTableColumnsChange?: (columns: TableColumnKey[]) => void;
+    onResetTableColumns?: () => void;
+    customFields?: CustomFieldDefinition[];
+    isTableColumnsLoading?: boolean;
 }
 
 const LAYOUTS: { value: LayoutType; labelKey: string; Icon: React.ElementType }[] = [
@@ -60,7 +68,12 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     onSearchChange,
     searchPlaceholder,
     layout,
-    onLayoutChange
+    onLayoutChange,
+    tableColumns,
+    onTableColumnsChange,
+    onResetTableColumns,
+    customFields = [],
+    isTableColumnsLoading = false
 }) => {
     const { t } = useTranslation();
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -72,6 +85,18 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     const showIssueToggle = issueCount >= 1 || filters.issueStatus === 'issues';
     const showSearch = searchTerm !== undefined && !!onSearchChange;
     const showLayouts = !!layout && !!onLayoutChange;
+    const showColumnPicker = layout === 'table' && !!tableColumns && !!onTableColumnsChange;
+
+    const selectedColumns = new Set(tableColumns ?? []);
+    const toggleColumn = (key: TableColumnKey) => {
+        if (!tableColumns || !onTableColumnsChange) return;
+        const isSelected = selectedColumns.has(key);
+        // The table cannot render zero columns, so keep the last one ticked.
+        if (isSelected && tableColumns.length <= 1) return;
+        onTableColumnsChange(
+            isSelected ? tableColumns.filter((column) => column !== key) : [...tableColumns, key]
+        );
+    };
 
     const handleFilterChange = (key: keyof FilterState, value: string) => {
         onFiltersChange({ ...filters, [key]: value });
@@ -175,6 +200,89 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                                 <span className="hidden sm:inline lg:inline">{t(labelKey)}</span>
                             </button>
                         ))}
+                    </div>
+                )}
+
+                {showColumnPicker && (
+                    <div className="dropdown dropdown-end">
+                        <button
+                            tabIndex={0}
+                            className="btn btn-sm btn-ghost"
+                            title={t('collection.columns')}
+                            aria-label={t('collection.columns')}
+                            disabled={isTableColumnsLoading}
+                        >
+                            {isTableColumnsLoading
+                                ? <span className="loading loading-spinner loading-xs"></span>
+                                : <Columns3 size={16} />}
+                            <span className="hidden sm:inline">{t('collection.columns')}</span>
+                            <ChevronDown size={14} className="opacity-60" />
+                        </button>
+                        <div
+                            tabIndex={0}
+                            className="dropdown-content z-20 mt-1 w-64 rounded-box bg-base-200 p-2 shadow-dropdown"
+                        >
+                            <div className="max-h-80 overflow-y-auto">
+                                <div className="px-2 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                    {t('collection.columns')}
+                                </div>
+                                {BASE_TABLE_COLUMNS.map(({ key, labelKey }) => {
+                                    const checked = selectedColumns.has(key);
+                                    return (
+                                        <label
+                                            key={key}
+                                            className="flex items-center gap-2 rounded-field px-2 py-1.5 hover:bg-base-300 cursor-pointer"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox checkbox-sm"
+                                                checked={checked}
+                                                onChange={() => toggleColumn(key)}
+                                                disabled={checked && (tableColumns?.length ?? 0) <= 1}
+                                            />
+                                            <span className="text-sm">{t(labelKey)}</span>
+                                        </label>
+                                    );
+                                })}
+
+                                {customFields.length > 0 && (
+                                    <>
+                                        <div className="divider my-1"></div>
+                                        <div className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                            {t('customFields.title')}
+                                        </div>
+                                        {customFields.map((field) => {
+                                            const key = customColumnKey(field._id);
+                                            const checked = selectedColumns.has(key);
+                                            return (
+                                                <label
+                                                    key={field._id}
+                                                    className="flex items-center gap-2 rounded-field px-2 py-1.5 hover:bg-base-300 cursor-pointer"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox checkbox-sm shrink-0"
+                                                        checked={checked}
+                                                        onChange={() => toggleColumn(key)}
+                                                        disabled={checked && (tableColumns?.length ?? 0) <= 1}
+                                                    />
+                                                    <span className="text-sm truncate" title={field.name}>{field.name}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="divider my-1"></div>
+                            <button
+                                className="btn btn-ghost btn-xs w-full"
+                                onClick={() => onResetTableColumns?.()}
+                                disabled={!onResetTableColumns}
+                            >
+                                {t('collection.resetColumns')}
+                            </button>
+                        </div>
                     </div>
                 )}
 
