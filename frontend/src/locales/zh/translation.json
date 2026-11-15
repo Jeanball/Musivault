@@ -863,6 +863,14 @@
         "itemSectionTitle": "自定义字段",
         "fieldName": "字段名称",
         "fieldType": "字段类型",
+
+        "tableWidth": "列宽",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "此列在收藏表格中的宽度，范围为 {{min}} 到 {{max}} rem。较长的值将被截断。",
+
+        "tableWidthInvalid": "列宽必须在 {{min}} 到 {{max}} rem 之间",
         "examplePlaceholder": "示例 / 占位符",
         "typeText": "短文本",
         "typeTextarea": "长文本（备注）",

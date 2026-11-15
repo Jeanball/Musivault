@@ -67,7 +67,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
 
     const customFieldNames = new Map(customFields.map((field) => [field._id, field.name]));
     const hasCustomColumns = columns.some(isCustomTableColumn);
-    const tableWidthRem = columns.reduce((sum, key) => sum + tableColumnWidthRem(key), 0);
+    const tableWidthRem = columns.reduce((sum, key) => sum + tableColumnWidthRem(key, customFields), 0);
 
     const renderHeader = (key: TableColumnKey) => {
         const customFieldId = customFieldIdFromColumn(key);
@@ -223,7 +223,7 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
             <table className="table table-fixed w-full" style={{ minWidth: `${tableWidthRem}rem` }}>
                 <colgroup>
                     {columns.map((key) => (
-                        <col key={key} style={{ width: `${tableColumnWidthRem(key)}rem` }} />
+                        <col key={key} style={{ width: `${tableColumnWidthRem(key, customFields)}rem` }} />
                     ))}
                 </colgroup>
                 <thead>

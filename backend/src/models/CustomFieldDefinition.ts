@@ -3,11 +3,21 @@ import { randomUUID } from "crypto";
 
 export type CustomFieldType = "text" | "textarea";
 
+/** Bounds of the collection-table column width a short text field can ask for. */
+export const CUSTOM_FIELD_MIN_TABLE_WIDTH_REM = 4;
+export const CUSTOM_FIELD_MAX_TABLE_WIDTH_REM = 24;
+export const CUSTOM_FIELD_DEFAULT_TABLE_WIDTH_REM = 9;
+
 export interface ICustomFieldDefinition extends Document<mongoose.Types.ObjectId> {
   user: mongoose.Types.ObjectId;
   name: string;
   type: CustomFieldType;
   placeholder?: string;
+  /**
+   * Column width in the collection table, for short text fields. Long values are
+   * truncated, so a field cannot widen the table and push the other columns out.
+   */
+  tableWidthRem?: number;
   order: number;
   /**
    * Stable identifier embedded in CSV exports. The name can be changed at any
@@ -40,6 +50,12 @@ const customFieldDefinitionSchema = new Schema<ICustomFieldDefinition>(
       type: String,
       default: "",
       maxlength: 500,
+    },
+    tableWidthRem: {
+      type: Number,
+      min: CUSTOM_FIELD_MIN_TABLE_WIDTH_REM,
+      max: CUSTOM_FIELD_MAX_TABLE_WIDTH_REM,
+      default: CUSTOM_FIELD_DEFAULT_TABLE_WIDTH_REM,
     },
     uuid: {
       type: String,

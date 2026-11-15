@@ -893,6 +893,14 @@
         "itemSectionTitle": "Custom Fields",
         "fieldName": "Field Name",
         "fieldType": "Field Type",
+
+        "tableWidth": "Table width",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "Width of this column in the collection table, from {{min}} to {{max}} rem. Longer values are cut off.",
+
+        "tableWidthInvalid": "Table width must be between {{min}} and {{max}} rem",
         "examplePlaceholder": "Example / Placeholder",
         "typeText": "Short text",
         "typeTextarea": "Long text (notes)",

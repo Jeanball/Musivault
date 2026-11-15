@@ -870,6 +870,14 @@
         "itemSectionTitle": "Campos personalizados",
         "fieldName": "Nome do campo",
         "fieldType": "Tipo de campo",
+
+        "tableWidth": "Largura da coluna",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "Largura desta coluna na tabela da coleção, de {{min}} a {{max}} rem. Os valores mais longos são cortados.",
+
+        "tableWidthInvalid": "A largura deve estar entre {{min}} e {{max}} rem",
         "examplePlaceholder": "Exemplo / Placeholder",
         "typeText": "Texto curto",
         "typeTextarea": "Texto longo (notas)",

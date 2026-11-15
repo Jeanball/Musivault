@@ -892,6 +892,14 @@
         "itemSectionTitle": "Champs personnalisés",
         "fieldName": "Nom du champ",
         "fieldType": "Type de champ",
+
+        "tableWidth": "Largeur de colonne",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "Largeur de cette colonne dans le tableau de la collection, de {{min}} à {{max}} rem. Les valeurs plus longues sont tronquées.",
+
+        "tableWidthInvalid": "La largeur doit être comprise entre {{min}} et {{max}} rem",
         "examplePlaceholder": "Exemple / Placeholder",
         "typeText": "Texte court",
         "typeTextarea": "Texte long (notes)",

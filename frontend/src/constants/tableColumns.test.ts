@@ -63,8 +63,15 @@ describe('table columns', () => {
         ).toEqual(['artist', customColumnKey(binder._id)]);
     });
 
-    it('gives base columns their own width and custom columns a shared one', () => {
+    it('gives base columns their own width and custom columns their configured one', () => {
         expect(tableColumnWidthRem('cover')).toBe(5);
         expect(tableColumnWidthRem(customColumnKey(binder._id))).toBe(9);
+        expect(tableColumnWidthRem(customColumnKey(binder._id), customFields)).toBe(9);
+
+        const narrow = { ...binder, tableWidthRem: 6 };
+        const wide = { ...location, tableWidthRem: 99 };
+        expect(tableColumnWidthRem(customColumnKey(narrow._id), [narrow])).toBe(6);
+        // A stored value outside the allowed range is clamped.
+        expect(tableColumnWidthRem(customColumnKey(wide._id), [wide])).toBe(24);
     });
 });

@@ -62,7 +62,10 @@ const BASE_KEYS = new Set<string>(BASE_TABLE_COLUMNS.map((column) => column.key)
 const BASE_ORDER = new Map<string, number>(
     BASE_TABLE_COLUMNS.map((column, index) => [column.key, index])
 );
-const CUSTOM_WIDTH_REM = 9;
+/** Fallback width for a custom column, and the bounds a field can ask for. */
+export const CUSTOM_COLUMN_WIDTH_REM = 9;
+export const CUSTOM_COLUMN_MIN_WIDTH_REM = 4;
+export const CUSTOM_COLUMN_MAX_WIDTH_REM = 24;
 
 export function isBaseTableColumn(key: string): key is BaseTableColumnKey {
     return BASE_KEYS.has(key);
@@ -81,9 +84,25 @@ export function customFieldIdFromColumn(key: string): string | null {
     return isCustomTableColumn(key) ? key.slice(CUSTOM_COLUMN_PREFIX.length) : null;
 }
 
-export function tableColumnWidthRem(key: TableColumnKey): number {
+/**
+ * Width of a column in rem. A custom field can carry its own width (set in
+ * Settings); anything missing or out of range falls back to the shared default
+ * and is clamped, so a bad value cannot push the table off screen.
+ */
+export function tableColumnWidthRem(
+    key: TableColumnKey,
+    customFields: readonly CustomFieldDefinition[] = []
+): number {
     const base = BASE_TABLE_COLUMNS.find((column) => column.key === key);
-    return base ? base.widthRem : CUSTOM_WIDTH_REM;
+    if (base) return base.widthRem;
+
+    const fieldId = customFieldIdFromColumn(key);
+    const stored = fieldId
+        ? customFields.find((field) => field._id === fieldId)?.tableWidthRem
+        : undefined;
+    if (typeof stored !== 'number' || !Number.isFinite(stored)) return CUSTOM_COLUMN_WIDTH_REM;
+
+    return Math.min(CUSTOM_COLUMN_MAX_WIDTH_REM, Math.max(CUSTOM_COLUMN_MIN_WIDTH_REM, stored));
 }
 
 /**

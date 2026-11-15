@@ -866,6 +866,14 @@
         "itemSectionTitle": "Benutzerdefinierte Felder",
         "fieldName": "Feldname",
         "fieldType": "Feldtyp",
+
+        "tableWidth": "Spaltenbreite",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "Breite dieser Spalte in der Sammlungstabelle, von {{min}} bis {{max}} rem. Längere Werte werden abgeschnitten.",
+
+        "tableWidthInvalid": "Die Spaltenbreite muss zwischen {{min}} und {{max}} rem liegen",
         "examplePlaceholder": "Beispiel / Platzhalter",
         "typeText": "Kurzer Text",
         "typeTextarea": "Langer Text (Notizen)",
