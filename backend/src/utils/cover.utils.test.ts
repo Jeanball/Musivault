@@ -10,10 +10,13 @@ vi.mock('../config/uploads.config', () => ({ COVERS_DIR: coversDir }));
 vi.mock('../config/logger.config', () => ({
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }
 }));
+vi.mock('axios', () => ({ default: { get: vi.fn() } }));
 
+import axios from 'axios';
 import {
     decodeBase64Cover,
     detectImageType,
+    downloadCoverToLocal,
     localCoverToDataUri,
     saveCoverFromBase64,
     toDataUri
@@ -80,5 +83,36 @@ describe('cover.utils', () => {
         expect(dataUri).toBe(`data:image/jpeg;base64,${jpeg.toString('base64')}`);
         expect(await localCoverToDataUri('https://img.discogs.com/cover.jpg')).toBeNull();
         expect(await localCoverToDataUri('/uploads/covers/missing.jpg')).toBeNull();
+    });
+
+    it('copies a remote Discogs cover into the local covers directory', async () => {
+        vi.mocked(axios.get).mockResolvedValue({ data: png.buffer.slice(png.byteOffset, png.byteOffset + png.byteLength) });
+
+        const coverPath = await downloadCoverToLocal('https://img.discogs.com/release.png');
+
+        expect(axios.get).toHaveBeenCalledWith(
+            'https://img.discogs.com/release.png',
+            expect.objectContaining({ responseType: 'arraybuffer' })
+        );
+        expect(coverPath).toMatch(/^\/uploads\/covers\/.+-[0-9]+\.png$/);
+        const filename = coverPath.split('/').pop()!;
+        expect(fs.readFileSync(`${coversDir}/${filename}`).equals(png)).toBe(true);
+    });
+
+    it('keeps the remote URL when the download or the image check fails', async () => {
+        vi.mocked(axios.get).mockRejectedValue(new Error('network down'));
+        expect(await downloadCoverToLocal('https://img.discogs.com/cover.jpg')).toBe('https://img.discogs.com/cover.jpg');
+
+        vi.mocked(axios.get).mockResolvedValue({ data: Buffer.from('not an image').buffer });
+        expect(await downloadCoverToLocal('https://img.discogs.com/cover.jpg')).toBe('https://img.discogs.com/cover.jpg');
+    });
+
+    it('leaves local paths and empty covers untouched', async () => {
+        vi.mocked(axios.get).mockClear();
+
+        expect(await downloadCoverToLocal('/uploads/covers/already.jpg')).toBe('/uploads/covers/already.jpg');
+        expect(await downloadCoverToLocal('')).toBe('');
+        expect(await downloadCoverToLocal(null)).toBe('');
+        expect(axios.get).not.toHaveBeenCalled();
     });
 });

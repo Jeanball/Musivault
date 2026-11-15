@@ -15,7 +15,8 @@ vi.mock('../models/CustomFieldDefinition', () => ({ default: { find: vi.fn(async
 vi.mock('../models/ImportLog', () => ({ default: {} }));
 vi.mock('../models/User', () => ({ default: {} }));
 vi.mock('../utils/cover.utils', () => ({
-    saveCoverFromBase64: vi.fn(async () => '/uploads/covers/imported.png')
+    saveCoverFromBase64: vi.fn(async () => '/uploads/covers/imported.png'),
+    downloadCoverToLocal: vi.fn(async (url: string) => url)
 }));
 vi.mock('./discogs.service', () => ({
     discogsService: { fetchByReleaseId: vi.fn(), searchByArtistAlbum: vi.fn(), searchByCatalogNumber: vi.fn(), getMarketplaceStats: vi.fn() }

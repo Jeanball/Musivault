@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { addManualAlbum, updateManualAlbum } from '../../api/collection';
+import { addManualAlbum, updateManualAlbum, updateDiscogsAlbum } from '../../api/collection';
 import { getCustomFields } from '../../api/customFields';
 import { isApiError } from '../../api/errors';
 import { toastService } from '../../utils/toast';
@@ -31,13 +31,19 @@ const createTrackDraft = (track?: Partial<Track>): TrackDraft => ({
 interface ManualAlbumFormProps {
     /** When present the form edits this album instead of creating a new one. */
     item?: CollectionItem | null;
+    /**
+     * `discogs` edits a Discogs album on this user's copy: no format, value or
+     * custom fields (they belong to the item, not the release) and no creation.
+     */
+    mode?: 'manual' | 'discogs';
     onSaved?: (item: CollectionItem) => void;
     onCancel?: () => void;
 }
 
-const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCancel }) => {
+const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual', onSaved, onCancel }) => {
     const { t } = useTranslation();
     const isEditing = Boolean(item);
+    const isDiscogs = mode === 'discogs';
 
     const firstLabel = item?.album.labels?.[0];
     const currentCover = item?.album.cover_image || item?.album.thumb || '';
@@ -66,10 +72,11 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        if (isDiscogs) return;
         getCustomFields()
             .then(setCustomFieldDefinitions)
             .catch((error) => console.error('Failed to fetch custom field definitions:', error));
-    }, []);
+    }, [isDiscogs]);
 
     const setCustomFieldValue = (fieldId: string, fieldValue: string) => {
         setCustomFieldValues(prev => ({ ...prev, [fieldId]: fieldValue }));
@@ -150,11 +157,11 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
             formData.append('title', trimmedTitle);
             formData.append('artist', trimmedArtist);
             formData.append('year', year.trim());
-            formData.append('format', format);
+            if (!isDiscogs) formData.append('format', format);
             formData.append('label', label.trim());
             formData.append('catno', catno.trim());
             formData.append('genres', genres);
-            formData.append('value', value.trim());
+            if (!isDiscogs) formData.append('value', value.trim());
 
             const filledTracks = tracks
                 .map(track => ({
@@ -168,13 +175,15 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
 
             // Only fields that still exist and have a value; blanks are omitted
             // so an empty box clears the stored value instead of saving "".
-            const customFields = customFieldDefinitions.reduce<Record<string, string>>((acc, field) => {
-                const fieldValue = (customFieldValues[field._id] || '').trim();
-                if (fieldValue) acc[field._id] = fieldValue;
-                return acc;
-            }, {});
-            if (customFieldDefinitions.length > 0) {
-                formData.append('customFields', JSON.stringify(customFields));
+            if (!isDiscogs) {
+                const customFields = customFieldDefinitions.reduce<Record<string, string>>((acc, field) => {
+                    const fieldValue = (customFieldValues[field._id] || '').trim();
+                    if (fieldValue) acc[field._id] = fieldValue;
+                    return acc;
+                }, {});
+                if (customFieldDefinitions.length > 0) {
+                    formData.append('customFields', JSON.stringify(customFields));
+                }
             }
 
             if (coverFile) {
@@ -185,9 +194,15 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
             }
 
             if (isEditing && item) {
-                const { item: updated } = await updateManualAlbum(item._id, formData);
-                toastService.success(t('search.manualUpdateSuccess', { title: trimmedTitle }));
-                onSaved?.(updated);
+                if (isDiscogs) {
+                    const { item: updated } = await updateDiscogsAlbum(item._id, formData);
+                    toastService.success(t('album.discogsUpdateSuccess', { title: trimmedTitle }));
+                    onSaved?.(updated);
+                } else {
+                    const { item: updated } = await updateManualAlbum(item._id, formData);
+                    toastService.success(t('search.manualUpdateSuccess', { title: trimmedTitle }));
+                    onSaved?.(updated);
+                }
             } else {
                 const { item: created } = await addManualAlbum(formData);
                 toastService.success(t('search.manualSuccess', { title: trimmedTitle }));
@@ -214,7 +229,9 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
                 <div className="card-body">
                     <h3 className="card-title text-lg mb-4">
                         <Music className="w-5 h-5" />
-                        {isEditing ? t('search.manualEditTitle') : t('search.manualTitle')}
+                        {isDiscogs
+                            ? t('album.editDiscogsTitle')
+                            : isEditing ? t('search.manualEditTitle') : t('search.manualTitle')}
                     </h3>
 
                     {/* Cover Image Upload */}
@@ -325,6 +342,8 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
                                 value={format}
                                 onChange={(e) => setFormat(e.target.value)}
                                 className="select w-full"
+                                disabled={isDiscogs}
+                                title={isDiscogs ? t('album.formatNotEditable') : undefined}
                             >
                                 {FORMATS.map((f) => (
                                     <option key={f} value={f}>
@@ -367,7 +386,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
                     </div>
 
                     {/* Genres + Value */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className={`grid grid-cols-1 gap-4 ${isDiscogs ? '' : 'sm:grid-cols-2'}`}>
                         <div className="flex flex-col">
                             <label className="label w-full justify-between">
                                 <span className="text-sm">{t('album.genres')}</span>
@@ -382,25 +401,27 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, onSaved, onCanc
                             />
                         </div>
 
-                        <div className="flex flex-col">
-                            <label className="label w-full justify-between">
-                                <span className="text-sm">{t('search.valueUsd')}</span>
-                                <span className="text-xs text-base-content/50">{t('search.optional')}</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={value}
-                                onChange={(e) => setValue(e.target.value)}
-                                placeholder="0.00"
-                                className="input w-full"
-                                min={0}
-                                step="0.01"
-                            />
-                        </div>
+                        {!isDiscogs && (
+                            <div className="flex flex-col">
+                                <label className="label w-full justify-between">
+                                    <span className="text-sm">{t('search.valueUsd')}</span>
+                                    <span className="text-xs text-base-content/50">{t('search.optional')}</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    value={value}
+                                    onChange={(e) => setValue(e.target.value)}
+                                    placeholder="0.00"
+                                    className="input w-full"
+                                    min={0}
+                                    step="0.01"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Custom fields */}
-                    {customFieldDefinitions.length > 0 && (
+                    {!isDiscogs && customFieldDefinitions.length > 0 && (
                         <div className="flex flex-col gap-2 mt-2">
                             <label className="label p-0">
                                 <span className="text-sm">{t('customFields.itemSectionTitle')}</span>

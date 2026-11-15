@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# User uploads (album covers added from the app)
+uploads
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

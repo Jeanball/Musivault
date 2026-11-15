@@ -1,7 +1,9 @@
+import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { COVERS_DIR } from '../config/uploads.config';
 import { logger } from '../config/logger.config';
+import { DISCOGS_HEADERS } from './discogs.utils';
 
 /** Same limit the cover upload endpoint enforces. */
 export const MAX_COVER_BYTES = 5 * 1024 * 1024;
@@ -83,6 +85,17 @@ export async function localCoverToDataUri(coverPath: string | null | undefined):
 }
 
 /**
+ * Write an image under the covers directory with a unique name and return its
+ * public path.
+ */
+async function writeCoverFile(buffer: Buffer, type: ImageType): Promise<string> {
+    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${type.ext}`;
+    await fs.promises.mkdir(COVERS_DIR, { recursive: true });
+    await fs.promises.writeFile(path.join(COVERS_DIR, filename), buffer);
+    return `/uploads/covers/${filename}`;
+}
+
+/**
  * Write an image from a base64/data-URI CSV cell under the covers directory and
  * return the public path, or null when the cell is not a usable cover (empty,
  * not base64, not JPEG/PNG/WebP, or larger than the upload limit).
@@ -102,8 +115,50 @@ export async function saveCoverFromBase64(raw: string | null | undefined): Promi
         return null;
     }
 
-    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${type.ext}`;
-    await fs.promises.mkdir(COVERS_DIR, { recursive: true });
-    await fs.promises.writeFile(path.join(COVERS_DIR, filename), buffer);
-    return `/uploads/covers/${filename}`;
+    return writeCoverFile(buffer, type);
+}
+
+/**
+ * Copy a remote image (a Discogs cover) into the local covers directory and
+ * return the path to serve it from. Anything that is not a remote http(s) URL is
+ * returned untouched, and so is the original URL when the download or the image
+ * check fails: a missing cover must never block adding an album.
+ */
+export async function downloadCoverToLocal(
+    url: string | null | undefined,
+    label = 'cover'
+): Promise<string> {
+    const value = typeof url === 'string' ? url.trim() : '';
+    if (!value) return '';
+    if (value.startsWith('/uploads/covers/')) return value;
+    if (!/^https?:\/\//i.test(value)) return value;
+
+    try {
+        const response = await axios.get<ArrayBuffer>(value, {
+            responseType: 'arraybuffer',
+            // The image CDN answers 403 to the default axios user agent.
+            headers: DISCOGS_HEADERS,
+            timeout: 15000,
+            maxContentLength: MAX_COVER_BYTES,
+            maxBodyLength: MAX_COVER_BYTES
+        });
+
+        const buffer = Buffer.from(response.data);
+        if (!buffer.length) return value;
+        if (buffer.length > MAX_COVER_BYTES) {
+            logger.warn({ url: value, size: buffer.length }, `[Cover] ${label} is larger than the 5 MB limit`);
+            return value;
+        }
+
+        const type = detectImageType(buffer);
+        if (!type) {
+            logger.warn({ url: value }, `[Cover] ${label} is not a JPEG, PNG or WebP image`);
+            return value;
+        }
+
+        return await writeCoverFile(buffer, type);
+    } catch (err) {
+        logger.warn({ err, url: value }, `[Cover] Could not download the ${label}; keeping the remote URL`);
+        return value;
+    }
 }

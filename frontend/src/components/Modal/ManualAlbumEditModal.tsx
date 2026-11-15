@@ -6,15 +6,18 @@ import type { CollectionItem } from '../../types/collection.types';
 
 interface ManualAlbumEditModalProps {
     item: CollectionItem;
+    /** `discogs` edits the user's copy of a Discogs album instead of a manual one. */
+    mode?: 'manual' | 'discogs';
     onClose: () => void;
     onSaved: (item: CollectionItem) => void;
 }
 
 /**
- * The manual album form, opened as a modal from the album detail page. Covers
- * every field a hand-added album was created with, plus a replacement cover.
+ * The album form, opened as a modal from the album detail page. Covers every
+ * field a hand-added album was created with, plus a replacement cover; in
+ * Discogs mode it edits the same fields on the user's own copy.
  */
-const ManualAlbumEditModal: React.FC<ManualAlbumEditModalProps> = ({ item, onClose, onSaved }) => {
+const ManualAlbumEditModal: React.FC<ManualAlbumEditModalProps> = ({ item, mode = 'manual', onClose, onSaved }) => {
     const { t } = useTranslation();
 
     return (
@@ -28,7 +31,7 @@ const ManualAlbumEditModal: React.FC<ManualAlbumEditModalProps> = ({ item, onClo
                 >
                     <X className="w-4 h-4" />
                 </button>
-                <ManualAlbumForm item={item} onSaved={onSaved} onCancel={onClose} />
+                <ManualAlbumForm item={item} mode={mode} onSaved={onSaved} onCancel={onClose} />
             </div>
             <form method="dialog" className="modal-backdrop">
                 <button onClick={onClose}>{t('common.close')}</button>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CircleAlert, ImagePlus, Pencil, RefreshCw } from 'lucide-react';
+import { CircleAlert, HardDrive, ImagePlus, Pencil, RefreshCw, RotateCcw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { getPreferences } from '../api/preferences';
 import { isApiError } from '../api/errors';
@@ -11,7 +11,8 @@ import {
     refreshItemFromDiscogs,
     removeFromCollection,
     ignoreFormatAlert,
-    restoreFormatAlert
+    restoreFormatAlert,
+    restoreDiscogsAlbum
 } from '../api/collection';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -52,6 +53,8 @@ const AlbumDetailPage: React.FC = () => {
     const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
     const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
     const [isEditingManual, setIsEditingManual] = useState(false);
+    const [isEditingDiscogs, setIsEditingDiscogs] = useState(false);
+    const [isRestoringDiscogs, setIsRestoringDiscogs] = useState(false);
     const { formatValue } = useCurrency();
     const backTarget = (location.state as AlbumDetailLocationState | null)?.backTo || '/app/collection';
 
@@ -119,6 +122,9 @@ const AlbumDetailPage: React.FC = () => {
 
     const refreshFromDiscogs = async () => {
         if (!item) return;
+        if (item.locallyModified && !confirm(t('album.confirmDiscardLocalEdits'))) {
+            return;
+        }
         setIsRefreshing(true);
         try {
             const { item: updated, changed } = await refreshItemFromDiscogs(item._id);
@@ -160,6 +166,11 @@ const AlbumDetailPage: React.FC = () => {
     const handleOpenRematchVersions = async () => {
         if (!item?.album.discogsId) {
             toastService.error(t('rematch.noMainRelease'));
+            return;
+        }
+
+        // Rematching replaces the edition: local edits to the old one would be lost.
+        if (item.locallyModified && !confirm(t('album.confirmDiscardLocalEditsRematch'))) {
             return;
         }
 
@@ -251,10 +262,30 @@ const AlbumDetailPage: React.FC = () => {
         }
     };
 
-    const handleManualSaved = (updated: CollectionItem) => {
+    const handleAlbumSaved = (updated: CollectionItem) => {
         setItem(updated);
         setIsEditingManual(false);
+        setIsEditingDiscogs(false);
         void refreshCollection({ silent: true });
+    };
+
+    const handleRestoreDiscogs = async () => {
+        if (!item || !confirm(t('album.confirmRestoreDiscogs'))) {
+            return;
+        }
+
+        setIsRestoringDiscogs(true);
+        try {
+            const { item: updated, restored } = await restoreDiscogsAlbum(item._id);
+            setItem(updated);
+            void refreshCollection({ silent: true });
+            toastService.success(restored ? t('album.restoreDiscogsSuccess') : t('album.noLocalEdits'));
+        } catch (error) {
+            console.error('Failed to restore Discogs data:', error);
+            toastService.error(t('album.restoreDiscogsFailed'));
+        } finally {
+            setIsRestoringDiscogs(false);
+        }
     };
 
     return (
@@ -505,6 +536,16 @@ const AlbumDetailPage: React.FC = () => {
                         )}
                         {!album.isManual && (
                             <button
+                                onClick={() => setIsEditingDiscogs(true)}
+                                className="btn btn-outline gap-1"
+                                title={t('album.editDiscogs')}
+                            >
+                                <Pencil size={18} />
+                                {t('common.edit')}
+                            </button>
+                        )}
+                        {!album.isManual && (
+                            <button
                                 onClick={handleOpenRematchVersions}
                                 className={`btn btn-warning btn-outline ${isOpeningRematch ? 'loading' : ''}`}
                                 title={t('album.rematch')}
@@ -515,6 +556,30 @@ const AlbumDetailPage: React.FC = () => {
                                 </svg>
                                 {t('album.rematch')}
                             </button>
+                        )}
+                        {!album.isManual && item.locallyModified && (
+                            <button
+                                onClick={handleRestoreDiscogs}
+                                className={`btn btn-ghost gap-1 text-base-content/60 ${isRestoringDiscogs ? 'loading' : ''}`}
+                                title={t('album.restoreDiscogsHint')}
+                                disabled={isRestoringDiscogs}
+                            >
+                                {!isRestoringDiscogs && <RotateCcw size={16} />}
+                                {t('album.restoreDiscogs')}
+                            </button>
+                        )}
+                        {/* Discreet sign that this copy was edited by hand. */}
+                        {item.locallyModified && (
+                            <span
+                                className="self-center tooltip tooltip-top"
+                                data-tip={t('album.locallyModifiedHint')}
+                            >
+                                <HardDrive
+                                    size={16}
+                                    className="text-base-content/40"
+                                    aria-label={t('album.locallyModifiedHint')}
+                                />
+                            </span>
                         )}
                         <button onClick={handleDelete} className="btn btn-error btn-outline" title="Remove from collection">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -530,7 +595,16 @@ const AlbumDetailPage: React.FC = () => {
                 <ManualAlbumEditModal
                     item={item}
                     onClose={() => setIsEditingManual(false)}
-                    onSaved={handleManualSaved}
+                    onSaved={handleAlbumSaved}
+                />
+            )}
+
+            {isEditingDiscogs && (
+                <ManualAlbumEditModal
+                    item={item}
+                    mode="discogs"
+                    onClose={() => setIsEditingDiscogs(false)}
+                    onSaved={handleAlbumSaved}
                 />
             )}
         </div>

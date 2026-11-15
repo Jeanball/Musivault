@@ -3,6 +3,7 @@ import { IAlbum } from '../models/Album';
 import { loadCustomFieldsWithUuids } from './customFields.service';
 import { formatCustomFieldHeader } from '../utils/customFields.utils';
 import { localCoverToDataUri } from '../utils/cover.utils';
+import { mergeAlbumOverrides, toPlainAlbum } from '../utils/albumOverrides.utils';
 
 // Headers are kept compatible with the import parser so an export can be
 // re-imported as-is (see normalizeHeader in import.service).
@@ -57,8 +58,9 @@ export async function buildCollectionCsv(userId: any): Promise<string> {
     const lines = [toCsvLine(headers)];
 
     for (const item of items) {
-        const album = item.album;
-        if (!album) continue;
+        if (!item.album) continue;
+        // A Discogs album can carry the user's local edits; export what they see.
+        const album = mergeAlbumOverrides(toPlainAlbum(item.album), item.albumOverrides);
 
         // Discogs release ids are on the album; manual entries have none.
         const catalogNumber = album.labels?.find(l => l.catno)?.catno || '';

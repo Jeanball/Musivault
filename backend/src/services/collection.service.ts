@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import CollectionItem from '../models/CollectionItem';
 import type { IAlbum } from '../models/Album';
+import { applyAlbumOverrides } from '../utils/albumOverrides.utils';
 
 /**
  * Get the sorted list of unique album styles present in a single user's collection.
@@ -10,8 +11,10 @@ export async function getUserStyles(userId: mongoose.Types.ObjectId | string): P
 
   const stylesSet = new Set<string>();
   for (const item of collectionItems) {
-    if (item.album && item.album.styles) {
-      for (const style of item.album.styles) {
+    // Styles a user edited locally take part in the filter too.
+    const album = applyAlbumOverrides(item).album;
+    if (album && album.styles) {
+      for (const style of album.styles) {
         stylesSet.add(style);
       }
     }

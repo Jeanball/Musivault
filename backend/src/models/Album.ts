@@ -27,14 +27,14 @@ export interface IAlbum extends Document {
   labels: ILabel[];
 }
 
-const trackSchema = new Schema<ITrack>({
+export const trackSchema = new Schema<ITrack>({
   position: { type: String, default: '' },
   title: { type: String, default: '' },
   duration: { type: String, default: '' },
   artist: { type: String, default: '' },
 }, { _id: false });
 
-const labelSchema = new Schema<ILabel>({
+export const labelSchema = new Schema<ILabel>({
   name: { type: String, default: '' },
   catno: { type: String, default: '' },
   discogsId: { type: Number },

@@ -11,7 +11,7 @@ import { loadCustomFieldsWithUuids } from './customFields.service';
 import { stripArtistSuffixes } from '../utils/discogs.utils';
 import { parseCustomFieldHeader } from '../utils/customFields.utils';
 import { buildPriceCache } from '../utils/price.utils';
-import { saveCoverFromBase64 } from '../utils/cover.utils';
+import { saveCoverFromBase64, downloadCoverToLocal } from '../utils/cover.utils';
 import { FoundAlbumInfo } from '../types/discogs.types';
 import { logger } from '../config/logger.config';
 
@@ -395,13 +395,15 @@ function isManualRow(row: CsvRow): boolean {
 export async function upsertAlbumFromDiscogs(found: FoundAlbumInfo) {
     let album = await Album.findOne({ discogsId: found.discogsId });
     if (!album) {
+        // Discogs serves remote images: keep a local copy, like an album added from search.
+        const localCover = await downloadCoverToLocal(found.cover_image || found.thumb, 'Discogs cover');
         album = new Album({
             discogsId: found.discogsId,
             title: found.title,
             artist: stripArtistSuffixes(found.artist),
             year: found.year,
-            thumb: found.thumb,
-            cover_image: found.cover_image,
+            thumb: localCover || found.thumb,
+            cover_image: localCover || found.cover_image,
             styles: found.styles || [],
             tracklist: found.tracklist || [],
             labels: found.labels || [],
@@ -413,6 +415,17 @@ export async function upsertAlbumFromDiscogs(found: FoundAlbumInfo) {
         if (!album.styles?.length && found.styles?.length) { album.styles = found.styles; filled = true; }
         if (!album.tracklist?.length && found.tracklist?.length) { album.tracklist = found.tracklist; filled = true; }
         if (!album.labels?.length && found.labels?.length) { album.labels = found.labels; filled = true; }
+
+        // Covers saved before the local copy existed are still remote URLs.
+        if (album.cover_image && /^https?:\/\//i.test(album.cover_image)) {
+            const localized = await downloadCoverToLocal(album.cover_image, 'Discogs cover');
+            if (localized !== album.cover_image) {
+                album.cover_image = localized;
+                album.thumb = localized;
+                filled = true;
+            }
+        }
+
         if (filled) {
             await album.save();
             logger.debug(`[Import] Album filled in: ${album.title}`);

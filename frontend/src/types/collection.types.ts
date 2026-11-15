@@ -31,6 +31,21 @@ export interface Album {
 }
 
 /**
+ * Per-user edits to a shared Discogs album. Only the fields the user changed
+ * are present; the server lays them over the album when the item is read.
+ */
+export interface AlbumOverrides {
+    title?: string;
+    artist?: string;
+    year?: string;
+    styles?: string[];
+    tracklist?: Track[];
+    labels?: Label[];
+    cover_image?: string;
+    thumb?: string;
+}
+
+/**
  * One amount per condition grade. Shared by the prices stored on a collection
  * item and the live suggestions read from Discogs, so both can be priced and
  * rendered by the same helpers.
@@ -71,6 +86,10 @@ export interface CollectionItem {
     formatVerification?: FormatVerification | null;
     customFields?: CustomFieldValues | null;
     addedAt: string;
+    /** Local edits to a shared Discogs album, when the user made any. */
+    albumOverrides?: AlbumOverrides | null;
+    /** True when albumOverrides holds something: the data is locally modified. */
+    locallyModified?: boolean;
 }
 
 export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'label' | 'addedAt' | 'price';
