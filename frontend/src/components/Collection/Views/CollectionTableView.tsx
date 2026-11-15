@@ -127,8 +127,10 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
             case 'format':
                 return (
                     <>
-                        <div className="flex items-center gap-2">
-                            <div className="badge badge-secondary">{item.format.name}</div>
+                        <div className="flex min-w-0 items-center gap-2">
+                            <div className="badge badge-secondary min-w-0 max-w-full" title={item.format.name}>
+                                <span className="min-w-0 truncate">{item.format.name}</span>
+                            </div>
                             <FormatVerificationBadge verification={item.formatVerification} />
                         </div>
                         {item.format.text && item.format.text !== item.format.name && (

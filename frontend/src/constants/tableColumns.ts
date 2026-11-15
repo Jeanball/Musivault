@@ -35,7 +35,7 @@ export const BASE_TABLE_COLUMNS: readonly BaseTableColumn[] = [
     { key: 'cover', labelKey: 'album.cover', widthRem: 5 },
     { key: 'artist', labelKey: 'common.artist', widthRem: 9, sortKey: 'artist' },
     { key: 'album', labelKey: 'common.album', widthRem: 11, sortKey: 'album' },
-    { key: 'format', labelKey: 'common.format', widthRem: 10, sortKey: 'format' },
+    { key: 'format', labelKey: 'common.format', widthRem: 5, sortKey: 'format' },
     { key: 'label', labelKey: 'album.label', widthRem: 9, sortKey: 'label' },
     { key: 'catalogNumber', labelKey: 'album.catalogNumber', widthRem: 7 },
     { key: 'year', labelKey: 'common.year', widthRem: 4, sortKey: 'year' },

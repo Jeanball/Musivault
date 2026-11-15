@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(discogs): connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
 
 ### Fixed
+- fix(collection): narrow the format column to 5 rem and truncate long format names, so it no longer takes space from the other columns
 - fix(settings): make the wide screen mode switch mean what it says, so turning it on fills the viewport instead of capping the content width
 - fix(collection): refresh the list right after adding an album, instead of waiting for a manual page reload
 - fix(migration): authenticate the album data backfill with the Discogs key and secret and record it as failed, not successful, when Discogs rejects the credentials

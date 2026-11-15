@@ -65,6 +65,7 @@ describe('table columns', () => {
 
     it('gives base columns their own width and custom columns their configured one', () => {
         expect(tableColumnWidthRem('cover')).toBe(5);
+        expect(tableColumnWidthRem('format')).toBe(5);
         expect(tableColumnWidthRem(customColumnKey(binder._id))).toBe(9);
         expect(tableColumnWidthRem(customColumnKey(binder._id), customFields)).toBe(9);
 
