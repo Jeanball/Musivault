@@ -2,6 +2,7 @@ import CollectionItem from '../models/CollectionItem';
 import { IAlbum } from '../models/Album';
 import { loadCustomFieldsWithUuids } from './customFields.service';
 import { formatCustomFieldHeader } from '../utils/customFields.utils';
+import { localCoverToDataUri } from '../utils/cover.utils';
 
 // Headers are kept compatible with the import parser so an export can be
 // re-imported as-is (see normalizeHeader in import.service).
@@ -19,7 +20,8 @@ const BASE_HEADERS = [
     'Manual',
     'Media Condition',
     'Sleeve Condition',
-    'Added At'
+    'Added At',
+    'Cover Base64'
 ];
 
 function escapeCsvValue(value: unknown): string {
@@ -62,6 +64,10 @@ export async function buildCollectionCsv(userId: any): Promise<string> {
         const catalogNumber = album.labels?.find(l => l.catno)?.catno || '';
         const labelName = album.labels?.[0]?.name || '';
 
+        // Only locally uploaded covers are embedded: fetching every remote
+        // Discogs image during an export would be slow and rate-limited.
+        const cover = await localCoverToDataUri(album.cover_image);
+
         const values: unknown[] = [
             album.artist,
             album.title,
@@ -76,7 +82,8 @@ export async function buildCollectionCsv(userId: any): Promise<string> {
             album.isManual ? 'true' : 'false',
             item.mediaCondition || '',
             item.sleeveCondition || '',
-            item.addedAt ? item.addedAt.toISOString() : ''
+            item.addedAt ? item.addedAt.toISOString() : '',
+            cover || ''
         ];
 
         for (const field of customFields) {

@@ -11,6 +11,7 @@ import { loadCustomFieldsWithUuids } from './customFields.service';
 import { stripArtistSuffixes } from '../utils/discogs.utils';
 import { parseCustomFieldHeader } from '../utils/customFields.utils';
 import { buildPriceCache } from '../utils/price.utils';
+import { saveCoverFromBase64 } from '../utils/cover.utils';
 import { FoundAlbumInfo } from '../types/discogs.types';
 import { logger } from '../config/logger.config';
 
@@ -69,6 +70,8 @@ export interface CsvRow {
     mediaCondition?: string;
     sleeveCondition?: string;
     addedAt?: Date;
+    /** A locally uploaded cover, exported as a base64/data-URI cell. */
+    coverBase64?: string;
     /**
      * Columns that are not part of the base format. Newer exports carry the
      * field's uuid in the header; older ones only carry the name (already
@@ -117,7 +120,9 @@ const BASE_COLUMN_KEYS = new Set([
     'label', 'genres', 'genre', 'value', 'tracklist', 'manual',
     'media condition', 'mediacondition', 'media_condition', 'media',
     'sleeve condition', 'sleevecondition', 'sleeve_condition', 'sleeve',
-    'added at', 'addedat', 'added_at'
+    'added at', 'addedat', 'added_at',
+    'cover base64', 'coverbase64', 'cover_base64', 'cover image', 'coverimage', 'cover_image',
+    'image base64', 'imagebase64', 'image_base64'
 ]);
 
 function parseGenres(raw?: string): string[] {
@@ -204,6 +209,8 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
     await new Promise<void>((resolve, reject) => {
         const stream = Readable.from(buffer.toString());
         stream
+            // csv-parser 3 allows arbitrarily long rows by default, which the
+            // base64 cover cells need.
             .pipe(csv())
             .on('data', (row: CsvRowRaw) => rawRows.push(row))
             .on('end', () => resolve())
@@ -246,6 +253,10 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
         const valueRaw = mapped['value']?.toString();
         const manualRaw = mapped['manual']?.toString();
         const addedAtRaw = mapped['added at'] || mapped['added_at'] || mapped['addedat'];
+        const coverRaw =
+            mapped['cover base64'] || mapped['coverbase64'] || mapped['cover_base64'] ||
+            mapped['cover image'] || mapped['coverimage'] || mapped['cover_image'] ||
+            mapped['image base64'] || mapped['imagebase64'] || mapped['image_base64'];
 
         return {
             artist: (mapped['artist'] || '').toString().trim(),
@@ -263,6 +274,7 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
             mediaCondition,
             sleeveCondition,
             addedAt: parseAddedAt(addedAtRaw?.toString()),
+            coverBase64: coverRaw?.toString().trim() || undefined,
             customFieldColumns: customFieldColumns.length ? customFieldColumns : undefined
         };
     });
@@ -322,6 +334,22 @@ async function createManualAlbumFromRow(
         if (filled) {
             await album.save();
             logger.debug(`[Import] Manual album filled in: ${album.title}`);
+        }
+    }
+
+    // Restore the cover written by another export, but never replace one the
+    // album already has. Failure to write the file must not fail the row.
+    if (row.coverBase64 && !album.cover_image) {
+        try {
+            const coverPath = await saveCoverFromBase64(row.coverBase64);
+            if (coverPath) {
+                album.cover_image = coverPath;
+                album.thumb = coverPath;
+                await album.save();
+                logger.debug(`[Import] Manual album cover restored: ${album.title}`);
+            }
+        } catch (err) {
+            logger.warn({ err, album: album.title }, '[Import] Could not restore the album cover');
         }
     }
 

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(collection): carry locally uploaded album covers in the CSV export as base64 and restore them on import
 - feat(collection): put the time in the exported CSV file name, so several exports in one day stay separate
 - feat(collection): fill in your custom fields when adding or editing a manual album
 - feat(collection): identify custom fields by a hidden uuid in CSV export/import, so their values still import after a field is renamed

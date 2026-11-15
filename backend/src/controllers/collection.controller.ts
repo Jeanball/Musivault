@@ -230,14 +230,15 @@ export async function downloadTemplate(req: Request, res: Response) {
     'Tracklist (Optional)',
     'Manual (Optional)',
     'Media Condition (Optional)',
-    'Sleeve Condition (Optional)'
+    'Sleeve Condition (Optional)',
+    'Cover Base64 (Optional)'
   ];
 
   const rows = [
-    ['Daft Punk', 'Discovery', 'Vinyl', '2001', '', '', '', '', '', '', '', '', ''],
-    ['Radiohead', 'OK Computer', 'CD', '1997', '1252837', 'CDNODATA 29', 'Parlophone', 'Alternative Rock', '', '', '', 'NM', 'VG+'],
-    ['Pink Floyd', 'The Dark Side Of The Moon', 'Vinyl', '1973', '249504', '', 'Harvest', 'Psychedelic Rock', '', '', '', '', ''],
-    ['Local Band', 'Live at Home', 'Cassette', '2020', '', '', 'Self-released', 'Rock', '12.50', '[]', 'true', '', '']
+    ['Daft Punk', 'Discovery', 'Vinyl', '2001', '', '', '', '', '', '', '', '', '', ''],
+    ['Radiohead', 'OK Computer', 'CD', '1997', '1252837', 'CDNODATA 29', 'Parlophone', 'Alternative Rock', '', '', '', 'NM', 'VG+', ''],
+    ['Pink Floyd', 'The Dark Side Of The Moon', 'Vinyl', '1973', '249504', '', 'Harvest', 'Psychedelic Rock', '', '', '', '', '', ''],
+    ['Local Band', 'Live at Home', 'Cassette', '2020', '', '', 'Self-released', 'Rock', '12.50', '[]', 'true', '', '', '']
   ];
 
   const escape = (value: string) => /[",\n\r]/.test(value)

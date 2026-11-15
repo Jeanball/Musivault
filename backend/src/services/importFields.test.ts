@@ -14,6 +14,9 @@ vi.mock('../models/CollectionItem', () => ({
 vi.mock('../models/CustomFieldDefinition', () => ({ default: { find: vi.fn(async () => []) } }));
 vi.mock('../models/ImportLog', () => ({ default: {} }));
 vi.mock('../models/User', () => ({ default: {} }));
+vi.mock('../utils/cover.utils', () => ({
+    saveCoverFromBase64: vi.fn(async () => '/uploads/covers/imported.png')
+}));
 vi.mock('./discogs.service', () => ({
     discogsService: { fetchByReleaseId: vi.fn(), searchByArtistAlbum: vi.fn(), searchByCatalogNumber: vi.fn(), getMarketplaceStats: vi.fn() }
 }));
@@ -21,6 +24,7 @@ vi.mock('./discogs.service', () => ({
 import Album from '../models/Album';
 import CollectionItem from '../models/CollectionItem';
 import { discogsService } from './discogs.service';
+import { saveCoverFromBase64 } from '../utils/cover.utils';
 import { parseCsvBuffer, processImportRow } from './import.service';
 
 describe('CSV fields', () => {
@@ -188,5 +192,68 @@ describe('CSV fields', () => {
         expect(vi.mocked(CollectionItem)).toHaveBeenCalledWith(expect.objectContaining({
             customFields: { 'field-1': 'Signed' }
         }));
+    });
+
+    it('reads the base64 cover column', async () => {
+        const buffer = Buffer.from([
+            'Artist,Album,Format,Cover Base64',
+            'Local Band,Live at Home,Cassette,"data:image/png;base64,QUJD"'
+        ].join('\n'));
+
+        const [row] = await parseCsvBuffer(buffer);
+
+        expect(row.coverBase64).toBe('data:image/png;base64,QUJD');
+        expect(row.customFieldColumns).toBeUndefined();
+    });
+
+    it('restores the cover of a manual album from the exported base64', async () => {
+        const dataUri = 'data:image/png;base64,QUJD';
+
+        const result = await processImportRow(
+            {
+                artist: 'Local Band',
+                album: 'Live at Home',
+                formatName: 'Cassette',
+                manual: true,
+                coverBase64: dataUri
+            },
+            'user-1'
+        );
+
+        expect(result.success).toBe(true);
+        expect(saveCoverFromBase64).toHaveBeenCalledWith(dataUri);
+        const album = vi.mocked(Album).mock.instances[0] as {
+            cover_image?: string;
+            thumb?: string;
+        };
+        expect(album.cover_image).toBe('/uploads/covers/imported.png');
+        expect(album.thumb).toBe('/uploads/covers/imported.png');
+    });
+
+    it('keeps a cover the manual album already has', async () => {
+        const existing = {
+            _id: 'album-1',
+            title: 'Live at Home',
+            artist: 'Local Band',
+            cover_image: '/uploads/covers/existing.jpg',
+            thumb: '/uploads/covers/existing.jpg',
+            save: vi.fn()
+        };
+        vi.mocked(Album.findOne).mockResolvedValueOnce(existing as never);
+
+        const result = await processImportRow(
+            {
+                artist: 'Local Band',
+                album: 'Live at Home',
+                formatName: 'Cassette',
+                manual: true,
+                coverBase64: 'data:image/png;base64,QUJD'
+            },
+            'user-1'
+        );
+
+        expect(result.success).toBe(true);
+        expect(saveCoverFromBase64).not.toHaveBeenCalled();
+        expect(existing.cover_image).toBe('/uploads/covers/existing.jpg');
     });
 });

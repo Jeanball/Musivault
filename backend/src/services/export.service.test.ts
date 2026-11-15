@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../models/CollectionItem', () => ({ default: { find: vi.fn() } }));
 vi.mock('../models/CustomFieldDefinition', () => ({ default: { find: vi.fn() } }));
+vi.mock('../utils/cover.utils', () => ({ localCoverToDataUri: vi.fn() }));
 
 import CollectionItem from '../models/CollectionItem';
 import CustomFieldDefinition from '../models/CustomFieldDefinition';
+import { localCoverToDataUri } from '../utils/cover.utils';
 import { buildCollectionCsv } from './export.service';
 
 function chain<T>(value: T) {
@@ -19,6 +21,7 @@ function chain<T>(value: T) {
 describe('buildCollectionCsv', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(localCoverToDataUri).mockResolvedValue(null);
     });
 
     it('exports the manual fields and custom-field columns', async () => {
@@ -49,7 +52,7 @@ describe('buildCollectionCsv', () => {
         const [header, row] = csv.split('\n');
 
         expect(header).toBe(
-            'Artist,Album,Format,Year,Release ID,Catalog Number,Label,Genres,Value,Tracklist,Manual,Media Condition,Sleeve Condition,Added At,Custom Note [cf:11111111-1111-4111-8111-111111111111]'
+            'Artist,Album,Format,Year,Release ID,Catalog Number,Label,Genres,Value,Tracklist,Manual,Media Condition,Sleeve Condition,Added At,Cover Base64,Custom Note [cf:11111111-1111-4111-8111-111111111111]'
         );
         expect(row).toContain('Local Band');
         expect(row).toContain('"Live, at Home"');
@@ -63,5 +66,31 @@ describe('buildCollectionCsv', () => {
         expect(row).toContain('VG+');
         expect(row).toContain('2020-01-02T03:04:05.000Z');
         expect(row).toContain('Signed');
+        // The cover column stays empty when no local image exists.
+        expect(row).toContain('2020-01-02T03:04:05.000Z,,Signed');
+    });
+
+    it('embeds a locally stored cover as a base64 data URI', async () => {
+        const item = {
+            format: { name: 'Vinyl' },
+            addedAt: new Date('2020-01-02T03:04:05.000Z'),
+            album: {
+                artist: 'Local Band',
+                title: 'Live at Home',
+                cover_image: '/uploads/covers/123-456.jpg',
+                isManual: true
+            }
+        };
+
+        vi.mocked(CollectionItem.find).mockReturnValue(chain([item]) as never);
+        vi.mocked(CustomFieldDefinition.find).mockReturnValue(chain([]) as never);
+        vi.mocked(localCoverToDataUri).mockResolvedValue('data:image/jpeg;base64,QUJD');
+
+        const csv = await buildCollectionCsv('user-1');
+        const [header, row] = csv.split('\n');
+
+        expect(header).toMatch(/,Cover Base64$/);
+        expect(row).toContain('"data:image/jpeg;base64,QUJD"');
+        expect(localCoverToDataUri).toHaveBeenCalledWith('/uploads/covers/123-456.jpg');
     });
 });

@@ -44,8 +44,8 @@ http {
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-XSS-Protection "1; mode=block" always;
 
-        # Allow larger request bodies (album covers, etc.)
-        client_max_body_size 10m;
+        # Allow larger request bodies (album covers, CSV backups with base64 covers)
+        client_max_body_size 50m;
 
         # API proxy
         location /api {
