@@ -33,6 +33,9 @@ export interface IAlbumOverrides {
   title?: string;
   artist?: string;
   year?: string;
+  /** Broad Discogs genres (Jazz, Rock, ...). */
+  genres?: string[];
+  /** Finer Discogs styles (Modal, Hard Bop, ...). */
   styles?: string[];
   tracklist?: ITrack[];
   labels?: ILabel[];
@@ -104,6 +107,7 @@ const albumOverridesSchema = new Schema<IAlbumOverrides>({
   title: { type: String },
   artist: { type: String },
   year: { type: String },
+  genres: { type: [String], default: undefined },
   styles: { type: [String], default: undefined },
   tracklist: { type: [trackSchema], default: undefined },
   labels: { type: [labelSchema], default: undefined },

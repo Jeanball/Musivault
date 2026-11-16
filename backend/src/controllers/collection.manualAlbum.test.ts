@@ -70,6 +70,30 @@ describe('manual album custom fields', () => {
         expect(res.status).toHaveBeenCalledWith(201);
     });
 
+    it('stores broad genres and styles as separate lists', async () => {
+        vi.mocked(validateCustomFieldValues).mockResolvedValue({ valid: true, sanitized: {} });
+
+        const res = response();
+        await addManualAlbum(
+            request({
+                title: 'Kind of Blue',
+                artist: 'Miles Davis',
+                format: 'Vinyl',
+                genres: 'Jazz, Blues',
+                styles: 'Modal; Cool Jazz',
+            }),
+            res as never
+        );
+
+        expect(vi.mocked(Album)).toHaveBeenCalledWith(
+            expect.objectContaining({
+                genres: ['Jazz', 'Blues'],
+                styles: ['Modal', 'Cool Jazz'],
+            })
+        );
+        expect(res.status).toHaveBeenCalledWith(201);
+    });
+
     it('rejects malformed custom field JSON', async () => {
         const res = response();
         await addManualAlbum(

@@ -6,6 +6,7 @@ export const ALBUM_OVERRIDE_FIELDS = [
     'title',
     'artist',
     'year',
+    'genres',
     'styles',
     'tracklist',
     'labels'
@@ -74,7 +75,7 @@ function normalizeValue(field: AlbumOverrideField, value: unknown): unknown {
             artist: track?.artist || ''
         }));
     }
-    if (field === 'styles') return (value as string[]) || [];
+    if (field === 'genres' || field === 'styles') return (value as string[]) || [];
     return value ?? '';
 }
 

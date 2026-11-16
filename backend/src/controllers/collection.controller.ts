@@ -903,8 +903,10 @@ interface ManualAlbumBody {
   /** Free-text label name; the catalog number is a separate field. */
   label?: string;
   catno?: string;
-  /** Comma- or semicolon-separated list, stored on the album as styles. */
+  /** Broad Discogs genres, comma- or semicolon-separated. */
   genres?: string;
+  /** Finer Discogs styles, comma- or semicolon-separated. */
+  styles?: string;
   /** Hand-entered value in USD. */
   value?: string;
   /** JSON array of { position, title, duration, artist }. */
@@ -919,7 +921,7 @@ function trimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-function parseManualGenres(raw: unknown): string[] {
+function parseManualList(raw: unknown): string[] {
   const value = trimmedString(raw);
   if (!value) return [];
   return Array.from(new Set(
@@ -1092,7 +1094,8 @@ export async function addManualAlbum(req: Request, res: Response) {
       year: trimmedString(body.year),
       thumb: coverImagePath,
       cover_image: coverImagePath,
-      styles: parseManualGenres(body.genres),
+      genres: parseManualList(body.genres),
+      styles: parseManualList(body.styles),
       tracklist,
       labels: parseManualLabels(body.label, body.catno)
     });
@@ -1125,7 +1128,7 @@ export async function addManualAlbum(req: Request, res: Response) {
 
 /**
  * Edit a hand-added album and the user's copy of it: title, artist, year,
- * format, label, genres, value, tracklist and cover. Discogs albums are left
+ * format, label, genres, styles, value, tracklist and cover. Discogs albums are left
  * alone — their metadata is refreshed or rematched, never hand-edited.
  */
 export async function updateManualAlbum(req: Request, res: Response) {
@@ -1197,7 +1200,8 @@ export async function updateManualAlbum(req: Request, res: Response) {
     if (body.title !== undefined) album.title = title;
     if (body.artist !== undefined) album.artist = artist;
     if (body.year !== undefined) album.year = trimmedString(body.year);
-    if (body.genres !== undefined) album.styles = parseManualGenres(body.genres);
+    if (body.genres !== undefined) album.genres = parseManualList(body.genres);
+    if (body.styles !== undefined) album.styles = parseManualList(body.styles);
     if (body.label !== undefined) album.labels = parseManualLabels(body.label, body.catno);
 
     if (body.format !== undefined && format !== item.format.name) {
@@ -1236,8 +1240,10 @@ interface DiscogsAlbumBody {
   /** Free-text label name; the catalog number is a separate field. */
   label?: string;
   catno?: string;
-  /** Comma- or semicolon-separated list, stored on the album as styles. */
+  /** Broad Discogs genres, comma- or semicolon-separated. */
   genres?: string;
+  /** Finer Discogs styles, comma- or semicolon-separated. */
+  styles?: string;
   /** JSON array of { position, title, duration, artist }. */
   tracklist?: string;
   /** 'true' clears the album cover for this user. */
@@ -1300,7 +1306,8 @@ export async function updateDiscogsAlbum(req: Request, res: Response) {
     }
 
     if (body.year !== undefined) desired.year = trimmedString(body.year);
-    if (body.genres !== undefined) desired.styles = parseManualGenres(body.genres);
+    if (body.genres !== undefined) desired.genres = parseManualList(body.genres);
+    if (body.styles !== undefined) desired.styles = parseManualList(body.styles);
 
     if (body.tracklist !== undefined) {
       const tracklist = parseManualTracklist(body.tracklist);

@@ -40,6 +40,9 @@ export interface AlbumOverrides {
     title?: string;
     artist?: string;
     year?: string;
+    /** Broad Discogs genres (Jazz, Rock, ...). */
+    genres?: string[];
+    /** Finer Discogs styles (Modal, Hard Bop, ...). */
     styles?: string[];
     tracklist?: Track[];
     labels?: Label[];

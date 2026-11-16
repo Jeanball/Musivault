@@ -168,10 +168,10 @@ const CollectionTableView: React.FC<CollectionTableViewProps> = ({
             case 'year':
                 return <span className="tabular-nums">{item.album.year || t('common.na')}</span>;
             case 'genres': {
-                const genres = item.album.styles?.filter(Boolean) ?? [];
-                return genres.length > 0 ? (
-                    <span className="text-sm truncate block" title={genres.join(', ')}>
-                        {genres.join(', ')}
+                const styles = item.album.styles?.filter(Boolean) ?? [];
+                return styles.length > 0 ? (
+                    <span className="text-sm truncate block" title={styles.join(', ')}>
+                        {styles.join(', ')}
                     </span>
                 ) : (
                     <EmptyCell />

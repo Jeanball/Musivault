@@ -69,7 +69,7 @@ describe('CollectionTableView columns', () => {
 
         expect(screen.getByText('album.catalogNumber')).toBeInTheDocument();
         expect(screen.getByText('CL 1355')).toBeInTheDocument();
-        expect(screen.getByText('common.genres')).toBeInTheDocument();
+        expect(screen.getByText('album.styles')).toBeInTheDocument();
         expect(screen.getByText('Jazz, Modal')).toBeInTheDocument();
         expect(screen.getByText('Binder')).toBeInTheDocument();
         expect(screen.getByText('Shelf A')).toBeInTheDocument();

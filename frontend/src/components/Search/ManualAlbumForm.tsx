@@ -57,7 +57,8 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
     const [format, setFormat] = useState(item?.format.name || FORMATS[0]);
     const [label, setLabel] = useState(firstLabel?.name || '');
     const [catno, setCatno] = useState(firstLabel?.catno === 'none' ? '' : firstLabel?.catno || '');
-    const [genres, setGenres] = useState((item?.album.styles || []).join(', '));
+    const [genres, setGenres] = useState((item?.album.genres || []).join(', '));
+    const [styles, setStyles] = useState((item?.album.styles || []).join(', '));
     const [value, setValue] = useState(item?.manualValue != null ? String(item.manualValue) : '');
     const [tracks, setTracks] = useState<TrackDraft[]>(initialTracks);
     const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
@@ -90,6 +91,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
         setLabel('');
         setCatno('');
         setGenres('');
+        setStyles('');
         setValue('');
         setTracks([createTrackDraft()]);
         setCustomFieldValues({});
@@ -161,6 +163,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
             formData.append('label', label.trim());
             formData.append('catno', catno.trim());
             formData.append('genres', genres);
+            formData.append('styles', styles);
             if (!isDiscogs) formData.append('value', value.trim());
 
             const filledTracks = tracks
@@ -385,8 +388,8 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
                         </div>
                     </div>
 
-                    {/* Genres + Value */}
-                    <div className={`grid grid-cols-1 gap-4 ${isDiscogs ? '' : 'sm:grid-cols-2'}`}>
+                    {/* Genre, style + value */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="flex flex-col">
                             <label className="label w-full justify-between">
                                 <span className="text-sm">{t('album.genres')}</span>
@@ -397,6 +400,20 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
                                 value={genres}
                                 onChange={(e) => setGenres(e.target.value)}
                                 placeholder={t('search.genresPlaceholder')}
+                                className="input w-full"
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="label w-full justify-between">
+                                <span className="text-sm">{t('album.styles')}</span>
+                                <span className="text-xs text-base-content/50">{t('search.optional')}</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={styles}
+                                onChange={(e) => setStyles(e.target.value)}
+                                placeholder={t('search.stylesPlaceholder')}
                                 className="input w-full"
                             />
                         </div>

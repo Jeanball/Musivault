@@ -222,7 +222,8 @@ const AlbumDetailPage: React.FC = () => {
     const album = item.album;
     const tracklist = album.tracklist || [];
     const labels = album.labels || [];
-    const genres = album.styles || [];
+    const genres = album.genres || [];
+    const styles = album.styles || [];
     const hasActiveFormatIssue = hasActiveFormatVerificationIssue(item.formatVerification);
     const hasIgnoredFormatIssue = hasIgnoredFormatVerificationIssue(item.formatVerification);
 
@@ -454,6 +455,9 @@ const AlbumDetailPage: React.FC = () => {
                         <FieldRow label={t('common.year')}>{album.year || '—'}</FieldRow>
                         {genres.length > 0 && (
                             <FieldRow label={t('album.genres')}>{genres.join(' · ')}</FieldRow>
+                        )}
+                        {styles.length > 0 && (
+                            <FieldRow label={t('album.styles')}>{styles.join(' · ')}</FieldRow>
                         )}
                         <CustomFieldsEditor
                             itemId={item._id}

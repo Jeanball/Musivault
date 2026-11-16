@@ -18,6 +18,7 @@ const baseAlbum = {
     thumb: '/uploads/covers/discogs.jpg',
     cover_image: '/uploads/covers/discogs.jpg',
     styles: ['Jazz', 'Modal'],
+    genres: ['Jazz'],
     tracklist: [
         { position: 'A1', title: 'So What', duration: '9:22', artist: '' },
         { position: 'A2', title: 'Freddie Freeloader', duration: '9:46', artist: '' }
@@ -37,10 +38,12 @@ describe('albumOverrides.utils', () => {
     it('lays the edits over the album without mutating it', () => {
         const merged = mergeAlbumOverrides(baseAlbum, {
             title: 'Kind of Blue (Mono)',
+            genres: ['Jazz', 'Blues'],
             styles: ['Jazz']
         });
 
         expect(merged.title).toBe('Kind of Blue (Mono)');
+        expect(merged.genres).toEqual(['Jazz', 'Blues']);
         expect(merged.styles).toEqual(['Jazz']);
         expect(merged.artist).toBe('Miles Davis');
         expect(baseAlbum.title).toBe('Kind of Blue');
@@ -52,6 +55,7 @@ describe('albumOverrides.utils', () => {
             title: 'Kind of Blue',
             artist: 'Miles Davis',
             year: '1958',
+            genres: ['Jazz'],
             styles: ['Jazz', 'Modal'],
             tracklist: baseAlbum.tracklist,
             labels: [{ name: 'Columbia', catno: 'CL 1355' }],
@@ -74,6 +78,15 @@ describe('albumOverrides.utils', () => {
             cover_image: '/uploads/covers/mine.jpg',
             thumb: '/uploads/covers/mine.jpg'
         });
+    });
+
+    it('stores a changed genre separately from the styles', () => {
+        const overrides = buildAlbumOverrides(baseAlbum, null, {
+            genres: ['Jazz', 'Blues'],
+            styles: ['Jazz', 'Modal']
+        });
+
+        expect(overrides).toEqual({ genres: ['Jazz', 'Blues'] });
     });
 
     it('returns null when nothing is left to override', () => {

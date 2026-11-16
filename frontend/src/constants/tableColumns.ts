@@ -39,7 +39,7 @@ export const BASE_TABLE_COLUMNS: readonly BaseTableColumn[] = [
     { key: 'label', labelKey: 'album.label', widthRem: 9, sortKey: 'label' },
     { key: 'catalogNumber', labelKey: 'album.catalogNumber', widthRem: 7 },
     { key: 'year', labelKey: 'common.year', widthRem: 4, sortKey: 'year' },
-    { key: 'genres', labelKey: 'common.genres', widthRem: 9 },
+    { key: 'genres', labelKey: 'album.styles', widthRem: 9 },
     { key: 'addedAt', labelKey: 'collection.added', widthRem: 6, sortKey: 'addedAt' },
     { key: 'price', labelKey: 'stats.value', widthRem: 6, sortKey: 'price' },
     { key: 'mediaCondition', labelKey: 'condition.media', widthRem: 5 },

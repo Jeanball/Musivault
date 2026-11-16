@@ -36,6 +36,7 @@ const baseAlbum = {
     cover_image: '/uploads/covers/discogs.jpg',
     thumb: '/uploads/covers/discogs.jpg',
     styles: ['Jazz', 'Modal'],
+    genres: ['Jazz'],
     tracklist: [{ position: 'A1', title: 'So What', duration: '9:22', artist: '' }],
     labels: [{ name: 'Columbia', catno: 'CL 1355', discogsId: 999 }],
 };
@@ -48,6 +49,7 @@ const createItem = (overrides: Record<string, unknown> = {}) => {
         cover_image: baseAlbum.cover_image,
         thumb: baseAlbum.thumb,
         styles: [...baseAlbum.styles],
+        genres: [...baseAlbum.genres],
         tracklist: [...baseAlbum.tracklist],
         labels: [{ ...baseAlbum.labels[0] }],
         ...overrides,
@@ -110,6 +112,23 @@ describe('Discogs album local edits', () => {
 
         const payload = vi.mocked(res.json).mock.calls[0][0] as { item: { album: { title: string } } };
         expect(payload.item.album.title).toBe('Kind of Blue (Mono)');
+    });
+
+    it('stores broad genres and styles as separate local edits', async () => {
+        const item = createItem();
+        storeItem(item);
+
+        const res = response();
+        await updateDiscogsAlbum(
+            request('item-1', { genres: 'Jazz, Blues', styles: 'Modal; Cool Jazz' }),
+            res as never
+        );
+
+        expect(item.albumOverrides).toEqual({
+            genres: ['Jazz', 'Blues'],
+            styles: ['Modal', 'Cool Jazz']
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
     });
 
     it('does not touch the shared Album document', async () => {
