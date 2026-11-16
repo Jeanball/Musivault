@@ -104,6 +104,15 @@ const MIGRATIONS: MigrationDefinition[] = [
       return `${fields} custom field uuid(s) assigned`;
     }
   },
+  {
+    id: '2026-11-16_discogs-genres',
+    description: 'Backfill the broad Discogs genres used by the collection genre filter',
+    type: 'background',
+    run: async () => {
+      await migrateAlbumData();
+      return 'Discogs genres backfill complete';
+    }
+  },
 ];
 
 /**

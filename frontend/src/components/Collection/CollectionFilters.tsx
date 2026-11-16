@@ -10,6 +10,8 @@ interface CollectionFiltersProps {
     onFiltersChange: (filters: FilterState) => void;
     availableFormats: string[];
     availableDecades: string[];
+    availableGenres: string[];
+    genreCounts: Record<string, number>;
     availableStyles: string[];
     styleCounts: Record<string, number>;
     availableLabels: string[];
@@ -54,6 +56,8 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     onFiltersChange,
     availableFormats,
     availableDecades,
+    availableGenres,
+    genreCounts,
     availableStyles,
     styleCounts,
     availableLabels,
@@ -116,6 +120,9 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
             label: t('collection.period'),
             value: t(`collection.${filters.addedPeriod}`),
         });
+    }
+    if (filters.genre !== 'all') {
+        activeChips.push({ key: 'genre', label: t('collection.genre'), value: filters.genre });
     }
     if (filters.style !== 'all') {
         activeChips.push({ key: 'style', label: t('collection.style'), value: filters.style });
@@ -302,10 +309,10 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 )}
             </div>
 
-            {/* Folded away by default: five dropdowns held two permanent rows for a
+            {/* Folded away by default: six dropdowns held two permanent rows for a
                 setting most visits never touch. */}
             {isPanelOpen && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4 pt-3 border-t border-base-300">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4 pt-3 border-t border-base-300">
                     <label className="flex flex-col gap-1">
                         <span className="text-xs text-base-content/60">{t('common.format')}</span>
                         <select
@@ -346,6 +353,20 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <option value="thisMonth">{t('collection.thisMonth')}</option>
                             <option value="thisYear">{t('collection.thisYear')}</option>
                             <option value="lastYear">{t('collection.lastYear')}</option>
+                        </select>
+                    </label>
+
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-base-content/60">{t('collection.genre')}</span>
+                        <select
+                            className="select select-sm w-full"
+                            value={filters.genre}
+                            onChange={(e) => handleFilterChange('genre', e.target.value)}
+                        >
+                            <option value="all">{t('collection.allGenres')}</option>
+                            {availableGenres.map(genre => (
+                                <option key={genre} value={genre}>{genre} ({genreCounts[genre] || 0})</option>
+                            ))}
                         </select>
                     </label>
 

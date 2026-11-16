@@ -25,6 +25,7 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
         const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const formatCounts: Record<string, number> = {};
         const decadeCounts: Record<string, number> = {};
+        const genreCounts: Record<string, number> = {};
         const styleCounts: Record<string, number> = {};
         const labelCounts: Record<string, number> = {};
         const artistCounts: Record<string, number> = {};
@@ -57,6 +58,12 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
                 recentAdds.thisMonth += 1;
             }
 
+            if (item.album.genres) {
+                for (const genre of item.album.genres) {
+                    genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+                }
+            }
+
             if (item.album.styles) {
                 for (const style of item.album.styles) {
                     styleCounts[style] = (styleCounts[style] || 0) + 1;
@@ -84,6 +91,7 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
 
         const availableFormats = Object.keys(formatCounts).sort();
         const availableDecades = Object.keys(decadeCounts).sort();
+        const availableGenres = Object.keys(genreCounts).sort((a, b) => a.localeCompare(b));
         const availableStyles = Object.keys(styleCounts).sort();
         const availableLabels = Object.keys(labelCounts).sort((a, b) => a.localeCompare(b));
         const topArtist = getTopEntry(artistCounts);
@@ -94,6 +102,7 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
             total,
             formatCounts,
             decadeCounts,
+            genreCounts,
             styleCounts,
             labelCounts,
             artistCounts,
@@ -103,6 +112,7 @@ export const useCollectionStats = (collection: CollectionItem[]): CollectionStat
             topLabel,
             availableFormats,
             availableDecades,
+            availableGenres,
             availableStyles,
             availableLabels,
             totalValue: Math.round(totalValue * 100) / 100,

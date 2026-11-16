@@ -36,6 +36,7 @@ type AddToCollectionBody = {
   thumb: string;
   cover_image: string;
   format: ICollectionItem['format'];
+  genres?: string[];
   styles?: string[];
   tracklist?: ITrack[];
   labels?: ILabel[];
@@ -479,7 +480,7 @@ export async function addToCollection(req: Request, res: Response) {
       return;
     }
 
-    const { discogsId, title, artist, year, thumb, cover_image, format, styles, tracklist, labels, mediaCondition, sleeveCondition } = req.body as AddToCollectionBody;
+    const { discogsId, title, artist, year, thumb, cover_image, format, genres, styles, tracklist, labels, mediaCondition, sleeveCondition } = req.body as AddToCollectionBody;
 
     // Find or create album
     let album = await Album.findOne({ discogsId });
@@ -494,6 +495,7 @@ export async function addToCollection(req: Request, res: Response) {
         year,
         thumb: localCover || thumb,
         cover_image: localCover || cover_image,
+        genres: genres || [],
         styles: styles || [],
         tracklist: tracklist || [],
         labels: labels || []
@@ -788,7 +790,7 @@ export async function rematchAlbum(req: Request, res: Response) {
 // ===== Album Refresh =====
 
 /** Album fields a refresh can change, in the order they are reported back. */
-const REFRESHABLE_ALBUM_FIELDS = ['title', 'artist', 'year', 'cover_image', 'thumb', 'styles', 'tracklist', 'labels'] as const;
+const REFRESHABLE_ALBUM_FIELDS = ['title', 'artist', 'year', 'cover_image', 'thumb', 'genres', 'styles', 'tracklist', 'labels'] as const;
 
 /**
  * Re-read a single album from its Discogs release and update what changed (title, artist, year,

@@ -227,6 +227,7 @@ export async function getReleaseDetails(releaseId: string): Promise<CleanedRelea
         artist: data.artists?.map(a => a.name).join(', ') || 'Unknown artist',
         year: data.year,
         cover_image: data.images?.find(img => img.type === 'primary')?.uri || data.images?.[0]?.uri || '',
+        genres: data.genres || [],
         styles: data.styles || [],
         availableFormats: data.formats?.map(f => ({
             name: f.name,
@@ -809,9 +810,10 @@ async function searchReleasesInternal(
  * Map the album fields of a full release, so every path that saves an album stores the same data
  */
 export function mapReleaseToAlbumFields(
-    release: Pick<DiscogsReleaseResponse, 'styles' | 'tracklist' | 'labels'>
+    release: Pick<DiscogsReleaseResponse, 'genres' | 'styles' | 'tracklist' | 'labels'>
 ): ReleaseAlbumFields {
     return {
+        genres: release.genres || [],
         styles: release.styles || [],
         tracklist: release.tracklist?.map(t => ({
             position: t.position || '',
@@ -842,7 +844,7 @@ export interface AlbumUpdate extends ReleaseAlbumFields {
  */
 export function mapReleaseToAlbumUpdate(
     release: DiscogsReleaseResponse,
-    current: Pick<IAlbum, 'artist' | 'year' | 'cover_image' | 'thumb' | 'styles'>
+    current: Pick<IAlbum, 'artist' | 'year' | 'cover_image' | 'thumb' | 'genres' | 'styles'>
 ): AlbumUpdate {
     const releaseFields = mapReleaseToAlbumFields(release);
     return {
@@ -853,6 +855,7 @@ export function mapReleaseToAlbumUpdate(
             || release.images?.[0]?.uri
             || current.cover_image,
         thumb: release.images?.[0]?.uri150 || current.thumb,
+        genres: release.genres ? releaseFields.genres : current.genres,
         styles: release.styles ? releaseFields.styles : current.styles,
         tracklist: releaseFields.tracklist,
         labels: releaseFields.labels
@@ -887,7 +890,7 @@ export async function fetchByReleaseId(
             thumb: string;
             images?: { uri: string }[];
             formats?: DiscogsFormat[];
-        } & Pick<DiscogsReleaseResponse, 'styles' | 'tracklist' | 'labels'>>(`${DISCOGS_BASE_URL}/releases/${releaseId}`, {
+        } & Pick<DiscogsReleaseResponse, 'genres' | 'styles' | 'tracklist' | 'labels'>>(`${DISCOGS_BASE_URL}/releases/${releaseId}`, {
             headers: DISCOGS_HEADERS,
             params: { key: auth.key, secret: auth.secret }
         });

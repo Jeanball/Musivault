@@ -22,6 +22,8 @@ export interface IAlbum extends Document {
   year: string;
   thumb: string;
   cover_image: string;
+  /** Broad Discogs genres (Jazz, Rock, ...); styles are the finer labels. */
+  genres: string[];
   styles: string[];
   tracklist: ITrack[];
   labels: ILabel[];
@@ -67,6 +69,10 @@ const albumSchema = new Schema<IAlbum>({
   },
   cover_image: {
     type: String,
+  },
+  genres: {
+    type: [String],
+    default: [],
   },
   styles: {
     type: [String],

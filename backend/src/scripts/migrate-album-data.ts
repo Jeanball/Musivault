@@ -56,6 +56,7 @@ interface DiscogsRelease {
     artists?: { name: string }[];
     year?: number;
     images?: { type: string; uri: string }[];
+    genres?: string[];
     styles?: string[];
     tracklist?: { position: string; title: string; duration: string; artists?: { name: string }[] }[];
     labels?: { id?: number; name: string; catno: string }[];
@@ -126,6 +127,7 @@ async function fetchPriceWithRetry(discogsId: number, retries: number = 0): Prom
 }
 
 interface MissingFields {
+    genres: boolean;
     styles: boolean;
     tracklist: boolean;
     labels: boolean;
@@ -139,6 +141,7 @@ function checkMissingFields(album: any): MissingFields {
     const hasLabels = !!album.labels?.length;
 
     return {
+        genres: !album.genres || album.genres.length === 0,
         styles: !album.styles || album.styles.length === 0,
         tracklist: !album.tracklist || album.tracklist.length === 0,
         labels: !hasLabels,
@@ -154,6 +157,7 @@ function hasMissingFields(missing: MissingFields): boolean {
 
 function formatMissingFields(missing: MissingFields): string {
     const fields: string[] = [];
+    if (missing.genres) fields.push('genres');
     if (missing.styles) fields.push('styles');
     if (missing.tracklist) fields.push('tracklist');
     if (missing.labels) fields.push('labels');
@@ -235,6 +239,13 @@ export async function migrateAlbumData(isStandalone = false) {
                         const missingStr = formatMissingFields(missingAlbumFields);
                         logger.info(`  🔍 Needs Album Data (${missingStr})`);
                         
+                        // Update genres
+                        if (missingAlbumFields.genres && data.genres?.length) {
+                            album.genres = data.genres;
+                            albumChanged = true;
+                            logger.info(`  ✅ genres added: ${data.genres.length}`);
+                        }
+
                         // Update styles
                         if (missingAlbumFields.styles && data.styles?.length) {
                             album.styles = data.styles;
@@ -325,6 +336,20 @@ export async function migrateAlbumData(isStandalone = false) {
 
                     // Sleep to respect rate limits if we made an API call
                     await sleep(RATE_LIMIT_DELAY_MS);
+
+                    // Save what was just fetched before the price call: a price
+                    // failure (e.g. the release has no marketplace data) must not
+                    // throw away the album or format changes.
+                    if (albumChanged) {
+                        await album.save();
+                        updatedAlbumsCount++;
+                        albumChanged = false;
+                    }
+                    if (itemChanged) {
+                        await item.save();
+                        if (needsFormatUpdate) updatedFormatsCount++;
+                        itemChanged = false;
+                    }
                 }
 
                 // --- Handle Price Data ---
@@ -370,7 +395,7 @@ export async function migrateAlbumData(isStandalone = false) {
                 
                 if (itemChanged) {
                     await item.save();
-                    if (needsFormatUpdate) updatedFormatsCount++;
+                    // Format changes were already saved and counted above.
                     if (needsPriceUpdate) updatedPricesCount++;
                 }
 

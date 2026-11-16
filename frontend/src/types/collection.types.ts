@@ -25,6 +25,8 @@ export interface Album {
     discogsId?: number;
     /** True for albums added by hand, which have no Discogs release behind them. */
     isManual?: boolean;
+    /** Broad Discogs genres (Jazz, Rock, ...), used by the genre filter. */
+    genres?: string[];
     styles?: string[];
     tracklist?: Track[];
     labels?: Label[];
@@ -104,6 +106,7 @@ export interface FilterState {
     format: string;
     decade: string;
     addedPeriod: string;
+    genre: string;
     style: string;
     label: string;
     issueStatus: string;
@@ -113,6 +116,7 @@ export interface CollectionStats {
     total: number;
     formatCounts: Record<string, number>;
     decadeCounts: Record<string, number>;
+    genreCounts: Record<string, number>;
     styleCounts: Record<string, number>;
     labelCounts: Record<string, number>;
     artistCounts: Record<string, number>;
@@ -130,6 +134,7 @@ export interface CollectionStats {
     } | null;
     availableFormats: string[];
     availableDecades: string[];
+    availableGenres: string[];
     availableStyles: string[];
     availableLabels: string[];
     topLabel: {

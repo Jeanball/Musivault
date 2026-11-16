@@ -35,8 +35,8 @@ describe('CSV fields', () => {
 
     it('parses label, genres, value, tracklist, manual flag and custom columns', async () => {
         const buffer = Buffer.from([
-            'Artist,Album,Format,Year,Release ID,Catalog Number,Label,Genres,Value,Tracklist,Manual,Media Condition,Sleeve Condition,Added At,Custom Note',
-            'Local Band,Live at Home,Cassette,2020,,,Self-released,"Rock, Live",12.5,"[{""position"":""A1"",""title"":""Intro"",""duration"":""3:20"",""artist"":""""}]",true,,,2020-01-02T03:04:05.000Z,Signed'
+            'Artist,Album,Format,Year,Release ID,Catalog Number,Label,Genres,Discogs Genres,Value,Tracklist,Manual,Media Condition,Sleeve Condition,Added At,Custom Note',
+            'Local Band,Live at Home,Cassette,2020,,,Self-released,"Rock, Live",Jazz,12.5,"[{""position"":""A1"",""title"":""Intro"",""duration"":""3:20"",""artist"":""""}]",true,,,2020-01-02T03:04:05.000Z,Signed'
         ].join('\n'));
 
         const [row] = await parseCsvBuffer(buffer);
@@ -45,6 +45,7 @@ describe('CSV fields', () => {
         expect(row.formatName).toBe('Cassette');
         expect(row.label).toBe('Self-released');
         expect(row.genres).toEqual(['Rock', 'Live']);
+        expect(row.discogsGenres).toEqual(['Jazz']);
         expect(row.value).toBe(12.5);
         expect(row.tracklist).toEqual([{ position: 'A1', title: 'Intro', duration: '3:20', artist: '' }]);
         expect(row.manual).toBe(true);
@@ -69,6 +70,7 @@ describe('CSV fields', () => {
                 year: '2020',
                 label: 'Self-released',
                 genres: ['Rock'],
+                discogsGenres: ['Jazz'],
                 tracklist: [{ position: 'A1', title: 'Intro', duration: '3:20', artist: '' }],
                 value: 12.5,
                 manual: true,
@@ -93,6 +95,7 @@ describe('CSV fields', () => {
             title: 'Live at Home',
             artist: 'Local Band',
             year: '2020',
+            genres: ['Jazz'],
             styles: ['Rock'],
             tracklist: [{ position: 'A1', title: 'Intro', duration: '3:20', artist: '' }],
             labels: [{ name: 'Self-released', catno: '' }]

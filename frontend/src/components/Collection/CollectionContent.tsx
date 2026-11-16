@@ -170,6 +170,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         filters.format !== 'all' ||
         filters.decade !== 'all' ||
         filters.addedPeriod !== 'all' ||
+        filters.genre !== 'all' ||
         filters.style !== 'all' ||
         filters.label !== 'all' ||
         filters.issueStatus !== 'all';
@@ -181,6 +182,8 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 onFiltersChange={setFilters}
                 availableFormats={stats.availableFormats}
                 availableDecades={stats.availableDecades}
+                availableGenres={stats.availableGenres}
+                genreCounts={stats.genreCounts}
                 availableStyles={stats.availableStyles}
                 styleCounts={stats.styleCounts}
                 availableLabels={stats.availableLabels}

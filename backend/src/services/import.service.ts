@@ -61,7 +61,10 @@ export interface CsvRow {
     releaseId?: string;
     catalogNumber?: string;
     label?: string;
+    /** Finer Discogs styles, shown in the app as "Generi". */
     genres?: string[];
+    /** Broad Discogs genres (Jazz, Rock, ...), used by the genre filter. */
+    discogsGenres?: string[];
     /** Hand-entered value in USD. */
     value?: number;
     tracklist?: ITrack[];
@@ -117,7 +120,7 @@ const BASE_COLUMN_KEYS = new Set([
     'artist', 'album', 'format', 'year',
     'release id', 'releaseid', 'release_id', 'discogs id', 'discogs_id', 'discogsid',
     'catalog number', 'catalognumber', 'catalog_number', 'catno', 'cat_no',
-    'label', 'genres', 'genre', 'value', 'tracklist', 'manual',
+    'label', 'genres', 'genre', 'discogs genres', 'value', 'tracklist', 'manual',
     'media condition', 'mediacondition', 'media_condition', 'media',
     'sleeve condition', 'sleevecondition', 'sleeve_condition', 'sleeve',
     'added at', 'addedat', 'added_at',
@@ -268,6 +271,7 @@ export async function parseCsvBuffer(buffer: Buffer): Promise<CsvRow[]> {
             catalogNumber,
             label: (mapped['label'] || '').toString().trim() || undefined,
             genres: parseGenres((mapped['genres'] || mapped['genre'] || '').toString()),
+            discogsGenres: parseGenres(mapped['discogs genres']?.toString()),
             value: parseValue(valueRaw),
             tracklist: parseTracklist(mapped['tracklist']?.toString()),
             manual: isTrue(manualRaw),
@@ -315,6 +319,7 @@ async function createManualAlbumFromRow(
             year: row.year || '',
             thumb: '',
             cover_image: '',
+            genres: row.discogsGenres || [],
             styles: row.genres || [],
             tracklist: row.tracklist || [],
             labels: row.label ? [{ name: row.label, catno: row.catalogNumber || '' }] : []
@@ -325,6 +330,7 @@ async function createManualAlbumFromRow(
         // Fill in what an older manual album is missing; never overwrite data.
         let filled = false;
         if (!album.year && row.year) { album.year = row.year; filled = true; }
+        if (!album.genres?.length && row.discogsGenres?.length) { album.genres = row.discogsGenres; filled = true; }
         if (!album.styles?.length && row.genres?.length) { album.styles = row.genres; filled = true; }
         if (!album.tracklist?.length && row.tracklist?.length) { album.tracklist = row.tracklist; filled = true; }
         if (!album.labels?.length && row.label) {
@@ -404,6 +410,7 @@ export async function upsertAlbumFromDiscogs(found: FoundAlbumInfo) {
             year: found.year,
             thumb: localCover || found.thumb,
             cover_image: localCover || found.cover_image,
+            genres: found.genres || [],
             styles: found.styles || [],
             tracklist: found.tracklist || [],
             labels: found.labels || [],
@@ -412,6 +419,7 @@ export async function upsertAlbumFromDiscogs(found: FoundAlbumInfo) {
         logger.debug(`[Import] Album created: ${album.title}`);
     } else {
         let filled = false;
+        if (!album.genres?.length && found.genres?.length) { album.genres = found.genres; filled = true; }
         if (!album.styles?.length && found.styles?.length) { album.styles = found.styles; filled = true; }
         if (!album.tracklist?.length && found.tracklist?.length) { album.tracklist = found.tracklist; filled = true; }
         if (!album.labels?.length && found.labels?.length) { album.labels = found.labels; filled = true; }

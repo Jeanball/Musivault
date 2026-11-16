@@ -38,6 +38,7 @@ describe('buildCollectionCsv', () => {
                 year: '2020',
                 labels: [{ name: 'Self-released', catno: 'LB-1' }],
                 styles: ['Rock', 'Live'],
+                genres: ['Rock'],
                 tracklist: [{ position: 'A1', title: 'Intro', duration: '3:20', artist: '' }],
                 isManual: true
             }
@@ -52,7 +53,7 @@ describe('buildCollectionCsv', () => {
         const [header, row] = csv.split('\n');
 
         expect(header).toBe(
-            'Artist,Album,Format,Year,Release ID,Catalog Number,Label,Genres,Value,Tracklist,Manual,Media Condition,Sleeve Condition,Added At,Cover Base64,Custom Note [cf:11111111-1111-4111-8111-111111111111]'
+            'Artist,Album,Format,Year,Release ID,Catalog Number,Label,Genres,Discogs Genres,Value,Tracklist,Manual,Media Condition,Sleeve Condition,Added At,Cover Base64,Custom Note [cf:11111111-1111-4111-8111-111111111111]'
         );
         expect(row).toContain('Local Band');
         expect(row).toContain('"Live, at Home"');
@@ -60,6 +61,8 @@ describe('buildCollectionCsv', () => {
         expect(row).toContain('LB-1');
         expect(row).toContain('Self-released');
         expect(row).toContain('"Rock, Live"');
+        // The Discogs genres sit in their own column, right after the styles.
+        expect(row).toContain('"Rock, Live",Rock,12.5');
         expect(row).toContain('12.5');
         expect(row).toContain('true');
         expect(row).toContain('NM');

@@ -8,6 +8,7 @@ const DEFAULT_FILTERS: FilterState = {
     format: 'all',
     decade: 'all',
     addedPeriod: 'all',
+    genre: 'all',
     style: 'all',
     label: 'all',
     issueStatus: 'all'
@@ -76,6 +77,10 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
                 } else if (filters.decade !== 'unknown') {
                     return false;
                 }
+            }
+
+            if (filters.genre !== 'all' && (!item.album.genres || !item.album.genres.includes(filters.genre))) {
+                return false;
             }
 
             if (filters.style !== 'all' && (!item.album.styles || !item.album.styles.includes(filters.style))) {
