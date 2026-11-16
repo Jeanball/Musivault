@@ -107,6 +107,37 @@ describe('ManualAlbumForm custom fields', () => {
         expect(onSaved).toHaveBeenCalledWith(created);
     });
 
+    it('saves genres and styles picked from the Discogs lists', async () => {
+        const onSaved = vi.fn();
+        render(<ManualAlbumForm onSaved={onSaved} />);
+
+        await screen.findByText('Binder');
+
+        fireEvent.change(screen.getByPlaceholderText('search.albumPlaceholder'), {
+            target: { value: 'Kind of Blue' },
+        });
+        fireEvent.change(screen.getByPlaceholderText('search.artistPlaceholder'), {
+            target: { value: 'Miles Davis' },
+        });
+
+        const genresInput = screen.getByPlaceholderText('search.genresPlaceholder');
+        fireEvent.focus(genresInput);
+        fireEvent.change(genresInput, { target: { value: 'Jazz' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Jazz' }));
+
+        const stylesInput = screen.getByPlaceholderText('search.stylesPlaceholder');
+        fireEvent.focus(stylesInput);
+        fireEvent.change(stylesInput, { target: { value: 'Hard Bop' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Hard Bop' }));
+
+        fireEvent.click(screen.getByRole('button', { name: 'common.add' }));
+
+        await waitFor(() => expect(addManualAlbum).toHaveBeenCalledTimes(1));
+        const form = vi.mocked(addManualAlbum).mock.calls[0][0];
+        expect(form.get('genres')).toBe('Jazz');
+        expect(form.get('styles')).toBe('Hard Bop');
+    });
+
     it('shows the saved values when editing an album', async () => {
         vi.mocked(updateManualAlbum).mockResolvedValue({
             item: manualItem({ 'field-binder': 'Shelf B', 'field-notes': 'First pressing' }),

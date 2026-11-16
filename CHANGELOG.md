@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(collection): pick album genres and styles from the official Discogs lists instead of typing them, keeping old or imported values removable
 - feat(collection): show the broad Discogs genre next to the styles in the album detail and public views, and edit both separately, renaming the old "Generi" label to "Stile"
 - feat(collection): filter the collection by the broad Discogs genres, kept separate from the finer styles ("Stile"), and carry them in the CSV export/import
 - feat(collection): set the table width of short-text custom fields, so a long value no longer stretches the collection table

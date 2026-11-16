@@ -6,9 +6,11 @@ import { isApiError } from '../../api/errors';
 import { toastService } from '../../utils/toast';
 import { getImageUrl } from '../../utils/imageUrl';
 import { normalizeCustomFieldValues } from '../../utils/customFields';
+import { DISCOGS_GENRES, DISCOGS_STYLES } from '../../constants/discogsGenres';
 import type { CollectionItem, Track } from '../../types/collection.types';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
 import { Upload, X, Music, Plus, Trash2 } from 'lucide-react';
+import DiscogsTagSelect from '../Common/DiscogsTagSelect';
 
 
 const FORMATS = ['Vinyl', 'CD', 'Cassette'];
@@ -57,8 +59,8 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
     const [format, setFormat] = useState(item?.format.name || FORMATS[0]);
     const [label, setLabel] = useState(firstLabel?.name || '');
     const [catno, setCatno] = useState(firstLabel?.catno === 'none' ? '' : firstLabel?.catno || '');
-    const [genres, setGenres] = useState((item?.album.genres || []).join(', '));
-    const [styles, setStyles] = useState((item?.album.styles || []).join(', '));
+    const [genres, setGenres] = useState<string[]>(item?.album.genres || []);
+    const [styles, setStyles] = useState<string[]>(item?.album.styles || []);
     const [value, setValue] = useState(item?.manualValue != null ? String(item.manualValue) : '');
     const [tracks, setTracks] = useState<TrackDraft[]>(initialTracks);
     const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
@@ -90,8 +92,8 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
         setFormat(FORMATS[0]);
         setLabel('');
         setCatno('');
-        setGenres('');
-        setStyles('');
+        setGenres([]);
+        setStyles([]);
         setValue('');
         setTracks([createTrackDraft()]);
         setCustomFieldValues({});
@@ -162,8 +164,8 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
             if (!isDiscogs) formData.append('format', format);
             formData.append('label', label.trim());
             formData.append('catno', catno.trim());
-            formData.append('genres', genres);
-            formData.append('styles', styles);
+            formData.append('genres', genres.join(', '));
+            formData.append('styles', styles.join(', '));
             if (!isDiscogs) formData.append('value', value.trim());
 
             const filledTracks = tracks
@@ -390,33 +392,25 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
 
                     {/* Genre, style + value */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex flex-col">
-                            <label className="label w-full justify-between">
-                                <span className="text-sm">{t('album.genres')}</span>
-                                <span className="text-xs text-base-content/50">{t('search.optional')}</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={genres}
-                                onChange={(e) => setGenres(e.target.value)}
-                                placeholder={t('search.genresPlaceholder')}
-                                className="input w-full"
-                            />
-                        </div>
+                        <DiscogsTagSelect
+                            id="manual-album-genres"
+                            label={t('album.genres')}
+                            values={genres}
+                            options={DISCOGS_GENRES}
+                            placeholder={t('search.genresPlaceholder')}
+                            optionalLabel={t('search.optional')}
+                            onChange={setGenres}
+                        />
 
-                        <div className="flex flex-col">
-                            <label className="label w-full justify-between">
-                                <span className="text-sm">{t('album.styles')}</span>
-                                <span className="text-xs text-base-content/50">{t('search.optional')}</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={styles}
-                                onChange={(e) => setStyles(e.target.value)}
-                                placeholder={t('search.stylesPlaceholder')}
-                                className="input w-full"
-                            />
-                        </div>
+                        <DiscogsTagSelect
+                            id="manual-album-styles"
+                            label={t('album.styles')}
+                            values={styles}
+                            options={DISCOGS_STYLES}
+                            placeholder={t('search.stylesPlaceholder')}
+                            optionalLabel={t('search.optional')}
+                            onChange={setStyles}
+                        />
 
                         {!isDiscogs && (
                             <div className="flex flex-col">
