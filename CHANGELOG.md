@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(collection): show the broad Discogs genre next to the styles in the album detail and public views, and edit both separately, renaming the old "Generi" label to "Stile"
 - feat(collection): filter the collection by the broad Discogs genres, kept separate from the finer styles ("Stile"), and carry them in the CSV export/import
 - feat(collection): set the table width of short-text custom fields, so a long value no longer stretches the collection table
-- feat(collection): edit the details of a Discogs album on your own copy (title, artist, year, label, genres, tracklist and cover), with a discreet icon when the data was changed locally and a restore action that brings the Discogs data back
+- feat(collection): edit the details of a Discogs album on your own copy (title, artist, year, format, label, genres, styles, tracklist and cover), with a discreet icon when the data was changed locally and a restore action that brings the Discogs data back
 - feat(collection): keep a local copy of every Discogs cover when an album is added, imported, rematched or refreshed, and backfill older covers with `npm run localize-covers`
 - feat(collection): carry locally uploaded album covers in the CSV export as base64 and restore them on import
 - feat(collection): put the time in the exported CSV file name, so several exports in one day stay separate

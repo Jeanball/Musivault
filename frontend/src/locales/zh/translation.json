@@ -319,7 +319,6 @@
     "album": {
         "editDiscogs": "编辑详情",
         "editDiscogsTitle": "编辑 Discogs 详情",
-        "formatNotEditable": "格式通过重新匹配更改",
         "discogsUpdateSuccess": "\"{{title}}\" 已更新",
         "locallyModifiedHint": "数据已在本地修改",
         "restoreDiscogs": "恢复 Discogs 数据",
@@ -379,7 +378,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "Musivault 中的格式与已关联的 Discogs 发行版本不一致。请使用 Rematch 或忽略此提醒。"
+            "message": "Musivault 中的格式与已关联的 Discogs 发行版本不一致。请在专辑详情中修改格式、重新匹配发行版本，或忽略此提醒。"
         },
         "unknown": {
             "noDiscogsAssociation": "这张专辑目前还没有关联任何 Discogs 发行版本。",

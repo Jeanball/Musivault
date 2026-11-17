@@ -35,8 +35,9 @@ interface ManualAlbumFormProps {
     /** When present the form edits this album instead of creating a new one. */
     item?: CollectionItem | null;
     /**
-     * `discogs` edits a Discogs album on this user's copy: no format, value or
-     * custom fields (they belong to the item, not the release) and no creation.
+     * `discogs` edits a Discogs album on this user's copy: the format belongs
+     * to the item and stays editable here, while value and custom fields stay
+     * hidden and no new album is created.
      */
     mode?: 'manual' | 'discogs';
     onSaved?: (item: CollectionItem) => void;
@@ -47,6 +48,12 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
     const { t } = useTranslation();
     const isEditing = Boolean(item);
     const isDiscogs = mode === 'discogs';
+    // Discogs releases can have formats outside the manual list (File, Box Set,
+    // ...). Keep the current one selectable so opening the form never changes it.
+    const formatOptions = Array.from(new Set([
+        ...FORMATS,
+        ...(item?.format?.name ? [item.format.name] : []),
+    ]));
 
     const firstLabel = item?.album.labels?.[0];
     const currentCover = item?.album.cover_image || item?.album.thumb || '';
@@ -170,7 +177,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
             formData.append('title', trimmedTitle);
             formData.append('artist', trimmedArtist);
             formData.append('year', year.trim());
-            if (!isDiscogs) formData.append('format', format);
+            formData.append('format', format);
             formData.append('label', label.trim());
             formData.append('catno', catno.trim());
             formData.append('genres', genres.join(', '));
@@ -356,12 +363,10 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
                                 value={format}
                                 onChange={(e) => setFormat(e.target.value)}
                                 className="select w-full"
-                                disabled={isDiscogs}
-                                title={isDiscogs ? t('album.formatNotEditable') : undefined}
                             >
-                                {FORMATS.map((f) => (
+                                {formatOptions.map((f) => (
                                     <option key={f} value={f}>
-                                        {t(`formats.${f.toLowerCase()}`)}
+                                        {t(`formats.${f.toLowerCase()}`, { defaultValue: f })}
                                     </option>
                                 ))}
                             </select>

@@ -1,20 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import ManualAlbumForm from './ManualAlbumForm';
-import { addManualAlbum, updateManualAlbum } from '../../api/collection';
+import { addManualAlbum, updateDiscogsAlbum, updateManualAlbum } from '../../api/collection';
 import { getCustomFields } from '../../api/customFields';
 import type { CollectionItem } from '../../types/collection.types';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string) => key,
+        t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
         i18n: { language: 'en' },
     }),
 }));
 
 vi.mock('../../api/collection', () => ({
     addManualAlbum: vi.fn(),
+    updateDiscogsAlbum: vi.fn(),
     updateManualAlbum: vi.fn(),
 }));
 
@@ -206,5 +207,45 @@ describe('ManualAlbumForm custom fields', () => {
             'field-binder': 'Shelf C',
             'field-notes': 'First pressing',
         });
+    });
+
+    it('lets the format be edited on a Discogs album', async () => {
+        const item: CollectionItem = {
+            ...manualItem({}),
+            album: { ...manualItem({}).album, isManual: false, discogsId: 123 },
+        };
+        vi.mocked(updateDiscogsAlbum).mockResolvedValue({ item } as never);
+        const { container } = render(<ManualAlbumForm item={item} mode="discogs" onSaved={vi.fn()} />);
+
+        const select = container.querySelector('select') as HTMLSelectElement;
+        expect(select).not.toBeDisabled();
+        expect(Array.from(select.options).map(option => option.value)).toEqual(['Vinyl', 'CD', 'Cassette']);
+
+        fireEvent.change(select, { target: { value: 'CD' } });
+        fireEvent.click(screen.getByRole('button', { name: 'common.save' }));
+
+        await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
+        const [itemId, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
+        expect(itemId).toBe('item-1');
+        expect(form.get('format')).toBe('CD');
+    });
+
+    it('keeps a Discogs format outside the manual list available', async () => {
+        const item: CollectionItem = {
+            ...manualItem({}),
+            format: { name: 'File', descriptions: [], text: 'File' },
+        };
+        vi.mocked(updateDiscogsAlbum).mockResolvedValue({ item } as never);
+        const { container } = render(<ManualAlbumForm item={item} mode="discogs" onSaved={vi.fn()} />);
+
+        const select = container.querySelector('select') as HTMLSelectElement;
+        expect(select.value).toBe('File');
+        expect(Array.from(select.options).filter(option => option.value === 'File')).toHaveLength(1);
+
+        fireEvent.click(screen.getByRole('button', { name: 'common.save' }));
+
+        await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
+        const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
+        expect(form.get('format')).toBe('File');
     });
 });

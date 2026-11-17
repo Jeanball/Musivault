@@ -63,6 +63,14 @@ const createItem = (overrides: Record<string, unknown> = {}) => {
     return {
         _id: 'item-1',
         album,
+        format: { name: 'Vinyl', descriptions: ['LP', 'Album'], text: 'Vinyl LP' },
+        formatVerification: {
+            status: 'mismatch',
+            reasonCode: 'format_mismatch',
+            detectedDiscogsFormat: 'CD',
+            checkedAt: new Date('2025-01-01T00:00:00.000Z'),
+            ignoredAt: null,
+        },
         albumOverrides: null,
         locallyModified: false,
         save: vi.fn().mockResolvedValue(undefined),
@@ -112,6 +120,48 @@ describe('Discogs album local edits', () => {
 
         const payload = vi.mocked(res.json).mock.calls[0][0] as { item: { album: { title: string } } };
         expect(payload.item.album.title).toBe('Kind of Blue (Mono)');
+    });
+
+    it('saves an edited format on the collection item and clears the old verification', async () => {
+        const item = createItem();
+        storeItem(item);
+
+        const res = response();
+        await updateDiscogsAlbum(request('item-1', { format: 'CD' }), res as never);
+
+        expect(item.format).toEqual({ name: 'CD', descriptions: [], text: 'CD' });
+        expect(item.formatVerification).toBeNull();
+        // The format is item data, not a local edit of the shared album.
+        expect(item.albumOverrides).toBeNull();
+        expect(item.locallyModified).toBe(false);
+        expect(item.save).toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(200);
+
+        const payload = vi.mocked(res.json).mock.calls[0][0] as { item: { format: { name: string } } };
+        expect(payload.item.format.name).toBe('CD');
+    });
+
+    it('keeps the format and its verification when the submitted format is unchanged', async () => {
+        const item = createItem();
+        const verification = item.formatVerification;
+        storeItem(item);
+
+        await updateDiscogsAlbum(request('item-1', { format: 'Vinyl' }), response() as never);
+
+        expect(item.format).toEqual({ name: 'Vinyl', descriptions: ['LP', 'Album'], text: 'Vinyl LP' });
+        expect(item.formatVerification).toBe(verification);
+    });
+
+    it('rejects a blank format without saving', async () => {
+        const item = createItem();
+        storeItem(item);
+
+        const res = response();
+        await updateDiscogsAlbum(request('item-1', { format: '   ' }), res as never);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(item.save).not.toHaveBeenCalled();
+        expect(item.format.name).toBe('Vinyl');
     });
 
     it('stores broad genres and styles as separate local edits', async () => {

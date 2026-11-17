@@ -320,7 +320,6 @@
     "album": {
         "editDiscogs": "Editar dados",
         "editDiscogsTitle": "Editar dados do Discogs",
-        "formatNotEditable": "O formato é alterado com Refazer Match",
         "discogsUpdateSuccess": "\"{{title}}\" atualizado",
         "locallyModifiedHint": "Dados editados localmente",
         "restoreDiscogs": "Restaurar dados do Discogs",
@@ -380,7 +379,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "O formato do Musivault não corresponde ao lançamento vinculado no Discogs. Use Rematch ou ignore este alerta."
+            "message": "O formato do Musivault não corresponde ao lançamento vinculado no Discogs. Edite o formato nos detalhes do álbum, refaça a associação ou ignore este alerta."
         },
         "unknown": {
             "noDiscogsAssociation": "Ainda não há um lançamento do Discogs associado a este álbum.",

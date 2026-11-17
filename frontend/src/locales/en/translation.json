@@ -338,7 +338,6 @@
     "album": {
         "editDiscogs": "Edit details",
         "editDiscogsTitle": "Edit Discogs details",
-        "formatNotEditable": "The format is changed with Rematch",
         "discogsUpdateSuccess": "\"{{title}}\" updated",
         "locallyModifiedHint": "Details edited locally",
         "restoreDiscogs": "Restore Discogs data",
@@ -398,7 +397,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "The Musivault format does not match the linked Discogs release. Use Rematch or ignore this alert."
+            "message": "The Musivault format does not match the linked Discogs release. Edit the format in the album details, rematch the release, or ignore this alert."
         },
         "unknown": {
             "noDiscogsAssociation": "No Discogs release is associated with this album yet.",

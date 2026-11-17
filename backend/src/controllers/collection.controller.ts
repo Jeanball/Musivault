@@ -1237,6 +1237,8 @@ interface DiscogsAlbumBody {
   title?: string;
   artist?: string;
   year?: string;
+  /** The pressing type on this user's copy (Vinyl, CD, ...). */
+  format?: string;
   /** Free-text label name; the catalog number is a separate field. */
   label?: string;
   catno?: string;
@@ -1254,7 +1256,8 @@ interface DiscogsAlbumBody {
  * Edit the metadata of a Discogs album on this user's copy only. The shared
  * Album document belongs to every user who owns the release, so the changes are
  * stored as albumOverrides on the collection item and laid over the album when
- * the item is read. The format is not editable: rematch handles that.
+ * the item is read. The format belongs to the item, so a format change is
+ * saved on the user's copy alongside those overrides.
  */
 export async function updateDiscogsAlbum(req: Request, res: Response) {
   try {
@@ -1306,6 +1309,20 @@ export async function updateDiscogsAlbum(req: Request, res: Response) {
     }
 
     if (body.year !== undefined) desired.year = trimmedString(body.year);
+
+    if (body.format !== undefined) {
+      const format = trimmedString(body.format);
+      if (!format) {
+        res.status(400).json({ message: 'Format is required' });
+        return;
+      }
+      if (format !== item.format.name) {
+        item.format = { name: format, descriptions: [], text: format };
+        // The old verification compared the previous pressing with Discogs.
+        item.formatVerification = null;
+      }
+    }
+
     if (body.genres !== undefined) desired.genres = parseManualList(body.genres);
     if (body.styles !== undefined) desired.styles = parseManualList(body.styles);
 

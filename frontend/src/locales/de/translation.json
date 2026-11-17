@@ -317,7 +317,6 @@
     "album": {
         "editDiscogs": "Details bearbeiten",
         "editDiscogsTitle": "Discogs-Details bearbeiten",
-        "formatNotEditable": "Das Format wird über Neu zuordnen geändert",
         "discogsUpdateSuccess": "\"{{title}}\" aktualisiert",
         "locallyModifiedHint": "Daten lokal bearbeitet",
         "restoreDiscogs": "Discogs-Daten wiederherstellen",
@@ -377,7 +376,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "Das Musivault-Format stimmt nicht mit der verknüpften Discogs-Veröffentlichung überein. Verwenden Sie Rematch oder ignorieren Sie diesen Hinweis."
+            "message": "Das Musivault-Format stimmt nicht mit der verknüpften Discogs-Veröffentlichung überein. Ändern Sie das Format in den Albumdetails, ordnen Sie die Veröffentlichung neu zu oder ignorieren Sie diesen Hinweis."
         },
         "unknown": {
             "noDiscogsAssociation": "Diesem Album ist noch keine Discogs-Veröffentlichung zugeordnet.",
