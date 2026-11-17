@@ -35,9 +35,9 @@ interface ManualAlbumFormProps {
     /** When present the form edits this album instead of creating a new one. */
     item?: CollectionItem | null;
     /**
-     * `discogs` edits a Discogs album on this user's copy: the format belongs
-     * to the item and stays editable here, while value and custom fields stay
-     * hidden and no new album is created.
+     * `discogs` edits a Discogs album on this user's copy: item-level data
+     * (format and custom fields) stays editable here, while the manual-only
+     * value field stays hidden and no new album is created.
      */
     mode?: 'manual' | 'discogs';
     onSaved?: (item: CollectionItem) => void;
@@ -91,11 +91,10 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (isDiscogs) return;
         getCustomFields()
             .then(setCustomFieldDefinitions)
             .catch((error) => console.error('Failed to fetch custom field definitions:', error));
-    }, [isDiscogs]);
+    }, []);
 
     const setCustomFieldValue = (fieldId: string, fieldValue: string) => {
         setCustomFieldValues(prev => ({ ...prev, [fieldId]: fieldValue }));
@@ -196,15 +195,13 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
 
             // Only fields that still exist and have a value; blanks are omitted
             // so an empty box clears the stored value instead of saving "".
-            if (!isDiscogs) {
-                const customFields = customFieldDefinitions.reduce<Record<string, string>>((acc, field) => {
-                    const fieldValue = (customFieldValues[field._id] || '').trim();
-                    if (fieldValue) acc[field._id] = fieldValue;
-                    return acc;
-                }, {});
-                if (customFieldDefinitions.length > 0) {
-                    formData.append('customFields', JSON.stringify(customFields));
-                }
+            const customFields = customFieldDefinitions.reduce<Record<string, string>>((acc, field) => {
+                const fieldValue = (customFieldValues[field._id] || '').trim();
+                if (fieldValue) acc[field._id] = fieldValue;
+                return acc;
+            }, {});
+            if (customFieldDefinitions.length > 0) {
+                formData.append('customFields', JSON.stringify(customFields));
             }
 
             if (coverFile) {
@@ -446,7 +443,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
                     </div>
 
                     {/* Custom fields */}
-                    {!isDiscogs && customFieldDefinitions.length > 0 && (
+                    {customFieldDefinitions.length > 0 && (
                         <div className="flex flex-col gap-2 mt-2">
                             <label className="label p-0">
                                 <span className="text-sm">{t('customFields.itemSectionTitle')}</span>

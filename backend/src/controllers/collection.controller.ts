@@ -1248,6 +1248,8 @@ interface DiscogsAlbumBody {
   styles?: string;
   /** JSON array of { position, title, duration, artist }. */
   tracklist?: string;
+  /** JSON object of custom field id -> value, as in the manual edit form. */
+  customFields?: string;
   /** 'true' clears the album cover for this user. */
   removeCover?: string;
 }
@@ -1256,8 +1258,8 @@ interface DiscogsAlbumBody {
  * Edit the metadata of a Discogs album on this user's copy only. The shared
  * Album document belongs to every user who owns the release, so the changes are
  * stored as albumOverrides on the collection item and laid over the album when
- * the item is read. The format belongs to the item, so a format change is
- * saved on the user's copy alongside those overrides.
+ * the item is read. Item-level data (format and custom fields) is saved on the
+ * user's copy alongside those overrides.
  */
 export async function updateDiscogsAlbum(req: Request, res: Response) {
   try {
@@ -1321,6 +1323,22 @@ export async function updateDiscogsAlbum(req: Request, res: Response) {
         // The old verification compared the previous pressing with Discogs.
         item.formatVerification = null;
       }
+    }
+
+    if (body.customFields !== undefined) {
+      const customFields = parseManualCustomFields(body.customFields);
+      if (customFields === null) {
+        res.status(400).json({ message: 'Custom fields must be a valid object' });
+        return;
+      }
+
+      const validation = await validateCustomFieldValues(req.user._id.toString(), customFields);
+      if (!validation.valid) {
+        res.status(400).json({ message: validation.error });
+        return;
+      }
+
+      item.customFields = new Map(Object.entries(validation.sanitized ?? {}));
     }
 
     if (body.genres !== undefined) desired.genres = parseManualList(body.genres);

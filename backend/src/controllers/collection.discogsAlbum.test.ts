@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { restoreDiscogsAlbum, updateDiscogsAlbum } from './collection.controller';
 import CollectionItem from '../models/CollectionItem';
+import { validateCustomFieldValues } from './customFields.controller';
 
 vi.mock('../config/logger.config', () => ({
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
@@ -162,6 +163,55 @@ describe('Discogs album local edits', () => {
         expect(res.status).toHaveBeenCalledWith(400);
         expect(item.save).not.toHaveBeenCalled();
         expect(item.format.name).toBe('Vinyl');
+    });
+
+    it('saves custom field values on a Discogs item', async () => {
+        const item = createItem();
+        storeItem(item);
+        vi.mocked(validateCustomFieldValues).mockResolvedValue({
+            valid: true,
+            sanitized: { 'field-binder': 'Shelf 3' },
+        });
+
+        const res = response();
+        await updateDiscogsAlbum(
+            request('item-1', { customFields: JSON.stringify({ 'field-binder': '  Shelf 3  ' }) }),
+            res as never
+        );
+
+        expect(validateCustomFieldValues).toHaveBeenCalledWith('user-1', { 'field-binder': 'Shelf 3' });
+        expect(item.customFields).toEqual(new Map([['field-binder', 'Shelf 3']]));
+        expect(item.save).toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('clears custom field values when all boxes are emptied', async () => {
+        const item = createItem();
+        item.customFields = new Map([['field-binder', 'Shelf 3']]);
+        storeItem(item);
+        vi.mocked(validateCustomFieldValues).mockResolvedValue({ valid: true, sanitized: {} });
+
+        await updateDiscogsAlbum(request('item-1', { customFields: '{}' }), response() as never);
+
+        expect(item.customFields).toEqual(new Map());
+    });
+
+    it('rejects invalid custom fields without saving', async () => {
+        const item = createItem();
+        storeItem(item);
+        vi.mocked(validateCustomFieldValues).mockResolvedValue({
+            valid: false,
+            error: 'Unknown custom field: bad-id',
+        });
+
+        const res = response();
+        await updateDiscogsAlbum(
+            request('item-1', { customFields: JSON.stringify({ 'bad-id': 'nope' }) }),
+            res as never
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(item.save).not.toHaveBeenCalled();
     });
 
     it('stores broad genres and styles as separate local edits', async () => {

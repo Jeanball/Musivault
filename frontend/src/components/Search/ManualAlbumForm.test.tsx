@@ -248,4 +248,23 @@ describe('ManualAlbumForm custom fields', () => {
         const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
         expect(form.get('format')).toBe('File');
     });
+
+    it('loads and saves custom fields on a Discogs album', async () => {
+        const item: CollectionItem = {
+            ...manualItem({ 'field-binder': 'Shelf 1' }),
+            album: { ...manualItem({}).album, isManual: false, discogsId: 123 },
+        };
+        vi.mocked(updateDiscogsAlbum).mockResolvedValue({ item } as never);
+        render(<ManualAlbumForm item={item} mode="discogs" onSaved={vi.fn()} />);
+
+        const input = await screen.findByPlaceholderText('Shelf A');
+        expect(input).toHaveValue('Shelf 1');
+
+        fireEvent.change(input, { target: { value: 'Shelf 4' } });
+        fireEvent.click(screen.getByRole('button', { name: 'common.save' }));
+
+        await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
+        const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
+        expect(customFieldsFrom(form)).toEqual({ 'field-binder': 'Shelf 4' });
+    });
 });
