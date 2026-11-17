@@ -148,6 +148,10 @@ const AlbumDetailPage: React.FC = () => {
 
         try {
             await removeFromCollection(item!._id);
+            // The collection context lives above the router (PrivateLayout), so
+            // its state survives navigation. Without a refresh the item stays
+            // visible in the collection table after going back to /app.
+            await refreshCollection({ silent: true });
             toastService.success(t('album.removed'));
             navigate('/app');
         } catch (error) {
