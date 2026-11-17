@@ -138,6 +138,50 @@ describe('ManualAlbumForm custom fields', () => {
         expect(form.get('styles')).toBe('Hard Bop');
     });
 
+    it('offers every style before a genre is picked, then only that genre’s styles', async () => {
+        render(<ManualAlbumForm onSaved={vi.fn()} />);
+
+        await screen.findByText('Binder');
+
+        const stylesInput = screen.getByPlaceholderText('search.stylesPlaceholder');
+        fireEvent.change(stylesInput, { target: { value: 'Black Metal' } });
+        expect(screen.getByRole('button', { name: 'Black Metal' })).toBeInTheDocument();
+
+        const genresInput = screen.getByPlaceholderText('search.genresPlaceholder');
+        fireEvent.focus(genresInput);
+        fireEvent.change(genresInput, { target: { value: 'Jazz' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Jazz' }));
+
+        expect(screen.queryByRole('button', { name: 'Black Metal' })).not.toBeInTheDocument();
+
+        fireEvent.change(stylesInput, { target: { value: 'Hard Bop' } });
+        expect(screen.getByRole('button', { name: 'Hard Bop' })).toBeInTheDocument();
+    });
+
+    it('drops a style that no longer fits when the genre changes', async () => {
+        render(<ManualAlbumForm onSaved={vi.fn()} />);
+
+        await screen.findByText('Binder');
+
+        const genresInput = screen.getByPlaceholderText('search.genresPlaceholder');
+        fireEvent.focus(genresInput);
+        fireEvent.change(genresInput, { target: { value: 'Jazz' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Jazz' }));
+
+        const stylesInput = screen.getByPlaceholderText('search.stylesPlaceholder');
+        fireEvent.focus(stylesInput);
+        fireEvent.change(stylesInput, { target: { value: 'Hard Bop' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Hard Bop' }));
+        fireEvent.keyDown(stylesInput, { key: 'Escape' });
+        expect(screen.getByText('Hard Bop')).toBeInTheDocument();
+
+        fireEvent.click(screen.getAllByRole('button', { name: 'search.removeValue' })[0]);
+        fireEvent.change(genresInput, { target: { value: 'Rock' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Rock' }));
+
+        expect(screen.queryByText('Hard Bop')).not.toBeInTheDocument();
+    });
+
     it('shows the saved values when editing an album', async () => {
         vi.mocked(updateManualAlbum).mockResolvedValue({
             item: manualItem({ 'field-binder': 'Shelf B', 'field-notes': 'First pressing' }),

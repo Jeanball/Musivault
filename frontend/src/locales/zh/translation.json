@@ -462,6 +462,7 @@
         "genresPlaceholder": "搜索 Discogs 流派…",
         "stylesPlaceholder": "搜索 Discogs 风格…",
         "removeValue": "移除 {{value}}",
+        "noOptions": "没有匹配的选项。",
         "valueUsd": "价值（美元）",
         "addTrack": "添加曲目",
         "removeTrack": "删除曲目",

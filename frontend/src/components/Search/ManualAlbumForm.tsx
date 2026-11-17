@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { addManualAlbum, updateManualAlbum, updateDiscogsAlbum } from '../../api/collection';
 import { getCustomFields } from '../../api/customFields';
@@ -6,7 +6,8 @@ import { isApiError } from '../../api/errors';
 import { toastService } from '../../utils/toast';
 import { getImageUrl } from '../../utils/imageUrl';
 import { normalizeCustomFieldValues } from '../../utils/customFields';
-import { DISCOGS_GENRES, DISCOGS_STYLES } from '../../constants/discogsGenres';
+import { DISCOGS_GENRES } from '../../constants/discogsGenres';
+import { getStylesForGenres, pruneStylesForGenres } from '../../utils/discogsTags';
 import type { CollectionItem, Track } from '../../types/collection.types';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
 import { Upload, X, Music, Plus, Trash2 } from 'lucide-react';
@@ -61,6 +62,14 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
     const [catno, setCatno] = useState(firstLabel?.catno === 'none' ? '' : firstLabel?.catno || '');
     const [genres, setGenres] = useState<string[]>(item?.album.genres || []);
     const [styles, setStyles] = useState<string[]>(item?.album.styles || []);
+    // No genre selected yet: offer every Discogs style. Once a genre is picked,
+    // restrict the picker to the styles Discogs uses with that genre.
+    const styleOptions = useMemo(() => getStylesForGenres(genres), [genres]);
+
+    const handleGenresChange = (nextGenres: string[]) => {
+        setGenres(nextGenres);
+        setStyles((current) => pruneStylesForGenres(current, nextGenres));
+    };
     const [value, setValue] = useState(item?.manualValue != null ? String(item.manualValue) : '');
     const [tracks, setTracks] = useState<TrackDraft[]>(initialTracks);
     const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
@@ -399,14 +408,14 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
                             options={DISCOGS_GENRES}
                             placeholder={t('search.genresPlaceholder')}
                             optionalLabel={t('search.optional')}
-                            onChange={setGenres}
+                            onChange={handleGenresChange}
                         />
 
                         <DiscogsTagSelect
                             id="manual-album-styles"
                             label={t('album.styles')}
                             values={styles}
-                            options={DISCOGS_STYLES}
+                            options={styleOptions}
                             placeholder={t('search.stylesPlaceholder')}
                             optionalLabel={t('search.optional')}
                             onChange={setStyles}

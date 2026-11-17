@@ -62,4 +62,39 @@ describe('DiscogsTagSelect', () => {
 
         expect(screen.getByText('Private Press')).toBeInTheDocument();
     });
+
+    it('lists every option, not just the first page', () => {
+        const manyOptions = Array.from({ length: 150 }, (_, index) => `Style ${index}`);
+        render(
+            <DiscogsTagSelect
+                id="many"
+                label="Styles"
+                values={[]}
+                options={manyOptions}
+                placeholder="Search…"
+                onChange={vi.fn()}
+            />
+        );
+
+        fireEvent.focus(screen.getByRole('combobox'));
+
+        expect(screen.getByRole('button', { name: 'Style 149' })).toBeInTheDocument();
+    });
+
+    it('explains an empty list instead of searching for an empty query', () => {
+        render(
+            <DiscogsTagSelect
+                id="empty"
+                label="Styles"
+                values={[]}
+                options={[]}
+                placeholder="Search…"
+                onChange={vi.fn()}
+            />
+        );
+
+        fireEvent.focus(screen.getByRole('combobox'));
+
+        expect(screen.getByText('search.noOptions')).toBeInTheDocument();
+    });
 });

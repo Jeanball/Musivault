@@ -15,9 +15,6 @@ interface DiscogsTagSelectProps {
     onChange: (values: string[]) => void;
 }
 
-/** Enough to browse a little, but a search keeps the huge style list usable. */
-const MAX_VISIBLE_OPTIONS = 100;
-
 /**
  * A multi-select over a fixed list, used for the Discogs genres and styles.
  * Typing filters the list; only an entry from the list can be added, so the
@@ -56,8 +53,7 @@ const DiscogsTagSelect: React.FC<DiscogsTagSelectProps> = ({
         const needle = query.trim().toLowerCase();
         return options
             .filter((option) => !selected.has(option))
-            .filter((option) => !needle || option.toLowerCase().includes(needle))
-            .slice(0, MAX_VISIBLE_OPTIONS);
+            .filter((option) => !needle || option.toLowerCase().includes(needle));
     }, [options, query, selected]);
 
     const addValue = (value: string) => {
@@ -110,7 +106,9 @@ const DiscogsTagSelect: React.FC<DiscogsTagSelectProps> = ({
                     >
                         {matches.length === 0 ? (
                             <li className="px-3 py-2 text-sm text-base-content/60">
-                                {t('search.noResults', { query: query.trim() })}
+                                {query.trim()
+                                    ? t('search.noResults', { query: query.trim() })
+                                    : t('search.noOptions')}
                             </li>
                         ) : matches.map((option) => (
                             <li key={option} role="option" aria-selected={false}>

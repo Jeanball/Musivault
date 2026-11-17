@@ -482,6 +482,7 @@
         "genresPlaceholder": "Cerca un genere Discogs…",
         "stylesPlaceholder": "Cerca uno stile Discogs…",
         "removeValue": "Rimuovi {{value}}",
+        "noOptions": "Nessuna opzione corrispondente.",
         "valueUsd": "Valore (USD)",
         "addTrack": "Aggiungi brano",
         "removeTrack": "Rimuovi brano",

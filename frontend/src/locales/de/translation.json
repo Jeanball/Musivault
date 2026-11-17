@@ -460,6 +460,7 @@
         "genresPlaceholder": "Discogs-Genre suchen…",
         "stylesPlaceholder": "Discogs-Stil suchen…",
         "removeValue": "{{value}} entfernen",
+        "noOptions": "Keine passende Option.",
         "valueUsd": "Wert (USD)",
         "addTrack": "Titel hinzufügen",
         "removeTrack": "Titel entfernen",

@@ -463,6 +463,7 @@
         "genresPlaceholder": "Pesquisar um gênero do Discogs…",
         "stylesPlaceholder": "Pesquisar um estilo do Discogs…",
         "removeValue": "Remover {{value}}",
+        "noOptions": "Nenhuma opção correspondente.",
         "valueUsd": "Valor (USD)",
         "addTrack": "Adicionar faixa",
         "removeTrack": "Remover faixa",
