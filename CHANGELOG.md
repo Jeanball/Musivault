@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(collection): search the collection with several incomplete words across title, artist, tracklist, genres, styles, labels and year, in the album, track and label views, like Discogs search
 - feat(collection): pick album genres and styles from the official Discogs lists instead of typing them, showing every style and narrowing it to the selected genres, while keeping old or imported values removable
 - feat(collection): show the broad Discogs genre next to the styles in the album detail and public views, and edit both separately, renaming the old "Generi" label to "Stile"
 - feat(collection): filter the collection by the broad Discogs genres, kept separate from the finer styles ("Stile"), and carry them in the CSV export/import

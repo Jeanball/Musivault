@@ -62,3 +62,55 @@ describe('useCollectionFilters genre', () => {
         expect(result.current.filteredCollection).toHaveLength(collection.length);
     });
 });
+
+const makeSearchItem = (
+    id: string,
+    title: string,
+    artist: string,
+    album: Partial<CollectionItem['album']> = {}
+): CollectionItem => {
+    const item = makeItem(id, [], []);
+    return { ...item, album: { ...item.album, title, artist, ...album } };
+};
+
+const searchCollection = [
+    makeSearchItem('1', 'Kind of Blue', 'Miles Davis', {
+        genres: ['Jazz'],
+        styles: ['Hard Bop'],
+        labels: [{ name: 'Columbia', catno: 'BLP 1577' }],
+        tracklist: [{ position: '1', title: 'So What', duration: '9:22' }]
+    }),
+    makeSearchItem('2', 'Abbey Road', 'The Beatles', {
+        genres: ['Rock'],
+        styles: ['Psychedelic Rock']
+    })
+];
+
+describe('useCollectionFilters free-text search', () => {
+    beforeEach(() => {
+        sessionStorage.clear();
+    });
+
+    it('finds an album from incomplete words spread across several fields', () => {
+        const { result } = renderHook(() => useCollectionFilters(searchCollection, 'mil dav kind blu'));
+
+        expect(result.current.filteredCollection.map(item => item._id)).toEqual(['1']);
+    });
+
+    it('matches words in the artist, the tracklist, the genre and the style', () => {
+        expect(renderHook(() => useCollectionFilters(searchCollection, 'davis so what')).result.current.filteredCollection.map(item => item._id)).toEqual(['1']);
+        expect(renderHook(() => useCollectionFilters(searchCollection, 'jazz hard')).result.current.filteredCollection.map(item => item._id)).toEqual(['1']);
+        expect(renderHook(() => useCollectionFilters(searchCollection, 'columbia 1577')).result.current.filteredCollection.map(item => item._id)).toEqual(['1']);
+    });
+
+    it('still finds another album with its own words', () => {
+        const { result } = renderHook(() => useCollectionFilters(searchCollection, 'beatles abbey'));
+
+        expect(result.current.filteredCollection.map(item => item._id)).toEqual(['2']);
+    });
+
+    it('requires every word to match, and shows everything when the query is empty', () => {
+        expect(renderHook(() => useCollectionFilters(searchCollection, 'miles beatles')).result.current.filteredCollection).toEqual([]);
+        expect(renderHook(() => useCollectionFilters(searchCollection, '   ')).result.current.filteredCollection).toHaveLength(2);
+    });
+});
