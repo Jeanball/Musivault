@@ -7,6 +7,7 @@ import { toastService } from '../../utils/toast';
 import { getImageUrl } from '../../utils/imageUrl';
 import { normalizeCustomFieldValues } from '../../utils/customFields';
 import { DISCOGS_GENRES } from '../../constants/discogsGenres';
+import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../../utils/conditions';
 import { getStylesForGenres, pruneStylesForGenres } from '../../utils/discogsTags';
 import type { CollectionItem, Track } from '../../types/collection.types';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
@@ -40,11 +41,19 @@ interface ManualAlbumFormProps {
      * value field stays hidden and no new album is created.
      */
     mode?: 'manual' | 'discogs';
+    /** Show the condition grades when the user enabled condition tracking. */
+    showConditions?: boolean;
     onSaved?: (item: CollectionItem) => void;
     onCancel?: () => void;
 }
 
-const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual', onSaved, onCancel }) => {
+const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
+    item,
+    mode = 'manual',
+    showConditions = false,
+    onSaved,
+    onCancel
+}) => {
     const { t } = useTranslation();
     const isEditing = Boolean(item);
     const isDiscogs = mode === 'discogs';
@@ -78,6 +87,8 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
         setStyles((current) => pruneStylesForGenres(current, nextGenres));
     };
     const [value, setValue] = useState(item?.manualValue != null ? String(item.manualValue) : '');
+    const [mediaCondition, setMediaCondition] = useState(item?.mediaCondition || '');
+    const [sleeveCondition, setSleeveCondition] = useState(item?.sleeveCondition || '');
     const [tracks, setTracks] = useState<TrackDraft[]>(initialTracks);
     const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
     const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>(
@@ -110,6 +121,8 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
         setGenres([]);
         setStyles([]);
         setValue('');
+        setMediaCondition('');
+        setSleeveCondition('');
         setTracks([createTrackDraft()]);
         setCustomFieldValues({});
         setCoverFile(null);
@@ -202,6 +215,10 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
             }, {});
             if (customFieldDefinitions.length > 0) {
                 formData.append('customFields', JSON.stringify(customFields));
+            }
+            if (showConditions) {
+                formData.append('mediaCondition', mediaCondition);
+                formData.append('sleeveCondition', sleeveCondition);
             }
 
             if (coverFile) {
@@ -441,6 +458,46 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({ item, mode = 'manual'
                             </div>
                         )}
                     </div>
+
+                    {/* Condition grades, only when the user enabled them */}
+                    {showConditions && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="flex flex-col">
+                                <label className="label w-full justify-between" htmlFor="manual-media-condition">
+                                    <span className="text-sm">{t('condition.media')}</span>
+                                    <span className="text-xs text-base-content/50">{t('search.optional')}</span>
+                                </label>
+                                <select
+                                    id="manual-media-condition"
+                                    value={mediaCondition}
+                                    onChange={(e) => setMediaCondition(e.target.value)}
+                                    className="select w-full"
+                                >
+                                    <option value="">{t('condition.grades.none')}</option>
+                                    {MEDIA_CONDITIONS.map((cond) => (
+                                        <option key={cond.value} value={cond.value}>{t(cond.labelKey)}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex flex-col">
+                                <label className="label w-full justify-between" htmlFor="manual-sleeve-condition">
+                                    <span className="text-sm">{t('condition.sleeve')}</span>
+                                    <span className="text-xs text-base-content/50">{t('search.optional')}</span>
+                                </label>
+                                <select
+                                    id="manual-sleeve-condition"
+                                    value={sleeveCondition}
+                                    onChange={(e) => setSleeveCondition(e.target.value)}
+                                    className="select w-full"
+                                >
+                                    <option value="">{t('condition.grades.none')}</option>
+                                    {SLEEVE_CONDITIONS.map((cond) => (
+                                        <option key={cond.value} value={cond.value}>{t(cond.labelKey)}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Custom fields */}
                     {customFieldDefinitions.length > 0 && (

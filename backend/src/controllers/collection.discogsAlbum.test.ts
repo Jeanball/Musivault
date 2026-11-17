@@ -65,6 +65,8 @@ const createItem = (overrides: Record<string, unknown> = {}) => {
         _id: 'item-1',
         album,
         format: { name: 'Vinyl', descriptions: ['LP', 'Album'], text: 'Vinyl LP' },
+        mediaCondition: 'VG+',
+        sleeveCondition: 'VG',
         formatVerification: {
             status: 'mismatch',
             reasonCode: 'format_mismatch',
@@ -212,6 +214,21 @@ describe('Discogs album local edits', () => {
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(item.save).not.toHaveBeenCalled();
+    });
+
+    it('saves condition grades on the collection item', async () => {
+        const item = createItem();
+        storeItem(item);
+
+        const res = response();
+        await updateDiscogsAlbum(
+            request('item-1', { mediaCondition: 'NM', sleeveCondition: '' }),
+            res as never
+        );
+
+        expect(item.mediaCondition).toBe('NM');
+        expect(item.sleeveCondition).toBeUndefined();
+        expect(res.status).toHaveBeenCalledWith(200);
     });
 
     it('stores broad genres and styles as separate local edits', async () => {

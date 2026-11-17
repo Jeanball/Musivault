@@ -267,4 +267,29 @@ describe('ManualAlbumForm custom fields', () => {
         const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
         expect(customFieldsFrom(form)).toEqual({ 'field-binder': 'Shelf 4' });
     });
+
+    it('edits the condition grades in the form when enabled', async () => {
+        const item: CollectionItem = {
+            ...manualItem({}),
+            album: { ...manualItem({}).album, isManual: false, discogsId: 123 },
+            mediaCondition: 'VG+',
+            sleeveCondition: 'VG',
+        };
+        vi.mocked(updateDiscogsAlbum).mockResolvedValue({ item } as never);
+        render(<ManualAlbumForm item={item} mode="discogs" showConditions onSaved={vi.fn()} />);
+
+        const media = screen.getByLabelText(/condition\.media/) as HTMLSelectElement;
+        const sleeve = screen.getByLabelText(/condition\.sleeve/) as HTMLSelectElement;
+        expect(media.value).toBe('VG+');
+        expect(sleeve.value).toBe('VG');
+
+        fireEvent.change(media, { target: { value: 'NM' } });
+        fireEvent.change(sleeve, { target: { value: '' } });
+        fireEvent.click(screen.getByRole('button', { name: 'common.save' }));
+
+        await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
+        const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
+        expect(form.get('mediaCondition')).toBe('NM');
+        expect(form.get('sleeveCondition')).toBe('');
+    });
 });

@@ -136,6 +136,13 @@ export function applyAlbumOverrides<T extends { album?: unknown; albumOverrides?
         // A plain object is copied too, so the caller's item keeps its album.
         : { ...(entry as unknown as Record<string, unknown>) };
 
+    // toObject() keeps Mongoose Maps as Map instances, which JSON.stringify turns
+    // into {}. Collections with local edits go through this helper before the
+    // response is sent, so custom field values must be plain objects here.
+    if (plain.customFields instanceof Map) {
+        plain.customFields = Object.fromEntries(plain.customFields);
+    }
+
     const album = plain.album;
     const albumPlain = typeof (album as { toObject?: () => unknown } | null)?.toObject === 'function'
         ? (album as { toObject: () => Record<string, unknown> }).toObject()

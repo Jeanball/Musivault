@@ -144,6 +144,25 @@ describe('albumOverrides.utils', () => {
         expect(applied.album.artist).toBe('Miles Davis');
     });
 
+    it('serializes custom field Maps as plain objects in the response copy', () => {
+        const document = {
+            album: baseAlbum,
+            albumOverrides: { year: '1958' },
+            customFields: new Map([['field-binder', 'Shelf A']]),
+            toObject: () => ({
+                album: baseAlbum,
+                albumOverrides: { year: '1958' },
+                customFields: new Map([['field-binder', 'Shelf A']])
+            })
+        };
+
+        const applied = applyAlbumOverrides(document);
+
+        expect(applied.customFields).toEqual({ 'field-binder': 'Shelf A' });
+        expect(JSON.stringify(applied)).toContain('"customFields":{"field-binder":"Shelf A"}');
+        expect(document.customFields).toBeInstanceOf(Map);
+    });
+
     it('applies the edits to every item in a list', () => {
         const items = [
             { _id: 'a', album: { ...baseAlbum }, albumOverrides: { title: 'One' } },

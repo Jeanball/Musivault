@@ -151,6 +151,8 @@ describe('manual album custom fields', () => {
             album,
             format: { name: 'Vinyl' },
             customFields: new Map([['field-1', 'Shelf A'], ['field-2', 'Old note']]),
+            mediaCondition: null,
+            sleeveCondition: null,
             save: vi.fn().mockResolvedValue(undefined),
         };
 
@@ -163,11 +165,20 @@ describe('manual album custom fields', () => {
 
         const res = response();
         await updateManualAlbum(
-            { ...request({ customFields: JSON.stringify({ 'field-1': 'Shelf C' }) }), params: { itemId: 'item-1' } } as never,
+            {
+                ...request({
+                    customFields: JSON.stringify({ 'field-1': 'Shelf C' }),
+                    mediaCondition: 'NM',
+                    sleeveCondition: 'VG+',
+                }),
+                params: { itemId: 'item-1' }
+            } as never,
             res as never
         );
 
         expect(item.customFields).toEqual(new Map([['field-1', 'Shelf C']]));
+        expect(item.mediaCondition).toBe('NM');
+        expect(item.sleeveCondition).toBe('VG+');
         expect(res.status).toHaveBeenCalledWith(200);
     });
 });

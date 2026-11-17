@@ -913,6 +913,9 @@ interface ManualAlbumBody {
   tracklist?: string;
   /** JSON object of custom field id -> value, from the form's own fields. */
   customFields?: string;
+  /** Optional condition grades of this user's copy. */
+  mediaCondition?: string;
+  sleeveCondition?: string;
   /** 'true' clears the existing cover during an edit. */
   removeCover?: string;
 }
@@ -1197,6 +1200,13 @@ export async function updateManualAlbum(req: Request, res: Response) {
       item.customFields = new Map(Object.entries(validation.sanitized ?? {}));
     }
 
+    if (body.mediaCondition !== undefined) {
+      item.mediaCondition = trimmedString(body.mediaCondition) || undefined;
+    }
+    if (body.sleeveCondition !== undefined) {
+      item.sleeveCondition = trimmedString(body.sleeveCondition) || undefined;
+    }
+
     if (body.title !== undefined) album.title = title;
     if (body.artist !== undefined) album.artist = artist;
     if (body.year !== undefined) album.year = trimmedString(body.year);
@@ -1250,6 +1260,9 @@ interface DiscogsAlbumBody {
   tracklist?: string;
   /** JSON object of custom field id -> value, as in the manual edit form. */
   customFields?: string;
+  /** Optional condition grades of this user's copy. */
+  mediaCondition?: string;
+  sleeveCondition?: string;
   /** 'true' clears the album cover for this user. */
   removeCover?: string;
 }
@@ -1339,6 +1352,13 @@ export async function updateDiscogsAlbum(req: Request, res: Response) {
       }
 
       item.customFields = new Map(Object.entries(validation.sanitized ?? {}));
+    }
+
+    if (body.mediaCondition !== undefined) {
+      item.mediaCondition = trimmedString(body.mediaCondition) || undefined;
+    }
+    if (body.sleeveCondition !== undefined) {
+      item.sleeveCondition = trimmedString(body.sleeveCondition) || undefined;
     }
 
     if (body.genres !== undefined) desired.genres = parseManualList(body.genres);

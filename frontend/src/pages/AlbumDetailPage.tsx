@@ -6,7 +6,6 @@ import { isApiError } from '../api/errors';
 import { getRelease } from '../api/discogs';
 import {
     getCollectionItem,
-    updateCollectionItem,
     syncItemPrice,
     refreshItemFromDiscogs,
     removeFromCollection,
@@ -89,16 +88,10 @@ const AlbumDetailPage: React.FC = () => {
         }
     };
 
-    const updateCondition = async (field: 'mediaCondition' | 'sleeveCondition', value: string | null) => {
-        if (!item) return;
-        try {
-            await updateCollectionItem(item._id, { [field]: value });
-            setItem(prev => prev ? { ...prev, [field]: value } : null);
-            toastService.success(t('condition.updated'));
-        } catch (error) {
-            console.error('Failed to update condition:', error);
-            toastService.error(t('settings.failedUpdateSetting'));
-        }
+    const conditionLabel = (value?: string | null) => {
+        if (!value) return t('condition.grades.none');
+        const grade = [...MEDIA_CONDITIONS, ...SLEEVE_CONDITIONS].find((option) => option.value === value);
+        return grade ? t(grade.labelKey) : value;
     };
 
     const syncPrice = async () => {
@@ -355,38 +348,20 @@ const AlbumDetailPage: React.FC = () => {
                     {conditionGradingEnabled && (
                         <div className="flex gap-2">
                             <div className="flex-1 min-w-0 flex flex-col">
-                                <label className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
+                                <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
                                     {t('condition.media')}
-                                </label>
-                                <select
-                                    className="select select-sm w-full"
-                                    value={item.mediaCondition || ''}
-                                    onChange={(e) => updateCondition('mediaCondition', e.target.value || null)}
-                                >
-                                    <option value="">{t('condition.grades.none')}</option>
-                                    {MEDIA_CONDITIONS.map((cond) => (
-                                        <option key={cond.value} value={cond.value}>
-                                            {t(cond.labelKey)}
-                                        </option>
-                                    ))}
-                                </select>
+                                </span>
+                                <div className="input input-sm w-full flex items-center text-sm">
+                                    {conditionLabel(item.mediaCondition)}
+                                </div>
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col">
-                                <label className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
+                                <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
                                     {t('condition.sleeve')}
-                                </label>
-                                <select
-                                    className="select select-sm w-full"
-                                    value={item.sleeveCondition || ''}
-                                    onChange={(e) => updateCondition('sleeveCondition', e.target.value || null)}
-                                >
-                                    <option value="">{t('condition.grades.none')}</option>
-                                    {SLEEVE_CONDITIONS.map((cond) => (
-                                        <option key={cond.value} value={cond.value}>
-                                            {t(cond.labelKey)}
-                                        </option>
-                                    ))}
-                                </select>
+                                </span>
+                                <div className="input input-sm w-full flex items-center text-sm">
+                                    {conditionLabel(item.sleeveCondition)}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -463,6 +438,7 @@ const AlbumDetailPage: React.FC = () => {
                             itemId={item._id}
                             values={item.customFields}
                             onUpdate={(customFields) => setItem((prev) => (prev ? { ...prev, customFields } : null))}
+                            readOnly
                         />
                         <FieldRow label={t('collection.added')}>
                             {new Date(item.addedAt).toLocaleDateString()}
@@ -470,7 +446,7 @@ const AlbumDetailPage: React.FC = () => {
                         {(() => {
                             const val = getItemValue(item);
                             const isManual = Boolean(album.isManual);
-                            const conditionLabel = item.mediaCondition || 'VG+';
+                            const gradeLabel = item.mediaCondition || 'VG+';
                             const lastUpdated = item.priceCache?.updatedAt
                                 ? new Date(item.priceCache.updatedAt).toLocaleString(undefined, {
                                     month: 'short',
@@ -499,7 +475,7 @@ const AlbumDetailPage: React.FC = () => {
                                     <span className="text-xs text-base-content/50">
                                         {isManual
                                             ? t('album.manualValue')
-                                            : <>{conditionLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}</>}
+                                            : <>{gradeLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}</>}
                                     </span>
                                 </FieldRow>
                             );
@@ -598,6 +574,7 @@ const AlbumDetailPage: React.FC = () => {
             {isEditingManual && (
                 <ManualAlbumEditModal
                     item={item}
+                    showConditions={conditionGradingEnabled}
                     onClose={() => setIsEditingManual(false)}
                     onSaved={handleAlbumSaved}
                 />
@@ -607,6 +584,7 @@ const AlbumDetailPage: React.FC = () => {
                 <ManualAlbumEditModal
                     item={item}
                     mode="discogs"
+                    showConditions={conditionGradingEnabled}
                     onClose={() => setIsEditingDiscogs(false)}
                     onSaved={handleAlbumSaved}
                 />

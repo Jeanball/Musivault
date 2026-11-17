@@ -8,6 +8,8 @@ interface ManualAlbumEditModalProps {
     item: CollectionItem;
     /** `discogs` edits the user's copy of a Discogs album instead of a manual one. */
     mode?: 'manual' | 'discogs';
+    /** Condition grades are only edited when the user enabled them in Settings. */
+    showConditions?: boolean;
     onClose: () => void;
     onSaved: (item: CollectionItem) => void;
 }
@@ -17,7 +19,13 @@ interface ManualAlbumEditModalProps {
  * field a hand-added album was created with, plus a replacement cover; in
  * Discogs mode it edits the same fields on the user's own copy.
  */
-const ManualAlbumEditModal: React.FC<ManualAlbumEditModalProps> = ({ item, mode = 'manual', onClose, onSaved }) => {
+const ManualAlbumEditModal: React.FC<ManualAlbumEditModalProps> = ({
+    item,
+    mode = 'manual',
+    showConditions = false,
+    onClose,
+    onSaved
+}) => {
     const { t } = useTranslation();
 
     return (
@@ -31,7 +39,13 @@ const ManualAlbumEditModal: React.FC<ManualAlbumEditModalProps> = ({ item, mode 
                 >
                     <X className="w-4 h-4" />
                 </button>
-                <ManualAlbumForm item={item} mode={mode} onSaved={onSaved} onCancel={onClose} />
+                <ManualAlbumForm
+                    item={item}
+                    mode={mode}
+                    showConditions={showConditions}
+                    onSaved={onSaved}
+                    onCancel={onClose}
+                />
             </div>
             <form method="dialog" className="modal-backdrop">
                 <button onClick={onClose}>{t('common.close')}</button>

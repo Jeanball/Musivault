@@ -11,12 +11,15 @@ interface CustomFieldsEditorProps {
     itemId: string;
     values: Record<string, string> | Map<string, string> | null | undefined;
     onUpdate: (values: Record<string, string>) => void;
+    /** Read the values on the detail page; editing happens in the edit modal. */
+    readOnly?: boolean;
 }
 
 const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
     itemId,
     values,
     onUpdate,
+    readOnly = false,
 }) => {
     const { t } = useTranslation();
     const [definitions, setDefinitions] = useState<CustomFieldDefinition[]>([]);
@@ -84,6 +87,20 @@ const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
 
     if (definitions.length === 0) {
         return null;
+    }
+
+    if (readOnly) {
+        return (
+            <>
+                {definitions.map((field) => (
+                    <FieldRow key={field._id} label={field.name}>
+                        {initialValues[field._id]
+                            ? <span className="whitespace-pre-wrap break-words">{initialValues[field._id]}</span>
+                            : <span className="text-base-content/40">—</span>}
+                    </FieldRow>
+                ))}
+            </>
+        );
     }
 
     return (
