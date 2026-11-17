@@ -5,7 +5,7 @@ import GroupedReleaseList from '../GroupedReleaseList';
 import ListToolbar from '../ListToolbar';
 import type { CollectionItem } from '../../../types/collection.types';
 import { compareArtistNames } from '../../../utils/artistSort';
-import { getSearchTerms, matchesSearchTerms } from '../../../utils/search';
+import { getSearchTermGroups, matchesSearchGroups } from '../../../utils/search';
 
 type TrackSort = 'appearances' | 'title' | 'artist';
 
@@ -25,11 +25,11 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection,
     // Copies first by default: an A-Z index of every track is what the search
     // field is for, whereas "which songs do I own twice" has no other answer.
     const [sortBy, setSortBy] = useState<TrackSort>('appearances');
-    const searchTerms = useMemo(() => getSearchTerms(searchTerm), [searchTerm]);
+    const searchTermGroups = useMemo(() => getSearchTermGroups(searchTerm), [searchTerm]);
 
     const filteredTracks = useMemo(() => {
         const matching = aggregatedTracks.filter((track) =>
-            matchesSearchTerms(searchTerms, [track.title, track.artist])
+            matchesSearchGroups(searchTermGroups, [track.title, track.artist])
         );
 
         // The hook hands them over alphabetically, which is the 'title' order.
@@ -42,7 +42,7 @@ const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection,
         return [...matching].sort(
             (a, b) => b.albumCount - a.albumCount || a.title.localeCompare(b.title)
         );
-    }, [aggregatedTracks, searchTerms, sortBy, ignoreLeadingArticle]);
+    }, [aggregatedTracks, searchTermGroups, sortBy, ignoreLeadingArticle]);
 
     return (
         <div className="space-y-4">

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, FilterState } from '../../types/collection.types';
 import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
 import { stripDiscogsSuffix } from '../../utils/formatters';
-import { getSearchTerms, matchesSearchTerms } from '../../utils/search';
+import { getSearchTermGroups, matchesSearchGroups } from '../../utils/search';
 
 const FILTER_STORAGE_KEY = 'musivault_collection_filters';
 const DEFAULT_FILTERS: FilterState = {
@@ -32,7 +32,7 @@ const getInitialFilters = (): FilterState => {
 
 export const useCollectionFilters = (collection: CollectionItem[], searchTerm: string) => {
     const [filters, setFilters] = useState<FilterState>(getInitialFilters);
-    const searchTerms = useMemo(() => getSearchTerms(searchTerm), [searchTerm]);
+    const searchTermGroups = useMemo(() => getSearchTermGroups(searchTerm), [searchTerm]);
 
     // Persist filters to sessionStorage
     useEffect(() => {
@@ -40,7 +40,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
     }, [filters]);
 
     const filteredCollection = useMemo(() => {
-        const hasSearchTerm = searchTerms.length > 0;
+        const hasSearchTerm = searchTermGroups.length > 0;
         const now = new Date();
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -49,7 +49,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
         const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31);
 
         return collection.filter(item => {
-            if (hasSearchTerm && !matchesSearchTerms(searchTerms, [
+            if (hasSearchTerm && !matchesSearchGroups(searchTermGroups, [
                 item.album.title,
                 item.album.artist,
                 item.album.year,
@@ -117,7 +117,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
 
             return true;
         });
-    }, [collection, filters, searchTerms]);
+    }, [collection, filters, searchTermGroups]);
 
     const groupedByArtist = useMemo(() => {
         const grouped = filteredCollection.reduce((acc, item) => {

@@ -109,6 +109,12 @@ describe('useCollectionFilters free-text search', () => {
         expect(result.current.filteredCollection.map(item => item._id)).toEqual(['2']);
     });
 
+    it('applies OR between groups of words', () => {
+        expect(renderHook(() => useCollectionFilters(searchCollection, 'miles davis OR abbey road')).result.current.filteredCollection.map(item => item._id)).toEqual(['1', '2']);
+        expect(renderHook(() => useCollectionFilters(searchCollection, 'jazz or psychedelic')).result.current.filteredCollection.map(item => item._id)).toEqual(['1', '2']);
+        expect(renderHook(() => useCollectionFilters(searchCollection, 'miles beatles OR xyz missing')).result.current.filteredCollection).toEqual([]);
+    });
+
     it('requires every word to match, and shows everything when the query is empty', () => {
         expect(renderHook(() => useCollectionFilters(searchCollection, 'miles beatles')).result.current.filteredCollection).toEqual([]);
         expect(renderHook(() => useCollectionFilters(searchCollection, '   ')).result.current.filteredCollection).toHaveLength(2);
