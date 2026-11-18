@@ -4,7 +4,7 @@ import AlbumDetailPage from './AlbumDetailPage';
 import { getCollectionItem, removeFromCollection } from '../api/collection';
 import { getPreferences } from '../api/preferences';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
-import { useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import type { CollectionItem } from '../types/collection.types';
 
 const refreshCollection = vi.fn();
@@ -16,7 +16,7 @@ vi.mock('react-i18next', () => ({
 vi.mock('react-router', () => ({
     useParams: vi.fn(),
     useNavigate: vi.fn(),
-    useLocation: () => ({ state: null }),
+    useLocation: vi.fn(),
 }));
 vi.mock('../api/collection', () => ({
     getCollectionItem: vi.fn(),
@@ -42,6 +42,9 @@ vi.mock('../hooks/useCurrency', () => ({
     }),
 }));
 vi.mock('../components/Common/CustomFieldsEditor', () => ({ default: () => null }));
+vi.mock('../components/Modal/ManualAlbumEditModal', () => ({
+    default: ({ mode }: { mode?: string }) => <div data-testid="edit-modal">{mode || 'manual'}</div>,
+}));
 
 const item: CollectionItem = {
     _id: 'item-1',
@@ -62,9 +65,16 @@ const item: CollectionItem = {
     addedAt: '2024-01-01T00:00:00.000Z',
 };
 
-describe('AlbumDetailPage delete', () => {
+describe('AlbumDetailPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(useLocation).mockReturnValue({
+            pathname: '/app/album/item-1',
+            search: '',
+            state: null,
+            key: 'default',
+            hash: '',
+        });
         vi.mocked(useParams).mockReturnValue({ itemId: 'item-1' });
         vi.mocked(useNavigate).mockReturnValue(navigate);
         vi.mocked(getCollectionItem).mockResolvedValue(item);
@@ -83,6 +93,7 @@ describe('AlbumDetailPage delete', () => {
         await waitFor(() => expect(removeFromCollection).toHaveBeenCalledWith('item-1'));
         await waitFor(() => expect(refreshCollection).toHaveBeenCalledWith({ silent: true }));
         expect(navigate).toHaveBeenCalledWith('/app');
+        expect(screen.queryByTestId('edit-modal')).not.toBeInTheDocument();
     });
 
     it('does not refresh the collection when the removal fails', async () => {
@@ -94,5 +105,22 @@ describe('AlbumDetailPage delete', () => {
         await waitFor(() => expect(removeFromCollection).toHaveBeenCalledWith('item-1'));
         expect(refreshCollection).not.toHaveBeenCalled();
         expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the Discogs edit form automatically when arriving with ?edit=discogs', async () => {
+        vi.mocked(useLocation).mockReturnValue({
+            pathname: '/app/album/item-1',
+            search: '?edit=discogs',
+            state: null,
+            key: 'default',
+            hash: '',
+        });
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByTestId('edit-modal')).toHaveTextContent('discogs');
+        await waitFor(() => expect(navigate).toHaveBeenCalledWith(
+            '/app/album/item-1',
+            { replace: true, state: null }
+        ));
     });
 });

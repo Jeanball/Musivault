@@ -51,8 +51,11 @@ const AlbumDetailPage: React.FC = () => {
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
     const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
     const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
+    // Adding a Discogs album lands here with ?edit=discogs so metadata and
+    // custom fields can be filled in right away, without hunting for "Modifica".
+    const openEditOnLoad = new URLSearchParams(location.search).get('edit') === 'discogs';
     const [isEditingManual, setIsEditingManual] = useState(false);
-    const [isEditingDiscogs, setIsEditingDiscogs] = useState(false);
+    const [isEditingDiscogs, setIsEditingDiscogs] = useState(openEditOnLoad);
     const [isRestoringDiscogs, setIsRestoringDiscogs] = useState(false);
     const { formatValue } = useCurrency();
     const backTarget = (location.state as AlbumDetailLocationState | null)?.backTo || '/app/collection';
@@ -66,6 +69,12 @@ const AlbumDetailPage: React.FC = () => {
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [itemId]);
+
+    useEffect(() => {
+        if (!openEditOnLoad) return;
+        // Consume the flag: a reload or a later visit must not reopen the form.
+        navigate(location.pathname, { replace: true, state: location.state });
+    }, [openEditOnLoad, navigate, location.pathname, location.state]);
 
     useEffect(() => {
         if (item) {

@@ -273,11 +273,14 @@ const SearchBar: React.FC = () => {
             };
 
             // Add to collection
-            await addToCollection({ ...releaseDetails, format });
+            const { item } = await addToCollection({ ...releaseDetails, format });
 
             toastService.success(t('search.addedToCollection', { title: releaseDetails.title }));
             // Keep the collection page in sync when the user goes back to it.
             void refreshCollection({ silent: true });
+            // Open the edit form for this new Discogs album, like the release
+            // and master pages do, so custom fields can be filled in at once.
+            navigate(`/app/album/${item._id}?edit=discogs`);
         } catch (err: unknown) {
             console.error('Error adding to collection:', err);
             if (isApiError(err) && err.serverMessage) {

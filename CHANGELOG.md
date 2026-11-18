@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(collection): keep custom field values in API responses for locally edited items, where a Mongoose Map was serialized as an empty object
 - fix(collection): make the album detail page read-only, with custom fields and condition grades editable only from the Edit form, for both manual and Discogs albums
 - fix(collection): refresh the shared collection after deleting an item from the detail page, so the removed album disappears from the table without a manual reload
+- feat(collection): open the edit form automatically after adding a Discogs album (release, master version or barcode), so metadata and custom fields can be filled in immediately; the old "album added" choice dialog is gone
 - fix(collection): narrow the format column to 5 rem and truncate long format names, so it no longer takes space from the other columns
 - fix(settings): make the wide screen mode switch mean what it says, so turning it on fills the viewport instead of capping the content width
 - fix(collection): refresh the list right after adding an album, instead of waiting for a manual page reload

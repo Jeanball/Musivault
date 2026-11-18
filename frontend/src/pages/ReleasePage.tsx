@@ -16,11 +16,6 @@ import PageLoadError from '../components/Common/PageLoadError';
 import { getImageUrl } from '../utils/imageUrl';
 import { getFormatButtonStyle } from '../utils/formatColors';
 
-interface AddedAlbumInfo {
-    id: string;
-    title: string;
-}
-
 const ReleasePage: React.FC = () => {
     const { releaseId } = useParams<{ releaseId: string }>();
     const navigate = useNavigate();
@@ -32,7 +27,6 @@ const ReleasePage: React.FC = () => {
     /** Bumped by the retry button to re-run the fetch effect. */
     const [retryCount, setRetryCount] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
     // Condition grading is offered inside the confirmation modal
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState<boolean>(false);
@@ -106,27 +100,15 @@ const ReleasePage: React.FC = () => {
             });
             toastService.success(t('common.addedSuccess', { title: albumDetails.title }));
             void refreshCollection({ silent: true });
-            setAddedAlbum({
-                id: item._id,
-                title: albumDetails.title
-            });
+            // Open the edit form immediately: new Discogs albums often need
+            // custom fields or small corrections before they are filed away.
+            navigate(`/app/album/${item._id}?edit=discogs`);
         } catch (err) {
             const message = isApiError(err) ? err.serverMessage : undefined;
             toastService.error(message || t('common.error'));
         } finally {
             setIsSubmitting(false);
         }
-    };
-
-    const handleGoToAlbum = () => {
-        if (addedAlbum) {
-            navigate(`/app/album/${addedAlbum.id}`);
-        }
-    };
-
-    const handleContinueSearching = () => {
-        setAddedAlbum(null);
-        navigate('/app');
     };
 
     if (isLoading) {
@@ -221,35 +203,6 @@ const ReleasePage: React.FC = () => {
                 onCancel={handleConfirmCancel}
             />
 
-            {/* Success Modal - Choice after adding */}
-            {addedAlbum && (
-                <dialog className="modal modal-open">
-                    <div className="modal-box text-center">
-                        <div className="text-5xl mb-4">🎉</div>
-                        <h3 className="font-bold text-xl mb-2">{t('common.albumAdded')}</h3>
-                        <p className="text-base-content/70 mb-6">
-                            {t('common.addedSuccess', { title: addedAlbum.title })}
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleGoToAlbum}
-                            >
-                                {t('common.viewAlbum')}
-                            </button>
-                            <button
-                                className="btn btn-outline"
-                                onClick={handleContinueSearching}
-                            >
-                                {t('common.continueSearching')}
-                            </button>
-                        </div>
-                    </div>
-                    <form method="dialog" className="modal-backdrop">
-                        <button onClick={() => setAddedAlbum(null)}>close</button>
-                    </form>
-                </dialog>
-            )}
         </div>
     );
 };
