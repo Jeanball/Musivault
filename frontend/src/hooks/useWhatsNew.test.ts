@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { compareVersions, parseChangelog } from './useWhatsNew';
+import { compareVersions, parseChangelog, sameMinor } from './useWhatsNew';
 
 describe('useWhatsNew - compareVersions', () => {
     it('should compare major.minor.patch versions correctly', () => {
@@ -57,5 +57,22 @@ describe('useWhatsNew - parseChangelog', () => {
         expect(entries[0].sections[1].type).toBe('Bug Fixes');
 
         expect(entries[1].version).toBe('1.14.0');
+    });
+});
+
+describe('useWhatsNew - sameMinor', () => {
+    it('groups the patches of one minor together', () => {
+        expect(sameMinor('1.16.0', '1.16.1')).toBe(true);
+        expect(sameMinor('1.16.1', '1.16.1')).toBe(true);
+        expect(sameMinor('v1.16.0', '1.16.12')).toBe(true);
+    });
+
+    it('separates different minors and majors', () => {
+        expect(sameMinor('1.15.1', '1.16.1')).toBe(false);
+        expect(sameMinor('2.16.0', '1.16.0')).toBe(false);
+    });
+
+    it('ignores a prerelease suffix', () => {
+        expect(sameMinor('1.16.0-beta.1', '1.16.0')).toBe(true);
     });
 });
