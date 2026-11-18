@@ -46,6 +46,16 @@ export function compareVersions(a: string, b: string): number {
 }
 
 /**
+ * True when both versions belong to the same major.minor line (1.16.0 and 1.16.1).
+ */
+export function sameMinor(a: string, b: string): boolean {
+    const minorOf = (version: string): string =>
+        version.replace(/^v/i, '').trim().split('-')[0].split('.').slice(0, 2).join('.');
+
+    return minorOf(a) === minorOf(b);
+}
+
+/**
  * Parse CHANGELOG.md content into structured entries
  */
 export function parseChangelog(content: string): ChangelogEntry[] {
@@ -144,9 +154,16 @@ export function useWhatsNew() {
                 const content = await response.text();
                 const allEntries = parseChangelog(content);
 
-                // Only show the latest version (first entry in the parsed list)
-                if (allEntries.length > 0 && compareVersions(allEntries[0].version, lastSeenVersion) > 0) {
-                    setEntries([allEntries[0]]);
+                // Show the whole current minor, not only its latest patch: someone landing on
+                // 1.16.1 must still read what 1.16.0 brought. Older minors stay out.
+                const newEntries = allEntries.filter(
+                    entry =>
+                        sameMinor(entry.version, appVersion) &&
+                        compareVersions(entry.version, lastSeenVersion) > 0
+                );
+
+                if (newEntries.length > 0) {
+                    setEntries(newEntries);
                     setShowModal(true);
                 } else {
                     // If no relevant new entries found, update lastSeenVersion so it doesn't stay stuck on older version
