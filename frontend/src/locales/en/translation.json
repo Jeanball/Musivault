@@ -592,7 +592,7 @@
         "noShopsHint": "Try widening the radius. Shop data comes from OpenStreetMap; if you know one that's missing, you can add it there.",
         "noShopsMatchSearch": "No shop matches \"{{query}}\".",
         "widenSearch": "Widen the search",
-        "failedLoadShops": "Failed to load nearby record shops.",
+        "failedLoadShops": "The map service is temporarily unavailable. Please try again later.",
         "geolocationDenied": "Location permission denied. You can enter a city instead.",
         "geolocationUnavailable": "Your position could not be determined.",
         "geolocationTimeout": "Locating you took too long. Please try again.",
