@@ -2,6 +2,12 @@
 
 Find all the new features and improvements added to the app right here!
 
+## [1.16.2] - 2026-11-17
+
+### Improvements
+- **Complete What's New**: The What's New window now lists every release of the current version line, so a small update no longer hides the features that came with it.
+
+---
 ## [1.16.1] - 2026-11-17
 
 ### Improvements

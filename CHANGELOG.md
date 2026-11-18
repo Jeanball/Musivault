@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.16.2] - 2026-11-17
+
+### Changed
+- Show every version of the current minor in the What's New modal, instead of only its latest patch, so upgrading to 1.16.2 still shows what 1.16.0 and 1.16.1 brought
+
+---
+
 ## [1.16.1] - 2026-11-17
 
 ### Changed
@@ -558,7 +565,8 @@ Once configured, you can fetch prices from the **Admin Task Center**.
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.16.1...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.16.2...HEAD
+[1.16.2]: https://github.com/Jeanball/Musivault/compare/v1.16.1...v1.16.2
 [1.16.1]: https://github.com/Jeanball/Musivault/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/Jeanball/Musivault/compare/v1.15.1...v1.16.0
 [1.15.1]: https://github.com/Jeanball/Musivault/compare/v1.15.0...v1.15.1
