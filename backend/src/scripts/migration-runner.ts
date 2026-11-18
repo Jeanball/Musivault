@@ -147,17 +147,24 @@ export async function runPendingMigrations(): Promise<void> {
     await executeMigration(migration);
   }
 
-  // Launch background migrations (non-blocking, fire-and-forget)
+  // Launch background migrations (non-blocking, fire-and-forget).
+  // They run one after the other: several of them call the same backfill, and two
+  // concurrent runs over the same documents fail with a Mongoose VersionError.
   if (backgroundMigrations.length > 0) {
     logger.info(`Launching ${backgroundMigrations.length} background migration(s)...`);
-    for (const migration of backgroundMigrations) {
-      activeBackgroundMigrations++;
-      executeMigration(migration).catch(err => {
-        logger.error({ err }, `Background migration ${migration.id} error`);
-      }).finally(() => {
-        activeBackgroundMigrations--;
-      });
-    }
+    activeBackgroundMigrations += backgroundMigrations.length;
+
+    void (async () => {
+      for (const migration of backgroundMigrations) {
+        try {
+          await executeMigration(migration);
+        } catch (err) {
+          logger.error({ err }, `Background migration ${migration.id} error`);
+        } finally {
+          activeBackgroundMigrations--;
+        }
+      }
+    })();
   }
 }
 

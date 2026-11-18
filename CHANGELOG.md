@@ -8,56 +8,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- feat(collection): search the collection with several incomplete words across title, artist, tracklist, genres, styles, labels and year, in the album, track and label views, like Discogs search, with OR between alternatives
-- feat(collection): pick album genres and styles from the official Discogs lists instead of typing them, showing every style and narrowing it to the selected genres, while keeping old or imported values removable
-- feat(collection): show the broad Discogs genre next to the styles in the album detail and public views, and edit both separately, renaming the old "Generi" label to "Stile"
-- feat(collection): filter the collection by the broad Discogs genres, kept separate from the finer styles ("Stile"), and carry them in the CSV export/import
-- feat(collection): set the table width of short-text custom fields, so a long value no longer stretches the collection table
-- feat(collection): edit the details of a Discogs album on your own copy (title, artist, year, format, label, genres, styles, tracklist, custom fields and cover), with a discreet icon when the data was changed locally and a restore action that brings the Discogs data back
-- feat(collection): keep a local copy of every Discogs cover when an album is added, imported, rematched or refreshed, and backfill older covers with `npm run localize-covers`
-- feat(collection): carry locally uploaded album covers in the CSV export as base64 and restore them on import
-- feat(collection): put the time in the exported CSV file name, so several exports in one day stay separate
-- feat(collection): fill in your custom fields when adding or editing a manual album
-- feat(collection): identify custom fields by a hidden uuid in CSV export/import, so their values still import after a field is renamed
-- feat(collection): choose the columns shown in the collection table, including custom fields
-- feat(i18n): add the Italian translation
-- feat(collection): include label, genres, value, tracklist and custom fields in the CSV export/import, restore manual albums on import, and skip custom fields that do not exist on the target instance
-- feat(collection): enter label, genres, value and tracklist when adding a manual album, edit it later, and add or change its cover
-- feat(admin): fall back to AllRatesToday when open.er-api.com is unreachable during the daily exchange-rate refresh
-- ci: run the backend tests on pull requests
-- feat(discogs): stop a long apply at any time, and show every row of a section to untick it
-- feat(discogs): show how many Discogs changes are waiting as a badge in the navbar and a dismissible notice in Settings
-- feat(discogs): check the connected Discogs collections every week with a new Task Center task
-- test(discogs): cover the apply matching order, relinking that keeps the copy's own data, and the date handling
-- feat(discogs): apply the Discogs check: add new records, relink merged ones, take dates from Discogs, and remember each record's Discogs entry to detect merges exactly
-- test(backend): cover `compareCollections` and the token encryption, and document their behaviour
-- test(backend): set up Vitest for the backend with `npm test` and `npm run test:run`
-- ci: run lint, tests and type-check/build for frontend and backend on pull requests
-- chore(github): add issue forms for bugs and feature requests, and a pull request template
-- feat(collection): refresh a single album from Discogs in the record detail view, keeping the copy's own data
-- feat(discogs): check your Discogs collection against Musivault in a read-only report (new on Discogs, merged on Discogs, only in Musivault)
-- feat(discogs): connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
+- Open the edit form automatically after adding a Discogs album (release page, master version or barcode), so metadata and custom fields can be filled in immediately
+
+---
+
+## [1.16.2] - 2026-11-17
+
+### Changed
+- Show every version of the current minor in the What's New modal, instead of only its latest patch, so upgrading to 1.16.2 still shows what 1.16.0 and 1.16.1 brought
+
+---
+
+## [1.16.1] - 2026-11-17
+
+### Changed
+- Enable wide screen mode by default for new accounts
 
 ### Fixed
-- fix(collection): show and save custom field values when editing a Discogs album, instead of silently dropping them because the Discogs edit form and endpoint excluded them
-- fix(collection): keep custom field values in API responses for locally edited items, where a Mongoose Map was serialized as an empty object
-- fix(collection): make the album detail page read-only, with custom fields and condition grades editable only from the Edit form, for both manual and Discogs albums
-- fix(collection): refresh the shared collection after deleting an item from the detail page, so the removed album disappears from the table without a manual reload
-- feat(collection): open the edit form automatically after adding a Discogs album (release, master version or barcode), so metadata and custom fields can be filled in immediately; the old "album added" choice dialog is gone
-- fix(collection): narrow the format column to 5 rem and truncate long format names, so it no longer takes space from the other columns
-- fix(settings): make the wide screen mode switch mean what it says, so turning it on fills the viewport instead of capping the content width
-- fix(collection): refresh the list right after adding an album, instead of waiting for a manual page reload
-- fix(discover): do not request concerts when `TICKETMASTER_API_KEY` is not set, so Discover stops logging a warning on every load
-- fix(discover): say the map service is temporarily unavailable when record shops cannot load
-- fix(discover): fall back to other Overpass servers when the main one is down, with an optional `OVERPASS_URL` override
-- fix(migration): authenticate the album data backfill with the Discogs key and secret and record it as failed, not successful, when Discogs rejects the credentials
-- fix(discogs): wait and retry when Discogs throttles a call while applying a check, instead of failing the record
-- fix(auth): say the server cannot be reached on login and signup instead of "Invalid credentials" when it is down
-- fix(lint): resolve the frontend ESLint errors so `npm run lint` passes
-- fix(collection): refresh the list when returning to the tab and after a CSV import
-- fix(discogs): strip the "(n)" suffix from every artist of multi-artist releases
-- fix(import): give imported albums the same labels, tracklist, styles, format details and price as albums added from search
-- fix(discogs): keep " - " in titles from the release endpoint
+- Run the background migrations one after the other, so two runs of the album backfill no longer fail with a Mongoose `VersionError`
+- Reuse a single album document per album id in the backfill, so two collection items pointing to the same album no longer race on its version
+
+---
+
+## [1.16.0] - 2026-11-17
+
+### Added
+- Connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
+- Check your Discogs collection against Musivault in a read-only report (new on Discogs, merged on Discogs, only in Musivault)
+- Apply the Discogs check: add new records, relink merged ones, take dates from Discogs, and remember each record's Discogs entry to detect merges exactly
+- Stop a long apply at any time, and show every row of a section to untick it
+- Show how many Discogs changes are waiting as a badge in the navbar and a dismissible notice in Settings
+- Check the connected Discogs collections every week with a new Task Center task
+- Refresh a single album from Discogs in the record detail view, keeping the copy's own data
+- Edit the details of a Discogs album on your own copy (title, artist, year, format, label, genres, styles, tracklist, custom fields and cover), with a discreet icon when the data was changed locally and a restore action that brings the Discogs data back
+- Keep a local copy of every Discogs cover when an album is added, imported, rematched or refreshed, and backfill older covers with `npm run localize-covers`
+- Search the collection with several incomplete words across title, artist, tracklist, genres, styles, labels and year, in the album, track and label views, with OR between alternatives
+- Pick album genres and styles from the official Discogs lists instead of typing them, showing every style and narrowing it to the selected genres, while keeping old or imported values removable
+- Show the broad Discogs genre next to the styles in the album detail and public views, and edit both separately
+- Filter the collection by the broad Discogs genres, kept separate from the finer styles
+- Choose the columns shown in the collection table, including custom fields
+- Set the table width of short-text custom fields, so a long value no longer stretches the collection table
+- Fill in your custom fields when adding or editing a manual album
+- Enter label, genres, value and tracklist when adding a manual album, edit it later, and add or change its cover
+- Include label, genres, value, tracklist and custom fields in the CSV export/import, restore manual albums on import, and skip custom fields that do not exist on the target instance
+- Identify custom fields by a hidden uuid in CSV export/import, so their values still import after a field is renamed
+- Carry locally uploaded album covers in the CSV export as base64 and restore them on import
+- Put the time in the exported CSV file name, so several exports in one day stay separate
+- Sort artists ignoring a leading article, opt-in by default
+- Allow disabling public signup
+- Add the Italian translation
+- Fall back to AllRatesToday when open.er-api.com is unreachable during the daily exchange-rate refresh
+- Set up Vitest for the backend with `npm test` and `npm run test:run`, covering `compareCollections`, the token encryption, the Discogs account settings and check report, the apply matching order, relinking and date handling, and the Overpass fallback
+- Run lint, tests and type-check/build for frontend and backend on pull requests
+- Add issue forms for bugs and feature requests, and a pull request template
+
+### Fixed
+- Show and save custom field values when editing a Discogs album, instead of silently dropping them
+- Keep custom field values in API responses for locally edited items, where a Mongoose Map was serialized as an empty object
+- Make the album detail page read-only, with custom fields and condition grades editable only from the Edit form
+- Refresh the collection after adding an album, after deleting an item from the detail page, when returning to the tab and after a CSV import
+- Narrow the format column to 5 rem and truncate long format names
+- Make the wide screen mode switch mean what it says, so turning it on fills the viewport
+- Do not request concerts when `TICKETMASTER_API_KEY` is not set
+- Say the map service is temporarily unavailable when record shops cannot load
+- Fall back to other Overpass servers when the main one is down, with an optional `OVERPASS_URL` override
+- Authenticate the album data backfill with the Discogs key and secret and record it as failed, not successful, when Discogs rejects the credentials
+- Wait and retry when Discogs throttles a call while applying a check, instead of failing the record
+- Say the server cannot be reached on login and signup instead of "Invalid credentials" when it is down
+- Strip the "(n)" suffix from every artist of multi-artist releases
+- Give imported albums the same labels, tracklist, styles, format details and price as albums added from search
+- Keep " - " in titles from the release endpoint
+- Resolve the frontend ESLint errors so `npm run lint` passes
 
 ---
 
@@ -547,7 +568,10 @@ Once configured, you can fetch prices from the **Admin Task Center**.
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.15.1...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.16.2...HEAD
+[1.16.2]: https://github.com/Jeanball/Musivault/compare/v1.16.1...v1.16.2
+[1.16.1]: https://github.com/Jeanball/Musivault/compare/v1.16.0...v1.16.1
+[1.16.0]: https://github.com/Jeanball/Musivault/compare/v1.15.1...v1.16.0
 [1.15.1]: https://github.com/Jeanball/Musivault/compare/v1.15.0...v1.15.1
 [1.15.0]: https://github.com/Jeanball/Musivault/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/Jeanball/Musivault/compare/v1.13.0...v1.14.0

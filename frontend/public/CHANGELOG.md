@@ -2,6 +2,50 @@
 
 Find all the new features and improvements added to the app right here!
 
+## [1.16.2] - 2026-11-17
+
+### Improvements
+- **Complete What's New**: The What's New window now lists every release of the current version line, so a small update no longer hides the features that came with it.
+
+---
+## [1.16.1] - 2026-11-17
+
+### Improvements
+- **Wide Screen by Default**: New accounts now start with wide screen mode enabled, using the full width of the window.
+
+### Bug Fixes
+- **Album Data Backfill**: Fixed the automatic Discogs backfill failing on part of the collection after an upgrade. Background migrations now run one after the other, and albums shared by several records are no longer written twice at once. The affected albums are filled in on the next startup.
+
+---
+## [1.16.0] - 2026-11-17
+
+### What's New
+- **Discogs Sync**: Connect your Discogs account in Settings, then check your Discogs collection against Musivault in a read-only report (new on Discogs, merged on Discogs, only in Musivault). Apply it to add the missing records, relink merged ones and take the dates from Discogs, with the ability to stop a long apply at any time and untick any row. A weekly task keeps the check up to date, and the navbar shows a badge when changes are waiting.
+- **Edit Your Own Copy of a Discogs Album**: Change the title, artist, year, format, label, genres, styles, tracklist, custom fields and cover of a Discogs album on your copy. A discreet icon marks locally edited data, and a restore action brings the Discogs data back. You can also refresh a single album from Discogs without losing your own data.
+- **Powerful Collection Search**: Search with several incomplete words across title, artist, tracklist, genres, styles, labels and year, in the album, track and label views, with OR between alternatives.
+- **Genres and Styles from Discogs**: Pick genres and styles from the official Discogs lists instead of typing them, see the broad genre next to the finer styles, and filter your collection by either.
+- **Custom Collection Table**: Choose which columns are shown, including your custom fields, and set the width of short-text custom fields.
+- **Complete CSV Export and Import**: Labels, genres, value, tracklist, custom fields and locally uploaded covers now travel with your export, manual albums are restored on import, custom fields are matched by a hidden id so renaming one no longer breaks the import, and the export file name includes the time.
+- **Richer Manual Albums**: Enter label, genres, value, tracklist and your custom fields when adding a manual album, edit them later, and add or change its cover.
+- **Italian Translation**: Musivault is now available in Italian.
+
+### Improvements
+- **Smarter Artist Sorting**: Artists can be sorted ignoring a leading article ("The Beatles" under B), on by default.
+- **Closed Instances**: Admins can now disable public signup.
+- **Local Covers**: Album covers are stored on your server when an album is added, imported, rematched or refreshed, with a script to backfill older ones.
+- **Exchange Rates**: The daily refresh falls back to a second provider when the main one is unreachable.
+- **Reliability**: Record shop lookups fall back to other Overpass servers, and Musivault waits out Discogs rate limits instead of failing a record.
+
+### Bug Fixes
+- **Custom Fields**: Values are no longer dropped when editing a Discogs album and are returned correctly for locally edited items.
+- **Album Detail**: The detail page is now read-only, with edits made from the Edit form only.
+- **Collection Refresh**: The list refreshes after adding an album, after deleting one from the detail page, when returning to the tab and after a CSV import.
+- **Table Layout**: The format column is narrower and long format names are truncated, so the other columns keep their space.
+- **Wide Screen Mode**: Turning it on now really fills the viewport.
+- **Clearer Errors**: Login and signup say the server cannot be reached instead of "Invalid credentials", and Discover says the map service is temporarily unavailable when record shops cannot load.
+- **Discogs Data**: The "(n)" suffix is stripped from every artist of multi-artist releases, " - " is kept in titles, and imported albums get the same labels, tracklist, styles, format details and price as albums added from search.
+
+---
 ## [1.15.1] - 2026-10-02
 
 ### What's New
