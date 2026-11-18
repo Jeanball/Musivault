@@ -629,7 +629,7 @@
         "noShopsHint": "Prova ad ampliare il raggio. I dati sui negozi provengono da OpenStreetMap; se ne conosci uno mancante, puoi aggiungerlo lì.",
         "noShopsMatchSearch": "Nessun negozio corrisponde a «{{query}}».",
         "widenSearch": "Amplia la ricerca",
-        "failedLoadShops": "Impossibile caricare i negozi di dischi vicini.",
+        "failedLoadShops": "Il servizio mappe è temporaneamente non disponibile. Riprova più tardi.",
         "geolocationDenied": "Permesso di localizzazione negato. Puoi inserire una città.",
         "geolocationUnavailable": "Impossibile determinare la tua posizione.",
         "geolocationTimeout": "La localizzazione ha impiegato troppo tempo. Riprova.",
