@@ -93,7 +93,7 @@ const userSchema = new Schema<IUser>({
     },
     wideScreenMode: {
       type: Boolean,
-      default: false
+      default: true
     },
     language: {
       type: String,

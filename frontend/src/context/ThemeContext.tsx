@@ -21,7 +21,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         return isTheme(stored) ? stored : DEFAULT_THEME;
     });
     const [wideScreenMode, setWideScreenMode] = useState<boolean>(
-        localStorage.getItem('wideScreenMode') === 'true' // Default to false
+        localStorage.getItem('wideScreenMode') !== 'false' // Default to true
     );
     const [preferredCurrency, setPreferredCurrency] = useState<string>(
         localStorage.getItem('preferredCurrency') || 'USD'
