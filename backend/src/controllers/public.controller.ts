@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 import { Request, Response } from 'express';
 import User from '../models/User';
-import CollectionItem from '../models/CollectionItem';
+import CollectionItem, { IAlbumOverrides } from '../models/CollectionItem';
 import { IAlbum } from '../models/Album';
 import { logger } from '../config/logger.config';
+import { applyAlbumOverridesToAll } from '../utils/albumOverrides.utils';
 
 export async function getPublicCollection(req: Request, res: Response) {
     try {
@@ -24,9 +25,12 @@ export async function getPublicCollection(req: Request, res: Response) {
         }
 
         // customFields and formatVerification are private housekeeping, never exposed publicly
-        const collection = await CollectionItem.find({ user: user._id })
+        const stored = await CollectionItem.find({ user: user._id })
             .select('-customFields -formatVerification')
             .populate<{ album: IAlbum }>('album');
+
+        // The owner's local album edits are part of what they chose to share.
+        const collection = applyAlbumOverridesToAll(stored);
 
         // Sort by artist
         collection.sort((a, b) => {
@@ -85,12 +89,16 @@ export async function getPublicUsers(req: Request, res: Response) {
 
         const usersWithCounts = publicUsers.map((user) => {
             const stat = statsByUser.get(String(user._id));
+            const latestAlbums = (stat?.latestAlbums ?? []) as {
+                album?: unknown;
+                albumOverrides?: IAlbumOverrides | null;
+            }[];
             return {
                 username: user.username,
                 publicShareId: user.publicShareId,
                 albumCount: stat?.albumCount ?? 0,
                 createdAt: user.createdAt,
-                latestAlbums: stat?.latestAlbums ?? [],
+                latestAlbums: applyAlbumOverridesToAll(latestAlbums),
             };
         });
 
@@ -129,7 +137,8 @@ export async function getLatestPublicAlbums(req: Request, res: Response) {
 
         // An item whose album was deleted populates to null and would render as an
         // empty tile — drop it rather than ship a hole in the row.
-        res.status(200).json(latestItems.filter((item) => item.album));
+        const withEdits = applyAlbumOverridesToAll(latestItems);
+        res.status(200).json(withEdits.filter((item) => item.album));
     } catch (error) {
         logger.error({ err: error }, 'Error fetching latest public albums');
         res.status(500).json({ message: 'Internal server error' });

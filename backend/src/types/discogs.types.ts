@@ -78,6 +78,7 @@ export interface DiscogsReleaseResponse {
     year: string;
     images: { type: string; uri: string; uri150?: string }[];
     formats: DiscogsFormat[];
+    genres?: string[];
     styles?: string[];
     tracklist?: DiscogsTrack[];
     labels?: DiscogsLabel[];
@@ -164,6 +165,7 @@ export interface CleanedReleaseDetails {
     artist: string;
     year: string;
     cover_image: string;
+    genres: string[];
     styles: string[];
     availableFormats: {
         name: string;
@@ -220,6 +222,7 @@ export interface CleanedArtistReleases {
 
 /** Album fields taken from a full release (GET /releases/:id) */
 export interface ReleaseAlbumFields {
+    genres: string[];
     styles: string[];
     tracklist: { position: string; title: string; duration: string; artist: string }[];
     labels: { name: string; catno: string; discogsId?: number }[];

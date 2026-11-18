@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(collection): search the collection with several incomplete words across title, artist, tracklist, genres, styles, labels and year, in the album, track and label views, like Discogs search, with OR between alternatives
+- feat(collection): pick album genres and styles from the official Discogs lists instead of typing them, showing every style and narrowing it to the selected genres, while keeping old or imported values removable
+- feat(collection): show the broad Discogs genre next to the styles in the album detail and public views, and edit both separately, renaming the old "Generi" label to "Stile"
+- feat(collection): filter the collection by the broad Discogs genres, kept separate from the finer styles ("Stile"), and carry them in the CSV export/import
+- feat(collection): set the table width of short-text custom fields, so a long value no longer stretches the collection table
+- feat(collection): edit the details of a Discogs album on your own copy (title, artist, year, format, label, genres, styles, tracklist, custom fields and cover), with a discreet icon when the data was changed locally and a restore action that brings the Discogs data back
+- feat(collection): keep a local copy of every Discogs cover when an album is added, imported, rematched or refreshed, and backfill older covers with `npm run localize-covers`
+- feat(collection): carry locally uploaded album covers in the CSV export as base64 and restore them on import
+- feat(collection): put the time in the exported CSV file name, so several exports in one day stay separate
+- feat(collection): fill in your custom fields when adding or editing a manual album
+- feat(collection): identify custom fields by a hidden uuid in CSV export/import, so their values still import after a field is renamed
+- feat(collection): choose the columns shown in the collection table, including custom fields
+- feat(i18n): add the Italian translation
+- feat(collection): include label, genres, value, tracklist and custom fields in the CSV export/import, restore manual albums on import, and skip custom fields that do not exist on the target instance
+- feat(collection): enter label, genres, value and tracklist when adding a manual album, edit it later, and add or change its cover
 - feat(admin): fall back to AllRatesToday when open.er-api.com is unreachable during the daily exchange-rate refresh
 - ci: run the backend tests on pull requests
 - feat(discogs): stop a long apply at any time, and show every row of a section to untick it
@@ -24,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(discogs): connect a Discogs account in Settings, using the server's token (admins) or a personal one stored encrypted with the new optional `ENCRYPTION_KEY`
 
 ### Fixed
+- fix(collection): show and save custom field values when editing a Discogs album, instead of silently dropping them because the Discogs edit form and endpoint excluded them
+- fix(collection): keep custom field values in API responses for locally edited items, where a Mongoose Map was serialized as an empty object
+- fix(collection): make the album detail page read-only, with custom fields and condition grades editable only from the Edit form, for both manual and Discogs albums
+- fix(collection): refresh the shared collection after deleting an item from the detail page, so the removed album disappears from the table without a manual reload
+- fix(collection): narrow the format column to 5 rem and truncate long format names, so it no longer takes space from the other columns
+- fix(settings): make the wide screen mode switch mean what it says, so turning it on fills the viewport instead of capping the content width
+- fix(collection): refresh the list right after adding an album, instead of waiting for a manual page reload
 - fix(discover): do not request concerts when `TICKETMASTER_API_KEY` is not set, so Discover stops logging a warning on every load
 - fix(discover): say the map service is temporarily unavailable when record shops cannot load
 - fix(discover): fall back to other Overpass servers when the main one is down, with an optional `OVERPASS_URL` override

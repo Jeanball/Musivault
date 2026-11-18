@@ -19,9 +19,12 @@ export function getPriceForCondition(prices: ConditionPrices, condition?: string
 }
 
 /**
- * Get the effective value for a collection item based on its media condition.
+ * Get the effective value for a collection item: the value entered by hand for
+ * a manual album, otherwise the price matching its media condition.
+ * Mirrors getValueForItem on the backend, which feeds the totals and the chart.
  */
 export function getItemValue(item: CollectionItem): number {
-    if (!item.priceCache) return 0;
-    return getPriceForCondition(item.priceCache, item.mediaCondition);
+  if (item.manualValue != null && item.manualValue > 0) return item.manualValue;
+  if (!item.priceCache) return 0;
+  return getPriceForCondition(item.priceCache, item.mediaCondition);
 }

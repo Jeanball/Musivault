@@ -2,12 +2,14 @@ import { useState, useMemo, useEffect } from 'react';
 import type { CollectionItem, FilterState } from '../../types/collection.types';
 import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
 import { stripDiscogsSuffix } from '../../utils/formatters';
+import { getSearchTermGroups, matchesSearchGroups } from '../../utils/search';
 
 const FILTER_STORAGE_KEY = 'musivault_collection_filters';
 const DEFAULT_FILTERS: FilterState = {
     format: 'all',
     decade: 'all',
     addedPeriod: 'all',
+    genre: 'all',
     style: 'all',
     label: 'all',
     issueStatus: 'all'
@@ -30,7 +32,7 @@ const getInitialFilters = (): FilterState => {
 
 export const useCollectionFilters = (collection: CollectionItem[], searchTerm: string) => {
     const [filters, setFilters] = useState<FilterState>(getInitialFilters);
-    const normalizedSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const searchTermGroups = useMemo(() => getSearchTermGroups(searchTerm), [searchTerm]);
 
     // Persist filters to sessionStorage
     useEffect(() => {
@@ -38,7 +40,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
     }, [filters]);
 
     const filteredCollection = useMemo(() => {
-        const hasSearchTerm = normalizedSearchTerm.length > 0;
+        const hasSearchTerm = searchTermGroups.length > 0;
         const now = new Date();
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -47,19 +49,17 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
         const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31);
 
         return collection.filter(item => {
-            if (hasSearchTerm) {
-                const matchesTitle = item.album.title.toLowerCase().includes(normalizedSearchTerm);
-                const matchesArtist = item.album.artist.toLowerCase().includes(normalizedSearchTerm);
-                const matchesTrack = !matchesTitle && !matchesArtist
-                    ? item.album.tracklist?.some(track =>
-                        track.title.toLowerCase().includes(normalizedSearchTerm) ||
-                        (track.artist && track.artist.toLowerCase().includes(normalizedSearchTerm))
-                    ) || false
-                    : false;
-
-                if (!matchesTitle && !matchesArtist && !matchesTrack) {
-                    return false;
-                }
+            if (hasSearchTerm && !matchesSearchGroups(searchTermGroups, [
+                item.album.title,
+                item.album.artist,
+                item.album.year,
+                item.format.name,
+                ...(item.album.genres || []),
+                ...(item.album.styles || []),
+                ...(item.album.labels || []).flatMap(label => [label.name, label.catno]),
+                ...(item.album.tracklist || []).flatMap(track => [track.title, track.artist]),
+            ])) {
+                return false;
             }
 
             if (filters.format !== 'all' && item.format.name !== filters.format) {
@@ -76,6 +76,10 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
                 } else if (filters.decade !== 'unknown') {
                     return false;
                 }
+            }
+
+            if (filters.genre !== 'all' && (!item.album.genres || !item.album.genres.includes(filters.genre))) {
+                return false;
             }
 
             if (filters.style !== 'all' && (!item.album.styles || !item.album.styles.includes(filters.style))) {
@@ -113,7 +117,7 @@ export const useCollectionFilters = (collection: CollectionItem[], searchTerm: s
 
             return true;
         });
-    }, [collection, filters, normalizedSearchTerm]);
+    }, [collection, filters, searchTermGroups]);
 
     const groupedByArtist = useMemo(() => {
         const grouped = filteredCollection.reduce((acc, item) => {

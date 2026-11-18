@@ -10,6 +10,7 @@ const languages = [
     { code: 'fr', label: 'Français' },
     { code: 'de', label: 'Deutsch' },
     { code: 'es', label: 'Español' },
+    { code: 'it', label: 'Italiano' },
     { code: 'pt', label: 'Português' },
     { code: 'zh', label: '中文 (Simplified)' },
 ];

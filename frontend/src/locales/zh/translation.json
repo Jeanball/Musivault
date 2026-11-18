@@ -19,6 +19,7 @@
         "album": "专辑",
         "format": "格式",
         "formats": "格式",
+        "genres": "流派",
         "albums": "专辑",
         "tracks": "曲目",
         "labels": "厂牌",
@@ -105,8 +106,8 @@
         "display": "显示",
         "displayDescription": "自定义界面显示方式。",
         "wideScreenMode": "宽屏模式",
-        "wideScreenEnabled": "内容居中并设置最大宽度，便于阅读",
-        "wideScreenDisabled": "内容扩展以填充整个屏幕宽度",
+        "wideScreenEnabled": "内容扩展以填充整个屏幕宽度",
+        "wideScreenDisabled": "内容居中并设置最大宽度，便于阅读",
         "wideScreenModeEnabled": "宽屏模式已启用！",
         "wideScreenModeDisabled": "宽屏模式已禁用",
         "currency": "货币",
@@ -152,9 +153,9 @@
     },
     "csvImport": {
         "title": "导入收藏 (CSV)",
-        "columns": "列：Artist、Album、Format、Year、Release ID、Catalog Number、Media Condition、Sleeve Condition。",
-        "required": "必填：Release ID，或者 Artist + Album。其他列均为可选。",
-        "matching": "专辑按以下顺序在 Discogs 上匹配：Release ID（精确），然后 Catalog Number，最后按 Artist/Album 搜索。Format 接受 Vinyl 或 CD；留空则使用 Discogs 的格式。收藏中已存在且格式相同的专辑会被跳过。",
+        "columns": "列：Artist、Album、Format、Year、Release ID、Catalog Number、Label、Genres、Value、Tracklist、Manual、Media Condition、Sleeve Condition。",
+        "required": "必填：Artist + Album，或者 Release ID。其他列均为可选。Manual 为 true 的行会在不查询 Discogs 的情况下导入。",
+        "matching": "专辑按以下顺序在 Discogs 上匹配：Release ID（精确），然后 Catalog Number，最后按 Artist/Album 搜索。Format 接受 Vinyl 或 CD；留空则使用 Discogs 的格式。收藏中已存在且格式相同的专辑会被跳过。自定义字段列按名称匹配，未知字段会被忽略。",
         "downloadTemplate": "下载CSV模板",
         "failedDownloadTemplate": "下载模板失败，请稍后重试。",
         "chooseFile": "选择CSV文件",
@@ -266,7 +267,7 @@
     "csvExport": {
         "title": "导出收藏（CSV）",
         "description": "下载整个收藏的 CSV 备份。",
-        "hint": "文件使用与导入相同的列，因此专辑稍后可以重新导入。自定义字段仅用于备份，导入时不会恢复。",
+        "hint": "文件使用与导入相同的列，因此专辑稍后可以重新导入。存在同名字段时会恢复自定义字段，其他字段会被忽略。",
         "downloadCsv": "下载 CSV 备份",
         "exportFinished": "收藏已导出",
         "failedExport": "导出收藏失败。"
@@ -284,6 +285,8 @@
         "allFormats": "所有格式",
         "decade": "年代",
         "allDecades": "所有年代",
+        "genre": "流派",
+        "allGenres": "所有流派",
         "added": "已添加",
         "anyTime": "任何时间",
         "thisWeek": "本周",
@@ -301,6 +304,8 @@
         "goToMusivault": "前往 Musivault",
         "addAlbum": "添加专辑",
         "filters": "筛选",
+        "columns": "列",
+        "resetColumns": "重置",
         "showingCount": "{{total}} 中的 {{shown}}",
         "releasesInGroup_other": "{{count}} 张唱片"
     },
@@ -312,9 +317,22 @@
         "failedLoad": "加载收藏失败"
     },
     "album": {
+        "editDiscogs": "编辑详情",
+        "editDiscogsTitle": "编辑 Discogs 详情",
+        "discogsUpdateSuccess": "\"{{title}}\" 已更新",
+        "locallyModifiedHint": "数据已在本地修改",
+        "restoreDiscogs": "恢复 Discogs 数据",
+        "restoreDiscogsHint": "移除本地修改并重新使用 Discogs 数据",
+        "confirmRestoreDiscogs": "移除此专辑的本地修改并重新显示 Discogs 数据？",
+        "restoreDiscogsSuccess": "Discogs 数据已恢复",
+        "restoreDiscogsFailed": "无法恢复 Discogs 数据",
+        "noLocalEdits": "没有可恢复的本地修改",
+        "confirmDiscardLocalEdits": "本地修改将被 Discogs 数据覆盖。继续？",
+        "confirmDiscardLocalEditsRematch": "重新匹配此专辑将丢失本地修改。继续？",
         "label": "厂牌",
         "catalogNumber": "目录编号",
         "genres": "流派",
+        "styles": "风格",
         "formatDetails": "格式详情",
         "listenOnSpotify": "在 Spotify 上收听",
         "viewOnDiscogs": "在 Discogs 上查看",
@@ -343,6 +361,10 @@
         "trackCount": "{{count}} 首曲目",
         "duration": "时长",
         "cover": "封面",
+        "addCover": "添加封面",
+        "changeCover": "更换封面",
+        "editManual": "编辑专辑",
+        "manualValue": "手动价值",
         "showAllTracks": "显示另外 {{n}} 首曲目",
         "showFewerTracks": "收起"
     },
@@ -356,7 +378,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "Musivault 中的格式与已关联的 Discogs 发行版本不一致。请使用 Rematch 或忽略此提醒。"
+            "message": "Musivault 中的格式与已关联的 Discogs 发行版本不一致。请在专辑详情中修改格式、重新匹配发行版本，或忽略此提醒。"
         },
         "unknown": {
             "noDiscogsAssociation": "这张专辑目前还没有关联任何 Discogs 发行版本。",
@@ -432,6 +454,21 @@
         "manualRequired": "专辑名称和艺术家为必填项",
         "manualSuccess": "\"{{title}}\" 已添加到您的收藏！",
         "manualError": "添加专辑失败，请重试。",
+        "manualEditTitle": "编辑专辑",
+        "manualUpdateSuccess": "「{{title}}」已更新！",
+        "manualUpdateError": "更新专辑失败，请重试。",
+        "replaceCover": "更换封面",
+        "genresPlaceholder": "搜索 Discogs 流派…",
+        "stylesPlaceholder": "搜索 Discogs 风格…",
+        "removeValue": "移除 {{value}}",
+        "noOptions": "没有匹配的选项。",
+        "valueUsd": "价值（美元）",
+        "addTrack": "添加曲目",
+        "removeTrack": "删除曲目",
+        "trackPosition": "位置",
+        "trackTitle": "曲目标题",
+        "trackArtist": "艺术家（可选）",
+        "trackDuration": "时长",
         "placeholderShort": "艺术家、专辑、ID…",
         "addedToCollection": "「{{title}}」已加入您的收藏！",
         "intentDiscogsId": "检测到 Discogs ID",
@@ -831,6 +868,14 @@
         "itemSectionTitle": "自定义字段",
         "fieldName": "字段名称",
         "fieldType": "字段类型",
+
+        "tableWidth": "列宽",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "此列在收藏表格中的宽度，范围为 {{min}} 到 {{max}} rem。较长的值将被截断。",
+
+        "tableWidthInvalid": "列宽必须在 {{min}} 到 {{max}} rem 之间",
         "examplePlaceholder": "示例 / 占位符",
         "typeText": "短文本",
         "typeTextarea": "长文本（备注）",

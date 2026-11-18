@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Download } from 'lucide-react';
 import { toastService } from '../../utils/toast';
 import { exportCollection } from '../../api/collection';
+import { collectionExportFilename } from '../../utils/exportFilename';
 
 const ExportSettings: React.FC = () => {
     const { t } = useTranslation();
@@ -16,7 +17,7 @@ const ExportSettings: React.FC = () => {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `musivault_collection_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.setAttribute('download', collectionExportFilename());
             document.body.appendChild(link);
             link.click();
             link.remove();

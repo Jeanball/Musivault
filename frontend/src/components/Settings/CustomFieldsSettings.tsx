@@ -10,17 +10,24 @@ import { isApiError } from '../../api/errors';
 import { ListPlus, Pencil, Trash2 } from 'lucide-react';
 import { toastService } from '../../utils/toast';
 import type { CustomFieldDefinition, CustomFieldType } from '../../types/customFields.types';
+import {
+    CUSTOM_COLUMN_MAX_WIDTH_REM,
+    CUSTOM_COLUMN_MIN_WIDTH_REM,
+    CUSTOM_COLUMN_WIDTH_REM
+} from '../../constants/tableColumns';
 
 interface FieldFormState {
     name: string;
     type: CustomFieldType;
     placeholder: string;
+    tableWidthRem: string;
 }
 
 const emptyForm: FieldFormState = {
     name: '',
     type: 'text',
     placeholder: '',
+    tableWidthRem: String(CUSTOM_COLUMN_WIDTH_REM),
 };
 
 const CustomFieldsSettings: React.FC = () => {
@@ -59,6 +66,7 @@ const CustomFieldsSettings: React.FC = () => {
             name: field.name,
             type: field.type,
             placeholder: field.placeholder || '',
+            tableWidthRem: String(field.tableWidthRem ?? CUSTOM_COLUMN_WIDTH_REM),
         });
         setShowForm(true);
     };
@@ -71,12 +79,29 @@ const CustomFieldsSettings: React.FC = () => {
             return;
         }
 
+        const tableWidthRem = Number(form.tableWidthRem);
+        if (
+            form.type === 'text' &&
+            (!Number.isInteger(tableWidthRem) ||
+                tableWidthRem < CUSTOM_COLUMN_MIN_WIDTH_REM ||
+                tableWidthRem > CUSTOM_COLUMN_MAX_WIDTH_REM)
+        ) {
+            toastService.error(
+                t('customFields.tableWidthInvalid', {
+                    min: CUSTOM_COLUMN_MIN_WIDTH_REM,
+                    max: CUSTOM_COLUMN_MAX_WIDTH_REM,
+                })
+            );
+            return;
+        }
+
         setIsSaving(true);
         try {
             const payload = {
                 name: form.name.trim(),
                 type: form.type,
                 placeholder: form.placeholder.trim(),
+                ...(form.type === 'text' ? { tableWidthRem } : {}),
             };
 
             if (editingId) {
@@ -150,6 +175,7 @@ const CustomFieldsSettings: React.FC = () => {
                                 <tr>
                                     <th>{t('customFields.fieldName')}</th>
                                     <th>{t('customFields.fieldType')}</th>
+                                    <th>{t('customFields.tableWidth')}</th>
                                     <th>{t('customFields.examplePlaceholder')}</th>
                                     <th className="w-24"></th>
                                 </tr>
@@ -162,6 +188,13 @@ const CustomFieldsSettings: React.FC = () => {
                                             {field.type === 'textarea'
                                                 ? t('customFields.typeTextarea')
                                                 : t('customFields.typeText')}
+                                        </td>
+                                        <td className="tabular-nums text-base-content/60">
+                                            {field.type === 'text'
+                                                ? t('customFields.tableWidthValue', {
+                                                      width: field.tableWidthRem ?? CUSTOM_COLUMN_WIDTH_REM
+                                                  })
+                                                : '—'}
                                         </td>
                                         <td className="text-base-content/60">
                                             {field.placeholder || '—'}
@@ -237,6 +270,32 @@ const CustomFieldsSettings: React.FC = () => {
                                 <option value="textarea">{t('customFields.typeTextarea')}</option>
                             </select>
                         </div>
+
+                        {form.type === 'text' && (
+                            <div className="flex flex-col">
+                                <label className="label">
+                                    <span className="text-sm">{t('customFields.tableWidth')}</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    className="input w-full"
+                                    value={form.tableWidthRem}
+                                    onChange={(e) => setForm({ ...form, tableWidthRem: e.target.value })}
+                                    min={CUSTOM_COLUMN_MIN_WIDTH_REM}
+                                    max={CUSTOM_COLUMN_MAX_WIDTH_REM}
+                                    step={1}
+                                    required
+                                />
+                                <label className="label">
+                                    <span className="text-xs text-base-content/60">
+                                        {t('customFields.tableWidthDescription', {
+                                            min: CUSTOM_COLUMN_MIN_WIDTH_REM,
+                                            max: CUSTOM_COLUMN_MAX_WIDTH_REM,
+                                        })}
+                                    </span>
+                                </label>
+                            </div>
+                        )}
 
                         <div className="flex flex-col">
                             <label className="label">

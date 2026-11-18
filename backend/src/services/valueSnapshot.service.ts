@@ -24,14 +24,18 @@ import { logger } from '../config/logger.config';
 export interface PricedItem {
   priceCache?: IPriceCache | null;
   mediaCondition?: string | null;
+  /** Hand-entered value of a manual album, already in USD. */
+  manualValue?: number | null;
 }
 
 /**
- * The effective value of an item: its price for the condition it is in.
+ * The effective value of an item: the value entered by hand for a manual album,
+ * otherwise its price for the condition it is in.
  * Mirrors getItemValue on the frontend; both must agree or the chart and the
  * total value KPI show different numbers for the same collection.
  */
 export function getValueForItem(item: PricedItem): number {
+  if (item.manualValue != null && item.manualValue > 0) return item.manualValue;
   if (!item.priceCache) return 0;
   const pc = item.priceCache;
 
@@ -62,7 +66,7 @@ export interface CollectionTotal {
 export async function computeCollectionTotal(
   userId: mongoose.Types.ObjectId | string
 ): Promise<CollectionTotal> {
-  const items = await CollectionItem.find({ user: userId }).select('priceCache mediaCondition').lean();
+  const items = await CollectionItem.find({ user: userId }).select('priceCache mediaCondition manualValue').lean();
 
   let totalValue = 0;
   let itemCount = 0;
@@ -155,7 +159,7 @@ export async function rebuildValueHistory(
   { replaceSeeded = false }: { replaceSeeded?: boolean } = {}
 ): Promise<number> {
   const items = await CollectionItem.find({ user: userId })
-    .select('priceCache mediaCondition addedAt')
+    .select('priceCache mediaCondition manualValue addedAt')
     .sort({ addedAt: 1 })
     .lean();
 

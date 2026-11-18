@@ -16,10 +16,13 @@ import {
     rematchAlbum,
     getStyles,
     addManualAlbum,
+    updateManualAlbum,
     getCollectionSyncInfo,
     getCollectionValueHistory,
     syncItemPrice,
-    refreshItemFromDiscogs
+    refreshItemFromDiscogs,
+    updateDiscogsAlbum,
+    restoreDiscogsAlbum
 } from '../controllers/collection.controller';
 import protectRoute from '../middlewares/protectRoute.middleware';
 import { csvUpload, uploadCover } from '../middlewares/upload.middleware';
@@ -41,6 +44,11 @@ router.get('/value-history', protectRoute, getCollectionValueHistory);
 
 // Manual album entry (must be before /:itemId to avoid route conflicts)
 router.post('/manual', protectRoute, uploadCover, addManualAlbum);
+router.put('/:itemId/manual', protectRoute, uploadCover, updateManualAlbum);
+
+// Local edits to a Discogs album (per-user, never on the shared Album document)
+router.put('/:itemId/album', protectRoute, uploadCover, updateDiscogsAlbum);
+router.post('/:itemId/album/restore', protectRoute, restoreDiscogsAlbum);
 
 // Collection CRUD
 router.post('/', protectRoute, addToCollection);

@@ -5,6 +5,7 @@ import GroupedReleaseList from '../GroupedReleaseList';
 import ListToolbar from '../ListToolbar';
 import LabelLink from '../../Common/LabelLink';
 import type { CollectionItem } from '../../../types/collection.types';
+import { getSearchTermGroups, matchesSearchGroups } from '../../../utils/search';
 
 type LabelSort = 'releases' | 'name';
 
@@ -30,15 +31,15 @@ const CollectionLabelsView: React.FC<CollectionLabelsViewProps> = ({ collection,
     // Biggest imprints first: the shape of a collection is the point, and an
     // alphabetical list buries it.
     const [sortBy, setSortBy] = useState<LabelSort>('releases');
+    const searchTermGroups = useMemo(() => getSearchTermGroups(searchTerm), [searchTerm]);
 
     const filteredLabels = useMemo(() => {
-        const lower = searchTerm.trim().toLowerCase();
-        const matching = lower ? labels.filter((label) => label.name.toLowerCase().includes(lower)) : labels;
+        const matching = labels.filter((label) => matchesSearchGroups(searchTermGroups, [label.name]));
 
         // The hook already orders by release count, which is the default here.
         if (sortBy === 'releases') return matching;
         return [...matching].sort((a, b) => a.name.localeCompare(b.name));
-    }, [labels, searchTerm, sortBy]);
+    }, [labels, searchTermGroups, sortBy]);
 
     return (
         <div className="space-y-4">

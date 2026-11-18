@@ -5,6 +5,8 @@ export interface CustomFieldPayload {
     name: string;
     type: CustomFieldType;
     placeholder: string;
+    /** Collection-table column width in rem, only meaningful for short text. */
+    tableWidthRem?: number;
 }
 
 export async function getCustomFields(): Promise<CustomFieldDefinition[]> {

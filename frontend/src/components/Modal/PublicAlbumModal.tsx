@@ -32,6 +32,7 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
     const spotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(`${album.artist} ${album.title}`)}`;
     const discogsUrl = album.discogsId ? `https://www.discogs.com/release/${album.discogsId}` : null;
     const labels = album.labels || [];
+    const genres = album.genres || [];
     const styles = album.styles || [];
     const value = getItemValue(item);
     const tracklist = album.tracklist || [];
@@ -121,8 +122,11 @@ const PublicAlbumModal: React.FC<PublicAlbumModalProps> = ({ item, onClose }) =>
                         {album.year && (
                             <FieldRow label={t('common.year')}>{album.year}</FieldRow>
                         )}
+                        {genres.length > 0 && (
+                            <FieldRow label={t('album.genres')}>{genres.join(' · ')}</FieldRow>
+                        )}
                         {styles.length > 0 && (
-                            <FieldRow label={t('album.genres')}>{styles.join(' · ')}</FieldRow>
+                            <FieldRow label={t('album.styles')}>{styles.join(' · ')}</FieldRow>
                         )}
                         {item.mediaCondition && mediaLabel && (
                             <FieldRow label={t('condition.media')}>{t(mediaLabel.labelKey)}</FieldRow>

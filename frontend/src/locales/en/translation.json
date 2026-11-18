@@ -19,6 +19,7 @@
         "album": "Album",
         "format": "Format",
         "formats": "Formats",
+        "genres": "Genres",
         "albums": "Albums",
         "tracks": "Tracks",
         "labels": "Labels",
@@ -109,8 +110,8 @@
         "display": "Display",
         "displayDescription": "Customize how the interface is displayed.",
         "wideScreenMode": "Wide Screen Mode",
-        "wideScreenEnabled": "Content is centered with a maximum width for easier reading",
-        "wideScreenDisabled": "Content expands to fill the entire screen width",
+        "wideScreenEnabled": "Content expands to fill the entire screen width",
+        "wideScreenDisabled": "Content is centered with a maximum width for easier reading",
         "wideScreenModeEnabled": "Wide screen mode enabled!",
         "wideScreenModeDisabled": "Wide screen mode disabled",
         "currency": "Currency",
@@ -170,9 +171,9 @@
     },
     "csvImport": {
         "title": "Import Collection (CSV)",
-        "columns": "Columns: Artist, Album, Format, Year, Release ID, Catalog Number, Media Condition, Sleeve Condition.",
-        "required": "Required: a Release ID, or Artist + Album. Every other column is optional.",
-        "matching": "Albums are matched on Discogs in this order: Release ID (exact), then Catalog Number, then an Artist/Album search. Format accepts Vinyl or CD; if left empty the Discogs format is used. Albums already in your collection in the same format are skipped.",
+        "columns": "Columns: Artist, Album, Format, Year, Release ID, Catalog Number, Label, Genres, Value, Tracklist, Manual, Media Condition, Sleeve Condition.",
+        "required": "Required: Artist + Album, or a Release ID. Every other column is optional. Rows with Manual set to true are imported without a Discogs lookup.",
+        "matching": "Albums are matched on Discogs in this order: Release ID (exact), then Catalog Number, then an Artist/Album search. Format accepts Vinyl or CD; if left empty the Discogs format is used. Albums already in your collection in the same format are skipped. Custom-field columns are matched by name and unknown fields are ignored.",
         "downloadTemplate": "Download CSV template",
         "failedDownloadTemplate": "Failed to download the template. Try again in a moment.",
         "chooseFile": "Choose a CSV file",
@@ -284,7 +285,7 @@
     "csvExport": {
         "title": "Export Collection (CSV)",
         "description": "Download a CSV backup of your full collection.",
-        "hint": "The file uses the same columns as the import, so albums can be re-imported later. Custom fields are included for backup only and are not restored on import.",
+        "hint": "The file uses the same columns as the import, so albums can be re-imported later. Custom fields are restored when a field with the same name exists; other custom fields are ignored.",
         "downloadCsv": "Download CSV backup",
         "exportFinished": "Collection exported",
         "failedExport": "Failed to export collection."
@@ -302,6 +303,8 @@
         "allFormats": "All Formats",
         "decade": "Decade",
         "allDecades": "All Decades",
+        "genre": "Genre",
+        "allGenres": "All Genres",
         "added": "Added",
         "anyTime": "Any Time",
         "thisWeek": "This Week",
@@ -319,6 +322,8 @@
         "goToMusivault": "Go to Musivault",
         "addAlbum": "Add an album",
         "filters": "Filters",
+        "columns": "Columns",
+        "resetColumns": "Reset",
         "showingCount": "{{shown}} of {{total}}",
         "releasesInGroup_one": "{{count}} record",
         "releasesInGroup_other": "{{count}} records"
@@ -331,9 +336,22 @@
         "failedLoad": "Failed to load collection"
     },
     "album": {
+        "editDiscogs": "Edit details",
+        "editDiscogsTitle": "Edit Discogs details",
+        "discogsUpdateSuccess": "\"{{title}}\" updated",
+        "locallyModifiedHint": "Details edited locally",
+        "restoreDiscogs": "Restore Discogs data",
+        "restoreDiscogsHint": "Remove your local edits and use the Discogs data again",
+        "confirmRestoreDiscogs": "Remove your local edits to this album and show the Discogs data again?",
+        "restoreDiscogsSuccess": "Discogs data restored",
+        "restoreDiscogsFailed": "Failed to restore Discogs data",
+        "noLocalEdits": "No local edits to restore",
+        "confirmDiscardLocalEdits": "Your local edits will be overwritten by the Discogs data. Continue?",
+        "confirmDiscardLocalEditsRematch": "Your local edits will be lost when you rematch this album. Continue?",
         "label": "Label",
         "catalogNumber": "Catalog Number",
         "genres": "GENRES",
+        "styles": "STYLES",
         "formatDetails": "FORMAT DETAILS",
         "listenOnSpotify": "Listen on Spotify",
         "viewOnDiscogs": "View on Discogs",
@@ -362,6 +380,10 @@
         "trackCount": "{{count}} tracks",
         "duration": "Duration",
         "cover": "Cover",
+        "addCover": "Add cover",
+        "changeCover": "Change cover",
+        "editManual": "Edit album",
+        "manualValue": "Manual value",
         "showAllTracks": "Show {{n}} more tracks",
         "showFewerTracks": "Show fewer"
     },
@@ -375,7 +397,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "The Musivault format does not match the linked Discogs release. Use Rematch or ignore this alert."
+            "message": "The Musivault format does not match the linked Discogs release. Edit the format in the album details, rematch the release, or ignore this alert."
         },
         "unknown": {
             "noDiscogsAssociation": "No Discogs release is associated with this album yet.",
@@ -452,6 +474,21 @@
         "manualRequired": "Album title and artist are required",
         "manualSuccess": "\"{{title}}\" added to your collection!",
         "manualError": "Failed to add album. Please try again.",
+        "manualEditTitle": "Edit Album",
+        "manualUpdateSuccess": "\"{{title}}\" updated!",
+        "manualUpdateError": "Failed to update album. Please try again.",
+        "replaceCover": "Replace Cover",
+        "genresPlaceholder": "Search a Discogs genre…",
+        "stylesPlaceholder": "Search a Discogs style…",
+        "removeValue": "Remove {{value}}",
+        "noOptions": "No matching option.",
+        "valueUsd": "Value (USD)",
+        "addTrack": "Add track",
+        "removeTrack": "Remove track",
+        "trackPosition": "Pos.",
+        "trackTitle": "Track title",
+        "trackArtist": "Artist (optional)",
+        "trackDuration": "Duration",
         "addedToCollection": "\"{{title}}\" added to your collection!",
         "intentDiscogsId": "Discogs ID detected",
         "intentCatno": "Catalog number detected",
@@ -861,6 +898,14 @@
         "itemSectionTitle": "Custom Fields",
         "fieldName": "Field Name",
         "fieldType": "Field Type",
+
+        "tableWidth": "Table width",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "Width of this column in the collection table, from {{min}} to {{max}} rem. Longer values are cut off.",
+
+        "tableWidthInvalid": "Table width must be between {{min}} and {{max}} rem",
         "examplePlaceholder": "Example / Placeholder",
         "typeText": "Short text",
         "typeTextarea": "Long text (notes)",

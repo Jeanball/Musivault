@@ -23,9 +23,31 @@ export interface Album {
     thumb: string;
     year: string;
     discogsId?: number;
+    /** True for albums added by hand, which have no Discogs release behind them. */
+    isManual?: boolean;
+    /** Broad Discogs genres (Jazz, Rock, ...), used by the genre filter. */
+    genres?: string[];
     styles?: string[];
     tracklist?: Track[];
     labels?: Label[];
+}
+
+/**
+ * Per-user edits to a shared Discogs album. Only the fields the user changed
+ * are present; the server lays them over the album when the item is read.
+ */
+export interface AlbumOverrides {
+    title?: string;
+    artist?: string;
+    year?: string;
+    /** Broad Discogs genres (Jazz, Rock, ...). */
+    genres?: string[];
+    /** Finer Discogs styles (Modal, Hard Bop, ...). */
+    styles?: string[];
+    tracklist?: Track[];
+    labels?: Label[];
+    cover_image?: string;
+    thumb?: string;
 }
 
 /**
@@ -64,9 +86,15 @@ export interface CollectionItem {
     mediaCondition?: string | null;
     sleeveCondition?: string | null;
     priceCache?: PriceCache | null;
+    /** Hand-entered value (USD) for a manually added album. */
+    manualValue?: number | null;
     formatVerification?: FormatVerification | null;
     customFields?: CustomFieldValues | null;
     addedAt: string;
+    /** Local edits to a shared Discogs album, when the user made any. */
+    albumOverrides?: AlbumOverrides | null;
+    /** True when albumOverrides holds something: the data is locally modified. */
+    locallyModified?: boolean;
 }
 
 export type SortColumn = 'artist' | 'album' | 'year' | 'format' | 'label' | 'addedAt' | 'price';
@@ -81,6 +109,7 @@ export interface FilterState {
     format: string;
     decade: string;
     addedPeriod: string;
+    genre: string;
     style: string;
     label: string;
     issueStatus: string;
@@ -90,6 +119,7 @@ export interface CollectionStats {
     total: number;
     formatCounts: Record<string, number>;
     decadeCounts: Record<string, number>;
+    genreCounts: Record<string, number>;
     styleCounts: Record<string, number>;
     labelCounts: Record<string, number>;
     artistCounts: Record<string, number>;
@@ -107,6 +137,7 @@ export interface CollectionStats {
     } | null;
     availableFormats: string[];
     availableDecades: string[];
+    availableGenres: string[];
     availableStyles: string[];
     availableLabels: string[];
     topLabel: {

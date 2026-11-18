@@ -19,6 +19,7 @@
         "album": "Álbum",
         "format": "Formato",
         "formats": "Formatos",
+        "genres": "Géneros",
         "albums": "Álbumes",
         "tracks": "Pistas",
         "labels": "Sellos",
@@ -105,8 +106,8 @@
         "display": "Visualización",
         "displayDescription": "Personaliza cómo se muestra la interfaz.",
         "wideScreenMode": "Modo Pantalla Ancha",
-        "wideScreenEnabled": "El contenido está centrado con un ancho máximo para facilitar la lectura",
-        "wideScreenDisabled": "El contenido se expande para llenar todo el ancho de la pantalla",
+        "wideScreenEnabled": "El contenido se expande para llenar todo el ancho de la pantalla",
+        "wideScreenDisabled": "El contenido está centrado con un ancho máximo para facilitar la lectura",
         "wideScreenModeEnabled": "¡Modo pantalla ancha activado!",
         "wideScreenModeDisabled": "Modo pantalla ancha desactivado",
         "currency": "Moneda",
@@ -152,9 +153,9 @@
     },
     "csvImport": {
         "title": "Importar Colección (CSV)",
-        "columns": "Columnas: Artist, Album, Format, Year, Release ID, Catalog Number, Media Condition, Sleeve Condition.",
-        "required": "Obligatorio: un Release ID, o Artist + Album. Las demás columnas son opcionales.",
-        "matching": "Los álbumes se buscan en Discogs en este orden: Release ID (exacto), luego Catalog Number, y por último una búsqueda por Artist/Album. Format acepta Vinyl o CD; si se deja vacío se usa el formato de Discogs. Los álbumes que ya están en tu colección con el mismo formato se omiten.",
+        "columns": "Columnas: Artist, Album, Format, Year, Release ID, Catalog Number, Label, Genres, Value, Tracklist, Manual, Media Condition, Sleeve Condition.",
+        "required": "Obligatorio: Artist + Album, o un Release ID. Las demás columnas son opcionales. Las filas con Manual en true se importan sin buscar en Discogs.",
+        "matching": "Los álbumes se buscan en Discogs en este orden: Release ID (exacto), luego Catalog Number, y por último una búsqueda por Artist/Album. Format acepta Vinyl o CD; si se deja vacío se usa el formato de Discogs. Los álbumes que ya están en tu colección con el mismo formato se omiten. Las columnas de campos personalizados se asocian por nombre y los campos desconocidos se ignoran.",
         "downloadTemplate": "Descargar plantilla CSV",
         "failedDownloadTemplate": "No se pudo descargar la plantilla. Inténtalo de nuevo en un momento.",
         "chooseFile": "Eligir archivo CSV",
@@ -266,7 +267,7 @@
     "csvExport": {
         "title": "Exportar colección (CSV)",
         "description": "Descarga una copia de seguridad CSV de toda tu colección.",
-        "hint": "El archivo usa las mismas columnas que la importación, por lo que los álbumes pueden volver a importarse. Los campos personalizados se incluyen solo como copia de seguridad y no se restauran al importar.",
+        "hint": "El archivo usa las mismas columnas que la importación, por lo que los álbumes pueden volver a importarse. Los campos personalizados se restauran si existe un campo con el mismo nombre; los demás se ignoran.",
         "downloadCsv": "Descargar copia CSV",
         "exportFinished": "Colección exportada",
         "failedExport": "No se pudo exportar la colección."
@@ -284,6 +285,8 @@
         "allFormats": "Todos los formatos",
         "decade": "Década",
         "allDecades": "Todas las décadas",
+        "genre": "Género",
+        "allGenres": "Todos los géneros",
         "added": "Añadido",
         "anyTime": "Cualquier momento",
         "thisWeek": "Esta semana",
@@ -301,6 +304,8 @@
         "goToMusivault": "Ir a Musivault",
         "addAlbum": "Añadir un álbum",
         "filters": "Filtros",
+        "columns": "Columnas",
+        "resetColumns": "Restablecer",
         "showingCount": "{{shown}} de {{total}}",
         "releasesInGroup_one": "{{count}} disco",
         "releasesInGroup_other": "{{count}} discos"
@@ -313,9 +318,22 @@
         "failedLoad": "Fallo al cargar colección"
     },
     "album": {
+        "editDiscogs": "Editar datos",
+        "editDiscogsTitle": "Editar datos de Discogs",
+        "discogsUpdateSuccess": "\"{{title}}\" actualizado",
+        "locallyModifiedHint": "Datos editados localmente",
+        "restoreDiscogs": "Restaurar datos de Discogs",
+        "restoreDiscogsHint": "Elimina tus ediciones locales y vuelve a usar los datos de Discogs",
+        "confirmRestoreDiscogs": "¿Eliminar tus ediciones locales de este álbum y volver a mostrar los datos de Discogs?",
+        "restoreDiscogsSuccess": "Datos de Discogs restaurados",
+        "restoreDiscogsFailed": "No se pudieron restaurar los datos de Discogs",
+        "noLocalEdits": "No hay ediciones locales que restaurar",
+        "confirmDiscardLocalEdits": "Tus ediciones locales se sobrescribirán con los datos de Discogs. ¿Continuar?",
+        "confirmDiscardLocalEditsRematch": "Al emparejar de nuevo se perderán tus ediciones locales. ¿Continuar?",
         "label": "Sello",
         "catalogNumber": "Número de catálogo",
         "genres": "GÉNEROS",
+        "styles": "ESTILOS",
         "formatDetails": "DETALLES DEL FORMATO",
         "listenOnSpotify": "Escuchar en Spotify",
         "viewOnDiscogs": "Ver en Discogs",
@@ -344,6 +362,10 @@
         "trackCount": "{{count}} pistas",
         "duration": "Duración",
         "cover": "Portada",
+        "addCover": "Añadir portada",
+        "changeCover": "Cambiar portada",
+        "editManual": "Editar álbum",
+        "manualValue": "Valor manual",
         "showAllTracks": "Mostrar {{n}} pistas más",
         "showFewerTracks": "Mostrar menos"
     },
@@ -357,7 +379,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "El formato de Musivault no coincide con la edición de Discogs vinculada. Usa Rematch o ignora esta alerta."
+            "message": "El formato de Musivault no coincide con la edición de Discogs vinculada. Edita el formato en los detalles del álbum, vuelve a emparejar la edición o ignora esta alerta."
         },
         "unknown": {
             "noDiscogsAssociation": "Todavía no hay una edición de Discogs asociada a este álbum.",
@@ -433,6 +455,21 @@
         "manualRequired": "El título del álbum y el artista son obligatorios",
         "manualSuccess": "\"{{title}}\" añadido a tu colección!",
         "manualError": "Error al agregar el álbum. Inténtalo de nuevo.",
+        "manualEditTitle": "Editar álbum",
+        "manualUpdateSuccess": "¡\"{{title}}\" actualizado!",
+        "manualUpdateError": "No se pudo actualizar el álbum. Inténtalo de nuevo.",
+        "replaceCover": "Cambiar portada",
+        "genresPlaceholder": "Buscar un género de Discogs…",
+        "stylesPlaceholder": "Buscar un estilo de Discogs…",
+        "removeValue": "Quitar {{value}}",
+        "noOptions": "Ninguna opción coincide.",
+        "valueUsd": "Valor (USD)",
+        "addTrack": "Añadir pista",
+        "removeTrack": "Eliminar pista",
+        "trackPosition": "Pos.",
+        "trackTitle": "Título de la pista",
+        "trackArtist": "Artista (opcional)",
+        "trackDuration": "Duración",
         "placeholderShort": "Artista, álbum, ID…",
         "addedToCollection": "«{{title}}» añadido a tu colección.",
         "intentDiscogsId": "ID de Discogs detectado",
@@ -838,6 +875,14 @@
         "itemSectionTitle": "Campos personalizados",
         "fieldName": "Nombre del campo",
         "fieldType": "Tipo de campo",
+
+        "tableWidth": "Ancho de columna",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "Ancho de esta columna en la tabla de la colección, de {{min}} a {{max}} rem. Los valores más largos se recortan.",
+
+        "tableWidthInvalid": "El ancho debe estar entre {{min}} y {{max}} rem",
         "examplePlaceholder": "Ejemplo / Placeholder",
         "typeText": "Texto corto",
         "typeTextarea": "Texto largo (notas)",

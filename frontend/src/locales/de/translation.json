@@ -19,6 +19,7 @@
         "album": "Album",
         "format": "Format",
         "formats": "Formate",
+        "genres": "Genres",
         "albums": "Alben",
         "tracks": "Titel",
         "labels": "Labels",
@@ -105,8 +106,8 @@
         "display": "Anzeige",
         "displayDescription": "Passen Sie an, wie die Benutzeroberfläche angezeigt wird.",
         "wideScreenMode": "Breitbildmodus",
-        "wideScreenEnabled": "Inhalt ist zentriert mit maximaler Breite für einfacheres Lesen",
-        "wideScreenDisabled": "Inhalt dehnt sich aus, um die gesamte Bildschirmbreite zu füllen",
+        "wideScreenEnabled": "Inhalt dehnt sich aus, um die gesamte Bildschirmbreite zu füllen",
+        "wideScreenDisabled": "Inhalt ist zentriert mit maximaler Breite für einfacheres Lesen",
         "wideScreenModeEnabled": "Breitbildmodus aktiviert!",
         "wideScreenModeDisabled": "Breitbildmodus deaktiviert",
         "publicCollection": "Öffentliche Sammlung",
@@ -149,9 +150,9 @@
     },
     "csvImport": {
         "title": "Sammlung importieren (CSV)",
-        "columns": "Spalten: Artist, Album, Format, Year, Release ID, Catalog Number, Media Condition, Sleeve Condition.",
-        "required": "Erforderlich: eine Release ID oder Artist + Album. Alle anderen Spalten sind optional.",
-        "matching": "Alben werden auf Discogs in dieser Reihenfolge gesucht: Release ID (exakt), dann Catalog Number, dann eine Artist/Album-Suche. Format akzeptiert Vinyl oder CD; bleibt die Spalte leer, wird das Discogs-Format verwendet. Alben, die bereits im selben Format in Ihrer Sammlung sind, werden übersprungen.",
+        "columns": "Spalten: Artist, Album, Format, Year, Release ID, Catalog Number, Label, Genres, Value, Tracklist, Manual, Media Condition, Sleeve Condition.",
+        "required": "Erforderlich: Artist + Album oder eine Release ID. Alle anderen Spalten sind optional. Zeilen mit Manual = true werden ohne Discogs-Suche importiert.",
+        "matching": "Alben werden auf Discogs in dieser Reihenfolge gesucht: Release ID (exakt), dann Catalog Number, dann eine Artist/Album-Suche. Format akzeptiert Vinyl oder CD; bleibt die Spalte leer, wird das Discogs-Format verwendet. Alben, die bereits im selben Format in Ihrer Sammlung sind, werden übersprungen. Spalten für benutzerdefinierte Felder werden nach Namen zugeordnet; unbekannte Felder werden ignoriert.",
         "downloadTemplate": "CSV-Vorlage herunterladen",
         "failedDownloadTemplate": "Vorlage konnte nicht heruntergeladen werden. Bitte gleich noch einmal versuchen.",
         "chooseFile": "Wählen Sie eine CSV-Datei",
@@ -263,7 +264,7 @@
     "csvExport": {
         "title": "Sammlung exportieren (CSV)",
         "description": "Laden Sie eine CSV-Sicherung Ihrer gesamten Sammlung herunter.",
-        "hint": "Die Datei verwendet dieselben Spalten wie der Import, Alben können also später wieder importiert werden. Benutzerdefinierte Felder dienen nur der Sicherung und werden beim Import nicht wiederhergestellt.",
+        "hint": "Die Datei verwendet dieselben Spalten wie der Import, Alben können also später wieder importiert werden. Benutzerdefinierte Felder werden wiederhergestellt, wenn ein Feld mit demselben Namen existiert; andere werden ignoriert.",
         "downloadCsv": "CSV-Sicherung herunterladen",
         "exportFinished": "Sammlung exportiert",
         "failedExport": "Export der Sammlung fehlgeschlagen."
@@ -281,6 +282,8 @@
         "allFormats": "Alle Formate",
         "decade": "Jahrzehnt",
         "allDecades": "Alle Jahrzehnte",
+        "genre": "Genre",
+        "allGenres": "Alle Genres",
         "added": "Hinzugefügt",
         "anyTime": "Jederzeit",
         "thisWeek": "Diese Woche",
@@ -298,6 +301,8 @@
         "goToMusivault": "Gehe zu Musivault",
         "addAlbum": "Ein Album hinzufügen",
         "filters": "Filter",
+        "columns": "Spalten",
+        "resetColumns": "Zurücksetzen",
         "showingCount": "{{shown}} von {{total}}",
         "releasesInGroup_one": "{{count}} Platte",
         "releasesInGroup_other": "{{count}} Platten"
@@ -310,9 +315,22 @@
         "failedLoad": "Sammlung konnte nicht geladen werden"
     },
     "album": {
+        "editDiscogs": "Details bearbeiten",
+        "editDiscogsTitle": "Discogs-Details bearbeiten",
+        "discogsUpdateSuccess": "\"{{title}}\" aktualisiert",
+        "locallyModifiedHint": "Daten lokal bearbeitet",
+        "restoreDiscogs": "Discogs-Daten wiederherstellen",
+        "restoreDiscogsHint": "Lokale Änderungen entfernen und wieder die Discogs-Daten verwenden",
+        "confirmRestoreDiscogs": "Lokale Änderungen an diesem Album entfernen und wieder die Discogs-Daten anzeigen?",
+        "restoreDiscogsSuccess": "Discogs-Daten wiederhergestellt",
+        "restoreDiscogsFailed": "Discogs-Daten konnten nicht wiederhergestellt werden",
+        "noLocalEdits": "Keine lokalen Änderungen zum Wiederherstellen",
+        "confirmDiscardLocalEdits": "Deine lokalen Änderungen werden durch die Discogs-Daten überschrieben. Fortfahren?",
+        "confirmDiscardLocalEditsRematch": "Beim Neu zuordnen gehen deine lokalen Änderungen verloren. Fortfahren?",
         "label": "Label",
         "catalogNumber": "Katalognummer",
         "genres": "GENRES",
+        "styles": "STILE",
         "formatDetails": "FORMAT-DETAILS",
         "listenOnSpotify": "Auf Spotify anhören",
         "viewOnDiscogs": "Auf Discogs ansehen",
@@ -341,6 +359,10 @@
         "trackCount": "{{count}} Titel",
         "duration": "Dauer",
         "cover": "Cover",
+        "addCover": "Cover hinzufügen",
+        "changeCover": "Cover ändern",
+        "editManual": "Album bearbeiten",
+        "manualValue": "Manueller Wert",
         "showAllTracks": "{{n}} weitere Titel anzeigen",
         "showFewerTracks": "Weniger anzeigen"
     },
@@ -354,7 +376,7 @@
     },
     "formatVerification": {
         "mismatch": {
-            "message": "Das Musivault-Format stimmt nicht mit der verknüpften Discogs-Veröffentlichung überein. Verwenden Sie Rematch oder ignorieren Sie diesen Hinweis."
+            "message": "Das Musivault-Format stimmt nicht mit der verknüpften Discogs-Veröffentlichung überein. Ändern Sie das Format in den Albumdetails, ordnen Sie die Veröffentlichung neu zu oder ignorieren Sie diesen Hinweis."
         },
         "unknown": {
             "noDiscogsAssociation": "Diesem Album ist noch keine Discogs-Veröffentlichung zugeordnet.",
@@ -430,6 +452,21 @@
         "manualRequired": "Albumtitel und Künstler sind erforderlich",
         "manualSuccess": "\"{{title}}\" zu Ihrer Sammlung hinzugefügt!",
         "manualError": "Fehler beim Hinzufügen des Albums. Bitte versuchen Sie es erneut.",
+        "manualEditTitle": "Album bearbeiten",
+        "manualUpdateSuccess": "„{{title}}“ aktualisiert!",
+        "manualUpdateError": "Album konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+        "replaceCover": "Cover ersetzen",
+        "genresPlaceholder": "Discogs-Genre suchen…",
+        "stylesPlaceholder": "Discogs-Stil suchen…",
+        "removeValue": "{{value}} entfernen",
+        "noOptions": "Keine passende Option.",
+        "valueUsd": "Wert (USD)",
+        "addTrack": "Titel hinzufügen",
+        "removeTrack": "Titel entfernen",
+        "trackPosition": "Pos.",
+        "trackTitle": "Titel",
+        "trackArtist": "Künstler (optional)",
+        "trackDuration": "Dauer",
         "placeholderShort": "Künstler, Album, ID…",
         "addedToCollection": "„{{title}}“ zur Sammlung hinzugefügt!",
         "intentDiscogsId": "Discogs-ID erkannt",
@@ -834,6 +871,14 @@
         "itemSectionTitle": "Benutzerdefinierte Felder",
         "fieldName": "Feldname",
         "fieldType": "Feldtyp",
+
+        "tableWidth": "Spaltenbreite",
+
+        "tableWidthValue": "{{width}} rem",
+
+        "tableWidthDescription": "Breite dieser Spalte in der Sammlungstabelle, von {{min}} bis {{max}} rem. Längere Werte werden abgeschnitten.",
+
+        "tableWidthInvalid": "Die Spaltenbreite muss zwischen {{min}} und {{max}} rem liegen",
         "examplePlaceholder": "Beispiel / Platzhalter",
         "typeText": "Kurzer Text",
         "typeTextarea": "Langer Text (Notizen)",

@@ -4,12 +4,16 @@ import path from 'path';
 import { COVERS_DIR } from '../config/uploads.config';
 import { logger } from '../config/logger.config';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB, per cover image
+
+// CSV files now carry base64 covers, so an export can be far larger than the
+// old 5MB ceiling.
+const MAX_CSV_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 // CSV import storage (in memory)
 export const csvUpload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: MAX_FILE_SIZE }
+    limits: { fileSize: MAX_CSV_FILE_SIZE }
 });
 
 // Cover image storage (on disk)

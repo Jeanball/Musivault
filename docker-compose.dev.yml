@@ -1,4 +1,5 @@
-version: '3.8'
+# Fixed project name: resource names must not depend on the checkout folder.
+name: musivault
 
 services:
   # MongoDB database
@@ -65,8 +66,8 @@ services:
       mongodb:
         condition: service_healthy
     volumes:
-      - import_logs:/app/logs
-      - uploads_data:/app/uploads
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
     networks:
       - musivault-network
     healthcheck:
@@ -99,8 +100,7 @@ networks:
 
 volumes:
   mongodb_data:
-    driver: local
-  import_logs:
-    driver: local
-  uploads_data:
+    # Same explicit name as docker-compose.yml: dev and production share the
+    # database volume, so recreating one never hides the other's data.
+    name: musivault_mongodb_data
     driver: local

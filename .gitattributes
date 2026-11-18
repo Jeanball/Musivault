@@ -1,0 +1,3 @@
+# Shell scripts run inside Linux containers: keep their line endings LF even on
+# Windows checkouts, otherwise the shebang resolves to a missing interpreter.
+*.sh text eol=lf
