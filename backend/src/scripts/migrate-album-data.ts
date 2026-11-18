@@ -26,11 +26,12 @@ import { logger } from '../config/logger.config';
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
+const DISCOGS_KEY = process.env.DISCOGS_KEY;
 const DISCOGS_SECRET = process.env.DISCOGS_SECRET;
 const DISCOGS_PAT = process.env.DISCOGS_PAT;
 
-if (!DISCOGS_SECRET) {
-    logger.error('❌ DISCOGS_SECRET is missing in .env');
+if (!DISCOGS_KEY || !DISCOGS_SECRET) {
+    logger.error('❌ DISCOGS_KEY or DISCOGS_SECRET is missing in .env');
     process.exit(1);
 }
 
@@ -79,7 +80,9 @@ async function fetchWithRetry(discogsId: number, retries: number = 0): Promise<D
     try {
         const response = await axios.get<DiscogsRelease>(`https://api.discogs.com/releases/${discogsId}`, {
             headers: {
-                'Authorization': `Discogs token=${DISCOGS_SECRET}`,
+                // The consumer secret is not a token: `token=` only takes a personal access token,
+                // so key + secret is the form that works without one.
+                'Authorization': `Discogs key=${DISCOGS_KEY}, secret=${DISCOGS_SECRET}`,
                 'User-Agent': 'Musivault/1.5 (+https://github.com/Musivault)'
             }
         });
@@ -160,6 +163,15 @@ function formatMissingFields(missing: MissingFields): string {
     return fields.join(', ');
 }
 
+/**
+ * Fills in the album data (labels, tracklist, styles, format details, prices) that
+ * albums imported by CSV are missing, one rate-limited Discogs request per album.
+ *
+ * Needs `DISCOGS_KEY` and `DISCOGS_SECRET` (and `DISCOGS_PAT` for prices). Per-album
+ * errors are counted and skipped. Rejected credentials (401/403) and any other error
+ * outside the album loop are rethrown when run by the migration runner, so the run is
+ * recorded as failed and retried on the next startup; standalone it exits with code 1.
+ */
 export async function migrateAlbumData(isStandalone = false) {
     if (isStandalone) {
         await connectDB();
@@ -364,6 +376,9 @@ export async function migrateAlbumData(isStandalone = false) {
 
             } catch (error: any) {
                 logger.error({ err: error }, `  ❌ Failed`);
+                // Rejected credentials fail every album the same way: stop, so the runner records
+                // the migration as failed and retries it once the keys are fixed.
+                if (error.response?.status === 401 || error.response?.status === 403) throw error;
                 errorCount++;
                 await sleep(RATE_LIMIT_DELAY_MS);
             }
@@ -379,7 +394,9 @@ export async function migrateAlbumData(isStandalone = false) {
 
     } catch (error) {
         logger.error({ err: error }, 'Migration failed');
-        if (isStandalone) process.exit(1);
+        // Under the runner a swallowed error would be recorded as a success and never retried.
+        if (!isStandalone) throw error;
+        process.exit(1);
     } finally {
         if (isStandalone) {
             await mongoose.disconnect();

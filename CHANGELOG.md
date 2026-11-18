@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat(admin): fall back to AllRatesToday when open.er-api.com is unreachable during the daily exchange-rate refresh
 - ci: run the backend tests on pull requests
 - feat(discogs): stop a long apply at any time, and show every row of a section to untick it
 - feat(discogs): show how many Discogs changes are waiting as a badge in the navbar and a dismissible notice in Settings
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(discover): do not request concerts when `TICKETMASTER_API_KEY` is not set, so Discover stops logging a warning on every load
 - fix(discover): say the map service is temporarily unavailable when record shops cannot load
 - fix(discover): fall back to other Overpass servers when the main one is down, with an optional `OVERPASS_URL` override
+- fix(migration): authenticate the album data backfill with the Discogs key and secret and record it as failed, not successful, when Discogs rejects the credentials
 - fix(discogs): wait and retry when Discogs throttles a call while applying a check, instead of failing the record
 - fix(auth): say the server cannot be reached on login and signup instead of "Invalid credentials" when it is down
 - fix(lint): resolve the frontend ESLint errors so `npm run lint` passes
