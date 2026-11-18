@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.16.1] - 2026-11-17
+
+### Changed
+- Enable wide screen mode by default for new accounts
+
+### Fixed
+- Run the background migrations one after the other, so two runs of the album backfill no longer fail with a Mongoose `VersionError`
+- Reuse a single album document per album id in the backfill, so two collection items pointing to the same album no longer race on its version
+
+---
+
 ## [1.16.0] - 2026-11-17
 
 ### Added
@@ -547,7 +558,8 @@ Once configured, you can fetch prices from the **Admin Task Center**.
 
 ---
 
-[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.16.0...HEAD
+[Unreleased]: https://github.com/Jeanball/Musivault/compare/v1.16.1...HEAD
+[1.16.1]: https://github.com/Jeanball/Musivault/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/Jeanball/Musivault/compare/v1.15.1...v1.16.0
 [1.15.1]: https://github.com/Jeanball/Musivault/compare/v1.15.0...v1.15.1
 [1.15.0]: https://github.com/Jeanball/Musivault/compare/v1.14.0...v1.15.0

@@ -2,6 +2,15 @@
 
 Find all the new features and improvements added to the app right here!
 
+## [1.16.1] - 2026-11-17
+
+### Improvements
+- **Wide Screen by Default**: New accounts now start with wide screen mode enabled, using the full width of the window.
+
+### Bug Fixes
+- **Album Data Backfill**: Fixed the automatic Discogs backfill failing on part of the collection after an upgrade. Background migrations now run one after the other, and albums shared by several records are no longer written twice at once. The affected albums are filled in on the next startup.
+
+---
 ## [1.16.0] - 2026-11-17
 
 ### What's New
