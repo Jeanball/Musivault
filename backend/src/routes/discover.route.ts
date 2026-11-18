@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { getUpcomingReleases, getApproximateLocation, getRecordShops, getConcerts, getConcert, geocode } from '../controllers/discover.controller';
+import { getUpcomingReleases, getApproximateLocation, getRecordShops, getConcerts, getConcert, geocode, getDiscoverFeatures } from '../controllers/discover.controller';
 import protectRoute from '../middlewares/protectRoute.middleware';
 
 const router = Router();
 
 router.get('/upcoming-releases', protectRoute, getUpcomingReleases);
+router.get('/features', protectRoute, getDiscoverFeatures);
 router.get('/location', protectRoute, getApproximateLocation);
 router.get('/record-shops', protectRoute, getRecordShops);
 router.get('/concerts', protectRoute, getConcerts);

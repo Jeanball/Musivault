@@ -36,6 +36,11 @@ const PAGE_SIZE = 200;
 /** Discovery refuses to page past the 1000th item (`size * page < 1000`). */
 const MAX_PAGES = Math.floor(1000 / PAGE_SIZE);
 
+/** Whether `TICKETMASTER_API_KEY` is set, i.e. whether concert search can work at all. */
+export function isTicketmasterConfigured(): boolean {
+  return !!process.env.TICKETMASTER_API_KEY;
+}
+
 /** Thrown when no Consumer Key is configured, so callers can say so plainly. */
 export class MissingTicketmasterKeyError extends Error {
   constructor() {

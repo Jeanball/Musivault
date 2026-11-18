@@ -46,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(collection): narrow the format column to 5 rem and truncate long format names, so it no longer takes space from the other columns
 - fix(settings): make the wide screen mode switch mean what it says, so turning it on fills the viewport instead of capping the content width
 - fix(collection): refresh the list right after adding an album, instead of waiting for a manual page reload
+- fix(discover): do not request concerts when `TICKETMASTER_API_KEY` is not set, so Discover stops logging a warning on every load
+- fix(discover): say the map service is temporarily unavailable when record shops cannot load
+- fix(discover): fall back to other Overpass servers when the main one is down, with an optional `OVERPASS_URL` override
 - fix(migration): authenticate the album data backfill with the Discogs key and secret and record it as failed, not successful, when Discogs rejects the credentials
 - fix(discogs): wait and retry when Discogs throttles a call while applying a check, instead of failing the record
 - fix(auth): say the server cannot be reached on login and signup instead of "Invalid credentials" when it is down
