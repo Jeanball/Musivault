@@ -197,9 +197,18 @@ export async function migrateAlbumData(isStandalone = false) {
         let fullySkippedCount = 0;
         let errorCount = 0;
 
+        // Two collection items can point to the same album (two copies of a record, or
+        // the same record in two collections). populate() hands each item its own
+        // document instance, so saving the second one would fail on a stale __v:
+        // reuse a single instance per album id.
+        const albumsById = new Map<string, any>();
+
         for (let i = 0; i < collectionItems.length; i++) {
             const item = collectionItems[i];
-            const album = item.album as any;
+            const populatedAlbum = item.album as any;
+            const albumId = populatedAlbum?._id?.toString();
+            if (albumId && !albumsById.has(albumId)) albumsById.set(albumId, populatedAlbum);
+            const album = albumId ? albumsById.get(albumId) : populatedAlbum;
             const progress = `[${i + 1}/${collectionItems.length}]`;
 
             if (!album?.discogsId) {

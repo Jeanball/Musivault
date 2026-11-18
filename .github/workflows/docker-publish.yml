@@ -60,7 +60,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_path: ${{ steps.extract_notes.outputs.notes_file }}
-          generate_release_notes: false
+          generate_release_notes: true
 
   build-and-push:
     name: Build Docker Images
