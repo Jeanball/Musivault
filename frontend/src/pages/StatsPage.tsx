@@ -127,7 +127,7 @@ const StatsPage: React.FC = () => {
                                         color: 'var(--color-base-content)'
                                     }}
                                     itemStyle={{ color: 'var(--color-primary)' }}
-                                    formatter={(value: any) => [formatValue(value), t('stats.value')]}
+                                    formatter={(value) => [formatValue(Number(value)), t('stats.value')]}
                                     labelFormatter={(label) => `${t('stats.chartDateLabel')}: ${label}`}
                                 />
                                 <Area

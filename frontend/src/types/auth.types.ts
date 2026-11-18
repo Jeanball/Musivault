@@ -22,9 +22,11 @@ export interface SignupResponse {
     message: string;
 }
 
-export interface OidcStatus {
-    enabled: boolean;
-    providerName: string;
+/** GET /api/auth/config: public, tells the login screens what the server allows. */
+export interface AuthConfig {
+    signupEnabled: boolean;
+    oidcEnabled: boolean;
+    oidcProviderName: string;
 }
 
 export interface PrivateOutletContext {

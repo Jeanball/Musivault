@@ -7,6 +7,7 @@ import Navbar from '../Navigation/Navbar';
 import Footer from '../Navigation/Footer';
 import PublicCollectionPage from '../../pages/PublicCollectionPage';
 import { useTheme } from '../../context/ThemeContext';
+import { contentWidthClass } from '../../constants/layout';
 
 interface AuthState {
     isAuthenticated: boolean;
@@ -68,7 +69,7 @@ const SharedCollectionLayout: React.FC = () => {
     if (authState.isAuthenticated) {
         return (
             <div className="flex flex-col min-h-screen">
-                <div className={`flex-1 p-4 md:p-8 ${wideScreenMode ? 'max-w-250 mx-auto w-full' : ''}`}>
+                <div className={`flex-1 p-4 md:p-8 ${contentWidthClass(wideScreenMode)}`}>
                     <Navbar
                         username={authState.username}
                         isAdmin={authState.isAdmin}

@@ -46,3 +46,11 @@ export function isRateLimitError(error: unknown): boolean {
 export function isCanceledError(error: unknown): boolean {
     return axios.isCancel(error);
 }
+
+/**
+ * True when the server could not be reached or failed (offline, backend down, a proxy error, a 5xx).
+ * Forms use it to say so, instead of blaming the user's input.
+ */
+export function isServerUnavailable(error: unknown): boolean {
+    return isApiError(error) && (error.isNetworkError || error.status >= 500);
+}

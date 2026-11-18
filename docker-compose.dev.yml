@@ -1,4 +1,5 @@
-version: '3.8'
+# Fixed project name: resource names must not depend on the checkout folder.
+name: musivault
 
 services:
   # MongoDB database
@@ -41,6 +42,7 @@ services:
       - DISCOGS_SECRET=${DISCOGS_SECRET}
       # Discogs Personal Access Token (optional - required for collection value estimation)
       - DISCOGS_PAT=${DISCOGS_PAT:-}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
       # Ticketmaster Discovery API Consumer Key (optional - required for nearby concerts)
       - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY:-}
       - CORS_ORIGINS=*
@@ -49,6 +51,8 @@ services:
       - ADMIN_EMAIL=${ADMIN_EMAIL:-}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      # Set to false to close public registration
+      - SIGNUP_ENABLED=${SIGNUP_ENABLED:-true}
       # OIDC/SSO Configuration (optional)
       - OIDC_ISSUER=${OIDC_ISSUER:-}
       - OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-}
@@ -62,8 +66,8 @@ services:
       mongodb:
         condition: service_healthy
     volumes:
-      - import_logs:/app/logs
-      - uploads_data:/app/uploads
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
     networks:
       - musivault-network
     healthcheck:
@@ -96,8 +100,7 @@ networks:
 
 volumes:
   mongodb_data:
-    driver: local
-  import_logs:
-    driver: local
-  uploads_data:
+    # Same explicit name as docker-compose.yml: dev and production share the
+    # database volume, so recreating one never hides the other's data.
+    name: musivault_mongodb_data
     driver: local

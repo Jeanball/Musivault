@@ -88,7 +88,7 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ isOpen, onClo
             try {
                 await scannerRef.current.stop();
                 scannerRef.current.clear();
-            } catch (err) {
+            } catch {
                 // Ignore errors when stopping
             }
             scannerRef.current = null;

@@ -22,19 +22,21 @@ export interface IAlbum extends Document {
   year: string;
   thumb: string;
   cover_image: string;
+  /** Broad Discogs genres (Jazz, Rock, ...); styles are the finer labels. */
+  genres: string[];
   styles: string[];
   tracklist: ITrack[];
   labels: ILabel[];
 }
 
-const trackSchema = new Schema<ITrack>({
+export const trackSchema = new Schema<ITrack>({
   position: { type: String, default: '' },
   title: { type: String, default: '' },
   duration: { type: String, default: '' },
   artist: { type: String, default: '' },
 }, { _id: false });
 
-const labelSchema = new Schema<ILabel>({
+export const labelSchema = new Schema<ILabel>({
   name: { type: String, default: '' },
   catno: { type: String, default: '' },
   discogsId: { type: Number },
@@ -67,6 +69,10 @@ const albumSchema = new Schema<IAlbum>({
   },
   cover_image: {
     type: String,
+  },
+  genres: {
+    type: [String],
+    default: [],
   },
   styles: {
     type: [String],

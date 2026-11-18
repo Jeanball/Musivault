@@ -1,6 +1,9 @@
 import CollectionItem from '../models/CollectionItem';
-import CustomFieldDefinition from '../models/CustomFieldDefinition';
 import { IAlbum } from '../models/Album';
+import { loadCustomFieldsWithUuids } from './customFields.service';
+import { formatCustomFieldHeader } from '../utils/customFields.utils';
+import { localCoverToDataUri } from '../utils/cover.utils';
+import { mergeAlbumOverrides, toPlainAlbum } from '../utils/albumOverrides.utils';
 
 // Headers are kept compatible with the import parser so an export can be
 // re-imported as-is (see normalizeHeader in import.service).
@@ -11,9 +14,16 @@ const BASE_HEADERS = [
     'Year',
     'Release ID',
     'Catalog Number',
+    'Label',
+    'Genres',
+    'Discogs Genres',
+    'Value',
+    'Tracklist',
+    'Manual',
     'Media Condition',
     'Sleeve Condition',
-    'Added At'
+    'Added At',
+    'Cover Base64'
 ];
 
 function escapeCsvValue(value: unknown): string {
@@ -31,8 +41,10 @@ function toCsvLine(values: unknown[]): string {
 
 /**
  * Build a CSV backup of a user's collection.
- * Custom field values are appended as extra columns: the importer ignores
- * unknown headers, so they are a backup only and are not restored on import.
+ * Custom field values are appended as extra columns named after the field.
+ * Newer headers also carry the field's hidden uuid, so an import restores the
+ * values even when the field has been renamed since the export. Unknown custom
+ * fields are ignored by the importer.
  */
 export async function buildCollectionCsv(userId: any): Promise<string> {
     const [items, customFields] = await Promise.all([
@@ -40,18 +52,24 @@ export async function buildCollectionCsv(userId: any): Promise<string> {
             .populate<{ album: IAlbum }>('album')
             .sort({ addedAt: -1 })
             .exec(),
-        CustomFieldDefinition.find({ user: userId }).sort({ order: 1 }).exec()
+        loadCustomFieldsWithUuids(userId)
     ]);
 
-    const headers = [...BASE_HEADERS, ...customFields.map(f => f.name)];
+    const headers = [...BASE_HEADERS, ...customFields.map(f => formatCustomFieldHeader(f.name, f.uuid))];
     const lines = [toCsvLine(headers)];
 
     for (const item of items) {
-        const album = item.album;
-        if (!album) continue;
+        if (!item.album) continue;
+        // A Discogs album can carry the user's local edits; export what they see.
+        const album = mergeAlbumOverrides(toPlainAlbum(item.album), item.albumOverrides);
 
         // Discogs release ids are on the album; manual entries have none.
         const catalogNumber = album.labels?.find(l => l.catno)?.catno || '';
+        const labelName = album.labels?.[0]?.name || '';
+
+        // Only locally uploaded covers are embedded: fetching every remote
+        // Discogs image during an export would be slow and rate-limited.
+        const cover = await localCoverToDataUri(album.cover_image);
 
         const values: unknown[] = [
             album.artist,
@@ -60,9 +78,16 @@ export async function buildCollectionCsv(userId: any): Promise<string> {
             album.year || '',
             album.discogsId || '',
             catalogNumber,
+            labelName,
+            album.styles?.join(', ') || '',
+            album.genres?.join(', ') || '',
+            item.manualValue ?? '',
+            album.tracklist?.length ? JSON.stringify(album.tracklist) : '',
+            album.isManual ? 'true' : 'false',
             item.mediaCondition || '',
             item.sleeveCondition || '',
-            item.addedAt ? item.addedAt.toISOString() : ''
+            item.addedAt ? item.addedAt.toISOString() : '',
+            cover || ''
         ];
 
         for (const field of customFields) {

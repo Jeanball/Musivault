@@ -14,6 +14,7 @@ import { migrateIndexes } from './migrate-indexes';
 import { cleanupArtistNames } from './cleanup-artist-names';
 import { migrateAlbumData } from './migrate-album-data';
 import { backfillValueSnapshots } from './backfill-value-snapshots';
+import { backfillCustomFieldUuids } from './backfill-custom-field-uuids';
 import { logger } from '../config/logger.config';
 
 interface MigrationDefinition {
@@ -74,6 +75,42 @@ const MIGRATIONS: MigrationDefinition[] = [
     run: async () => {
       const points = await backfillValueSnapshots();
       return `${points} value snapshot(s) written`;
+    }
+  },
+  {
+    id: '2026-10-03_cleanup-multi-artist-suffixes',
+    description: 'Remove numeric suffixes from every artist of multi-artist releases (e.g. "Bane (2), Grade (2)" -> "Bane, Grade")',
+    type: 'blocking',
+    run: async () => {
+      await cleanupArtistNames();
+      return 'Multi-artist names cleaned';
+    }
+  },
+  {
+    id: '2026-10-04_album-data-backfill-2',
+    description: 'Fill in labels, tracklist, styles, format details and prices of albums imported by CSV since 1.15',
+    type: 'background',
+    run: async () => {
+      await migrateAlbumData();
+      return 'Album data backfill complete';
+    }
+  },
+  {
+    id: '2026-11-14_custom-field-uuids',
+    description: 'Give existing custom fields a hidden uuid so CSV exports survive a rename',
+    type: 'background',
+    run: async () => {
+      const fields = await backfillCustomFieldUuids();
+      return `${fields} custom field uuid(s) assigned`;
+    }
+  },
+  {
+    id: '2026-11-16_discogs-genres',
+    description: 'Backfill the broad Discogs genres used by the collection genre filter',
+    type: 'background',
+    run: async () => {
+      await migrateAlbumData();
+      return 'Discogs genres backfill complete';
     }
   },
 ];

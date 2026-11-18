@@ -16,6 +16,7 @@ import TicketmasterAttribution from '../components/Discover/TicketmasterAttribut
 import CardSkeleton from '../components/Common/CardSkeleton';
 import EmptyState from '../components/Common/EmptyState';
 import { RESULTS_GRID_CLASS, PREVIEW_COUNT } from '../components/Discover/constants';
+import { useDiscoverFeatures } from '../hooks/useDiscoverFeatures';
 import { useNearby, useNearbySearch } from '../hooks/useNearbySearch';
 import type { CollectionItem } from '../types/collection.types';
 import type { PublicUser, CommunityAlbum } from '../types/public.types';
@@ -96,8 +97,10 @@ const DiscoverPage: React.FC = () => {
 
     // One position and one radius for every "near you" section below.
     const nearby = useNearby();
-    const { items: concerts, isLoading: isConcertsLoading, error: concertsError, unavailable: concertsUnavailable } =
-        useNearbySearch<Concert>(nearby, getConcerts, 'discover.failedLoadConcerts');
+    const features = useDiscoverFeatures();
+    const { items: concerts, isLoading: isConcertsLoading, error: concertsError, unavailable: concertsRejected } =
+        useNearbySearch<Concert>(nearby, getConcerts, 'discover.failedLoadConcerts', [], !!features?.concerts);
+    const concertsUnavailable = concertsRejected || features?.concerts === false;
     const { items: shops, isLoading: isShopsLoading, error: shopsError } =
         useNearbySearch<RecordShop>(nearby, getRecordShops, 'discover.failedLoadShops');
 

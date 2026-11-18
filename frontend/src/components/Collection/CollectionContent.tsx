@@ -11,8 +11,12 @@ import PublicAlbumModal from '../Modal/PublicAlbumModal';
 import { useCollectionFilters } from '../../hooks/collection/useCollectionFilters';
 import { useCollectionSort } from '../../hooks/collection/useCollectionSort';
 import { useCollectionStats } from '../../hooks/collection/useCollectionStats';
+import { useTableColumns } from '../../hooks/collection/useTableColumns';
+import { useArtistSortPreference } from '../../hooks/useArtistSortPreference';
+import { toastService } from '../../utils/toast';
 import type { CollectionItem, LayoutType, CollectionViewMode } from '../../types/collection.types';
 import { hasActiveFormatVerificationIssue } from '../../utils/formatVerification';
+import { compareArtistNames } from '../../utils/artistSort';
 
 const SEARCH_STORAGE_KEY = 'musivault_collection_search';
 const LAYOUT_STORAGE_KEY = 'musivault_collection_layout';
@@ -97,8 +101,18 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         collection,
         isAggregateMode ? '' : deferredSearchTerm
     );
-    const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection);
+    const ignoreLeadingArticle = useArtistSortPreference();
+    const { handleSort, getSortIcon, sortedCollection, resetSort } = useCollectionSort(filteredCollection, ignoreLeadingArticle);
     const stats = useCollectionStats(collection);
+    // A public collection keeps the historical columns: a visitor has no
+    // preferences of their own, and the owner's are private.
+    const {
+        columns: tableColumns,
+        customFields,
+        isLoading: isLoadingTableColumns,
+        changeColumns: handleTableColumnsChange,
+        resetColumns: handleResetTableColumns
+    } = useTableColumns(!readOnly, () => toastService.error(t('settings.failedUpdateSetting')));
     // Format mismatches are a private housekeeping signal, so a visitor never gets
     // the toggle even though the shared items carry the flag.
     const issueCount = useMemo(
@@ -112,9 +126,9 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
     // as the order: every album of an artist still lands side by side.
     const gridItems = useMemo(
         () => Object.entries(groupedByArtist)
-            .sort(([a], [b]) => a.localeCompare(b))
+            .sort(([a], [b]) => compareArtistNames(a, b, ignoreLeadingArticle))
             .flatMap(([, artistItems]) => artistItems),
-        [groupedByArtist]
+        [groupedByArtist, ignoreLeadingArticle]
     );
 
     const handleClearAll = () => {
@@ -156,6 +170,7 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
         filters.format !== 'all' ||
         filters.decade !== 'all' ||
         filters.addedPeriod !== 'all' ||
+        filters.genre !== 'all' ||
         filters.style !== 'all' ||
         filters.label !== 'all' ||
         filters.issueStatus !== 'all';
@@ -167,6 +182,8 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 onFiltersChange={setFilters}
                 availableFormats={stats.availableFormats}
                 availableDecades={stats.availableDecades}
+                availableGenres={stats.availableGenres}
+                genreCounts={stats.genreCounts}
                 availableStyles={stats.availableStyles}
                 styleCounts={stats.styleCounts}
                 availableLabels={stats.availableLabels}
@@ -182,6 +199,11 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                 searchPlaceholder={t(SEARCH_PLACEHOLDER_KEYS[viewMode])}
                 layout={isAggregateMode ? undefined : layout}
                 onLayoutChange={isAggregateMode ? undefined : setLayout}
+                tableColumns={readOnly ? undefined : tableColumns}
+                onTableColumnsChange={readOnly ? undefined : handleTableColumnsChange}
+                onResetTableColumns={readOnly ? undefined : handleResetTableColumns}
+                customFields={readOnly ? undefined : customFields}
+                isTableColumnsLoading={!readOnly && isLoadingTableColumns}
             />
 
             {viewMode === 'tracks' ? (
@@ -189,12 +211,14 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                     collection={filteredCollection}
                     searchTerm={deferredSearchTerm}
                     onAlbumClick={handleItemIdClick}
+                    ignoreLeadingArticle={ignoreLeadingArticle}
                 />
             ) : viewMode === 'labels' ? (
                 <CollectionLabelsView
                     collection={filteredCollection}
                     searchTerm={deferredSearchTerm}
                     onItemClick={handleItemIdClick}
+                    ignoreLeadingArticle={ignoreLeadingArticle}
                 />
             ) : (
                 <>
@@ -212,6 +236,8 @@ const CollectionContent: React.FC<CollectionContentProps> = ({
                                     onItemClick={handleItemClick}
                                     onSort={handleSort}
                                     getSortIcon={getSortIcon}
+                                    columns={tableColumns}
+                                    customFields={customFields}
                                 />
                             )}
                             {layout === 'grid' && (

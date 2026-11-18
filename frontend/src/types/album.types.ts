@@ -12,5 +12,7 @@ export interface AlbumDetails {
     year: string;
     thumb: string;
     cover_image: string;
+    /** Broad Discogs genres, kept apart from the styles shown as "Generi". */
+    genres?: string[];
     availableFormats?: FormatDetails[];
 }

@@ -44,8 +44,8 @@ http {
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-XSS-Protection "1; mode=block" always;
 
-        # Allow larger request bodies (album covers, etc.)
-        client_max_body_size 10m;
+        # Allow larger request bodies (album covers, CSV backups with base64 covers)
+        client_max_body_size 50m;
 
         # API proxy
         location /api {
@@ -79,6 +79,13 @@ http {
         location /assets {
             expires 1y;
             add_header Cache-Control "public, immutable";
+        }
+
+        # SPA entry point. The HTML shell must never be cached: it is what
+        # points the browser to the current hashed bundle. Without this, a
+        # rebuilt frontend keeps loading the previous bundle from cache.
+        location = /index.html {
+            add_header Cache-Control "no-store";
         }
 
         # SPA routing - fallback to index.html for client-side routing

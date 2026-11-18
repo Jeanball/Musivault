@@ -24,14 +24,18 @@ import { logger } from '../config/logger.config';
 export interface PricedItem {
   priceCache?: IPriceCache | null;
   mediaCondition?: string | null;
+  /** Hand-entered value of a manual album, already in USD. */
+  manualValue?: number | null;
 }
 
 /**
- * The effective value of an item: its price for the condition it is in.
+ * The effective value of an item: the value entered by hand for a manual album,
+ * otherwise its price for the condition it is in.
  * Mirrors getItemValue on the frontend; both must agree or the chart and the
  * total value KPI show different numbers for the same collection.
  */
 export function getValueForItem(item: PricedItem): number {
+  if (item.manualValue != null && item.manualValue > 0) return item.manualValue;
   if (!item.priceCache) return 0;
   const pc = item.priceCache;
 
@@ -62,7 +66,7 @@ export interface CollectionTotal {
 export async function computeCollectionTotal(
   userId: mongoose.Types.ObjectId | string
 ): Promise<CollectionTotal> {
-  const items = await CollectionItem.find({ user: userId }).select('priceCache mediaCondition').lean();
+  const items = await CollectionItem.find({ user: userId }).select('priceCache mediaCondition manualValue').lean();
 
   let totalValue = 0;
   let itemCount = 0;
@@ -133,4 +137,75 @@ export async function getValueHistory(
     value: snapshot.totalValue,
     itemCount: snapshot.itemCount,
   }));
+}
+
+/** Whether a snapshot was written by the history rebuild (stamped at local midnight) rather than measured. */
+function isSeeded(snapshot: { day: string; capturedAt: Date }): boolean {
+  return snapshot.capturedAt.getTime() === new Date(`${snapshot.day}T00:00:00`).getTime();
+}
+
+/**
+ * Rebuild a user's value history from their items' `addedAt`, the way the browser used to derive it:
+ * each item's current price counted from the day it was added, accumulated day by day.
+ * Used by the `2026-08-09_backfill-value-snapshots` migration and after the Discogs sync changes dates.
+ *
+ * By default it only writes (or overwrites) the days the curve covers. With `replaceSeeded`, the rows
+ * an earlier rebuild wrote are removed first, so days that no longer carry items disappear, while rows
+ * measured by the price sync are kept and win over the curve on their day.
+ * Returns the number of snapshots written.
+ */
+export async function rebuildValueHistory(
+  userId: mongoose.Types.ObjectId | string,
+  { replaceSeeded = false }: { replaceSeeded?: boolean } = {}
+): Promise<number> {
+  const items = await CollectionItem.find({ user: userId })
+    .select('priceCache mediaCondition manualValue addedAt')
+    .sort({ addedAt: 1 })
+    .lean();
+
+  const measuredDays = new Set<string>();
+  if (replaceSeeded) {
+    const existing = await ValueSnapshot.find({ user: userId }).select('day capturedAt').lean();
+    const seeded = existing.filter(isSeeded);
+    existing.filter(s => !isSeeded(s)).forEach(s => measuredDays.add(s.day));
+    await ValueSnapshot.deleteMany({ _id: { $in: seeded.map(s => s._id) } });
+  }
+
+  // Sum per day first, then walk the days in order to accumulate.
+  const dailyValue = new Map<string, number>();
+  const dailyCount = new Map<string, number>();
+
+  for (const item of items) {
+    const value = getValueForItem(item);
+    if (value <= 0) continue;
+
+    const day = toDayKey(new Date(item.addedAt));
+    dailyValue.set(day, (dailyValue.get(day) || 0) + value);
+    dailyCount.set(day, (dailyCount.get(day) || 0) + 1);
+  }
+
+  let cumulativeValue = 0;
+  let cumulativeCount = 0;
+  let written = 0;
+
+  for (const day of [...dailyValue.keys()].sort()) {
+    cumulativeValue += dailyValue.get(day)!;
+    cumulativeCount += dailyCount.get(day)!;
+    if (measuredDays.has(day)) continue;
+
+    await ValueSnapshot.findOneAndUpdate(
+      { user: userId, day },
+      {
+        $set: {
+          totalValue: Math.round(cumulativeValue * 100) / 100,
+          itemCount: cumulativeCount,
+          capturedAt: new Date(`${day}T00:00:00`),
+        }
+      },
+      { upsert: true }
+    );
+    written++;
+  }
+
+  return written;
 }

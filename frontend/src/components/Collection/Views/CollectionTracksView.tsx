@@ -4,6 +4,8 @@ import { useTrackAggregation } from '../../../hooks/collection/useTrackAggregati
 import GroupedReleaseList from '../GroupedReleaseList';
 import ListToolbar from '../ListToolbar';
 import type { CollectionItem } from '../../../types/collection.types';
+import { compareArtistNames } from '../../../utils/artistSort';
+import { getSearchTermGroups, matchesSearchGroups } from '../../../utils/search';
 
 type TrackSort = 'appearances' | 'title' | 'artist';
 
@@ -12,37 +14,35 @@ interface CollectionTracksViewProps {
     /** Typed in the toolbar, which keeps its place across the view modes. */
     searchTerm: string;
     onAlbumClick: (collectionItemId: string) => void;
+    /** Mirrors the collection's artist sort: skips a leading "The" when set. */
+    ignoreLeadingArticle: boolean;
 }
 
-const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection, searchTerm, onAlbumClick }) => {
+const CollectionTracksView: React.FC<CollectionTracksViewProps> = ({ collection, searchTerm, onAlbumClick, ignoreLeadingArticle }) => {
     const { t } = useTranslation();
-    const aggregatedTracks = useTrackAggregation(collection);
+    const aggregatedTracks = useTrackAggregation(collection, ignoreLeadingArticle);
     const [expandedTrackId, setExpandedTrackId] = useState<string | null>(null);
     // Copies first by default: an A-Z index of every track is what the search
     // field is for, whereas "which songs do I own twice" has no other answer.
     const [sortBy, setSortBy] = useState<TrackSort>('appearances');
+    const searchTermGroups = useMemo(() => getSearchTermGroups(searchTerm), [searchTerm]);
 
     const filteredTracks = useMemo(() => {
-        const lowerSearch = searchTerm.trim().toLowerCase();
-        const matching = lowerSearch
-            ? aggregatedTracks.filter(
-                (track) =>
-                    track.title.toLowerCase().includes(lowerSearch) ||
-                    track.artist.toLowerCase().includes(lowerSearch)
-            )
-            : aggregatedTracks;
+        const matching = aggregatedTracks.filter((track) =>
+            matchesSearchGroups(searchTermGroups, [track.title, track.artist])
+        );
 
         // The hook hands them over alphabetically, which is the 'title' order.
         if (sortBy === 'title') return matching;
         if (sortBy === 'artist') {
             return [...matching].sort(
-                (a, b) => a.artist.localeCompare(b.artist) || a.title.localeCompare(b.title)
+                (a, b) => compareArtistNames(a.artist, b.artist, ignoreLeadingArticle) || a.title.localeCompare(b.title)
             );
         }
         return [...matching].sort(
             (a, b) => b.albumCount - a.albumCount || a.title.localeCompare(b.title)
         );
-    }, [aggregatedTracks, searchTerm, sortBy]);
+    }, [aggregatedTracks, searchTermGroups, sortBy, ignoreLeadingArticle]);
 
     return (
         <div className="space-y-4">

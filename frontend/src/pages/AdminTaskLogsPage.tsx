@@ -25,6 +25,8 @@ const AdminTaskLogsPage: React.FC = () => {
                 return t('admin.tasks.items.refreshExchangeRates.name', 'Update Exchange Rates');
             case 'refresh-upcoming-releases':
                 return t('admin.tasks.items.refreshUpcomingReleases.name', 'Refresh Upcoming Releases');
+            case 'check-discogs-collections':
+                return t('admin.tasks.items.checkDiscogsCollections.name', 'Check Discogs Collections');
             default:
                 return taskId;
         }

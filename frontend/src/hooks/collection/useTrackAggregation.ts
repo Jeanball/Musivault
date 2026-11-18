@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { CollectionItem } from '../../types/collection.types';
+import { compareArtistNames } from '../../utils/artistSort';
 
 export interface AlbumReference {
     collectionItemId: string;
@@ -59,7 +60,10 @@ const normalizeTitle = (title: string): string => {
     return stripped.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim() || title.toLowerCase().trim();
 };
 
-export function useTrackAggregation(collection: CollectionItem[]): AggregatedTrack[] {
+export function useTrackAggregation(
+    collection: CollectionItem[],
+    ignoreLeadingArticle = false
+): AggregatedTrack[] {
     return useMemo(() => {
         const trackMap = new Map<string, AggregatedTrack>();
 
@@ -114,9 +118,9 @@ export function useTrackAggregation(collection: CollectionItem[]): AggregatedTra
         aggregatedTracks.sort((a, b) => {
             const titleCompare = a.title.localeCompare(b.title);
             if (titleCompare !== 0) return titleCompare;
-            return a.artist.localeCompare(b.artist);
+            return compareArtistNames(a.artist, b.artist, ignoreLeadingArticle);
         });
 
         return aggregatedTracks;
-    }, [collection]);
+    }, [collection, ignoreLeadingArticle]);
 }

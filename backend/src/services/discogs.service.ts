@@ -22,7 +22,9 @@ import {
     CleanedMasterVersions,
     CleanedArtistReleases,
     FoundAlbumInfo,
-    MarketplaceStats
+    MarketplaceStats,
+    ReleaseAlbumFields,
+    DiscogsFormat
 } from '../types/discogs.types';
 import { getPriceTTLHours } from '../utils/price.utils';
 import {
@@ -35,11 +37,14 @@ import {
     delay,
     discogsRequest,
     cleanAlbumTitle,
+    stripArtistSuffixes,
     normalizeString,
     calculateSimilarity,
-    artistMatches
+    artistMatches,
+    withRateLimitRetry
 } from '../utils/discogs.utils';
 import { logger } from '../config/logger.config';
+import type { IAlbum } from '../models/Album';
 
 // ===== Search Functions (for Controller) =====
 
@@ -222,6 +227,7 @@ export async function getReleaseDetails(releaseId: string): Promise<CleanedRelea
         artist: data.artists?.map(a => a.name).join(', ') || 'Unknown artist',
         year: data.year,
         cover_image: data.images?.find(img => img.type === 'primary')?.uri || data.images?.[0]?.uri || '',
+        genres: data.genres || [],
         styles: data.styles || [],
         availableFormats: data.formats?.map(f => ({
             name: f.name,
@@ -801,9 +807,70 @@ async function searchReleasesInternal(
 }
 
 /**
- * Fetch release by ID (for CSV import)
+ * Map the album fields of a full release, so every path that saves an album stores the same data
  */
-export async function fetchByReleaseId(releaseId: string | number): Promise<FoundAlbumInfo | null> {
+export function mapReleaseToAlbumFields(
+    release: Pick<DiscogsReleaseResponse, 'genres' | 'styles' | 'tracklist' | 'labels'>
+): ReleaseAlbumFields {
+    return {
+        genres: release.genres || [],
+        styles: release.styles || [],
+        tracklist: release.tracklist?.map(t => ({
+            position: t.position || '',
+            title: t.title || '',
+            duration: t.duration || '',
+            artist: t.artists?.map(a => a.name).join(', ') || ''
+        })) || [],
+        labels: release.labels?.map(l => ({
+            name: l.name || '',
+            catno: l.catno || '',
+            discogsId: l.id
+        })) || []
+    };
+}
+
+/** The album fields a release provides, each falling back to the album's current value when Discogs has none. */
+export interface AlbumUpdate extends ReleaseAlbumFields {
+    title: string;
+    artist: string;
+    year: string;
+    cover_image: string;
+    thumb: string;
+}
+
+/**
+ * Album fields from a full release, for rematching or refreshing an album.
+ * `current` supplies the value to keep wherever the release has nothing (artist, year, images, styles).
+ */
+export function mapReleaseToAlbumUpdate(
+    release: DiscogsReleaseResponse,
+    current: Pick<IAlbum, 'artist' | 'year' | 'cover_image' | 'thumb' | 'genres' | 'styles'>
+): AlbumUpdate {
+    const releaseFields = mapReleaseToAlbumFields(release);
+    return {
+        title: release.title,
+        artist: stripArtistSuffixes(release.artists?.map(a => a.name).join(', ') || current.artist),
+        year: release.year?.toString() || current.year,
+        cover_image: release.images?.find(img => img.type === 'primary')?.uri
+            || release.images?.[0]?.uri
+            || current.cover_image,
+        thumb: release.images?.[0]?.uri150 || current.thumb,
+        genres: release.genres ? releaseFields.genres : current.genres,
+        styles: release.styles ? releaseFields.styles : current.styles,
+        tracklist: releaseFields.tracklist,
+        labels: releaseFields.labels
+    };
+}
+
+/**
+ * Fetch release by ID (for CSV import and the Discogs sync).
+ * Returns null when the release isn't found or the call fails, whatever the reason; with
+ * `retryOnRateLimit`, a throttled call (429) is retried after a wait first, for long background jobs.
+ */
+export async function fetchByReleaseId(
+    releaseId: string | number,
+    { retryOnRateLimit = false }: { retryOnRateLimit?: boolean } = {}
+): Promise<FoundAlbumInfo | null> {
     logger.debug(`[Discogs] Direct lookup for release ID: ${releaseId}`);
 
     if (!hasCredentials()) {
@@ -815,22 +882,25 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
         await delay(RATE_LIMIT_MS);
         const auth = getAuthParams();
 
-        const response = await axios.get<{
+        const request = () => axios.get<{
             id: number;
             title: string;
             artists: { name: string }[];
             year: number;
             thumb: string;
             images?: { uri: string }[];
-            formats?: { name: string; descriptions?: string[] }[];
-        }>(`${DISCOGS_BASE_URL}/releases/${releaseId}`, {
+            formats?: DiscogsFormat[];
+        } & Pick<DiscogsReleaseResponse, 'genres' | 'styles' | 'tracklist' | 'labels'>>(`${DISCOGS_BASE_URL}/releases/${releaseId}`, {
             headers: DISCOGS_HEADERS,
             params: { key: auth.key, secret: auth.secret }
         });
+        const response = retryOnRateLimit
+            ? await withRateLimitRetry(request, { context: `release ${releaseId}` })
+            : await request();
 
         const data = response.data;
         const artist = data.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
-        const title = cleanAlbumTitle(data.title) || data.title;
+        const title = data.title;
         const coverImage = data.images?.[0]?.uri || data.thumb || '';
 
         let format: 'Vinyl' | 'CD' | undefined;
@@ -852,7 +922,9 @@ export async function fetchByReleaseId(releaseId: string | number): Promise<Foun
             year: data.year?.toString() || '',
             thumb: data.thumb || '',
             cover_image: coverImage,
-            format
+            format,
+            formats: data.formats,
+            ...mapReleaseToAlbumFields(data)
         };
     } catch (err: any) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
@@ -968,10 +1040,12 @@ function cachePriceSuggestions(releaseId: number, stats: MarketplaceStats | null
  * Requires DISCOGS_PAT (Personal Access Token)
  * The user must have a Discogs seller account for this to work
  * Pass forceRefresh for the explicit sync paths, which must hit Discogs.
+ * Returns null when there is no data or the call fails; with `retryOnRateLimit` a throttled call (429)
+ * is retried after a wait first, for long background jobs.
  */
 export async function getMarketplaceStats(
     releaseId: number,
-    { forceRefresh = false }: { forceRefresh?: boolean } = {}
+    { forceRefresh = false, retryOnRateLimit = false }: { forceRefresh?: boolean; retryOnRateLimit?: boolean } = {}
 ): Promise<MarketplaceStats | null> {
     if (!hasPAT()) {
         return null;
@@ -983,11 +1057,14 @@ export async function getMarketplaceStats(
     try {
         await delay(RATE_LIMIT_MS);
 
-        const suggestions = await discogsRequest<Record<string, { value: number; currency: string }>>(
+        const request = () => discogsRequest<Record<string, { value: number; currency: string }>>(
             `/marketplace/price_suggestions/${releaseId}`,
             {},
             { useTokenAuth: true }
         );
+        const suggestions = retryOnRateLimit
+            ? await withRateLimitRetry(request, { context: `price of release ${releaseId}` })
+            : await request();
 
         // If empty response, no data available
         if (!suggestions || Object.keys(suggestions).length === 0) {
@@ -1018,5 +1095,6 @@ export async function getMarketplaceStats(
 export const discogsService = {
     searchByArtistAlbum,
     fetchByReleaseId,
-    searchByCatalogNumber
+    searchByCatalogNumber,
+    getMarketplaceStats
 };

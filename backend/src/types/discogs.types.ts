@@ -78,6 +78,7 @@ export interface DiscogsReleaseResponse {
     year: string;
     images: { type: string; uri: string; uri150?: string }[];
     formats: DiscogsFormat[];
+    genres?: string[];
     styles?: string[];
     tracklist?: DiscogsTrack[];
     labels?: DiscogsLabel[];
@@ -164,6 +165,7 @@ export interface CleanedReleaseDetails {
     artist: string;
     year: string;
     cover_image: string;
+    genres: string[];
     styles: string[];
     availableFormats: {
         name: string;
@@ -218,7 +220,16 @@ export interface CleanedArtistReleases {
 
 // ===== Service Types =====
 
-export interface FoundAlbumInfo {
+/** Album fields taken from a full release (GET /releases/:id) */
+export interface ReleaseAlbumFields {
+    genres: string[];
+    styles: string[];
+    tracklist: { position: string; title: string; duration: string; artist: string }[];
+    labels: { name: string; catno: string; discogsId?: number }[];
+}
+
+/** The release fields and formats are only set when the full release was fetched */
+export interface FoundAlbumInfo extends Partial<ReleaseAlbumFields> {
     discogsId: number;
     title: string;
     artist: string;
@@ -226,6 +237,7 @@ export interface FoundAlbumInfo {
     thumb: string;
     cover_image: string;
     format?: 'Vinyl' | 'CD';
+    formats?: DiscogsFormat[];
 }
 
 /** Marketplace price suggestions, one amount per condition grade. */
@@ -239,4 +251,28 @@ export interface MarketplaceStats {
     fair: number | null;
     poor: number | null;
     currency: string;
+}
+
+// ===== User collection =====
+
+/** One entry of `/users/{username}/collection/folders/0/releases`. Only the fields the check reads. */
+export interface DiscogsCollectionRelease {
+    id: number;
+    instance_id: number;
+    date_added: string;
+    /** The user's own fields on this copy; `field_id` 1 is the media condition, 2 the sleeve condition. */
+    notes?: { field_id: number; value: string }[];
+    basic_information: {
+        id: number;
+        title: string;
+        year: number;
+        thumb?: string;
+        artists?: { name: string }[];
+        formats?: { name: string; descriptions?: string[] }[];
+    };
+}
+
+export interface DiscogsCollectionPage {
+    pagination: { page: number; pages: number; items: number };
+    releases: DiscogsCollectionRelease[];
 }

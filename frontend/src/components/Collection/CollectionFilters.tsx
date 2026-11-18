@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { CircleAlert, SlidersHorizontal, Search, X, LayoutGrid, Rows3, Table2, Disc3, Music, Tag, ChevronDown } from 'lucide-react';
+import { CircleAlert, SlidersHorizontal, Search, X, LayoutGrid, Rows3, Table2, Disc3, Music, Tag, ChevronDown, Columns3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { FilterState, LayoutType, CollectionViewMode } from '../../types/collection.types';
+import type { CustomFieldDefinition } from '../../types/customFields.types';
+import { BASE_TABLE_COLUMNS, customColumnKey, type TableColumnKey } from '../../constants/tableColumns';
 
 interface CollectionFiltersProps {
     filters: FilterState;
     onFiltersChange: (filters: FilterState) => void;
     availableFormats: string[];
     availableDecades: string[];
+    availableGenres: string[];
+    genreCounts: Record<string, number>;
     availableStyles: string[];
     styleCounts: Record<string, number>;
     availableLabels: string[];
@@ -26,6 +30,12 @@ interface CollectionFiltersProps {
     /** Omitted where the layouts have nothing to draw. */
     layout?: LayoutType;
     onLayoutChange?: (layout: LayoutType) => void;
+    /** Columns currently drawn by the table view; the picker only edits these. */
+    tableColumns?: TableColumnKey[];
+    onTableColumnsChange?: (columns: TableColumnKey[]) => void;
+    onResetTableColumns?: () => void;
+    customFields?: CustomFieldDefinition[];
+    isTableColumnsLoading?: boolean;
 }
 
 const LAYOUTS: { value: LayoutType; labelKey: string; Icon: React.ElementType }[] = [
@@ -46,6 +56,8 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     onFiltersChange,
     availableFormats,
     availableDecades,
+    availableGenres,
+    genreCounts,
     availableStyles,
     styleCounts,
     availableLabels,
@@ -60,7 +72,12 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     onSearchChange,
     searchPlaceholder,
     layout,
-    onLayoutChange
+    onLayoutChange,
+    tableColumns,
+    onTableColumnsChange,
+    onResetTableColumns,
+    customFields = [],
+    isTableColumnsLoading = false
 }) => {
     const { t } = useTranslation();
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -72,6 +89,18 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
     const showIssueToggle = issueCount >= 1 || filters.issueStatus === 'issues';
     const showSearch = searchTerm !== undefined && !!onSearchChange;
     const showLayouts = !!layout && !!onLayoutChange;
+    const showColumnPicker = layout === 'table' && !!tableColumns && !!onTableColumnsChange;
+
+    const selectedColumns = new Set(tableColumns ?? []);
+    const toggleColumn = (key: TableColumnKey) => {
+        if (!tableColumns || !onTableColumnsChange) return;
+        const isSelected = selectedColumns.has(key);
+        // The table cannot render zero columns, so keep the last one ticked.
+        if (isSelected && tableColumns.length <= 1) return;
+        onTableColumnsChange(
+            isSelected ? tableColumns.filter((column) => column !== key) : [...tableColumns, key]
+        );
+    };
 
     const handleFilterChange = (key: keyof FilterState, value: string) => {
         onFiltersChange({ ...filters, [key]: value });
@@ -91,6 +120,9 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
             label: t('collection.period'),
             value: t(`collection.${filters.addedPeriod}`),
         });
+    }
+    if (filters.genre !== 'all') {
+        activeChips.push({ key: 'genre', label: t('collection.genre'), value: filters.genre });
     }
     if (filters.style !== 'all') {
         activeChips.push({ key: 'style', label: t('collection.style'), value: filters.style });
@@ -178,6 +210,89 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                     </div>
                 )}
 
+                {showColumnPicker && (
+                    <div className="dropdown dropdown-end">
+                        <button
+                            tabIndex={0}
+                            className="btn btn-sm btn-ghost"
+                            title={t('collection.columns')}
+                            aria-label={t('collection.columns')}
+                            disabled={isTableColumnsLoading}
+                        >
+                            {isTableColumnsLoading
+                                ? <span className="loading loading-spinner loading-xs"></span>
+                                : <Columns3 size={16} />}
+                            <span className="hidden sm:inline">{t('collection.columns')}</span>
+                            <ChevronDown size={14} className="opacity-60" />
+                        </button>
+                        <div
+                            tabIndex={0}
+                            className="dropdown-content z-20 mt-1 w-64 rounded-box bg-base-200 p-2 shadow-dropdown"
+                        >
+                            <div className="max-h-80 overflow-y-auto">
+                                <div className="px-2 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                    {t('collection.columns')}
+                                </div>
+                                {BASE_TABLE_COLUMNS.map(({ key, labelKey }) => {
+                                    const checked = selectedColumns.has(key);
+                                    return (
+                                        <label
+                                            key={key}
+                                            className="flex items-center gap-2 rounded-field px-2 py-1.5 hover:bg-base-300 cursor-pointer"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox checkbox-sm"
+                                                checked={checked}
+                                                onChange={() => toggleColumn(key)}
+                                                disabled={checked && (tableColumns?.length ?? 0) <= 1}
+                                            />
+                                            <span className="text-sm">{t(labelKey)}</span>
+                                        </label>
+                                    );
+                                })}
+
+                                {customFields.length > 0 && (
+                                    <>
+                                        <div className="divider my-1"></div>
+                                        <div className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                            {t('customFields.title')}
+                                        </div>
+                                        {customFields.map((field) => {
+                                            const key = customColumnKey(field._id);
+                                            const checked = selectedColumns.has(key);
+                                            return (
+                                                <label
+                                                    key={field._id}
+                                                    className="flex items-center gap-2 rounded-field px-2 py-1.5 hover:bg-base-300 cursor-pointer"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox checkbox-sm shrink-0"
+                                                        checked={checked}
+                                                        onChange={() => toggleColumn(key)}
+                                                        disabled={checked && (tableColumns?.length ?? 0) <= 1}
+                                                    />
+                                                    <span className="text-sm truncate" title={field.name}>{field.name}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="divider my-1"></div>
+                            <button
+                                className="btn btn-ghost btn-xs w-full"
+                                onClick={() => onResetTableColumns?.()}
+                                disabled={!onResetTableColumns}
+                            >
+                                {t('collection.resetColumns')}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {showIssueToggle && (
                     <label className="flex items-center gap-2 rounded-full border border-base-300 bg-base-200/70 px-3 py-1.5 cursor-pointer">
                         <span className="tooltip tooltip-left flex items-center" data-tip={t('collection.issuesOnly')}>
@@ -194,10 +309,10 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 )}
             </div>
 
-            {/* Folded away by default: five dropdowns held two permanent rows for a
+            {/* Folded away by default: six dropdowns held two permanent rows for a
                 setting most visits never touch. */}
             {isPanelOpen && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4 pt-3 border-t border-base-300">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4 pt-3 border-t border-base-300">
                     <label className="flex flex-col gap-1">
                         <span className="text-xs text-base-content/60">{t('common.format')}</span>
                         <select
@@ -238,6 +353,20 @@ const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                             <option value="thisMonth">{t('collection.thisMonth')}</option>
                             <option value="thisYear">{t('collection.thisYear')}</option>
                             <option value="lastYear">{t('collection.lastYear')}</option>
+                        </select>
+                    </label>
+
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-base-content/60">{t('collection.genre')}</span>
+                        <select
+                            className="select select-sm w-full"
+                            value={filters.genre}
+                            onChange={(e) => handleFilterChange('genre', e.target.value)}
+                        >
+                            <option value="all">{t('collection.allGenres')}</option>
+                            {availableGenres.map(genre => (
+                                <option key={genre} value={genre}>{genre} ({genreCounts[genre] || 0})</option>
+                            ))}
                         </select>
                     </label>
 

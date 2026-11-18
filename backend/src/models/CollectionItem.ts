@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { ILabel, ITrack, labelSchema, trackSchema } from "./Album";
 
 export interface IPriceCache {
   /** Price per condition grade from Discogs price_suggestions */
@@ -22,6 +23,26 @@ export interface IFormatVerification {
   ignoredAt?: Date | null;
 }
 
+/**
+ * Album data edited on this user's copy of a Discogs album. The Album document
+ * is shared by every user who owns the release, so local edits live here and
+ * are laid over it when the item is read. Only fields that differ from the
+ * shared album are stored.
+ */
+export interface IAlbumOverrides {
+  title?: string;
+  artist?: string;
+  year?: string;
+  /** Broad Discogs genres (Jazz, Rock, ...). */
+  genres?: string[];
+  /** Finer Discogs styles (Modal, Hard Bop, ...). */
+  styles?: string[];
+  tracklist?: ITrack[];
+  labels?: ILabel[];
+  cover_image?: string;
+  thumb?: string;
+}
+
 export interface ICollectionItem extends Document {
   user: mongoose.Types.ObjectId;
   album: mongoose.Types.ObjectId;
@@ -33,9 +54,26 @@ export interface ICollectionItem extends Document {
   mediaCondition?: string;
   sleeveCondition?: string;
   priceCache?: IPriceCache;
+  /**
+   * Value entered by hand for a manually added album, in USD like priceCache.
+   * It is what getValueForItem returns, so manual items count in totals.
+   */
+  manualValue?: number | null;
   formatVerification?: IFormatVerification | null;
   customFields?: Map<string, string>;
   addedAt: Date;
+  /** Local, per-user edits to the shared album. Empty/null when untouched. */
+  albumOverrides?: IAlbumOverrides | null;
+  /**
+   * True while albumOverrides holds anything. Kept as a plain flag so it is
+   * serialized everywhere, including the lean and aggregate read paths.
+   */
+  locallyModified?: boolean;
+  /**
+   * The Discogs collection entry (instance) this item was linked to. Discogs keeps it when it merges
+   * releases, so a stored id shows which entry an item became. Set by the Discogs sync.
+   */
+  discogsInstanceId?: number;
 }
 
 const priceCacheSchema = new Schema<IPriceCache>({
@@ -61,6 +99,20 @@ const formatVerificationSchema = new Schema<IFormatVerification>({
   detectedDiscogsFormat: { type: String, default: null },
   checkedAt: { type: Date, default: null },
   ignoredAt: { type: Date, default: null },
+}, { _id: false });
+
+// `default: undefined` keeps unedited fields out of the document, so the stored
+// overrides are exactly the fields the user changed.
+const albumOverridesSchema = new Schema<IAlbumOverrides>({
+  title: { type: String },
+  artist: { type: String },
+  year: { type: String },
+  genres: { type: [String], default: undefined },
+  styles: { type: [String], default: undefined },
+  tracklist: { type: [trackSchema], default: undefined },
+  labels: { type: [labelSchema], default: undefined },
+  cover_image: { type: String },
+  thumb: { type: String },
 }, { _id: false });
 
 const collectionItemSchema = new Schema<ICollectionItem>({
@@ -91,6 +143,10 @@ const collectionItemSchema = new Schema<ICollectionItem>({
     type: priceCacheSchema,
     default: null,
   },
+  manualValue: {
+    type: Number,
+    default: null,
+  },
   formatVerification: {
     type: formatVerificationSchema,
     default: null,
@@ -104,11 +160,24 @@ const collectionItemSchema = new Schema<ICollectionItem>({
     type: Date,
     default: Date.now,
   },
+  discogsInstanceId: {
+    type: Number,
+  },
+  albumOverrides: {
+    type: albumOverridesSchema,
+    default: null,
+  },
+  locallyModified: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Every read starts from a user and orders by date added: the community feed,
 // the latest additions per public collection, a shared collection's listing.
 collectionItemSchema.index({ user: 1, addedAt: -1 });
+// Finds the item behind a Discogs collection entry; most items have no instance id.
+collectionItemSchema.index({ user: 1, discogsInstanceId: 1 }, { sparse: true });
 
 const CollectionItem = mongoose.model<ICollectionItem>(
   "CollectionItem",

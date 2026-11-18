@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router';
 import { MusivaultMark } from '../Common/BrandIcons';
 import { useTranslation } from 'react-i18next';
+import { useDiscogsPending } from '../../context/DiscogsPendingContext';
 
 interface NavbarProps {
   username: string;
@@ -13,6 +14,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
   const location = useLocation();
   const { t } = useTranslation();
+  const { count: pending } = useDiscogsPending();
 
   /**
    * Which dock entry owns the current page. Detail pages live outside their
@@ -72,7 +74,8 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
         <div className="navbar-end gap-2">
           {/* User Dropdown */}
           <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-ghost btn-circle avatar-placeholder avatar border border-base-300 hover:border-primary transition-colors">
+            <label tabIndex={0} className="btn btn-ghost btn-circle avatar-placeholder avatar border border-base-300 hover:border-primary transition-colors indicator">
+              {pending > 0 && <span className="indicator-item badge badge-primary badge-xs" aria-hidden="true"></span>}
               <div className="bg-neutral text-neutral-content rounded-full w-10">
                 <span className="text-lg font-bold">{username.charAt(0).toUpperCase()}</span>
               </div>
@@ -80,7 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
             <ul tabIndex={0} className="mt-3 z-1 p-2 shadow-dropdown menu menu-sm dropdown-content bg-base-200/90 backdrop-blur-md rounded-box w-52 border border-base-300">
               <li className="menu-title px-4 py-2">{t('nav.signedInAs', 'Signed in as')} <span className="text-primary truncate block">{username}</span></li>
               <div className="divider my-0"></div>
-              <li><Link to="/app/settings">{t('nav.settings', 'Settings')}</Link></li>
+              <li><Link to="/app/settings" className="flex justify-between">{t('nav.settings', 'Settings')}{pending > 0 && <span className="badge badge-primary badge-sm" aria-label={t('discogsPending.badge', { count: pending })}>{pending}</span>}</Link></li>
               {isAdmin && <li><Link to="/app/admin">{t('nav.administration', 'Administration')}</Link></li>}
               <li><a onClick={onLogout} className="text-error hover:bg-error/10">{t('nav.logout', 'Logout')}</a></li>
             </ul>
@@ -117,7 +120,8 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
         */}
         <div className={`${isAccountActive ? 'dock-active text-primary' : 'text-base-content/60 hover:text-primary'} transition-colors`}>
           <div className="dropdown dropdown-top dropdown-end flex flex-col items-center justify-center w-full h-full">
-            <div tabIndex={0} role="button" className="flex flex-col items-center justify-center w-full h-full">
+            <div tabIndex={0} role="button" className="flex flex-col items-center justify-center w-full h-full relative">
+              {pending > 0 && <span className="absolute top-1 right-1/4 badge badge-primary badge-xs" aria-hidden="true"></span>}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -128,7 +132,7 @@ const Navbar: React.FC<NavbarProps> = ({ username, isAdmin, onLogout }) => {
                   and pushes the menu past the edge of a phone screen. */}
               <li className="menu-title text-center break-all">{t('nav.hi', 'Hi')}, {username}</li>
               <div className="divider my-0"></div>
-              <li><Link to="/app/settings">{t('nav.settings', 'Settings')}</Link></li>
+              <li><Link to="/app/settings" className="flex justify-between">{t('nav.settings', 'Settings')}{pending > 0 && <span className="badge badge-primary badge-sm" aria-label={t('discogsPending.badge', { count: pending })}>{pending}</span>}</Link></li>
               {isAdmin && <li><Link to="/app/admin">{t('nav.administration', 'Administration')}</Link></li>}
               <li><a onClick={onLogout} className="text-error">{t('nav.logout', 'Logout')}</a></li>
             </ul>

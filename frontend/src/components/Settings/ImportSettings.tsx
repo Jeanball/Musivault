@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../../utils/toast';
 import { startCsvImport, getImportLog, downloadImportLog, downloadCsvTemplate } from '../../api/collection';
+import { useCollectionData } from '../../hooks/collection/useCollectionData';
 
 interface ImportResult {
     imported: number;
@@ -13,6 +14,7 @@ interface ImportResult {
 
 const ImportSettings: React.FC = () => {
     const { t } = useTranslation();
+    const { refreshCollection } = useCollectionData();
     const [isImporting, setIsImporting] = useState(false);
     const [importResult, setImportResult] = useState<ImportResult | null>(null);
     const [progress, setProgress] = useState<{
@@ -98,6 +100,7 @@ const ImportSettings: React.FC = () => {
 
                     if (data.status === 'completed') {
                         toastService.success(t('csvImport.importFinished', { count: data.successCount }));
+                        void refreshCollection({ silent: true });
                         // Transform log entries to expected failures result
                         const failures = data.entries
                             .filter(e => e.status === 'failed')

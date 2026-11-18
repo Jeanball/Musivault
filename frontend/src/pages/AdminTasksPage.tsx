@@ -129,6 +129,8 @@ const AdminTasksPage: React.FC = () => {
                 return t('admin.tasks.items.refreshExchangeRates.name', 'Update Exchange Rates');
             case 'refresh-upcoming-releases':
                 return t('admin.tasks.items.refreshUpcomingReleases.name', 'Refresh Upcoming Releases');
+            case 'check-discogs-collections':
+                return t('admin.tasks.items.checkDiscogsCollections.name', 'Check Discogs Collections');
             default:
                 return taskId;
         }
@@ -150,6 +152,11 @@ const AdminTasksPage: React.FC = () => {
                 return t(
                     'admin.tasks.items.refreshUpcomingReleases.description',
                     'Fetch every album and EP MusicBrainz lists for the coming weeks, then cache only those whose artists match a style already present in a collection, so each member sees the releases matching their own genres.'
+                );
+            case 'check-discogs-collections':
+                return t(
+                    'admin.tasks.items.checkDiscogsCollections.description',
+                    'Compare the Discogs collection of every connected user with Musivault and refresh their report in Settings. Read-only: nothing is added or changed until the user applies it.'
                 );
             default:
                 return t('admin.tasks.defaultDescription', 'No description available yet.');

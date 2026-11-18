@@ -71,6 +71,15 @@ export async function syncItemPrice(itemId: string): Promise<CollectionItem> {
     return data;
 }
 
+/**
+ * Re-read the album from Discogs and update what changed. Leaves the user's own data
+ * (condition, notes, custom fields, price) alone. `changed` lists the fields that differed.
+ */
+export async function refreshItemFromDiscogs(itemId: string): Promise<{ item: CollectionItem; changed: string[] }> {
+    const { data } = await client.post<{ item: CollectionItem; changed: string[] }>(`/collection/${itemId}/refresh`, {});
+    return data;
+}
+
 export async function rematchAlbum(
     itemId: string,
     payload: { newDiscogsId: number; format: FormatDetails }
@@ -92,8 +101,37 @@ export async function restoreFormatAlert(itemId: string): Promise<CollectionItem
  * Manual album entry. Content-Type is deliberately left unset: axios derives
  * multipart/form-data and appends the boundary itself for a FormData body.
  */
-export async function addManualAlbum(form: FormData): Promise<void> {
-    await client.post('/collection/manual', form);
+export async function addManualAlbum(form: FormData): Promise<{ item: CollectionItem }> {
+    const { data } = await client.post<{ item: CollectionItem }>('/collection/manual', form);
+    return data;
+}
+
+/**
+ * Edit a manually added album. Multipart because a replacement cover can come
+ * with the same request as the metadata.
+ */
+export async function updateManualAlbum(itemId: string, form: FormData): Promise<{ item: CollectionItem }> {
+    const { data } = await client.put<{ item: CollectionItem }>(`/collection/${itemId}/manual`, form);
+    return data;
+}
+
+/**
+ * Edit the metadata of a Discogs album on this user's copy. Multipart because a
+ * replacement cover can come with the same request. The shared album is never
+ * touched: the server stores the changes as per-user overrides.
+ */
+export async function updateDiscogsAlbum(itemId: string, form: FormData): Promise<{ item: CollectionItem }> {
+    const { data } = await client.put<{ item: CollectionItem }>(`/collection/${itemId}/album`, form);
+    return data;
+}
+
+/** Drop the local edits and show the shared Discogs album again. */
+export async function restoreDiscogsAlbum(itemId: string): Promise<{ item: CollectionItem; restored: boolean }> {
+    const { data } = await client.post<{ item: CollectionItem; restored: boolean }>(
+        `/collection/${itemId}/album/restore`,
+        {}
+    );
+    return data;
 }
 
 export async function startCsvImport(file: File): Promise<ImportStarted> {

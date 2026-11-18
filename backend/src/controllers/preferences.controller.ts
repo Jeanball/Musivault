@@ -76,7 +76,7 @@ export async function updatePreferences(req: Request, res: Response) {
             return;
         }
 
-        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, discoverExcludedStyles, discoverLocation, discoverRadiusKm } = req.body;
+        const { theme, isPublic, wideScreenMode, language, enableConditionGrading, preferredCurrency, sortIgnoreLeadingArticle, tableColumns, discoverExcludedStyles, discoverLocation, discoverRadiusKm } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -106,6 +106,16 @@ export async function updatePreferences(req: Request, res: Response) {
         }
         if (preferredCurrency !== undefined) {
             user.preferences = { ...user.preferences, preferredCurrency };
+        }
+        if (sortIgnoreLeadingArticle !== undefined) {
+            user.preferences = { ...user.preferences, sortIgnoreLeadingArticle };
+        }
+        if (tableColumns !== undefined) {
+            if (!Array.isArray(tableColumns) || tableColumns.length > 100 || tableColumns.some((column) => typeof column !== 'string')) {
+                res.status(400).json({ message: "tableColumns must be an array of at most 100 strings" });
+                return;
+            }
+            user.preferences = { ...user.preferences, tableColumns };
         }
         if (discoverExcludedStyles !== undefined) {
             if (!Array.isArray(discoverExcludedStyles) || discoverExcludedStyles.some((s) => typeof s !== 'string')) {

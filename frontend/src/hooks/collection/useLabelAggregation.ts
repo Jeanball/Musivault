@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { CollectionItem, Label } from '../../types/collection.types';
 import { stripDiscogsSuffix } from '../../utils/formatters';
+import { compareArtistNames } from '../../utils/artistSort';
 
 export interface LabelRelease {
     collectionItemId: string;
@@ -27,7 +28,10 @@ export interface AggregatedLabel {
  * A release can be co-issued, so it legitimately counts under several labels and
  * the counts here sum past the collection size.
  */
-export function useLabelAggregation(collection: CollectionItem[]): AggregatedLabel[] {
+export function useLabelAggregation(
+    collection: CollectionItem[],
+    ignoreLeadingArticle = false
+): AggregatedLabel[] {
     return useMemo(() => {
         const labelMap = new Map<string, AggregatedLabel>();
 
@@ -69,8 +73,8 @@ export function useLabelAggregation(collection: CollectionItem[]): AggregatedLab
         return Array.from(labelMap.values())
             .map((entry) => ({
                 ...entry,
-                releases: entry.releases.sort((a, b) => a.artist.localeCompare(b.artist)),
+                releases: entry.releases.sort((a, b) => compareArtistNames(a.artist, b.artist, ignoreLeadingArticle)),
             }))
             .sort((a, b) => b.releaseCount - a.releaseCount || a.name.localeCompare(b.name));
-    }, [collection]);
+    }, [collection, ignoreLeadingArticle]);
 }

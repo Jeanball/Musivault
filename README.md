@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.15.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.16.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
@@ -22,11 +22,15 @@
 
 - **Discogs Integration** : search and add albums by artist, title, Discogs ID or barcode, and pick the exact pressing you own.
 - **Condition Grading** : track the media and sleeve condition of your albums (opt-in from settings).
+- **Refresh from Discogs** : update a single record's details (title, year, cover, styles, tracklist, labels, format details) from Discogs in the record view. Your condition, notes, custom fields and price stay untouched.
+- **Local Edits** : correct a Discogs album's details (title, artist, year, label, genres, styles, tracklist, cover) on your own copy, without changing what other users see. A small icon marks edited records, and one click restores the Discogs data. Covers are copied to the server, so they survive a changed Discogs URL and travel with the CSV backup.
 - **Price Tracking** : follow item values from the Discogs marketplace ([setup](#optional-setup-price-tracking)).
+- **Discogs Account** : connect your own Discogs account in Settings, with the server's token (admins) or a personal token ([setup](#optional-setup-discogs-account)). Off by default.
 - **Smart Insights** : collection statistics, format distribution and top artists.
-- **Advanced Filtering** : sort and filter by format, decade, date added and more.
-- **Custom Fields** : add your own per-album fields (purchase price, storage location, notes) as short text or long text, ordered the way you want.
-- **Import & Export** : import a Discogs CSV straight in, matched by release ID, catalog number, then artist and title, with a detailed log of every row. Export the whole collection back to CSV at any time.
+- **Advanced Filtering** : sort and filter by format, genre, style, decade, date added and more.
+- **Custom Table Columns** : choose which fields the table view shows, including your own custom fields, and set the width of short-text custom columns so a long value does not stretch the table.
+- **Custom Fields** : add your own per-album fields (purchase price, storage location, notes) as short text or long text, ordered the way you want. Fill them in from the album page or straight from the manual add form.
+- **Import & Export** : import a Discogs CSV straight in, matched by release ID, catalog number, then artist and title, with a detailed log of every row. Export the whole collection back to CSV at any time, covers included as base64; custom-field values keep importing even after you rename the field.
 
 ### Discover
 
@@ -39,7 +43,7 @@ Releases and concerts are both filtered by the same **preferred genres**, deduce
 ### Self-hosting
 
 - **Multi-user** : private collections per user, plus OIDC SSO for Authentik, Keycloak and friends.
-- **Multi-language** : English, German and French, translated on [Weblate](https://hosted.weblate.org/projects/musivault/).
+- **Multi-language** : English, French, German, Spanish, Italian, Portuguese and Chinese, translated on [Weblate](https://hosted.weblate.org/projects/musivault/).
 - **Runs anywhere** : Docker Compose deployment, installable PWA, responsive layout, dark and light themes.
 - **Admin dashboard** : users, background tasks and execution logs.
 
@@ -106,6 +110,7 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `DISCOGS_KEY` | Discogs API consumer key | - | Yes |
 | `DISCOGS_SECRET` | Discogs API consumer secret | - | Yes |
 | `DISCOGS_PAT` | Discogs Personal Access Token | - | No |
+| `ENCRYPTION_KEY` | Encrypts users' Discogs tokens in the database. Without it, the Discogs account section in Settings is hidden. Changing it disconnects every Discogs account | - | No |
 | `TICKETMASTER_API_KEY` | Ticketmaster Consumer Key, for nearby concerts | - | No |
 | `MONGO_URI` | MongoDB connection string | mongodb://mongodb:27017/musivault | No |
 | `PORT` | Application port | 3000 | No |
@@ -113,6 +118,7 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `ADMIN_EMAIL` | Initial admin email | - | No |
 | `ADMIN_USERNAME` | Initial admin username | - | No |
 | `ADMIN_PASSWORD` | Initial admin password | - | No |
+| `SIGNUP_ENABLED` | Set to `false` to close public registration. Existing users and SSO sign-in keep working | true | No |
 | `OIDC_ISSUER` | OIDC Issuer URL | - | No |
 | `OIDC_CLIENT_ID` | OIDC Client ID | - | No |
 | `OIDC_CLIENT_SECRET` | OIDC Client Secret | - | No |
@@ -135,6 +141,25 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 4. **Configure Musivault**: Add the generated token as `DISCOGS_PAT` in your `.env` file or `docker-compose.yml`.
 
 Once configured, prices can be fetched immediately from the **Admin Task Center**, or by restarting the backend server until the `2026-03-28_album-data-backfill` migration has succeeded.
+
+</details>
+
+### Optional Setup: Discogs Account
+
+<details>
+<summary>Needs an <code>ENCRYPTION_KEY</code>. Without it, the section is hidden from Settings.</summary>
+
+Settings has a **Discogs** section where each user can connect a Discogs account. It is off by default, and nothing else in the app changes until someone turns it on. This is the first step towards syncing a collection with Discogs.
+
+1. **Set an encryption key**: Add `ENCRYPTION_KEY` to your `.env` file or `docker-compose.yml` (for example `openssl rand -hex 32`) and restart the backend. It encrypts the Discogs tokens stored in the database. Unlike `JWT_SECRET`, changing it later disconnects every connected account, so keep it safe.
+2. **Connect**: In **Settings → Discogs**, switch on **Sync with Discogs**, then either:
+   - **Admins, with `DISCOGS_PAT` set**: click **Use the server's Discogs account**. Nothing to paste.
+   - **Everyone else**: create a personal token on [Discogs Developer Settings](https://www.discogs.com/settings/developers) ("Generate new token") and paste it once.
+3. Musivault checks the token with Discogs and shows **Connected as *your username***. Personal tokens don't expire. If Discogs later rejects it (you regenerated or revoked it), Settings shows **Needs reconnecting**.
+
+4. **Check against Discogs**: Once connected, **Check now** compares your Discogs collection with Musivault and shows a report: what is **new on Discogs**, what was **merged on Discogs** (a record whose release is no longer in your Discogs collection but has an entry with the same artist, title, format and year, so likely the same record), and what is **only in Musivault**. It also tells you how many matched items have a different date added than on Discogs. It runs in the background (about one Discogs request per 100 releases) and **never changes your collection**. Only one check runs at a time on an instance, because Discogs rate-limits per IP.
+
+Tokens are stored encrypted, never sent back to the browser, and deleted when you disconnect. Only admins can use the server's account, so other users can't read the owner's collection.
 
 </details>
 

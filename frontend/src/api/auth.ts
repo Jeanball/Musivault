@@ -3,7 +3,7 @@ import type {
     VerificationResponse,
     LoginResponse,
     SignupResponse,
-    OidcStatus
+    AuthConfig
 } from '../types/auth.types';
 
 /**
@@ -37,8 +37,8 @@ export async function logout(): Promise<void> {
     await client.post('/auth/logout', {});
 }
 
-export async function getOidcStatus(): Promise<OidcStatus> {
-    const { data } = await client.get<OidcStatus>('/auth/oidc/status');
+export async function getAuthConfig(): Promise<AuthConfig> {
+    const { data } = await client.get<AuthConfig>('/auth/config');
     return data;
 }
 

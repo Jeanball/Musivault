@@ -17,12 +17,28 @@ export interface IUserPreferences {
   language: string
   enableConditionGrading: boolean
   preferredCurrency: string
+  /** Sorts "The Beatles" under B: a leading "the", "a" or "an" is skipped. */
+  sortIgnoreLeadingArticle: boolean
+  /** Visible columns in the collection table: base keys or `custom:<fieldId>`. */
+  tableColumns: string[]
   /** Styles the user unchecked in Discover's upcoming releases. Empty = show all. */
   discoverExcludedStyles: string[]
   /** Last position used by the "near you" sections, so we don't re-prompt on every visit. */
   discoverLocation?: IDiscoverLocation
   /** Search radius shared by every "near you" section — shops and concerts alike. */
   discoverRadiusKm: number
+}
+
+export interface IDiscogsConnection {
+  enabled: boolean
+  /** `server` uses the instance's `DISCOGS_PAT` (admins only, no token stored); `own` uses the user's token. */
+  source: 'server' | 'own'
+  username: string
+  /** AES-256-GCM payload, see `crypto.utils.ts`. Never sent to the client. */
+  tokenEncrypted?: string
+  connectedAt: Date
+  /** Set when Discogs rejects the stored token (revoked or regenerated). */
+  needsReconnect: boolean
 }
 
 export interface IUser extends Document<mongoose.Types.ObjectId> {
@@ -32,6 +48,7 @@ export interface IUser extends Document<mongoose.Types.ObjectId> {
   password?: string
   isAdmin: boolean
   preferences: IUserPreferences
+  discogs?: IDiscogsConnection
   publicShareId: string
   createdAt: Date
   lastLogin?: Date
@@ -90,6 +107,14 @@ const userSchema = new Schema<IUser>({
       type: String,
       default: 'USD'
     },
+    sortIgnoreLeadingArticle: {
+      type: Boolean,
+      default: false
+    },
+    tableColumns: {
+      type: [String],
+      default: []
+    },
     discoverExcludedStyles: {
       type: [String],
       default: []
@@ -107,6 +132,17 @@ const userSchema = new Schema<IUser>({
       type: Number,
       default: 25
     }
+  },
+  discogs: {
+    type: new Schema<IDiscogsConnection>({
+      enabled: { type: Boolean, default: false },
+      source: { type: String, enum: ['server', 'own'], required: true },
+      username: { type: String, required: true },
+      tokenEncrypted: { type: String, select: false },
+      connectedAt: { type: Date, default: Date.now },
+      needsReconnect: { type: Boolean, default: false }
+    }, { _id: false }),
+    default: undefined
   },
   publicShareId: {
     type: String,

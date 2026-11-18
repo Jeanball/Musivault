@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
+import { isValidObjectId } from "mongoose";
 import CustomFieldDefinition, {
+  CUSTOM_FIELD_DEFAULT_TABLE_WIDTH_REM,
+  CUSTOM_FIELD_MAX_TABLE_WIDTH_REM,
+  CUSTOM_FIELD_MIN_TABLE_WIDTH_REM,
   CustomFieldType,
   ICustomFieldDefinition,
 } from "../models/CustomFieldDefinition";
@@ -7,6 +11,23 @@ import CollectionItem from "../models/CollectionItem";
 import { logger } from '../config/logger.config';
 
 const MAX_FIELDS_PER_USER = 20;
+
+/**
+ * Read the requested table column width. Returns `undefined` when the request
+ * does not mention it and `null` when the value is out of range.
+ */
+function parseTableWidthRem(raw: unknown): number | undefined | null {
+  if (raw === undefined || raw === null || raw === "") return undefined;
+  const value = Number(raw);
+  if (
+    !Number.isInteger(value) ||
+    value < CUSTOM_FIELD_MIN_TABLE_WIDTH_REM ||
+    value > CUSTOM_FIELD_MAX_TABLE_WIDTH_REM
+  ) {
+    return null;
+  }
+  return value;
+}
 
 function serializeCustomFields(
   customFields: Map<string, string> | Record<string, string> | undefined
@@ -43,14 +64,23 @@ export async function createCustomFieldDefinition(req: Request, res: Response) {
       return;
     }
 
-    const { name, type, placeholder } = req.body as {
+    const { name, type, placeholder, tableWidthRem } = req.body as {
       name?: string;
       type?: CustomFieldType;
       placeholder?: string;
+      tableWidthRem?: number | string;
     };
 
     if (!name || !name.trim()) {
       res.status(400).json({ message: "Field name is required" });
+      return;
+    }
+
+    const width = parseTableWidthRem(tableWidthRem);
+    if (width === null) {
+      res.status(400).json({
+        message: `Table width must be between ${CUSTOM_FIELD_MIN_TABLE_WIDTH_REM} and ${CUSTOM_FIELD_MAX_TABLE_WIDTH_REM} rem`,
+      });
       return;
     }
 
@@ -84,6 +114,9 @@ export async function createCustomFieldDefinition(req: Request, res: Response) {
       name: name.trim(),
       type: type === "textarea" ? "textarea" : "text",
       placeholder: placeholder?.trim() || "",
+      tableWidthRem: type === "textarea"
+        ? CUSTOM_FIELD_DEFAULT_TABLE_WIDTH_REM
+        : width ?? CUSTOM_FIELD_DEFAULT_TABLE_WIDTH_REM,
       order: (maxOrderField?.order ?? -1) + 1,
     });
 
@@ -103,11 +136,20 @@ export async function updateCustomFieldDefinition(req: Request, res: Response) {
     }
 
     const { fieldId } = req.params;
-    const { name, type, placeholder } = req.body as {
+    const { name, type, placeholder, tableWidthRem } = req.body as {
       name?: string;
       type?: CustomFieldType;
       placeholder?: string;
+      tableWidthRem?: number | string;
     };
+
+    const width = parseTableWidthRem(tableWidthRem);
+    if (width === null) {
+      res.status(400).json({
+        message: `Table width must be between ${CUSTOM_FIELD_MIN_TABLE_WIDTH_REM} and ${CUSTOM_FIELD_MAX_TABLE_WIDTH_REM} rem`,
+      });
+      return;
+    }
 
     const field = await CustomFieldDefinition.findOne({
       _id: fieldId,
@@ -145,6 +187,10 @@ export async function updateCustomFieldDefinition(req: Request, res: Response) {
 
     if (placeholder !== undefined) {
       field.placeholder = placeholder.trim();
+    }
+
+    if (width !== undefined) {
+      field.tableWidthRem = width;
     }
 
     await field.save();
@@ -194,6 +240,13 @@ export async function validateCustomFieldValues(
 
   if (fieldIds.length === 0) {
     return { valid: true, sanitized: {} };
+  }
+
+  // A malformed id cannot belong to any definition and would make the query
+  // below throw a cast error, so reject it before touching the database.
+  const malformed = fieldIds.find((fieldId) => !isValidObjectId(fieldId));
+  if (malformed) {
+    return { valid: false, error: `Unknown custom field: ${malformed}` };
   }
 
   const definitions = await CustomFieldDefinition.find({

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, User, Settings, Upload, Info } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ArrowLeft, User, Settings, Upload, Info, Disc3 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import ProfileSettings from '../components/Settings/ProfileSettings';
@@ -7,24 +7,47 @@ import PreferencesSettings from '../components/Settings/PreferencesSettings';
 import AboutSettings from '../components/Settings/AboutSettings';
 import ImportSettings from '../components/Settings/ImportSettings';
 import ExportSettings from '../components/Settings/ExportSettings';
+import DiscogsSettings from '../components/Settings/DiscogsSettings';
+import DiscogsPendingNotice from '../components/Settings/DiscogsPendingNotice';
+import { useDiscogsPending } from '../context/DiscogsPendingContext';
+import { getDiscogsAccount } from '../api/discogsAccount';
+import type { DiscogsAccountStatus } from '../types/discogsAccount.types';
 
-type SettingsSection = 'profile' | 'preferences' | 'import' | 'about';
+type SettingsSection = 'profile' | 'preferences' | 'discogs' | 'import' | 'about';
 
 interface MenuItem {
     id: SettingsSection;
     labelKey: string;
-    icon: React.ReactNode;
+    icon: React.ReactElement<{ size?: number }>;
 }
 
 const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { count: pending } = useDiscogsPending();
     const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
     const [showMobileMenu, setShowMobileMenu] = useState(true);
+    const [discogsStatus, setDiscogsStatus] = useState<DiscogsAccountStatus | null>(null);
+
+    const loadDiscogsStatus = useCallback(async () => {
+        try {
+            setDiscogsStatus(await getDiscogsAccount());
+        } catch (error) {
+            console.error('Failed to fetch Discogs account status:', error);
+        }
+    }, []);
+
+    useEffect(() => {
+        void loadDiscogsStatus();
+    }, [loadDiscogsStatus]);
 
     const menuItems: MenuItem[] = [
         { id: 'profile', labelKey: 'settings.profile', icon: <User size={18} /> },
         { id: 'preferences', labelKey: 'settings.preferences', icon: <Settings size={18} /> },
+        // Hidden until the server confirms it can store tokens (ENCRYPTION_KEY set).
+        ...(discogsStatus?.available
+            ? [{ id: 'discogs' as const, labelKey: 'discogsAccount.title', icon: <Disc3 size={18} /> }]
+            : []),
         { id: 'import', labelKey: 'settings.import', icon: <Upload size={18} /> },
         { id: 'about', labelKey: 'settings.about', icon: <Info size={18} /> },
     ];
@@ -35,6 +58,10 @@ const SettingsPage: React.FC = () => {
                 return <ProfileSettings />;
             case 'preferences':
                 return <PreferencesSettings />;
+            case 'discogs':
+                return discogsStatus?.available
+                    ? <DiscogsSettings status={discogsStatus} onChanged={loadDiscogsStatus} />
+                    : <ProfileSettings />;
             case 'import':
                 return (
                     <div className="flex flex-col gap-6">
@@ -64,6 +91,17 @@ const SettingsPage: React.FC = () => {
         setActiveSection(id);
         setShowMobileMenu(false);
     };
+
+    const openDiscogs = () => {
+        setActiveSection('discogs');
+        setShowMobileMenu(false);
+    };
+
+    // The count belongs on the Discogs entry of the menu; while that section is open the notice is redundant.
+    const pendingBadge = (id: SettingsSection) => id === 'discogs' && pending > 0
+        ? <span className="badge badge-primary badge-sm ml-auto">{pending}</span>
+        : null;
+    const notice = activeSection === 'discogs' && !showMobileMenu ? null : <DiscogsPendingNotice onReview={openDiscogs} />;
 
     const activeItemLabel = menuItems.find(i => i.id === activeSection)?.labelKey || 'settings.title';
 
@@ -100,6 +138,7 @@ const SettingsPage: React.FC = () => {
                                 >
                                     {item.icon}
                                     {t(item.labelKey)}
+                                    {pendingBadge(item.id)}
                                 </button>
                             </li>
                         ))}
@@ -113,12 +152,14 @@ const SettingsPage: React.FC = () => {
                         <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
                     </div>
 
+                    {notice}
                     {renderContent()}
                 </div>
             </div>
 
             {/* Mobile Layout (Hidden on Desktop) */}
             <div className="md:hidden">
+                {notice}
                 {showMobileMenu ? (
                     /* Mobile Menu Grid */
                     <div className="grid grid-cols-2 gap-4 p-2">
@@ -129,9 +170,10 @@ const SettingsPage: React.FC = () => {
                                 className="card bg-base-200 shadow-card active:scale-95 transition-all aspect-square flex flex-col items-center justify-center gap-3 p-4 hover:bg-base-300"
                             >
                                 <span className="bg-base-100 p-4 rounded-full text-primary shadow-panel">
-                                    {React.cloneElement(item.icon as React.ReactElement, { size: 32 } as any)}
+                                    {React.cloneElement(item.icon, { size: 32 })}
                                 </span>
                                 <span className="font-bold text-lg text-center leading-tight">{t(item.labelKey)}</span>
+                                {pendingBadge(item.id)}
                             </button>
                         ))}
                     </div>

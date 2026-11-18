@@ -49,6 +49,9 @@ export type NearbyState = ReturnType<typeof useNearby>;
 /**
  * Runs a location-and-radius search, refetching when either changes.
  *
+ * Nothing is fetched while `enabled` is false: a feature the server is not
+ * configured for, or whose availability is not known yet.
+ *
  * `deps` carries any extra filter that has to reach the server — the concert
  * date window, for instance. Filters the client can apply itself belong in a
  * `useMemo` over `items`, not here.
@@ -57,7 +60,8 @@ export function useNearbySearch<T>(
     nearby: NearbyState,
     fetcher: (lat: number, lon: number, radiusKm: number) => Promise<T[]>,
     errorKey: string,
-    deps: unknown[] = []
+    deps: unknown[] = [],
+    enabled = true
 ) {
     const { t } = useTranslation();
     const { location, debouncedRadiusKm } = nearby;
@@ -71,7 +75,7 @@ export function useNearbySearch<T>(
     const [unavailable, setUnavailable] = useState(false);
 
     useEffect(() => {
-        if (!location) return;
+        if (!location || !enabled) return;
 
         let active = true;
         setIsLoading(true);
@@ -104,7 +108,7 @@ export function useNearbySearch<T>(
         // The fetcher is an inline closure at every call site and would rerun
         // this on each render if depended upon; `deps` is what actually changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location, debouncedRadiusKm, ...deps]);
+    }, [location, debouncedRadiusKm, enabled, ...deps]);
 
     return { items, isLoading, error, unavailable };
 }

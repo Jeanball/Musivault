@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { CircleAlert, RefreshCw } from 'lucide-react';
+import { CircleAlert, HardDrive, ImagePlus, Pencil, RefreshCw, RotateCcw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { getPreferences } from '../api/preferences';
 import { isApiError } from '../api/errors';
 import { getRelease } from '../api/discogs';
 import {
     getCollectionItem,
-    updateCollectionItem,
     syncItemPrice,
+    refreshItemFromDiscogs,
     removeFromCollection,
     ignoreFormatAlert,
-    restoreFormatAlert
+    restoreFormatAlert,
+    restoreDiscogsAlbum
 } from '../api/collection';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -28,6 +29,7 @@ import CustomFieldsEditor from '../components/Common/CustomFieldsEditor';
 import LabelLink from '../components/Common/LabelLink';
 import FieldRow from '../components/Common/FieldRow';
 import BackButton from '../components/Common/BackButton';
+import ManualAlbumEditModal from '../components/Modal/ManualAlbumEditModal';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface AlbumDetailLocationState {
@@ -45,9 +47,13 @@ const AlbumDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [conditionGradingEnabled, setConditionGradingEnabled] = useState(false);
     const [isSyncingPrice, setIsSyncingPrice] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
     const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
     const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
+    const [isEditingManual, setIsEditingManual] = useState(false);
+    const [isEditingDiscogs, setIsEditingDiscogs] = useState(false);
+    const [isRestoringDiscogs, setIsRestoringDiscogs] = useState(false);
     const { formatValue } = useCurrency();
     const backTarget = (location.state as AlbumDetailLocationState | null)?.backTo || '/app/collection';
 
@@ -82,16 +88,10 @@ const AlbumDetailPage: React.FC = () => {
         }
     };
 
-    const updateCondition = async (field: 'mediaCondition' | 'sleeveCondition', value: string | null) => {
-        if (!item) return;
-        try {
-            await updateCollectionItem(item._id, { [field]: value });
-            setItem(prev => prev ? { ...prev, [field]: value } : null);
-            toastService.success(t('condition.updated'));
-        } catch (error) {
-            console.error('Failed to update condition:', error);
-            toastService.error(t('settings.failedUpdateSetting'));
-        }
+    const conditionLabel = (value?: string | null) => {
+        if (!value) return t('condition.grades.none');
+        const grade = [...MEDIA_CONDITIONS, ...SLEEVE_CONDITIONS].find((option) => option.value === value);
+        return grade ? t(grade.labelKey) : value;
     };
 
     const syncPrice = async () => {
@@ -113,6 +113,29 @@ const AlbumDetailPage: React.FC = () => {
         }
     };
 
+    const refreshFromDiscogs = async () => {
+        if (!item) return;
+        if (item.locallyModified && !confirm(t('album.confirmDiscardLocalEdits'))) {
+            return;
+        }
+        setIsRefreshing(true);
+        try {
+            const { item: updated, changed } = await refreshItemFromDiscogs(item._id);
+            setItem(updated);
+            if (changed.length > 0) {
+                void refreshCollection({ silent: true });
+                toastService.success(t('album.refreshed'));
+            } else {
+                toastService.success(t('album.alreadyUpToDate'));
+            }
+        } catch (error) {
+            console.error('Failed to refresh from Discogs:', error);
+            toastService.error(t('album.failedRefresh'));
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
     const searchSpotify = (artist: string, album: string) => {
         const query = encodeURIComponent(`${artist} ${album}`);
         setSpotifyUrl(`https://open.spotify.com/search/${query}`);
@@ -125,6 +148,10 @@ const AlbumDetailPage: React.FC = () => {
 
         try {
             await removeFromCollection(item!._id);
+            // The collection context lives above the router (PrivateLayout), so
+            // its state survives navigation. Without a refresh the item stays
+            // visible in the collection table after going back to /app.
+            await refreshCollection({ silent: true });
             toastService.success(t('album.removed'));
             navigate('/app');
         } catch (error) {
@@ -136,6 +163,11 @@ const AlbumDetailPage: React.FC = () => {
     const handleOpenRematchVersions = async () => {
         if (!item?.album.discogsId) {
             toastService.error(t('rematch.noMainRelease'));
+            return;
+        }
+
+        // Rematching replaces the edition: local edits to the old one would be lost.
+        if (item.locallyModified && !confirm(t('album.confirmDiscardLocalEditsRematch'))) {
             return;
         }
 
@@ -187,7 +219,8 @@ const AlbumDetailPage: React.FC = () => {
     const album = item.album;
     const tracklist = album.tracklist || [];
     const labels = album.labels || [];
-    const genres = album.styles || [];
+    const genres = album.genres || [];
+    const styles = album.styles || [];
     const hasActiveFormatIssue = hasActiveFormatVerificationIssue(item.formatVerification);
     const hasIgnoredFormatIssue = hasIgnoredFormatVerificationIssue(item.formatVerification);
 
@@ -227,6 +260,32 @@ const AlbumDetailPage: React.FC = () => {
         }
     };
 
+    const handleAlbumSaved = (updated: CollectionItem) => {
+        setItem(updated);
+        setIsEditingManual(false);
+        setIsEditingDiscogs(false);
+        void refreshCollection({ silent: true });
+    };
+
+    const handleRestoreDiscogs = async () => {
+        if (!item || !confirm(t('album.confirmRestoreDiscogs'))) {
+            return;
+        }
+
+        setIsRestoringDiscogs(true);
+        try {
+            const { item: updated, restored } = await restoreDiscogsAlbum(item._id);
+            setItem(updated);
+            void refreshCollection({ silent: true });
+            toastService.success(restored ? t('album.restoreDiscogsSuccess') : t('album.noLocalEdits'));
+        } catch (error) {
+            console.error('Failed to restore Discogs data:', error);
+            toastService.error(t('album.restoreDiscogsFailed'));
+        } finally {
+            setIsRestoringDiscogs(false);
+        }
+    };
+
     return (
         <div className="max-w-6xl mx-auto p-4">
             <BackButton onClick={handleBack} />
@@ -240,6 +299,17 @@ const AlbumDetailPage: React.FC = () => {
                         alt={album.title}
                         className="w-full aspect-square object-cover border border-base-300"
                     />
+
+                    {album.isManual && (
+                        <button
+                            type="button"
+                            onClick={() => setIsEditingManual(true)}
+                            className="btn btn-sm btn-outline gap-2"
+                        >
+                            <ImagePlus size={14} />
+                            {album.cover_image ? t('album.changeCover') : t('album.addCover')}
+                        </button>
+                    )}
 
                     <div className="flex gap-2">
                         {spotifyUrl && (
@@ -266,43 +336,36 @@ const AlbumDetailPage: React.FC = () => {
                                 Discogs
                             </a>
                         )}
+                        {album.discogsId && (
+                            <button
+                                onClick={refreshFromDiscogs}
+                                disabled={isRefreshing}
+                                className="btn btn-sm btn-square tooltip tooltip-top"
+                                data-tip={t('album.refreshFromDiscogs')}
+                                aria-label={t('album.refreshFromDiscogs')}
+                            >
+                                <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                            </button>
+                        )}
                     </div>
 
                     {conditionGradingEnabled && (
                         <div className="flex gap-2">
                             <div className="flex-1 min-w-0 flex flex-col">
-                                <label className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
+                                <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
                                     {t('condition.media')}
-                                </label>
-                                <select
-                                    className="select select-sm w-full"
-                                    value={item.mediaCondition || ''}
-                                    onChange={(e) => updateCondition('mediaCondition', e.target.value || null)}
-                                >
-                                    <option value="">{t('condition.grades.none')}</option>
-                                    {MEDIA_CONDITIONS.map((cond) => (
-                                        <option key={cond.value} value={cond.value}>
-                                            {t(cond.labelKey)}
-                                        </option>
-                                    ))}
-                                </select>
+                                </span>
+                                <div className="input input-sm w-full flex items-center text-sm">
+                                    {conditionLabel(item.mediaCondition)}
+                                </div>
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col">
-                                <label className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
+                                <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-base-content/60 mb-0.5 leading-tight min-h-[1.7rem]">
                                     {t('condition.sleeve')}
-                                </label>
-                                <select
-                                    className="select select-sm w-full"
-                                    value={item.sleeveCondition || ''}
-                                    onChange={(e) => updateCondition('sleeveCondition', e.target.value || null)}
-                                >
-                                    <option value="">{t('condition.grades.none')}</option>
-                                    {SLEEVE_CONDITIONS.map((cond) => (
-                                        <option key={cond.value} value={cond.value}>
-                                            {t(cond.labelKey)}
-                                        </option>
-                                    ))}
-                                </select>
+                                </span>
+                                <div className="input input-sm w-full flex items-center text-sm">
+                                    {conditionLabel(item.sleeveCondition)}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -372,17 +435,22 @@ const AlbumDetailPage: React.FC = () => {
                         {genres.length > 0 && (
                             <FieldRow label={t('album.genres')}>{genres.join(' · ')}</FieldRow>
                         )}
+                        {styles.length > 0 && (
+                            <FieldRow label={t('album.styles')}>{styles.join(' · ')}</FieldRow>
+                        )}
                         <CustomFieldsEditor
                             itemId={item._id}
                             values={item.customFields}
                             onUpdate={(customFields) => setItem((prev) => (prev ? { ...prev, customFields } : null))}
+                            readOnly
                         />
                         <FieldRow label={t('collection.added')}>
                             {new Date(item.addedAt).toLocaleDateString()}
                         </FieldRow>
                         {(() => {
                             const val = getItemValue(item);
-                            const conditionLabel = item.mediaCondition || 'VG+';
+                            const isManual = Boolean(album.isManual);
+                            const gradeLabel = item.mediaCondition || 'VG+';
                             const lastUpdated = item.priceCache?.updatedAt
                                 ? new Date(item.priceCache.updatedAt).toLocaleString(undefined, {
                                     month: 'short',
@@ -398,16 +466,20 @@ const AlbumDetailPage: React.FC = () => {
                                     <span className={`font-mono text-xl font-bold tabular-nums ${val > 0 ? '' : 'text-base-content/30'}`}>
                                         {val > 0 ? formatValue(val) : 'N/A'}
                                     </span>
-                                    <button
-                                        onClick={syncPrice}
-                                        disabled={isSyncingPrice}
-                                        className="btn btn-ghost btn-xs btn-circle tooltip tooltip-top"
-                                        data-tip={t('album.syncPrice')}
-                                    >
-                                        <RefreshCw size={13} className={isSyncingPrice ? 'animate-spin' : ''} />
-                                    </button>
+                                    {!isManual && (
+                                        <button
+                                            onClick={syncPrice}
+                                            disabled={isSyncingPrice}
+                                            className="btn btn-ghost btn-xs btn-circle tooltip tooltip-top"
+                                            data-tip={t('album.syncPrice')}
+                                        >
+                                            <RefreshCw size={13} className={isSyncingPrice ? 'animate-spin' : ''} />
+                                        </button>
+                                    )}
                                     <span className="text-xs text-base-content/50">
-                                        {conditionLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}
+                                        {isManual
+                                            ? t('album.manualValue')
+                                            : <>{gradeLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}</>}
                                     </span>
                                 </FieldRow>
                             );
@@ -436,17 +508,63 @@ const AlbumDetailPage: React.FC = () => {
                     )}
 
                     <div className="flex flex-wrap gap-3">
-                        <button
-                            onClick={handleOpenRematchVersions}
-                            className={`btn btn-warning btn-outline ${isOpeningRematch ? 'loading' : ''}`}
-                            title={t('album.rematch')}
-                            disabled={isOpeningRematch}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            {t('album.rematch')}
-                        </button>
+                        {album.isManual && (
+                            <button
+                                onClick={() => setIsEditingManual(true)}
+                                className="btn btn-outline gap-1"
+                                title={t('album.editManual')}
+                            >
+                                <Pencil size={18} />
+                                {t('common.edit')}
+                            </button>
+                        )}
+                        {!album.isManual && (
+                            <button
+                                onClick={() => setIsEditingDiscogs(true)}
+                                className="btn btn-outline gap-1"
+                                title={t('album.editDiscogs')}
+                            >
+                                <Pencil size={18} />
+                                {t('common.edit')}
+                            </button>
+                        )}
+                        {!album.isManual && (
+                            <button
+                                onClick={handleOpenRematchVersions}
+                                className={`btn btn-warning btn-outline ${isOpeningRematch ? 'loading' : ''}`}
+                                title={t('album.rematch')}
+                                disabled={isOpeningRematch}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                {t('album.rematch')}
+                            </button>
+                        )}
+                        {!album.isManual && item.locallyModified && (
+                            <button
+                                onClick={handleRestoreDiscogs}
+                                className={`btn btn-ghost gap-1 text-base-content/60 ${isRestoringDiscogs ? 'loading' : ''}`}
+                                title={t('album.restoreDiscogsHint')}
+                                disabled={isRestoringDiscogs}
+                            >
+                                {!isRestoringDiscogs && <RotateCcw size={16} />}
+                                {t('album.restoreDiscogs')}
+                            </button>
+                        )}
+                        {/* Discreet sign that this copy was edited by hand. */}
+                        {item.locallyModified && (
+                            <span
+                                className="self-center tooltip tooltip-top"
+                                data-tip={t('album.locallyModifiedHint')}
+                            >
+                                <HardDrive
+                                    size={16}
+                                    className="text-base-content/40"
+                                    aria-label={t('album.locallyModifiedHint')}
+                                />
+                            </span>
+                        )}
                         <button onClick={handleDelete} className="btn btn-error btn-outline" title="Remove from collection">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -456,6 +574,25 @@ const AlbumDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {isEditingManual && (
+                <ManualAlbumEditModal
+                    item={item}
+                    showConditions={conditionGradingEnabled}
+                    onClose={() => setIsEditingManual(false)}
+                    onSaved={handleAlbumSaved}
+                />
+            )}
+
+            {isEditingDiscogs && (
+                <ManualAlbumEditModal
+                    item={item}
+                    mode="discogs"
+                    showConditions={conditionGradingEnabled}
+                    onClose={() => setIsEditingDiscogs(false)}
+                    onSaved={handleAlbumSaved}
+                />
+            )}
         </div>
     );
 };

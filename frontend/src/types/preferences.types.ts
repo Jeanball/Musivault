@@ -9,6 +9,10 @@ export interface Preferences {
     language: string;
     enableConditionGrading: boolean;
     preferredCurrency: string;
+    /** Sorts "The Beatles" under B: a leading "the", "a" or "an" is skipped. */
+    sortIgnoreLeadingArticle: boolean;
+    /** Visible columns in the collection table: base keys or `custom:<fieldId>`. */
+    tableColumns: string[];
     /** Styles unchecked in Discover's upcoming releases. Empty = show all. */
     discoverExcludedStyles: string[];
     /** Last position used by the "near you" sections, so we don't re-prompt every visit. */

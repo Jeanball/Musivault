@@ -14,6 +14,8 @@ const serverPreferences: Preferences = {
     language: 'fr',
     enableConditionGrading: true,
     preferredCurrency: 'CAD',
+    sortIgnoreLeadingArticle: false,
+    tableColumns: [],
     discoverExcludedStyles: [],
     discoverRadiusKm: 25,
     publicShareId: null

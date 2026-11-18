@@ -3,9 +3,23 @@ import User from '../models/User';
 import { generateToken } from '../utils/token.utils';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { logger } from '../config/logger.config';
+import { isSignupEnabled } from '../config/auth.config';
+import { isOIDCEnabled } from '../config/oidc.config';
+
+export function getAuthConfig(_req: Request, res: Response): void {
+    res.json({
+        signupEnabled: isSignupEnabled(),
+        oidcEnabled: isOIDCEnabled(),
+        oidcProviderName: process.env.OIDC_PROVIDER_NAME || 'SSO'
+    });
+}
 
 export async function signupUser(req: Request, res: Response, next: NextFunction) {
     try {
+        if (!isSignupEnabled()) {
+            res.status(403).json({ message: "Signup is disabled on this server." });
+            return;
+        }
         const { username, email, password, createdAt } = req.body;
         const existingUser = await User.findOne({ email });
         if (existingUser) {

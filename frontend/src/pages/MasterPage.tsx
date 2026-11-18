@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
@@ -6,6 +5,7 @@ import { getRelease, getMasterVersions } from '../api/discogs';
 import { addToCollection as apiAddToCollection, rematchAlbum } from '../api/collection';
 import { isApiError, isRateLimitError } from '../api/errors';
 import { getPreferences } from '../api/preferences';
+import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useReleasePrice } from '../hooks/useReleasePrice';
 import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
@@ -52,6 +52,7 @@ const MasterPage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { t } = useTranslation();
+    const { refreshCollection } = useCollectionData();
     const [pageData, setPageData] = useState<VersionsPageData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [loadError, setLoadError] = useState<unknown>(null);
@@ -276,6 +277,7 @@ const MasterPage: React.FC = () => {
                 sleeveCondition
             });
             toastService.success(t('common.addedSuccess', { title: album.title }));
+            void refreshCollection({ silent: true });
             setAddedAlbum({
                 id: item._id,
                 title: album.title

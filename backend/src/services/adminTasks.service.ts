@@ -5,6 +5,7 @@ import { executePriceSync } from '../controllers/collection.controller';
 import type { PopulatedCollectionItem } from '../controllers/collection.controller';
 import { getPriceTTLHours } from '../utils/price.utils';
 import { recordAllUserSnapshots } from './valueSnapshot.service';
+import { checkAllUsers } from './discogsSync.service';
 import ExchangeRates from '../models/ExchangeRates';
 import UpcomingRelease from '../models/UpcomingRelease';
 import { getAllDistinctStyles } from './collection.service';
@@ -114,6 +115,28 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
     },
   },
   {
+    id: 'check-discogs-collections',
+    intervalMs: 7 * 24 * 60 * 60 * 1000,
+    get intervalLabel() { return '7 days'; },
+    getNextExecutionAt: async (lastExecution) => {
+      if (!lastExecution) return new Date();
+      return rollForward(lastExecution.executedAt, 7 * 24 * 60 * 60 * 1000);
+    },
+    // Read-only: refreshes each connected user's Discogs report, never applies. The run fails only if
+    // every check failed, so the scheduler retries it with backoff; one bad token doesn't hide the rest.
+    runBackground: async (onProgress) => {
+      const result = await checkAllUsers((current, total, username) =>
+        onProgress({ type: 'progress', current, total, label: username })
+      );
+      const summary = `Checked ${result.checked} Discogs collection(s), ${result.failed} failed, ${result.skipped} skipped (busy).`;
+      if (result.checked === 0 && result.failed > 0) {
+        throw new Error(summary);
+      }
+      onProgress({ type: 'complete', message: summary });
+      return summary;
+    },
+  },
+  {
     id: 'refresh-exchange-rates',
     intervalMs: 24 * 60 * 60 * 1000,
     get intervalLabel() { return '1 day'; },
@@ -122,18 +145,42 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
       return rollForward(lastExecution.executedAt, 24 * 60 * 60 * 1000);
     },
     runBackground: async (onProgress) => {
-      const fetchRes = await fetch('https://open.er-api.com/v6/latest/USD');
-      if (!fetchRes.ok) {
-        throw new Error(`Failed to fetch exchange rates: ${fetchRes.statusText}`);
-      }
-      const data = await fetchRes.json() as { rates?: Record<string, number> };
+      const fetchUsdRates = async (url: string): Promise<Record<string, number>> => {
+        const fetchRes = await fetch(url);
+        if (!fetchRes.ok) {
+          throw new Error(`Failed to fetch exchange rates from ${url}: ${fetchRes.statusText}`);
+        }
+        const data = await fetchRes.json() as { rates?: Record<string, number> };
+        if (!data || !data.rates) {
+          throw new Error(`Invalid response structure from ${url}.`);
+        }
+        return data.rates;
+      };
 
-      if (!data || !data.rates) {
-        throw new Error('Invalid response structure from exchange rate API.');
-      }
-
+      let rates: Record<string, number>;
+      let source = 'open.er-api.com';
       const ratesMap = new Map<string, number>();
-      for (const [currency, rate] of Object.entries(data.rates)) {
+      try {
+        rates = await fetchUsdRates('https://open.er-api.com/v6/latest/USD');
+      } catch (primaryError) {
+        // Fallback: AllRatesToday's keyless endpoint returns the same shape
+        // (ECB reference rates, ~30 currencies). Keep previously stored rates
+        // for any currency it does not cover.
+        try {
+          rates = await fetchUsdRates('https://allratestoday.com/api/open/latest/USD');
+        } catch {
+          throw primaryError;
+        }
+        source = 'AllRatesToday (https://allratestoday.com) fallback';
+        const existing = await ExchangeRates.findOne({ baseCurrency: 'USD' });
+        if (existing) {
+          for (const [currency, rate] of existing.rates) {
+            ratesMap.set(currency, rate);
+          }
+        }
+      }
+
+      for (const [currency, rate] of Object.entries(rates)) {
         ratesMap.set(currency, rate);
       }
 
@@ -145,7 +192,7 @@ const ADMIN_TASKS: AdminTaskDefinition[] = [
 
       onProgress({ type: 'complete' });
 
-      return 'Fetched and updated daily exchange rates from open.er-api.com.';
+      return `Fetched and updated daily exchange rates from ${source}.`;
     },
   },
   {
