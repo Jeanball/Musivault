@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Open the edit form automatically after adding a Discogs album (release page, master version or barcode), so metadata and custom fields can be filled in immediately
 
+### Fixed
+- Do not mark a Discogs album as locally modified (and show "Restore Discogs data") when only custom fields were saved: the Discogs "none" catalog-number placeholder and whitespace-only differences now compare equal to the empty values shown by the edit form
+
 ---
 
 ## [1.16.2] - 2026-11-17

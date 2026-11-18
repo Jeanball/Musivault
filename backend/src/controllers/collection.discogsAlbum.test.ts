@@ -185,6 +185,29 @@ describe('Discogs album local edits', () => {
         expect(item.customFields).toEqual(new Map([['field-binder', 'Shelf 3']]));
         expect(item.save).toHaveBeenCalled();
         expect(res.status).toHaveBeenCalledWith(200);
+        expect(item.locallyModified).toBe(false);
+    });
+
+    it('does not mark the album as locally modified when only custom fields change', async () => {
+        const item = createItem({ labels: [{ name: 'Columbia', catno: 'none', discogsId: 999 }] });
+        storeItem(item);
+        vi.mocked(validateCustomFieldValues).mockResolvedValue({
+            valid: true,
+            sanitized: { 'field-binder': 'Shelf 3' },
+        });
+
+        await updateDiscogsAlbum(
+            request('item-1', {
+                customFields: JSON.stringify({ 'field-binder': 'Shelf 3' }),
+                label: 'Columbia',
+                catno: '',
+            }),
+            response() as never
+        );
+
+        expect(item.customFields).toEqual(new Map([['field-binder', 'Shelf 3']]));
+        expect(item.albumOverrides).toBeNull();
+        expect(item.locallyModified).toBe(false);
     });
 
     it('clears custom field values when all boxes are emptied', async () => {
