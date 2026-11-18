@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Space the Portfolio Evolution chart by time instead of by position, so quiet and busy periods no longer look alike
+- Rebuild the collection value history after a Discogs apply that only adds or relinks records, so the Portfolio Evolution chart no longer stays hidden behind a single point
+
 ---
 
 ## [1.16.2] - 2026-11-17
