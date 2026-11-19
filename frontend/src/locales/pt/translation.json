@@ -366,6 +366,7 @@
         "changeCover": "Alterar capa",
         "editManual": "Editar álbum",
         "manualValue": "Valor manual",
+        "discogsPrice": "Preço no Discogs:",
         "showAllTracks": "Mostrar mais {{n}} faixas",
         "showFewerTracks": "Mostrar menos"
     },

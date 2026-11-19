@@ -365,6 +365,7 @@
         "changeCover": "更换封面",
         "editManual": "编辑专辑",
         "manualValue": "手动价值",
+        "discogsPrice": "Discogs 价格：",
         "showAllTracks": "显示另外 {{n}} 首曲目",
         "showFewerTracks": "收起"
     },

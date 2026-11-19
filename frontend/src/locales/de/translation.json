@@ -363,6 +363,7 @@
         "changeCover": "Cover ändern",
         "editManual": "Album bearbeiten",
         "manualValue": "Manueller Wert",
+        "discogsPrice": "Discogs-Preis:",
         "showAllTracks": "{{n}} weitere Titel anzeigen",
         "showFewerTracks": "Weniger anzeigen"
     },

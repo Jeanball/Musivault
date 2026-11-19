@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Accept a manual value when editing a Discogs album, so a record Discogs has no price for can count in the totals and the value history
 - Show the value field when editing a Discogs album, and label a hand-entered value as manual on the album page
+- Show the Discogs price next to a manual value on the album page, so a value that has gone stale can be spotted
 
 ---
 

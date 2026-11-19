@@ -384,6 +384,7 @@
         "changeCover": "Change cover",
         "editManual": "Edit album",
         "manualValue": "Manual value",
+        "discogsPrice": "Discogs price:",
         "showAllTracks": "Show {{n}} more tracks",
         "showFewerTracks": "Show fewer"
     },

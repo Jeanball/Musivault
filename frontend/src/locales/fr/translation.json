@@ -384,6 +384,7 @@
         "changeCover": "Modifier la pochette",
         "editManual": "Modifier l'album",
         "manualValue": "Valeur manuelle",
+        "discogsPrice": "Prix Discogs :",
         "showAllTracks": "Afficher {{n}} pistes de plus",
         "showFewerTracks": "Afficher moins"
     },

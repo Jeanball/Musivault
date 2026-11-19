@@ -120,6 +120,27 @@ describe('AlbumDetailPage value label', () => {
         expect(screen.getByText('500')).toBeInTheDocument();
     });
 
+    it('shows the Discogs price next to a manual value, so a stale one can be spotted', async () => {
+        vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({
+            manualValue: 200,
+            mediaCondition: 'VG+',
+            priceCache: { veryGoodPlus: 500, currency: 'USD' } as never,
+        }));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('album.manualValue', { exact: false })).toHaveTextContent('album.discogsPrice 500');
+        // The manual value still counts, not the Discogs price.
+        expect(screen.getByText('200')).toBeInTheDocument();
+    });
+
+    it('shows no Discogs price beside a manual value when Discogs has none', async () => {
+        vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({ manualValue: 200 }));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('album.manualValue')).toBeInTheDocument();
+        expect(screen.queryByText('album.discogsPrice', { exact: false })).not.toBeInTheDocument();
+    });
+
     it('keeps the Discogs price label when no value was entered by hand', async () => {
         vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({ manualValue: null }));
         render(<AlbumDetailPage />);
