@@ -77,14 +77,14 @@ describe('createAdminUser', () => {
         expect(User).not.toHaveBeenCalled();
     });
 
-    it.each(['not-an-email', 'testuser@known', 'a@b.', 'a@.co', 'a@b..co', 'a b@c.co', '@c.co', 'a@@c.co'])('rejects the email %s', async email => {
+    it.each(['not-an-email', 'testuser@known', 'a@b.', 'a@.co', 'a@b..co', 'a b@c.co', '@c.co', 'a@@c.co', 'a@local', 'a@localhost.'])('rejects the email %s', async email => {
         const res = await call(createAdminUser, { username: 'sam', email, password: 'secret1' });
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(message(res)).toBe('Email is not valid');
     });
 
-    it.each(['a@b.co', 'first.last+tag@sub.example.com', "o'neil@example.org"])('accepts the email %s', async email => {
+    it.each(['a@b.co', 'first.last+tag@sub.example.com', "o'neil@example.org", 'admin@localhost', 'Admin@LOCALHOST', 'me@nas.home.lan'])('accepts the email %s', async email => {
         const res = await call(createAdminUser, { username: 'sam', email, password: 'secret1' });
 
         expect(res.status).toHaveBeenCalledWith(201);

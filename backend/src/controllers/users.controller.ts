@@ -5,8 +5,11 @@ import { logger } from '../config/logger.config';
 import mongoose from 'mongoose';
 
 const MIN_PASSWORD_LENGTH = 6;
-/** Something@domain.tld: a domain needs at least one dot, with text on both sides of every dot. */
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+/**
+ * Something@domain.tld: a domain needs at least one dot, with text on both sides of every dot.
+ * `localhost` is the one domain without a dot that is accepted, for self-hosted instances.
+ */
+const EMAIL_PATTERN = /^[^\s@]+@([^\s@.]+(\.[^\s@.]+)+|localhost)$/i;
 
 /** A trimmed string, or `undefined` when the value is missing or not a string. */
 function textOf(value: unknown): string | undefined {
