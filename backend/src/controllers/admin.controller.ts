@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { listAdminTasks, getAdminTaskLogs } from '../services/adminTasks.service';
 import { startTask, subscribeToTask, isTaskRunning } from '../services/taskRunner.service';
 import { logger } from '../config/logger.config';
+import { audit } from '../services/audit.service';
 
 export async function getAdminTasks(req: Request, res: Response) {
     try {
@@ -17,6 +18,9 @@ export async function runAdminTask(req: Request, res: Response) {
     const { taskId } = req.params;
 
     const started = startTask(taskId, { forceRefresh: true, trigger: 'manual' });
+    if (started) {
+        audit(req, { action: 'task.run', outcome: 'success', detail: taskId });
+    }
 
     if (!started) {
         // Task might already be running — subscribe to it instead

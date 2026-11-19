@@ -5,7 +5,9 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { AdminUser } from '../types/admin.types';
 import { toastService } from '../utils/toast';
+import { Pencil, UserPlus } from 'lucide-react';
 import AdminTabs from '../components/Admin/AdminTabs';
+import UserFormModal from '../components/Admin/UserFormModal';
 
 const AdminPage: React.FC = () => {
     const navigate = useNavigate();
@@ -15,6 +17,8 @@ const AdminPage: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
+    // A user being edited, `'new'` for the add dialog, null when it is closed.
+    const [formUser, setFormUser] = useState<AdminUser | 'new' | null>(null);
 
     // Verify admin access and fetch users
     useEffect(() => {
@@ -67,6 +71,17 @@ const AdminPage: React.FC = () => {
             })
             .sort((a, b) => a.username.localeCompare(b.username, undefined, { sensitivity: 'base' }));
     }, [users, searchQuery]);
+
+    // Reload after an add or an edit, so the counts and dates come from the server.
+    const handleUserSaved = async () => {
+        setFormUser(null);
+        try {
+            setUsers(await getUsers());
+        } catch (error) {
+            console.error('Error reloading users:', error);
+            toastService.error(t('admin.errorUpdating'));
+        }
+    };
 
     // Delete user
     const handleDeleteUser = async (userId: string, username: string) => {
@@ -316,6 +331,10 @@ const AdminPage: React.FC = () => {
                 <div className="card-body p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                         <h2 className="card-title">{t('admin.userManagement')}</h2>
+                        <button className="btn btn-primary btn-sm gap-1 sm:ml-auto" onClick={() => setFormUser('new')}>
+                            <UserPlus className="h-4 w-4" />
+                            {t('admin.addUser')}
+                        </button>
                         {/* Search */}
                         <div className="flex flex-col w-full sm:w-64">
                             <div className="join">
@@ -429,6 +448,13 @@ const AdminPage: React.FC = () => {
                                         <td>{formatDate(user.createdAt)}</td>
                                         <td>
                                             <div className="flex gap-1">
+                                                <button
+                                                    className="btn btn-xs btn-ghost"
+                                                    onClick={() => setFormUser(user)}
+                                                    title={t('admin.editUser')}
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </button>
                                                 <button
                                                     className="btn btn-xs btn-ghost"
                                                     onClick={() => handleResetPassword(user._id, user.username)}
@@ -582,6 +608,13 @@ const AdminPage: React.FC = () => {
                                             )}
                                             <button
                                                 className="btn btn-xs btn-ghost"
+                                                onClick={() => setFormUser(user)}
+                                                title={t('admin.editUser')}
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                className="btn btn-xs btn-ghost"
                                                 onClick={() => handleResetPassword(user._id, user.username)}
                                                 title={t('settings.changePassword')}
                                             >
@@ -630,6 +663,15 @@ const AdminPage: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {formUser && (
+                <UserFormModal
+                    user={formUser === 'new' ? null : formUser}
+                    isSelf={formUser !== 'new' && formUser._id === currentUserId}
+                    onClose={() => setFormUser(null)}
+                    onSaved={handleUserSaved}
+                />
+            )}
         </div>
     );
 };

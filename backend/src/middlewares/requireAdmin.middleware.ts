@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../config/logger.config';
+import { audit } from '../services/audit.service';
 
 /**
  * Middleware to require admin privileges.
@@ -13,6 +14,7 @@ const requireAdmin = async (req: Request, res: Response, next: NextFunction) => 
         }
 
         if (!req.user.isAdmin) {
+            audit(req, { action: 'admin.forbidden', outcome: 'failure', detail: `${req.method} ${req.originalUrl}` });
             res.status(403).json({ message: "Forbidden, admin access required" });
             return;
         }
