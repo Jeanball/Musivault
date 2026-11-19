@@ -96,3 +96,56 @@ describe('AlbumDetailPage delete', () => {
         expect(navigate).not.toHaveBeenCalled();
     });
 });
+
+describe('AlbumDetailPage value label', () => {
+    const discogsItem = (extra: Partial<CollectionItem>): CollectionItem => ({
+        ...item,
+        album: { ...item.album, isManual: false, discogsId: 123 },
+        ...extra,
+    });
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(useParams).mockReturnValue({ itemId: 'item-1' });
+        vi.mocked(useNavigate).mockReturnValue(navigate);
+        vi.mocked(getPreferences).mockResolvedValue({} as never);
+        vi.mocked(useCollectionData).mockReturnValue({ refreshCollection } as never);
+    });
+
+    it('says the value is manual on a Discogs album that has one', async () => {
+        vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({ manualValue: 500 }));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('album.manualValue')).toBeInTheDocument();
+        expect(screen.getByText('500')).toBeInTheDocument();
+    });
+
+    it('shows the Discogs price next to a manual value, so a stale one can be spotted', async () => {
+        vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({
+            manualValue: 200,
+            mediaCondition: 'VG+',
+            priceCache: { veryGoodPlus: 500, currency: 'USD' } as never,
+        }));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('album.manualValue', { exact: false })).toHaveTextContent('album.discogsPrice 500');
+        // The manual value still counts, not the Discogs price.
+        expect(screen.getByText('200')).toBeInTheDocument();
+    });
+
+    it('shows no Discogs price beside a manual value when Discogs has none', async () => {
+        vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({ manualValue: 200 }));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('album.manualValue')).toBeInTheDocument();
+        expect(screen.queryByText('album.discogsPrice', { exact: false })).not.toBeInTheDocument();
+    });
+
+    it('keeps the Discogs price label when no value was entered by hand', async () => {
+        vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({ manualValue: null }));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('stats.value')).toBeInTheDocument();
+        expect(screen.queryByText('album.manualValue')).not.toBeInTheDocument();
+    });
+});

@@ -384,6 +384,7 @@
         "changeCover": "Change cover",
         "editManual": "Edit album",
         "manualValue": "Manual value",
+        "discogsPrice": "Discogs price:",
         "showAllTracks": "Show {{n}} more tracks",
         "showFewerTracks": "Show fewer"
     },
@@ -483,6 +484,7 @@
         "removeValue": "Remove {{value}}",
         "noOptions": "No matching option.",
         "valueUsd": "Value (USD)",
+        "valueReplacesDiscogs": "Replaces the Discogs price when set.",
         "addTrack": "Add track",
         "removeTrack": "Remove track",
         "trackPosition": "Pos.",
