@@ -450,6 +450,8 @@ const AlbumDetailPage: React.FC = () => {
                         {(() => {
                             const val = getItemValue(item);
                             const isManual = Boolean(album.isManual);
+                            // A value typed in by hand replaces the Discogs price, so say so on Discogs albums too.
+                            const showsManualValue = isManual || (item.manualValue != null && item.manualValue > 0);
                             const gradeLabel = item.mediaCondition || 'VG+';
                             const lastUpdated = item.priceCache?.updatedAt
                                 ? new Date(item.priceCache.updatedAt).toLocaleString(undefined, {
@@ -477,7 +479,7 @@ const AlbumDetailPage: React.FC = () => {
                                         </button>
                                     )}
                                     <span className="text-xs text-base-content/50">
-                                        {isManual
+                                        {showsManualValue
                                             ? t('album.manualValue')
                                             : <>{gradeLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}</>}
                                     </span>

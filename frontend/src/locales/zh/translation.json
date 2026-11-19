@@ -463,6 +463,7 @@
         "removeValue": "移除 {{value}}",
         "noOptions": "没有匹配的选项。",
         "valueUsd": "价值（美元）",
+        "valueReplacesDiscogs": "填写后将替代 Discogs 价格。",
         "addTrack": "添加曲目",
         "removeTrack": "删除曲目",
         "trackPosition": "位置",

@@ -483,6 +483,7 @@
         "removeValue": "Remove {{value}}",
         "noOptions": "No matching option.",
         "valueUsd": "Value (USD)",
+        "valueReplacesDiscogs": "Replaces the Discogs price when set.",
         "addTrack": "Add track",
         "removeTrack": "Remove track",
         "trackPosition": "Pos.",

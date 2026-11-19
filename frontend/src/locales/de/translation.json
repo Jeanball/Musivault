@@ -461,6 +461,7 @@
         "removeValue": "{{value}} entfernen",
         "noOptions": "Keine passende Option.",
         "valueUsd": "Wert (USD)",
+        "valueReplacesDiscogs": "Ersetzt den Discogs-Preis, wenn angegeben.",
         "addTrack": "Titel hinzufügen",
         "removeTrack": "Titel entfernen",
         "trackPosition": "Pos.",

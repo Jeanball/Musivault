@@ -96,3 +96,35 @@ describe('AlbumDetailPage delete', () => {
         expect(navigate).not.toHaveBeenCalled();
     });
 });
+
+describe('AlbumDetailPage value label', () => {
+    const discogsItem = (extra: Partial<CollectionItem>): CollectionItem => ({
+        ...item,
+        album: { ...item.album, isManual: false, discogsId: 123 },
+        ...extra,
+    });
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(useParams).mockReturnValue({ itemId: 'item-1' });
+        vi.mocked(useNavigate).mockReturnValue(navigate);
+        vi.mocked(getPreferences).mockResolvedValue({} as never);
+        vi.mocked(useCollectionData).mockReturnValue({ refreshCollection } as never);
+    });
+
+    it('says the value is manual on a Discogs album that has one', async () => {
+        vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({ manualValue: 500 }));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('album.manualValue')).toBeInTheDocument();
+        expect(screen.getByText('500')).toBeInTheDocument();
+    });
+
+    it('keeps the Discogs price label when no value was entered by hand', async () => {
+        vi.mocked(getCollectionItem).mockResolvedValue(discogsItem({ manualValue: null }));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('stats.value')).toBeInTheDocument();
+        expect(screen.queryByText('album.manualValue')).not.toBeInTheDocument();
+    });
+});
