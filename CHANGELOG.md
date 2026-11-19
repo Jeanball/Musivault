@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add and edit users from the Administration page: an "Add user" dialog (username, email, password, administrator) and an edit dialog for the username, email, password and role of an existing user
+
 ### Fixed
 - Validate and protect the admin user routes: creating a user no longer always makes an administrator and checks the username, email and a 6-character password; editing checks the same and refuses a username or email another user has; you cannot delete your own account, and the last administrator cannot be demoted; reading a user no longer returns the password hash or the encrypted Discogs token
 

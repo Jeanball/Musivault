@@ -23,9 +23,20 @@ export async function getUsers(): Promise<AdminUser[]> {
     return data;
 }
 
+/** Creates a local account; the server refuses a taken username or email and a password under 6 characters. */
+export async function createUser(payload: {
+    username: string;
+    email: string;
+    password: string;
+    isAdmin: boolean;
+}): Promise<void> {
+    await client.post('/users/admin/create', payload);
+}
+
+/** Only the fields present are changed. */
 export async function updateUser(
     userId: string,
-    patch: { isAdmin?: boolean; password?: string }
+    patch: { username?: string; email?: string; isAdmin?: boolean; password?: string }
 ): Promise<void> {
     await client.put(`/users/${userId}`, patch);
 }
