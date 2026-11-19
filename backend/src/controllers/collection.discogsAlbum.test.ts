@@ -167,6 +167,66 @@ describe('Discogs album local edits', () => {
         expect(item.format.name).toBe('Vinyl');
     });
 
+    describe('manual value', () => {
+        it('saves a value for a record Discogs has no price for, rounded to cents', async () => {
+            const item = createItem();
+            storeItem(item);
+
+            const res = response();
+            await updateDiscogsAlbum(request('item-1', { value: ' 1250.456 ' }), res as never);
+
+            expect(item.manualValue).toBe(1250.46);
+            expect(item.save).toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(200);
+            // The value belongs to the user's copy; it is not Discogs data to override.
+            expect(item.albumOverrides).toBeNull();
+        });
+
+        it('clears the value when the box is emptied', async () => {
+            const item = createItem();
+            item.manualValue = 80;
+            storeItem(item);
+
+            await updateDiscogsAlbum(request('item-1', { value: '  ' }), response() as never);
+
+            expect(item.manualValue).toBeNull();
+        });
+
+        it('leaves the value alone when the request does not send it', async () => {
+            const item = createItem();
+            item.manualValue = 80;
+            storeItem(item);
+
+            await updateDiscogsAlbum(request('item-1', { title: 'Kind of Blue (Mono)' }), response() as never);
+
+            expect(item.manualValue).toBe(80);
+        });
+
+        it.each(['abc', '-5', 'Infinity'])('rejects %s without saving', async amount => {
+            const item = createItem();
+            item.manualValue = 80;
+            storeItem(item);
+
+            const res = response();
+            await updateDiscogsAlbum(request('item-1', { value: amount }), res as never);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(item.save).not.toHaveBeenCalled();
+            expect(item.manualValue).toBe(80);
+        });
+
+        it('survives restoring the album to its Discogs data', async () => {
+            const item = createItem();
+            item.manualValue = 80;
+            item.albumOverrides = { title: 'Kind of Blue (Mono)' } as never;
+            storeItem(item);
+
+            await restoreDiscogsAlbum(request('item-1'), response() as never);
+
+            expect(item.manualValue).toBe(80);
+        });
+    });
+
     it('saves custom field values on a Discogs item', async () => {
         const item = createItem();
         storeItem(item);

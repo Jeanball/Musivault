@@ -1263,6 +1263,8 @@ interface DiscogsAlbumBody {
   /** Optional condition grades of this user's copy. */
   mediaCondition?: string;
   sleeveCondition?: string;
+  /** Value in USD that replaces the Discogs price; blank clears it. */
+  value?: string;
   /** 'true' clears the album cover for this user. */
   removeCover?: string;
 }
@@ -1271,8 +1273,13 @@ interface DiscogsAlbumBody {
  * Edit the metadata of a Discogs album on this user's copy only. The shared
  * Album document belongs to every user who owns the release, so the changes are
  * stored as albumOverrides on the collection item and laid over the album when
- * the item is read. Item-level data (format and custom fields) is saved on the
- * user's copy alongside those overrides.
+ * the item is read. Item-level data (format, custom fields, conditions and the
+ * manual value) is saved on the user's copy alongside those overrides.
+ *
+ * `value` sets `manualValue`, which replaces the Discogs price in totals and
+ * the value history, for records Discogs has no price for (test pressings,
+ * rarities). Blank clears it; a malformed amount answers 400. It belongs to the
+ * user, not to the Discogs data, so restoring the album leaves it alone.
  */
 export async function updateDiscogsAlbum(req: Request, res: Response) {
   try {
@@ -1359,6 +1366,15 @@ export async function updateDiscogsAlbum(req: Request, res: Response) {
     }
     if (body.sleeveCondition !== undefined) {
       item.sleeveCondition = trimmedString(body.sleeveCondition) || undefined;
+    }
+
+    if (body.value !== undefined) {
+      try {
+        item.manualValue = parseManualValue(body.value) ?? null;
+      } catch {
+        res.status(400).json({ message: 'Value must be a valid positive number' });
+        return;
+      }
     }
 
     if (body.genres !== undefined) desired.genres = parseManualList(body.genres);
