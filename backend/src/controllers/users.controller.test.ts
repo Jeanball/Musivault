@@ -77,11 +77,17 @@ describe('createAdminUser', () => {
         expect(User).not.toHaveBeenCalled();
     });
 
-    it('rejects a malformed email', async () => {
-        const res = await call(createAdminUser, { username: 'sam', email: 'not-an-email', password: 'secret1' });
+    it.each(['not-an-email', 'testuser@known', 'a@b.', 'a@.co', 'a@b..co', 'a b@c.co', '@c.co', 'a@@c.co'])('rejects the email %s', async email => {
+        const res = await call(createAdminUser, { username: 'sam', email, password: 'secret1' });
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(message(res)).toBe('Email is not valid');
+    });
+
+    it.each(['a@b.co', 'first.last+tag@sub.example.com', "o'neil@example.org"])('accepts the email %s', async email => {
+        const res = await call(createAdminUser, { username: 'sam', email, password: 'secret1' });
+
+        expect(res.status).toHaveBeenCalledWith(201);
     });
 
     it('rejects a password under 6 characters', async () => {
@@ -161,6 +167,7 @@ describe('updateUser', () => {
         ['a blank username', { username: '  ' }, /cannot be empty/],
         ['a blank email', { email: '' }, /cannot be empty/],
         ['a malformed email', { email: 'nope' }, /not valid/],
+        ['an email without a top-level domain', { email: 'testuser@known' }, /not valid/],
         ['a password under 6 characters', { password: '12345' }, /at least 6/],
         ['an empty password', { password: '' }, /at least 6/],
     ])('rejects %s without saving', async (_label, body, pattern) => {

@@ -5,7 +5,8 @@ import { logger } from '../config/logger.config';
 import mongoose from 'mongoose';
 
 const MIN_PASSWORD_LENGTH = 6;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/;
+/** Something@domain.tld: a domain needs at least one dot, with text on both sides of every dot. */
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
 
 /** A trimmed string, or `undefined` when the value is missing or not a string. */
 function textOf(value: unknown): string | undefined {
