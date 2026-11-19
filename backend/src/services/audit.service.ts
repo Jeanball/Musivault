@@ -42,7 +42,8 @@ export const auditUser = (user: { _id: unknown; username: string }): AuditUser =
  * Record who did what, as one structured log line: `warn` for a failure, `info` for a success.
  * The message reads as `audit <action> <outcome> key="value" ...` so `docker logs`, grep or fail2ban
  * can pick it out, and the same fields sit under `audit` in the JSON. The client address is
- * `req.ip`, which is the real one only when `TRUST_PROXY` is set behind a reverse proxy.
+ * `req.ip`: behind the bundled Nginx it is the real one because production trusts one proxy hop
+ * (see `trust proxy` in server.ts); in development behind a proxy it needs `TRUST_PROXY=true`.
  *
  * Never pass passwords, tokens or what a user typed to sign in: callers give ids, usernames of
  * accounts that exist, field names and short reason codes. Values are quoted, so a username with a
