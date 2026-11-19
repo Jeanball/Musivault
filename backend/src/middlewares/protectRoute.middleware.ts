@@ -3,7 +3,9 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import User, { IUser } from '../models/User';
 import { logger } from '../config/logger.config';
 
+// Augmenting Express's Request needs a namespace; there is no module-syntax form of this.
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Express {
         interface Request {
             user?: IUser;

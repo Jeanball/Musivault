@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Lint the backend with ESLint, with `npm run lint` and a lint step in the CI workflow. `no-explicit-any` is reported as a warning for now (45 existing uses)
+- Add root npm scripts `lint`, `test`, `build`, `check` (all of them, as CI runs them) and `install:all`
+- Add `CONTRIBUTING.md` (branches, `develop` as the pull request base, commits, `npm run check`, changelog, translations) and point the README and the pull request template to it
+- Add Dependabot with a single monthly pull request against `develop` for the npm packages (root, frontend, backend), the GitHub Actions and both Dockerfiles
+
+### Fixed
+- Resolve the backend ESLint errors (unused imports, parameters and catch bindings, one `let` that is never reassigned) so `npm run lint` passes
+- Accept localhost, 127.0.0.1 and LAN origins on any port in development, so the Vite network URL and a second Vite port no longer fail with `Not allowed by CORS` (production and an explicit `CORS_ORIGINS` are unchanged)
+
 ---
 
 ## [1.16.2] - 2026-11-17

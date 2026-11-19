@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import User from '../models/User';
 import { generateToken } from '../utils/token.utils';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -14,7 +14,7 @@ export function getAuthConfig(_req: Request, res: Response): void {
     });
 }
 
-export async function signupUser(req: Request, res: Response, next: NextFunction) {
+export async function signupUser(req: Request, res: Response) {
     try {
         if (!isSignupEnabled()) {
             res.status(403).json({ message: "Signup is disabled on this server." });
@@ -130,7 +130,7 @@ export async function userVerification(req: Request, res: Response) {
             return;
         }
 
-    } catch (error) {
+    } catch {
         res.json({ status: false, message: "Invalid token" });
         return;
     }
