@@ -3,6 +3,7 @@ import User from '../models/User';
 import CollectionItem from '../models/CollectionItem';
 import { logger } from '../config/logger.config';
 import mongoose from 'mongoose';
+import { audit, auditUser } from '../services/audit.service';
 
 const MIN_PASSWORD_LENGTH = 6;
 /**
@@ -141,12 +142,20 @@ export async function updateUser(req: Request, res: Response) {
             return;
         }
 
+        const changed = [
+            username && username !== user.username && 'username',
+            email && email.toLowerCase() !== user.email && 'email',
+            password && 'password',
+            typeof isAdmin === 'boolean' && isAdmin !== user.isAdmin && 'role',
+        ].filter((field): field is string => typeof field === 'string');
+
         if (username) user.username = username;
         if (email) user.email = email;
         if (password) user.password = password;
         if (typeof isAdmin === 'boolean') user.isAdmin = isAdmin;
 
         await user.save();
+        audit(req, { action: 'user.update', outcome: 'success', target: auditUser(user), changed });
 
         res.status(200).json({ message: "User updated successfully" });
 
@@ -177,6 +186,7 @@ export async function deleteUser(req: Request, res: Response) {
             return;
         }
         await User.findByIdAndDelete(user._id)
+        audit(req, { action: 'user.delete', outcome: 'success', target: auditUser(user) });
         res.json({ message: "User deleted successfully" });
     } catch (error) {
         logger.error({ err: error }, "Error in deleteUser controller");
@@ -216,6 +226,12 @@ export async function createAdminUser(req: Request, res: Response) {
 
         const newUser = new User({ username, email, password, isAdmin: req.body.isAdmin === true });
         await newUser.save();
+        audit(req, {
+            action: 'user.create',
+            outcome: 'success',
+            target: auditUser(newUser),
+            changed: newUser.isAdmin ? ['role'] : [],
+        });
         res.status(201).json({
             message: "User created successfully.",
             user: {

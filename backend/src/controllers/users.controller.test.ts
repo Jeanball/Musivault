@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import mongoose from 'mongoose';
 import { createAdminUser, deleteUser, getUserById, updateUser } from './users.controller';
 import User from '../models/User';
+import { audit } from '../services/audit.service';
 
 vi.mock('../config/logger.config', () => ({
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }));
+vi.mock('../services/audit.service', async importOriginal => ({ ...(await importOriginal<typeof import('../services/audit.service')>()), audit: vi.fn() }));
 vi.mock('../models/CollectionItem', () => ({ default: { countDocuments: vi.fn(), findOne: vi.fn() } }));
 vi.mock('../models/User', () => {
     const model = vi.fn(function (this: Record<string, unknown>, data: Record<string, unknown>) {
@@ -49,6 +51,9 @@ describe('createAdminUser', () => {
         const { user } = res.json.mock.calls[0][0];
         expect(user).toMatchObject({ username: 'sam', isAdmin: false });
         expect(user).not.toHaveProperty('password');
+        expect(audit).toHaveBeenCalledWith(expect.anything(), {
+            action: 'user.create', outcome: 'success', target: { id: 'new-id', username: 'sam' }, changed: [],
+        });
     });
 
     it('creates an administrator when isAdmin is true', async () => {
@@ -56,6 +61,13 @@ describe('createAdminUser', () => {
 
         expect(res.status).toHaveBeenCalledWith(201);
         expect(res.json.mock.calls[0][0].user.isAdmin).toBe(true);
+        expect(audit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ action: 'user.create', changed: ['role'] }));
+    });
+
+    it('records nothing when the user was not created', async () => {
+        await call(createAdminUser, { username: 'sam', email: 'nope', password: 'secret1' });
+
+        expect(audit).not.toHaveBeenCalled();
     });
 
     it('does not take "true" sent as text for a yes', async () => {
@@ -146,14 +158,34 @@ describe('updateUser', () => {
         expect(user).toMatchObject({ username: 'samuel', email: 'Samuel@Example.com', isAdmin: false });
         expect(user).not.toHaveProperty('password');
         expect(user.save).toHaveBeenCalled();
+        expect(audit).toHaveBeenCalledWith(expect.anything(), {
+            action: 'user.update', outcome: 'success', target: { id: String(user._id), username: 'samuel' }, changed: ['username', 'email'],
+        });
     });
 
-    it('sets a new password and the role', async () => {
+    it('sets a new password and the role, and records which fields changed but not what they became', async () => {
         const user = stored();
 
         await update(user, { password: 'brand-new', isAdmin: true });
 
         expect(user).toMatchObject({ password: 'brand-new', isAdmin: true });
+        const event = vi.mocked(audit).mock.calls[0][1];
+        expect(event.changed).toEqual(['password', 'role']);
+        expect(JSON.stringify(event)).not.toContain('brand-new');
+    });
+
+    it('records only the fields that really changed', async () => {
+        const user = stored();
+
+        await update(user, { username: 'sam', email: 'SAM@example.com', isAdmin: false });
+
+        expect(vi.mocked(audit).mock.calls[0][1].changed).toEqual([]);
+    });
+
+    it('records nothing for a change that was refused', async () => {
+        await update(stored(), { password: '123' });
+
+        expect(audit).not.toHaveBeenCalled();
     });
 
     it('answers 404 for an unknown user and for an id that is not an id', async () => {
@@ -252,6 +284,9 @@ describe('deleteUser', () => {
 
         expect(res.status).not.toHaveBeenCalled();
         expect(User.findByIdAndDelete).toHaveBeenCalledWith(user._id);
+        expect(audit).toHaveBeenCalledWith(expect.anything(), {
+            action: 'user.delete', outcome: 'success', target: { id: String(user._id), username: 'sam' },
+        });
     });
 
     it('refuses to delete the account that is signed in', async () => {
@@ -262,6 +297,7 @@ describe('deleteUser', () => {
         expect(res.status).toHaveBeenCalledWith(400);
         expect(message(res)).toMatch(/your own account/);
         expect(User.findByIdAndDelete).not.toHaveBeenCalled();
+        expect(audit).not.toHaveBeenCalled();
     });
 
     it('deletes another administrator', async () => {
