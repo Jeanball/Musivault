@@ -1,0 +1,45 @@
+# Monthly, one grouped pull request for every ecosystem, against develop.
+# Dependabot reads this file from the default branch (main), so it starts working with the next release merge.
+version: 2
+
+multi-ecosystem-groups:
+  dependencies:
+    schedule:
+      interval: "monthly"
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "develop"
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    target-branch: "develop"
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
+
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    target-branch: "develop"
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    target-branch: "develop"
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
+
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    target-branch: "develop"
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
