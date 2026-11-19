@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add and edit users from the Administration page: an "Add user" dialog (username, email, password, administrator) and an edit dialog for the username, email, password and role of an existing user
-- Record security events as structured `audit` lines in the server log, with the client address: logins and signups (a failed login says whether the user exists, never what was typed), throttled login attempts, user creates, edits (which fields changed, not their values) and deletes, non-administrators calling admin routes, and manual task runs
+- Record security events as structured `audit` lines in the server log, with the client address: logins and signups (a failed login says whether the user exists, never what was typed), throttled login attempts, user creates, edits (which fields changed, not their values, and a role change as `user->admin` or `admin->user`) and deletes, non-administrators calling admin routes, and manual task runs
 
 ### Fixed
 - Validate and protect the admin user routes: creating a user no longer always makes an administrator and checks the username, email and a 6-character password; editing checks the same and refuses a username or email another user has; you cannot delete your own account, and the last administrator cannot be demoted; reading a user no longer returns the password hash or the encrypted Discogs token

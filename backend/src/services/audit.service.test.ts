@@ -16,7 +16,8 @@ describe('audit', () => {
             action: 'user.update',
             outcome: 'success',
             target: { id: 'u2', username: 'sam' },
-            changed: ['email', 'role'],
+            changed: ['email'],
+            role: { from: 'user', to: 'admin' },
         });
 
         expect(warn).not.toHaveBeenCalled();
@@ -26,12 +27,19 @@ describe('audit', () => {
             outcome: 'success',
             actor: { id: 'u1', username: 'root' },
             target: { id: 'u2', username: 'sam' },
-            changed: ['email', 'role'],
+            changed: ['email'],
+            role: { from: 'user', to: 'admin' },
             reason: undefined,
             detail: undefined,
             ip: '203.0.113.7',
         });
-        expect(text).toBe('audit user.update success actor="root" target="sam" changed=email,role ip=203.0.113.7');
+        expect(text).toBe('audit user.update success actor="root" target="sam" changed=email role=user->admin ip=203.0.113.7');
+    });
+
+    it('shows a new account\'s role without a `from`', () => {
+        audit(request(), { action: 'user.create', outcome: 'success', target: { id: 'u2', username: 'sam' }, role: { to: 'user' } });
+
+        expect(info.mock.calls[0][1]).toBe('audit user.create success target="sam" role=user ip=203.0.113.7');
     });
 
     it('logs a failure at warn with its reason', () => {

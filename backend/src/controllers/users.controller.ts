@@ -146,8 +146,10 @@ export async function updateUser(req: Request, res: Response) {
             username && username !== user.username && 'username',
             email && email.toLowerCase() !== user.email && 'email',
             password && 'password',
-            typeof isAdmin === 'boolean' && isAdmin !== user.isAdmin && 'role',
         ].filter((field): field is string => typeof field === 'string');
+        const roleChanged = typeof isAdmin === 'boolean' && isAdmin !== user.isAdmin;
+        const roleOf = (admin: boolean) => (admin ? 'admin' : 'user') as 'admin' | 'user';
+        const role = roleChanged ? { from: roleOf(user.isAdmin), to: roleOf(isAdmin) } : undefined;
 
         if (username) user.username = username;
         if (email) user.email = email;
@@ -155,7 +157,7 @@ export async function updateUser(req: Request, res: Response) {
         if (typeof isAdmin === 'boolean') user.isAdmin = isAdmin;
 
         await user.save();
-        audit(req, { action: 'user.update', outcome: 'success', target: auditUser(user), changed });
+        audit(req, { action: 'user.update', outcome: 'success', target: auditUser(user), changed, role });
 
         res.status(200).json({ message: "User updated successfully" });
 
@@ -230,7 +232,7 @@ export async function createAdminUser(req: Request, res: Response) {
             action: 'user.create',
             outcome: 'success',
             target: auditUser(newUser),
-            changed: newUser.isAdmin ? ['role'] : [],
+            role: { to: newUser.isAdmin ? 'admin' : 'user' },
         });
         res.status(201).json({
             message: "User created successfully.",

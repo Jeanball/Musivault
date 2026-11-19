@@ -24,8 +24,10 @@ export interface AuditEvent {
     actor?: AuditUser;
     /** The account the action was about, when it is not the actor. */
     target?: AuditUser;
-    /** Names of the fields an edit changed, never their values. */
+    /** Names of the fields an edit changed (other than the role), never their values. */
     changed?: string[];
+    /** The role a user had and now has; `from` is left out for a new account. Roles are not secrets, unlike the other fields. */
+    role?: { from?: 'admin' | 'user'; to: 'admin' | 'user' };
     /** Why a failure happened, as a short code such as `wrong_password` or `unknown_user`. */
     reason?: string;
     /** What else identifies the action: the task id, or the route a non-admin tried. */
@@ -57,6 +59,7 @@ export function audit(req: Request, event: AuditEvent): void {
         actor,
         target: event.target,
         changed: event.changed,
+        role: event.role,
         reason: event.reason,
         detail: event.detail,
         ip: req.ip,
@@ -67,6 +70,7 @@ export function audit(req: Request, event: AuditEvent): void {
         actor && `actor=${JSON.stringify(actor.username)}`,
         entry.target && `target=${JSON.stringify(entry.target.username)}`,
         entry.changed?.length && `changed=${entry.changed.join(',')}`,
+        entry.role && `role=${entry.role.from ? `${entry.role.from}->` : ''}${entry.role.to}`,
         entry.reason && `reason=${entry.reason}`,
         entry.detail && `detail=${JSON.stringify(entry.detail)}`,
         entry.ip && `ip=${entry.ip}`,

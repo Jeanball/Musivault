@@ -52,7 +52,7 @@ describe('createAdminUser', () => {
         expect(user).toMatchObject({ username: 'sam', isAdmin: false });
         expect(user).not.toHaveProperty('password');
         expect(audit).toHaveBeenCalledWith(expect.anything(), {
-            action: 'user.create', outcome: 'success', target: { id: 'new-id', username: 'sam' }, changed: [],
+            action: 'user.create', outcome: 'success', target: { id: 'new-id', username: 'sam' }, role: { to: 'user' },
         });
     });
 
@@ -61,7 +61,7 @@ describe('createAdminUser', () => {
 
         expect(res.status).toHaveBeenCalledWith(201);
         expect(res.json.mock.calls[0][0].user.isAdmin).toBe(true);
-        expect(audit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ action: 'user.create', changed: ['role'] }));
+        expect(audit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ action: 'user.create', role: { to: 'admin' } }));
     });
 
     it('records nothing when the user was not created', async () => {
@@ -159,7 +159,7 @@ describe('updateUser', () => {
         expect(user).not.toHaveProperty('password');
         expect(user.save).toHaveBeenCalled();
         expect(audit).toHaveBeenCalledWith(expect.anything(), {
-            action: 'user.update', outcome: 'success', target: { id: String(user._id), username: 'samuel' }, changed: ['username', 'email'],
+            action: 'user.update', outcome: 'success', target: { id: String(user._id), username: 'samuel' }, changed: ['username', 'email'], role: undefined,
         });
     });
 
@@ -170,8 +170,19 @@ describe('updateUser', () => {
 
         expect(user).toMatchObject({ password: 'brand-new', isAdmin: true });
         const event = vi.mocked(audit).mock.calls[0][1];
-        expect(event.changed).toEqual(['password', 'role']);
+        expect(event.changed).toEqual(['password']);
+        expect(event.role).toEqual({ from: 'user', to: 'admin' });
         expect(JSON.stringify(event)).not.toContain('brand-new');
+    });
+
+    it('records a demotion as admin->user, on the account it was done to', async () => {
+        const user = stored({ isAdmin: true });
+
+        await update(user, { isAdmin: false });
+
+        expect(audit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+            target: { id: String(user._id), username: 'sam' }, role: { from: 'admin', to: 'user' },
+        }));
     });
 
     it('records only the fields that really changed', async () => {
@@ -179,7 +190,7 @@ describe('updateUser', () => {
 
         await update(user, { username: 'sam', email: 'SAM@example.com', isAdmin: false });
 
-        expect(vi.mocked(audit).mock.calls[0][1].changed).toEqual([]);
+        expect(vi.mocked(audit).mock.calls[0][1]).toMatchObject({ changed: [], role: undefined });
     });
 
     it('records nothing for a change that was refused', async () => {
