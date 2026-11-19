@@ -258,7 +258,7 @@ async function run() {
                     { _id: item._id },
                     { $set: { formatVerification: verificationState } }
                 );
-            } catch (error: any) {
+            } catch {
                 errors++;
                 const entry: VerificationEntry = {
                     itemId: String(item._id),
