@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Resolve the backend ESLint errors (unused imports, parameters and catch bindings, one `let` that is never reassigned) so `npm run lint` passes
+- Accept localhost, 127.0.0.1 and LAN origins on any port in development, so the Vite network URL and a second Vite port no longer fail with `Not allowed by CORS` (production and an explicit `CORS_ORIGINS` are unchanged)
 
 ---
 
