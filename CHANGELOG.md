@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Open the edit form right after adding a Discogs album (release page, master version or barcode) only when custom fields are configured, so they can be filled in immediately; otherwise show the album detail view
 
 ### Fixed
+- Refresh the collection when opening Stats or Collection, so prices synced in the background are reflected in the total value and priced-record count instead of waiting for a tab switch
 - Do not mark a Discogs album as locally modified (and show "Restore Discogs data") when only custom fields were saved: the Discogs "none" catalog-number placeholder and whitespace-only differences now compare equal to the empty values shown by the edit form
 
 ---
