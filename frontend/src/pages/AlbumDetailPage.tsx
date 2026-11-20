@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CircleAlert, HardDrive, ImagePlus, Pencil, RefreshCw, RotateCcw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { getPreferences } from '../api/preferences';
+import { getCustomFields } from '../api/customFields';
 import { isApiError } from '../api/errors';
 import { getRelease } from '../api/discogs';
 import {
@@ -51,11 +52,14 @@ const AlbumDetailPage: React.FC = () => {
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
     const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
     const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
-    // Adding a Discogs album lands here with ?edit=discogs so metadata and
-    // custom fields can be filled in right away, without hunting for "Modifica".
-    const openEditOnLoad = new URLSearchParams(location.search).get('edit') === 'discogs';
+    // Adding a Discogs album lands here with ?edit=discogs. Keep the intent for
+    // this visit only; the URL flag is consumed below. The edit form opens only
+    // when there are custom fields to fill in, otherwise the detail view stays.
+    const shouldOpenEditOnLoad = useRef(
+        new URLSearchParams(location.search).get('edit') === 'discogs'
+    );
     const [isEditingManual, setIsEditingManual] = useState(false);
-    const [isEditingDiscogs, setIsEditingDiscogs] = useState(openEditOnLoad);
+    const [isEditingDiscogs, setIsEditingDiscogs] = useState(false);
     const [isRestoringDiscogs, setIsRestoringDiscogs] = useState(false);
     const { formatValue } = useCurrency();
     const backTarget = (location.state as AlbumDetailLocationState | null)?.backTo || '/app/collection';
@@ -71,10 +75,10 @@ const AlbumDetailPage: React.FC = () => {
     }, [itemId]);
 
     useEffect(() => {
-        if (!openEditOnLoad) return;
+        if (!shouldOpenEditOnLoad.current) return;
         // Consume the flag: a reload or a later visit must not reopen the form.
         navigate(location.pathname, { replace: true, state: location.state });
-    }, [openEditOnLoad, navigate, location.pathname, location.state]);
+    }, [navigate, location.pathname, location.state]);
 
     useEffect(() => {
         if (item) {
@@ -85,12 +89,19 @@ const AlbumDetailPage: React.FC = () => {
 
     const fetchData = async (id: string) => {
         try {
-            const [itemRes, prefs] = await Promise.all([
+            const [itemRes, prefs, customFields] = await Promise.all([
                 getCollectionItem(id),
-                getPreferences()
+                getPreferences(),
+                shouldOpenEditOnLoad.current
+                    // A failed lookup must not lose the album or force the edit form.
+                    ? getCustomFields().catch(() => [])
+                    : Promise.resolve([]),
             ]);
             setItem(itemRes);
             setConditionGradingEnabled(prefs.enableConditionGrading || false);
+            if (shouldOpenEditOnLoad.current && customFields.length > 0) {
+                setIsEditingDiscogs(true);
+            }
         } catch (error) {
             console.error('Failed to fetch collection item:', error);
             setLoading(false);

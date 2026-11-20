@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AlbumDetailPage from './AlbumDetailPage';
 import { getCollectionItem, removeFromCollection } from '../api/collection';
+import { getCustomFields } from '../api/customFields';
 import { getPreferences } from '../api/preferences';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { useLocation, useNavigate, useParams } from 'react-router';
@@ -28,6 +29,7 @@ vi.mock('../api/collection', () => ({
     restoreDiscogsAlbum: vi.fn(),
 }));
 vi.mock('../api/preferences', () => ({ getPreferences: vi.fn() }));
+vi.mock('../api/customFields', () => ({ getCustomFields: vi.fn() }));
 vi.mock('../api/discogs', () => ({ getRelease: vi.fn() }));
 vi.mock('../utils/toast', () => ({ toastService: { success: vi.fn(), error: vi.fn() } }));
 vi.mock('../hooks/collection/useCollectionData', () => ({ useCollectionData: vi.fn() }));
@@ -79,6 +81,7 @@ describe('AlbumDetailPage', () => {
         vi.mocked(useNavigate).mockReturnValue(navigate);
         vi.mocked(getCollectionItem).mockResolvedValue(item);
         vi.mocked(getPreferences).mockResolvedValue({} as never);
+        vi.mocked(getCustomFields).mockResolvedValue([]);
         vi.mocked(removeFromCollection).mockResolvedValue(undefined);
         vi.mocked(useCollectionData).mockReturnValue({ refreshCollection } as never);
         vi.spyOn(window, 'confirm').mockReturnValue(true);
@@ -107,7 +110,34 @@ describe('AlbumDetailPage', () => {
         expect(navigate).not.toHaveBeenCalled();
     });
 
-    it('opens the Discogs edit form automatically when arriving with ?edit=discogs', async () => {
+    it('opens the Discogs edit form automatically when custom fields exist', async () => {
+        vi.mocked(useLocation).mockReturnValue({
+            pathname: '/app/album/item-1',
+            search: '?edit=discogs',
+            state: null,
+            key: 'default',
+            hash: '',
+        });
+        vi.mocked(getCustomFields).mockResolvedValue([
+            {
+                _id: 'field-1',
+                name: 'Shelf',
+                type: 'text',
+                order: 1,
+                createdAt: '2024-01-01T00:00:00.000Z',
+                updatedAt: '2024-01-01T00:00:00.000Z',
+            },
+        ]);
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByTestId('edit-modal')).toHaveTextContent('discogs');
+        await waitFor(() => expect(navigate).toHaveBeenCalledWith(
+            '/app/album/item-1',
+            { replace: true, state: null }
+        ));
+    });
+
+    it('shows the detail view when arriving with ?edit=discogs and no custom fields exist', async () => {
         vi.mocked(useLocation).mockReturnValue({
             pathname: '/app/album/item-1',
             search: '?edit=discogs',
@@ -117,10 +147,26 @@ describe('AlbumDetailPage', () => {
         });
         render(<AlbumDetailPage />);
 
-        expect(await screen.findByTestId('edit-modal')).toHaveTextContent('discogs');
+        expect(await screen.findByText('Kind of Blue')).toBeInTheDocument();
+        expect(screen.queryByTestId('edit-modal')).not.toBeInTheDocument();
         await waitFor(() => expect(navigate).toHaveBeenCalledWith(
             '/app/album/item-1',
             { replace: true, state: null }
         ));
+    });
+
+    it('shows the detail view when the custom field lookup fails', async () => {
+        vi.mocked(useLocation).mockReturnValue({
+            pathname: '/app/album/item-1',
+            search: '?edit=discogs',
+            state: null,
+            key: 'default',
+            hash: '',
+        });
+        vi.mocked(getCustomFields).mockRejectedValue(new Error('network'));
+        render(<AlbumDetailPage />);
+
+        expect(await screen.findByText('Kind of Blue')).toBeInTheDocument();
+        expect(screen.queryByTestId('edit-modal')).not.toBeInTheDocument();
     });
 });
