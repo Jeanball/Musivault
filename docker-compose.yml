@@ -61,6 +61,8 @@ services:
       - IMAGE_TAG=${IMAGE_TAG:-latest}
       # Price cache TTL in hours (default: 168 = 7 days)
       - PRICE_CACHE_TTL_HOURS=${PRICE_CACHE_TTL_HOURS:-168}
+      # Use the lowest marketplace listing when price suggestions are unavailable
+      - DISCOGS_PRICE_FALLBACK=${DISCOGS_PRICE_FALLBACK:-false}
     depends_on:
       mongodb:
         condition: service_healthy

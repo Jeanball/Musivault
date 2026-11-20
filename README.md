@@ -129,18 +129,25 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `FRONTEND_URL` | URL of the frontend (for CORS/Auth) | - | No |
 | `IMAGE_TAG` | Docker image tag to use | latest | No |
 | `PRICE_CACHE_TTL_HOURS` | Price cache TTL in hours | 168 | No |
+| `DISCOGS_PRICE_FALLBACK` | Use the lowest marketplace listing when Discogs price suggestions are unavailable. Stored as USD with the same amount for every condition grade | false | No |
 | `BACKEND_HOST` | Backend hostname for Nginx | musivault-backend | No |
 | `BACKEND_PORT` | Backend port for Nginx | 5000 | No |
 
 ### Optional Setup: Price Tracking
 
 <details>
-<summary>Needs a Discogs Personal Access Token and a (free) seller account.</summary>
+<summary>Needs a Discogs Personal Access Token for per-condition prices, or the fallback switch for a market-floor estimate.</summary>
+
+**Per-condition prices (normal mode)**
 
 1. **Enroll as a Discogs Seller**: You must have a seller account (it's free). Visit [Discogs Seller Settings](https://www.discogs.com/settings/seller/) to enroll.
 2. **Keep Discogs Currency as USD**: In your Discogs Seller Settings, ensure your currency is set to **USD**. Do not change it there! You will configure your local display currency directly within Musivault's settings.
 3. **Generate a Token**: Go to [Discogs Developer Settings](https://www.discogs.com/settings/developers), click **"Generate new token"**.
 4. **Configure Musivault**: Add the generated token as `DISCOGS_PAT` in your `.env` file or `docker-compose.yml`.
+
+**Fallback mode (no seller account needed)**
+
+Set `DISCOGS_PRICE_FALLBACK=true`. When Discogs price suggestions are unavailable, Musivault uses the release's cheapest current marketplace listing instead. The quote is stored in USD and applied to every condition grade, so it is an estimate rather than a grade-specific suggestion. You can still set `DISCOGS_PAT`; the fallback simply leaves the normal mode unchanged when it works.
 
 Once configured, prices can be fetched immediately from the **Admin Task Center**, or by restarting the backend server until the `2026-03-28_album-data-backfill` migration has succeeded.
 
