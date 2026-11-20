@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Import an album from a Spotify link into the manual-add form, prefilling title, artist, year, tracklist and cover for review before saving (requires optional `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`)
 - Open the edit form automatically after adding a Discogs album (release page, master version or barcode), so metadata and custom fields can be filled in immediately
 
 ### Fixed

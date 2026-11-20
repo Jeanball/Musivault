@@ -112,6 +112,8 @@ Access the app at [http://localhost:3000](http://localhost:3000)
 | `DISCOGS_PAT` | Discogs Personal Access Token | - | No |
 | `ENCRYPTION_KEY` | Encrypts users' Discogs tokens in the database. Without it, the Discogs account section in Settings is hidden. Changing it disconnects every Discogs account | - | No |
 | `TICKETMASTER_API_KEY` | Ticketmaster Consumer Key, for nearby concerts | - | No |
+| `SPOTIFY_CLIENT_ID` | Spotify app Client ID, for importing albums from a Spotify link | - | No |
+| `SPOTIFY_CLIENT_SECRET` | Spotify app Client Secret. No redirect URI is needed | - | No |
 | `MONGO_URI` | MongoDB connection string | mongodb://mongodb:27017/musivault | No |
 | `PORT` | Application port | 3000 | No |
 | `JWT_SECRET` | JWT signing secret | ${SESSION_SECRET} | No |
@@ -177,6 +179,21 @@ The **Shows Near You** section of Discover lists upcoming concerts around you, r
 The free tier allows 5000 calls a day. Results are cached per geographic area for 6 hours and only refreshed when someone actually opens the page, so a typical instance uses a few dozen calls a day. Leave the variable empty to hide the section entirely.
 
 > **Coverage note:** Ticketmaster's catalogue is strongest in North America, the UK, Ireland and Australia, and thinner elsewhere. Record shops are unaffected, they come from OpenStreetMap and need no key.
+
+</details>
+
+### Optional Setup: Spotify Album Import
+
+<details>
+<summary>Needs a free Spotify app. Discogs and manual entry work without it.</summary>
+
+Paste an album link such as `https://open.spotify.com/intl-it/album/50E1iPxp3XKXkykr3F2Kaz` into the search field. Musivault fetches the title, artist, year, tracklist and cover, then opens the manual-add form prefilled so you can review everything before saving. The album is stored locally as a manual album; no Spotify account is connected and no redirect URI is needed.
+
+1. **Create an app**: Open the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create an app.
+2. **Copy the credentials**: Take the **Client ID** and **Client Secret** from the app's settings.
+3. **Configure Musivault**: Add them as `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` in your `.env` file or `docker-compose.yml`, then restart the backend.
+
+The server uses Spotify's client-credentials flow for public album metadata. Leave either variable empty to disable the import action.
 
 </details>
 

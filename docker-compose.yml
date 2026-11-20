@@ -42,6 +42,9 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
       # Ticketmaster Discovery API Consumer Key (optional - required for nearby concerts)
       - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY:-}
+      # Spotify app credentials (optional - required to import albums from a Spotify link)
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-}
       # Initial admin (optional - remove after first run)
       - ADMIN_EMAIL=${ADMIN_EMAIL:-}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-}

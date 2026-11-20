@@ -5,6 +5,7 @@ import { addManualAlbum, updateDiscogsAlbum, updateManualAlbum } from '../../api
 import { getCustomFields } from '../../api/customFields';
 import type { CollectionItem } from '../../types/collection.types';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
+import type { SpotifyAlbumImport } from '../../types/spotify.types';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -75,6 +76,39 @@ describe('ManualAlbumForm custom fields', () => {
         vi.clearAllMocks();
         vi.mocked(getCustomFields).mockResolvedValue(fields);
         vi.mocked(addManualAlbum).mockResolvedValue({ item: manualItem({}) } as never);
+    });
+
+    it('prefills the form from an imported Spotify album', async () => {
+        const prefill: SpotifyAlbumImport = {
+            title: 'Blue Train',
+            artist: 'John Coltrane',
+            year: '1957',
+            coverImage: '/uploads/covers/spotify.jpg',
+            spotifyId: '50E1iPxp3XKXkykr3F2Kaz',
+            externalUrl: 'https://open.spotify.com/album/50E1iPxp3XKXkykr3F2Kaz',
+            tracklist: [
+                { position: '1', title: 'Blue Train', duration: '10:32', artist: '' },
+            ],
+        };
+
+        render(<ManualAlbumForm prefill={prefill} onSaved={vi.fn()} />);
+
+        await screen.findByText('Binder');
+        expect(screen.getByPlaceholderText('search.albumPlaceholder')).toHaveValue('Blue Train');
+        expect(screen.getByPlaceholderText('search.artistPlaceholder')).toHaveValue('John Coltrane');
+        expect(screen.getByPlaceholderText('2024')).toHaveValue('1957');
+        expect(screen.getByPlaceholderText('search.trackTitle')).toHaveValue('Blue Train');
+        expect(screen.getByAltText('Cover preview')).toHaveAttribute('src', '/uploads/covers/spotify.jpg');
+        expect(screen.getByRole('link', { name: 'search.spotifySource' })).toHaveAttribute('href', prefill.externalUrl);
+
+        fireEvent.click(screen.getByRole('button', { name: 'common.add' }));
+
+        await waitFor(() => expect(addManualAlbum).toHaveBeenCalledTimes(1));
+        const form = vi.mocked(addManualAlbum).mock.calls[0][0];
+        expect(form.get('coverImage')).toBe('/uploads/covers/spotify.jpg');
+        expect(JSON.parse(String(form.get('tracklist')))).toEqual([
+            { position: '1', title: 'Blue Train', duration: '10:32', artist: '' },
+        ]);
     });
 
     it('saves the filled custom fields when adding an album', async () => {

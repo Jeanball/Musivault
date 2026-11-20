@@ -918,6 +918,8 @@ interface ManualAlbumBody {
   sleeveCondition?: string;
   /** 'true' clears the existing cover during an edit. */
   removeCover?: string;
+  /** Local cover returned by the Spotify import endpoint, used when no file is uploaded. */
+  coverImage?: string;
 }
 
 function trimmedString(value: unknown): string {
@@ -1007,6 +1009,30 @@ function manualCoverPath(file: Express.Multer.File | undefined): string {
   return file ? `/uploads/covers/${file.filename}` : '';
 }
 
+/** Only Spotify's image CDN is fetched from a client-supplied URL. */
+const SPOTIFY_COVER_CDN = /^https:\/\/i\.scdn\.co\//i;
+
+/**
+ * Cover of a new manual album: an uploaded file wins; otherwise a cover
+ * localized by the Spotify import endpoint is reused. A Spotify CDN URL is
+ * accepted only so a failed localization can be retried here, never an
+ * arbitrary client-provided URL.
+ */
+async function resolveNewManualCover(
+  req: Request,
+  body: ManualAlbumBody
+): Promise<string> {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (file) return manualCoverPath(file);
+
+  const value = trimmedString(body.coverImage);
+  if (value.startsWith('/uploads/covers/')) return value;
+  if (SPOTIFY_COVER_CDN.test(value)) {
+    return downloadCoverToLocal(value, 'Spotify cover');
+  }
+  return '';
+}
+
 /** Keep the uploads directory tidy when a manual cover is replaced or cleared. */
 async function removeStoredCover(coverPath: string | null | undefined): Promise<void> {
   if (!coverPath || !coverPath.startsWith('/uploads/covers/')) return;
@@ -1086,8 +1112,8 @@ export async function addManualAlbum(req: Request, res: Response) {
       return;
     }
 
-    // Handle cover image if uploaded
-    const coverImagePath = manualCoverPath((req as any).file as Express.Multer.File | undefined);
+    // Handle an uploaded cover or one already resolved by the Spotify importer
+    const coverImagePath = await resolveNewManualCover(req, body);
 
     // Create manual album
     const album = new Album({
