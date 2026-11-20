@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Optional `DISCOGS_PRICE_FALLBACK` switch: when Discogs price suggestions are unavailable (for example without seller settings), use the cheapest current marketplace listing as a USD market-floor estimate for every condition grade
+- Import an album from a Spotify link into the manual-add form, prefilling title, artist, year, tracklist and cover for review before saving (requires optional `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`)
+- Open the edit form right after adding a Discogs album (release page, master version or barcode) only when custom fields are configured, so they can be filled in immediately; otherwise show the album detail view
+
+### Fixed
+- Refresh the collection when opening Stats or Collection, so prices synced in the background are reflected in the total value and priced-record count instead of waiting for a tab switch
+- Do not mark a Discogs album as locally modified (and show "Restore Discogs data") when only custom fields were saved: the Discogs "none" catalog-number placeholder and whitespace-only differences now compare equal to the empty values shown by the edit form
+
 ---
 
 ## [1.16.2] - 2026-11-17

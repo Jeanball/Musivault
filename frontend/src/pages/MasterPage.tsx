@@ -35,11 +35,6 @@ interface VersionsPageData {
 
 type FormatFilter = 'all' | 'CD' | 'Vinyl' | 'Cassette';
 
-interface AddedAlbumInfo {
-    id: string;
-    title: string;
-}
-
 const VERSIONS_PER_PAGE = 5;
 
 /** Discogs dates come as "2005", "2005-05" or "2005-05-23". */
@@ -78,7 +73,6 @@ const MasterPage: React.FC = () => {
     const [loadingReleaseIds, setLoadingReleaseIds] = useState<Set<number>>(new Set());
 
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [addedAlbum, setAddedAlbum] = useState<AddedAlbumInfo | null>(null);
 
     // Confirmation modal state
     const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
@@ -278,10 +272,9 @@ const MasterPage: React.FC = () => {
             });
             toastService.success(t('common.addedSuccess', { title: album.title }));
             void refreshCollection({ silent: true });
-            setAddedAlbum({
-                id: item._id,
-                title: album.title
-            });
+            // Go straight to the edit form so custom fields and corrections
+            // can be entered before the album is filed away.
+            navigate(`/app/album/${item._id}?edit=discogs`);
         } catch (err) {
             const message = isApiError(err) ? err.serverMessage : undefined;
             toastService.error(message || t('app.error'));
@@ -289,18 +282,6 @@ const MasterPage: React.FC = () => {
             setIsSubmitting(false);
         }
     };
-
-    const handleGoToAlbum = () => {
-        if (addedAlbum) {
-            navigate(`/app/album/${addedAlbum.id}`);
-        }
-    };
-
-    const handleContinueSearching = () => {
-        setAddedAlbum(null);
-        navigate('/app');
-    };
-
 
     if (isLoading) {
         return <div className="flex justify-center items-center min-h-screen"><span className="loading loading-spinner loading-lg"></span></div>;
@@ -572,34 +553,6 @@ const MasterPage: React.FC = () => {
                 />
             )}
 
-            {!isRematchMode && addedAlbum && (
-                <dialog className="modal modal-open">
-                    <div className="modal-box text-center">
-                        <div className="text-5xl mb-4">🎉</div>
-                        <h3 className="font-bold text-xl mb-2">{t('common.albumAdded')}</h3>
-                        <p className="text-base-content/70 mb-6">
-                            {t('common.addedSuccess', { title: addedAlbum.title })}
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleGoToAlbum}
-                            >
-                                {t('common.viewAlbum')}
-                            </button>
-                            <button
-                                className="btn btn-outline"
-                                onClick={handleContinueSearching}
-                            >
-                                {t('common.continueSearching')}
-                            </button>
-                        </div>
-                    </div>
-                    <form method="dialog" className="modal-backdrop">
-                        <button onClick={() => setAddedAlbum(null)}>{t('common.close')}</button>
-                    </form>
-                </dialog>
-            )}
         </div>
 
     );
