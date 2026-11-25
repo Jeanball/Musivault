@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Fetch a newly followed or un-excluded style right away, debounced and through the same rate-limited MusicBrainz queue as the weekly task
+- Follow styles that are not in your collection, with suggested styles when there is nothing to base Discover on yet
+
+### Fixed
+- Fetch upcoming releases with one MusicBrainz search per wanted style, so the refresh no longer fails past MusicBrainz's 500-result limit
 ### Fixed
 - Space the Portfolio Evolution chart by time instead of by position, so quiet and busy periods no longer look alike
 - Rebuild the collection value history after a Discogs apply that only adds or relinks records, so the Portfolio Evolution chart no longer stays hidden behind a single point
