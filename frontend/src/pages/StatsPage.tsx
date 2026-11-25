@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
@@ -10,6 +10,7 @@ import StatsKpiRow from '../components/Stats/StatsKpiRow';
 import DistributionSection from '../components/Stats/DistributionSection';
 import TopValueItems from '../components/Stats/TopValueItems';
 import { useCurrency } from '../hooks/useCurrency';
+import { formatAxisDate, toChartPoints } from '../utils/valueHistoryChart';
 
 const StatsPage: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -18,6 +19,9 @@ const StatsPage: React.FC = () => {
     const syncInfo = useCollectionSyncInfo(collection.length > 0);
     const { points, reload } = useValueHistory();
     const { formatValue, formatCompactValue } = useCurrency();
+
+    // A numeric timestamp lets the axis space the sparse points by time instead of by position.
+    const chartData = useMemo(() => toChartPoints(points), [points]);
 
     // The chart reads the snapshot table, the KPIs read the collection. Refresh
     // both together or the last point of the curve stops matching the total
@@ -79,7 +83,7 @@ const StatsPage: React.FC = () => {
                     <div className="w-full h-[300px] md:h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                                data={points}
+                                data={chartData}
                                 margin={{
                                     top: 10,
                                     right: 10,
@@ -96,16 +100,15 @@ const StatsPage: React.FC = () => {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--color-base-content) 10%, transparent)" vertical={false} />
                                 <XAxis
-                                    dataKey="date"
+                                    dataKey="t"
+                                    type="number"
+                                    scale="time"
+                                    domain={['dataMin', 'dataMax']}
                                     stroke="color-mix(in oklab, var(--color-base-content) 50%, transparent)"
                                     fontSize={12}
                                     tickMargin={10}
                                     minTickGap={24}
-                                    tickFormatter={(val) => {
-                                        // Shorten date for small screens or standard format
-                                        const d = new Date(val);
-                                        return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear().toString().slice(2)}`;
-                                    }}
+                                    tickFormatter={(ts) => formatAxisDate(Number(ts))}
                                 />
                                 {/* Compact ticks ("$1.9K"): a full "$1,900.00" overflows the
                                     axis box on a phone and loses its leading digits. The
@@ -130,7 +133,7 @@ const StatsPage: React.FC = () => {
                                     }}
                                     itemStyle={{ color: 'var(--color-primary)' }}
                                     formatter={(value) => [formatValue(Number(value)), t('stats.value')]}
-                                    labelFormatter={(label) => `${t('stats.chartDateLabel')}: ${label}`}
+                                    labelFormatter={(ts) => `${t('stats.chartDateLabel')}: ${new Date(Number(ts)).toLocaleDateString(i18n.language)}`}
                                 />
                                 <Area
                                     type="monotone"
