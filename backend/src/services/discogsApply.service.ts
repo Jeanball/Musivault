@@ -259,7 +259,12 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
                     update: { $set: { addedAt: d.addedAt } }
                 }
             })));
-            // The value history is derived from the dates added, so it follows them.
+        }
+
+        // The value history is derived from which items exist, their prices and their dates added, so it follows
+        // all three. An add-only apply used to leave one snapshot, and the chart needs two points to draw (#58).
+        // A stopped apply still rebuilds for the records it did finish.
+        if (added + relinked + datesUpdated > 0) {
             await rebuildValueHistory(userId, { replaceSeeded: true });
             await recordValueSnapshot(userId);
         }
@@ -282,7 +287,8 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
 
 /**
  * Apply the rows the user ticked in the last check, in the background: relink merged items, add new
- * records, and optionally set dates added from Discogs (which rebuilds the value history).
+ * records, and optionally set dates added from Discogs. Whenever it added, relinked or re-dated
+ * something it rebuilds the value history, keeping the rows the price sync measured.
  * The job re-reads the Discogs collection first and only does what still holds; a ticked row whose
  * situation changed is skipped, never guessed at. It also links the user's matched items to their
  * Discogs entries (`discogsInstanceId`) so later merges are found exactly.

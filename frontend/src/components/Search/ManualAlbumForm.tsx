@@ -11,6 +11,7 @@ import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../../utils/conditions';
 import { getStylesForGenres, pruneStylesForGenres } from '../../utils/discogsTags';
 import type { CollectionItem, Track } from '../../types/collection.types';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
+import type { SpotifyAlbumImport } from '../../types/spotify.types';
 import { Upload, X, Music, Plus, Trash2 } from 'lucide-react';
 import DiscogsTagSelect from '../Common/DiscogsTagSelect';
 
@@ -37,12 +38,14 @@ interface ManualAlbumFormProps {
     item?: CollectionItem | null;
     /**
      * `discogs` edits a Discogs album on this user's copy: item-level data
-     * (format and custom fields) stays editable here, while the manual-only
-     * value field stays hidden and no new album is created.
+     * (format, custom fields, conditions and the value) is editable here and no
+     * new album is created. The value replaces the Discogs price when set.
      */
     mode?: 'manual' | 'discogs';
     /** Show the condition grades when the user enabled condition tracking. */
     showConditions?: boolean;
+    /** Metadata fetched from a Spotify link, used to prefill a new album. */
+    prefill?: SpotifyAlbumImport | null;
     onSaved?: (item: CollectionItem) => void;
     onCancel?: () => void;
 }
@@ -51,6 +54,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
     item,
     mode = 'manual',
     showConditions = false,
+    prefill,
     onSaved,
     onCancel
 }) => {
@@ -65,14 +69,16 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
     ]));
 
     const firstLabel = item?.album.labels?.[0];
-    const currentCover = item?.album.cover_image || item?.album.thumb || '';
-    const initialTracks = item?.album.tracklist?.length
-        ? item.album.tracklist.map(createTrackDraft)
-        : [createTrackDraft()];
+    const currentCover = prefill?.coverImage || item?.album.cover_image || item?.album.thumb || '';
+    const initialTracks = prefill?.tracklist?.length
+        ? prefill.tracklist.map(createTrackDraft)
+        : item?.album.tracklist?.length
+            ? item.album.tracklist.map(createTrackDraft)
+            : [createTrackDraft()];
 
-    const [title, setTitle] = useState(item?.album.title || '');
-    const [artist, setArtist] = useState(item?.album.artist || '');
-    const [year, setYear] = useState(item?.album.year || '');
+    const [title, setTitle] = useState(prefill?.title || item?.album.title || '');
+    const [artist, setArtist] = useState(prefill?.artist || item?.album.artist || '');
+    const [year, setYear] = useState(prefill?.year || item?.album.year || '');
     const [format, setFormat] = useState(item?.format.name || FORMATS[0]);
     const [label, setLabel] = useState(firstLabel?.name || '');
     const [catno, setCatno] = useState(firstLabel?.catno === 'none' ? '' : firstLabel?.catno || '');
@@ -194,7 +200,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
             formData.append('catno', catno.trim());
             formData.append('genres', genres.join(', '));
             formData.append('styles', styles.join(', '));
-            if (!isDiscogs) formData.append('value', value.trim());
+            formData.append('value', value.trim());
 
             const filledTracks = tracks
                 .map(track => ({
@@ -223,6 +229,9 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
 
             if (coverFile) {
                 formData.append('cover', coverFile);
+            } else if (prefill?.coverImage && !removeCover) {
+                // Already downloaded by the backend when the Spotify link was imported.
+                formData.append('coverImage', prefill.coverImage);
             }
             if (isEditing && removeCover) {
                 formData.append('removeCover', 'true');
@@ -268,6 +277,17 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
                             ? t('album.editDiscogsTitle')
                             : isEditing ? t('search.manualEditTitle') : t('search.manualTitle')}
                     </h3>
+
+                    {prefill && !isEditing && (
+                        <a
+                            href={prefill.externalUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="link link-primary text-sm -mt-2 mb-4"
+                        >
+                            {t('search.spotifySource')}
+                        </a>
+                    )}
 
                     {/* Cover Image Upload */}
                     <div className="flex flex-col mb-4">
@@ -440,23 +460,25 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
                             onChange={setStyles}
                         />
 
-                        {!isDiscogs && (
-                            <div className="flex flex-col">
-                                <label className="label w-full justify-between">
-                                    <span className="text-sm">{t('search.valueUsd')}</span>
-                                    <span className="text-xs text-base-content/50">{t('search.optional')}</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    value={value}
-                                    onChange={(e) => setValue(e.target.value)}
-                                    placeholder="0.00"
-                                    className="input w-full"
-                                    min={0}
-                                    step="0.01"
-                                />
-                            </div>
-                        )}
+                        <div className="flex flex-col">
+                            <label className="label w-full justify-between" htmlFor="manual-value">
+                                <span className="text-sm">{t('search.valueUsd')}</span>
+                                <span className="text-xs text-base-content/50">{t('search.optional')}</span>
+                            </label>
+                            <input
+                                id="manual-value"
+                                type="number"
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                placeholder="0.00"
+                                className="input w-full"
+                                min={0}
+                                step="0.01"
+                            />
+                            {isDiscogs && (
+                                <span className="text-xs text-base-content/50 mt-1">{t('search.valueReplacesDiscogs')}</span>
+                            )}
+                        </div>
                     </div>
 
                     {/* Condition grades, only when the user enabled them */}

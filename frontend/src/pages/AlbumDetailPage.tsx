@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CircleAlert, HardDrive, ImagePlus, Pencil, RefreshCw, RotateCcw } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { getPreferences } from '../api/preferences';
+import { getCustomFields } from '../api/customFields';
 import { isApiError } from '../api/errors';
 import { getRelease } from '../api/discogs';
 import {
@@ -17,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { toastService } from '../utils/toast';
 import { stripDiscogsSuffix } from '../utils/formatters';
 import type { CollectionItem } from '../types/collection.types';
-import { getItemValue } from '../utils/itemValue';
+import { getItemValue, getPriceForCondition } from '../utils/itemValue';
 import { MEDIA_CONDITIONS, SLEEVE_CONDITIONS } from '../utils/conditions';
 import { useCollectionData } from '../hooks/collection/useCollectionData';
 import { getImageUrl } from '../utils/imageUrl';
@@ -51,6 +52,12 @@ const AlbumDetailPage: React.FC = () => {
     const [isOpeningRematch, setIsOpeningRematch] = useState(false);
     const [isIgnoringFormatAlert, setIsIgnoringFormatAlert] = useState(false);
     const [isRestoringFormatAlert, setIsRestoringFormatAlert] = useState(false);
+    // Adding a Discogs album lands here with ?edit=discogs. Keep the intent for
+    // this visit only; the URL flag is consumed below. The edit form opens only
+    // when there are custom fields to fill in, otherwise the detail view stays.
+    const shouldOpenEditOnLoad = useRef(
+        new URLSearchParams(location.search).get('edit') === 'discogs'
+    );
     const [isEditingManual, setIsEditingManual] = useState(false);
     const [isEditingDiscogs, setIsEditingDiscogs] = useState(false);
     const [isRestoringDiscogs, setIsRestoringDiscogs] = useState(false);
@@ -68,6 +75,12 @@ const AlbumDetailPage: React.FC = () => {
     }, [itemId]);
 
     useEffect(() => {
+        if (!shouldOpenEditOnLoad.current) return;
+        // Consume the flag: a reload or a later visit must not reopen the form.
+        navigate(location.pathname, { replace: true, state: location.state });
+    }, [navigate, location.pathname, location.state]);
+
+    useEffect(() => {
         if (item) {
             searchSpotify(item.album.artist, item.album.title);
             setLoading(false);
@@ -76,12 +89,19 @@ const AlbumDetailPage: React.FC = () => {
 
     const fetchData = async (id: string) => {
         try {
-            const [itemRes, prefs] = await Promise.all([
+            const [itemRes, prefs, customFields] = await Promise.all([
                 getCollectionItem(id),
-                getPreferences()
+                getPreferences(),
+                shouldOpenEditOnLoad.current
+                    // A failed lookup must not lose the album or force the edit form.
+                    ? getCustomFields().catch(() => [])
+                    : Promise.resolve([]),
             ]);
             setItem(itemRes);
             setConditionGradingEnabled(prefs.enableConditionGrading || false);
+            if (shouldOpenEditOnLoad.current && customFields.length > 0) {
+                setIsEditingDiscogs(true);
+            }
         } catch (error) {
             console.error('Failed to fetch collection item:', error);
             setLoading(false);
@@ -450,6 +470,13 @@ const AlbumDetailPage: React.FC = () => {
                         {(() => {
                             const val = getItemValue(item);
                             const isManual = Boolean(album.isManual);
+                            // A value typed in by hand replaces the Discogs price, so say so on Discogs albums too.
+                            const showsManualValue = isManual || (item.manualValue != null && item.manualValue > 0);
+                            // The Discogs price keeps refreshing under a manual value, so show it: the manual
+                            // value can go stale, and clearing it brings the Discogs price back.
+                            const discogsPrice = showsManualValue && !isManual && item.priceCache
+                                ? getPriceForCondition(item.priceCache, item.mediaCondition)
+                                : 0;
                             const gradeLabel = item.mediaCondition || 'VG+';
                             const lastUpdated = item.priceCache?.updatedAt
                                 ? new Date(item.priceCache.updatedAt).toLocaleString(undefined, {
@@ -477,8 +504,13 @@ const AlbumDetailPage: React.FC = () => {
                                         </button>
                                     )}
                                     <span className="text-xs text-base-content/50">
-                                        {isManual
-                                            ? t('album.manualValue')
+                                        {showsManualValue
+                                            ? <>
+                                                {t('album.manualValue')}
+                                                {discogsPrice > 0 && (
+                                                    <span className="opacity-70"> · {t('album.discogsPrice')} {formatValue(discogsPrice)}</span>
+                                                )}
+                                            </>
                                             : <>{gradeLabel} {lastUpdated && <span className="opacity-70">· {lastUpdated}</span>}</>}
                                     </span>
                                 </FieldRow>

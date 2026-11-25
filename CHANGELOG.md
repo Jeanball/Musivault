@@ -13,6 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Validate and protect the admin user routes: creating a user no longer always makes an administrator and checks the username, email and a 6-character password; editing checks the same and refuses a username or email another user has; you cannot delete your own account, and the last administrator cannot be demoted; reading a user no longer returns the password hash or the encrypted Discogs token
+- Lint the backend with ESLint, with `npm run lint` and a lint step in the CI workflow. `no-explicit-any` is reported as a warning for now (45 existing uses)
+- Add root npm scripts `lint`, `test`, `build`, `check` (all of them, as CI runs them) and `install:all`
+- Add `CONTRIBUTING.md` (branches, `develop` as the pull request base, commits, `npm run check`, changelog, translations) and point the README and the pull request template to it
+- Add Dependabot with a single monthly pull request against `develop` for the npm packages (root, frontend, backend), the GitHub Actions and both Dockerfiles
+- Resolve the backend ESLint errors (unused imports, parameters and catch bindings, one `let` that is never reassigned) so `npm run lint` passes
+- Accept localhost, 127.0.0.1 and LAN origins on any port in development, so the Vite network URL and a second Vite port no longer fail with `Not allowed by CORS` (production and an explicit `CORS_ORIGINS` are unchanged)
+- Accept a manual value when editing a Discogs album, so a record Discogs has no price for can count in the totals and the value history
+- Show the value field when editing a Discogs album, and label a hand-entered value as manual on the album page
+- Show the Discogs price next to a manual value on the album page, so a value that has gone stale can be spotted
+- Optional `DISCOGS_PRICE_FALLBACK` switch: when Discogs price suggestions are unavailable (for example without seller settings), use the cheapest current marketplace listing as a USD market-floor estimate for every condition grade
+- Import an album from a Spotify link into the manual-add form, prefilling title, artist, year, tracklist and cover for review before saving (requires optional `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`)
+- Open the edit form right after adding a Discogs album (release page, master version or barcode) only when custom fields are configured, so they can be filled in immediately; otherwise show the album detail view
+- Refresh the collection when opening Stats or Collection, so prices synced in the background are reflected in the total value and priced-record count instead of waiting for a tab switch
+- Do not mark a Discogs album as locally modified (and show "Restore Discogs data") when only custom fields were saved: the Discogs "none" catalog-number placeholder and whitespace-only differences now compare equal to the empty values shown by the edit form
+- Fetch a newly followed or un-excluded style right away, debounced and through the same rate-limited MusicBrainz queue as the weekly task
+- Follow styles that are not in your collection, with suggested styles when there is nothing to base Discover on yet
+- Fetch upcoming releases with one MusicBrainz search per wanted style, so the refresh no longer fails past MusicBrainz's 500-result limit
+- Space the Portfolio Evolution chart by time instead of by position, so quiet and busy periods no longer look alike
+- Rebuild the collection value history after a Discogs apply that only adds or relinks records, so the Portfolio Evolution chart no longer stays hidden behind a single point
 
 ---
 
