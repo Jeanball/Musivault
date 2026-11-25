@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add and edit users from the Administration page: an "Add user" dialog (username, email, password, administrator) and an edit dialog for the username, email, password and role of an existing user
 - Record security events as structured `audit` lines in the server log, with the client address: logins and signups (a failed login says whether the user exists, never what was typed), throttled login attempts, user creates, edits (which fields changed, not their values, and a role change as `user->admin` or `admin->user`) and deletes, non-administrators calling admin routes, and manual task runs
 
+### Changed
+- Run on Node 24 (the active LTS, Node 20 has reached end of life): `.nvmrc`, `engines`, both Dockerfiles and the CI workflow
+
 ### Fixed
 - Validate and protect the admin user routes: creating a user no longer always makes an administrator and checks the username, email and a 6-character password; editing checks the same and refuses a username or email another user has; you cannot delete your own account, and the last administrator cannot be demoted; reading a user no longer returns the password hash or the encrypted Discogs token
 - Lint the backend with ESLint, with `npm run lint` and a lint step in the CI workflow. `no-explicit-any` is reported as a warning for now (45 existing uses)
@@ -32,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fetch upcoming releases with one MusicBrainz search per wanted style, so the refresh no longer fails past MusicBrainz's 500-result limit
 - Space the Portfolio Evolution chart by time instead of by position, so quiet and busy periods no longer look alike
 - Rebuild the collection value history after a Discogs apply that only adds or relinks records, so the Portfolio Evolution chart no longer stays hidden behind a single point
+- Update the backend, frontend and root dependencies with `npm audit fix` (lockfiles only, no version range changed): `npm audit` goes from 24 findings to none in the backend, from 23 to one moderate in the frontend (`i18next` needs a major bump) and from 5 to none at the root
 
 ---
 
