@@ -106,6 +106,26 @@ describe('albumOverrides.utils', () => {
         expect(overrides).toBeNull();
     });
 
+    it('ignores whitespace-only differences in text fields', () => {
+        const overrides = buildAlbumOverrides(
+            { ...baseAlbum, title: 'Kind of Blue  ', artist: ' Miles Davis' },
+            null,
+            { title: 'Kind of Blue', artist: 'Miles Davis' }
+        );
+
+        expect(overrides).toBeNull();
+    });
+
+    it('treats the Discogs "none" catalog number as blank when comparing labels', () => {
+        const overrides = buildAlbumOverrides(
+            { ...baseAlbum, labels: [{ name: 'Columbia', catno: 'none', discogsId: 999 }] },
+            null,
+            { labels: [{ name: 'Columbia', catno: '' }] }
+        );
+
+        expect(overrides).toBeNull();
+    });
+
     it('applies the edits to a plain collection item', () => {
         const item = { _id: 'item-1', album: baseAlbum, albumOverrides: { year: '1958' } };
         const applied = applyAlbumOverrides(item);

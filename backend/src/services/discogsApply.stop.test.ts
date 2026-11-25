@@ -40,6 +40,7 @@ vi.mock('./discogsSync.service', async importOriginal => ({
 
 import CollectionItem from '../models/CollectionItem';
 import { fetchCollection, hasActiveJob } from './discogsSync.service';
+import { rebuildValueHistory, recordValueSnapshot } from './valueSnapshot.service';
 import { processImportRow } from './import.service';
 import { DiscogsApplyError, startApply, stopApply } from './discogsApply.service';
 import type { DiscogsCollectionRelease } from '../types/discogs.types';
@@ -137,5 +138,34 @@ describe('stopApply', () => {
             userId,
             expect.objectContaining({ discogsInstanceId: 10, addedAt: new Date('2020-01-01T00:00:00Z'), retryOnRateLimit: true })
         );
+    });
+
+    describe('value history', () => {
+        it('is rebuilt after an apply that only adds records (#58)', async () => {
+            await apply({ add: [1, 2], relink: [], useDiscogsDates: false });
+
+            expect(rebuildValueHistory).toHaveBeenCalledWith(userId, { replaceSeeded: true });
+            expect(recordValueSnapshot).toHaveBeenCalledWith(userId);
+        });
+
+        it('is rebuilt for the records a stopped apply finished', async () => {
+            vi.mocked(processImportRow).mockImplementationOnce(async () => {
+                await stopApply(userId);
+                return { success: true };
+            });
+
+            await apply({ add: [1, 2, 3], relink: [], useDiscogsDates: false });
+
+            expect(rebuildValueHistory).toHaveBeenCalledTimes(1);
+        });
+
+        it('is left alone when nothing was added, relinked or re-dated', async () => {
+            vi.mocked(processImportRow).mockResolvedValue({ success: false, skipped: true, reason: 'Already in collection' });
+
+            await apply({ add: [1], relink: [], useDiscogsDates: false });
+
+            expect(rebuildValueHistory).not.toHaveBeenCalled();
+            expect(recordValueSnapshot).not.toHaveBeenCalled();
+        });
     });
 });

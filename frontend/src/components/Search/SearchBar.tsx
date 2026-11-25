@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { searchAll, searchByBarcode, lookup, getRelease } from '../../api/discogs';
 import { addToCollection } from '../../api/collection';
+import { getSpotifyAlbum } from '../../api/spotify';
 import { isApiError, isCanceledError, isRateLimitError } from '../../api/errors';
 import { useTranslation } from 'react-i18next';
 import { toastService } from "../../utils/toast";
@@ -12,13 +13,14 @@ import BarcodeScannerModal from '../Modal/BarcodeScannerModal';
 import SelectReleaseModal from '../Modal/SelectReleaseModal';
 import ManualAlbumForm from './ManualAlbumForm';
 import type { DiscogsResult, ArtistResult } from '../../types/discogs.types';
+import type { SpotifyAlbumImport } from '../../types/spotify.types';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useRecentSearches } from '../../hooks/useRecentSearches';
 import { useCollectionData } from '../../hooks/collection/useCollectionData';
 import { detectIntent } from '../../utils/searchIntent';
 import SearchField from './SearchField';
 import { ScanFrameIcon } from './SearchIcons';
-import { PenLine, ArrowLeft } from 'lucide-react';
+import { PenLine, ArrowLeft, Download } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUrl';
 
 
@@ -52,6 +54,9 @@ const SearchBar: React.FC = () => {
     /** Set when the list holds an exact reference match rather than a text search */
     const [matchedReference, setMatchedReference] = useState<string | null>(null);
     const [showManualForm, setShowManualForm] = useState(false);
+    /** Metadata of a Spotify link, kept until the prefilled form is saved or left. */
+    const [spotifyPrefill, setSpotifyPrefill] = useState<SpotifyAlbumImport | null>(null);
+    const [isImportingSpotify, setIsImportingSpotify] = useState(false);
 
     /**
      * Every query costs four Discogs calls (masters + releases, albums + artists),
@@ -115,6 +120,18 @@ const SearchBar: React.FC = () => {
 
     useEffect(() => {
         const query = debouncedSearchQuery.trim();
+
+        // A Spotify link is an import request, not a Discogs text query. Showing
+        // the import banner below must never fire a pointless Discogs search.
+        if (detectIntent(query).kind === 'spotifyUrl') {
+            setAlbumResults([]);
+            setArtistResults([]);
+            setSearchError(null);
+            setHasSearched(false);
+            setMatchedReference(null);
+            setIsLoading(false);
+            return;
+        }
 
         if (query.length < MIN_QUERY_LENGTH) {
             setAlbumResults([]);
@@ -190,12 +207,38 @@ const SearchBar: React.FC = () => {
         navigate(`/app/artist/${artist.id}`);
     };
 
+    /** Fetch a Spotify album and hand the normalized metadata to the manual form. */
+    const handleSpotifyImport = async (url: string) => {
+        setIsImportingSpotify(true);
+        setSearchError(null);
+        try {
+            const imported = await getSpotifyAlbum(url);
+            setSpotifyPrefill(imported);
+            setShowManualForm(true);
+            setSearchQuery('');
+            toastService.success(t('search.spotifyImportSuccess', { title: imported.title }));
+        } catch (err) {
+            console.error('Spotify import failed:', err);
+            toastService.error(
+                isApiError(err) && err.serverMessage
+                    ? err.serverMessage
+                    : t('search.spotifyImportError')
+            );
+        } finally {
+            setIsImportingSpotify(false);
+        }
+    };
+
     /**
      * The query itself says whether it is a reference: acting on it is offered,
      * never imposed, so a text search that happens to look like a catalog number
      * still returns its normal results.
      */
     const handleReferenceLookup = async () => {
+        if (intent.kind === 'spotifyUrl') {
+            void handleSpotifyImport(intent.value);
+            return;
+        }
         if (intent.kind === 'text') return;
 
         setIsLoading(true);
@@ -273,11 +316,14 @@ const SearchBar: React.FC = () => {
             };
 
             // Add to collection
-            await addToCollection({ ...releaseDetails, format });
+            const { item } = await addToCollection({ ...releaseDetails, format });
 
             toastService.success(t('search.addedToCollection', { title: releaseDetails.title }));
             // Keep the collection page in sync when the user goes back to it.
             void refreshCollection({ silent: true });
+            // Open the edit form for this new Discogs album, like the release
+            // and master pages do, so custom fields can be filled in at once.
+            navigate(`/app/album/${item._id}?edit=discogs`);
         } catch (err: unknown) {
             console.error('Error adding to collection:', err);
             if (isApiError(err) && err.serverMessage) {
@@ -365,12 +411,21 @@ const SearchBar: React.FC = () => {
             <div className="w-full max-w-6xl mx-auto">
                 <button
                     className="btn btn-ghost btn-sm mb-4 gap-2 h-11 min-h-11 sm:h-8 sm:min-h-8"
-                    onClick={() => setShowManualForm(false)}
+                    onClick={() => {
+                        setShowManualForm(false);
+                        setSpotifyPrefill(null);
+                    }}
                 >
                     <ArrowLeft className="w-4 h-4" />
                     {t('search.backToSearch')}
                 </button>
-                <ManualAlbumForm onSaved={() => { void refreshCollection({ silent: true }); }} />
+                <ManualAlbumForm
+                    prefill={spotifyPrefill}
+                    onSaved={() => {
+                        setSpotifyPrefill(null);
+                        void refreshCollection({ silent: true });
+                    }}
+                />
             </div>
         );
     }
@@ -427,7 +482,10 @@ const SearchBar: React.FC = () => {
                     rendered under the field instead (below), where it scrolls away. */}
                 <button
                     className="btn btn-outline gap-2 shrink-0 hidden sm:inline-flex h-14 min-h-14"
-                    onClick={() => setShowManualForm(true)}
+                    onClick={() => {
+                        setSpotifyPrefill(null);
+                        setShowManualForm(true);
+                    }}
                 >
                     <PenLine className="w-4 h-4" />
                     {t('search.modeManual')}
@@ -436,7 +494,10 @@ const SearchBar: React.FC = () => {
 
             <button
                 className="btn btn-outline btn-sm gap-2 w-full h-11 min-h-11 mt-2 sm:hidden"
-                onClick={() => setShowManualForm(true)}
+                onClick={() => {
+                    setSpotifyPrefill(null);
+                    setShowManualForm(true);
+                }}
             >
                 <PenLine className="w-4 h-4" />
                 {t('search.modeManual')}
@@ -447,22 +508,34 @@ const SearchBar: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-3 mt-3 py-2.5 px-3 bg-primary/10 border-l-4 border-primary">
                     <span className="text-sm">
                         {t(
-                            intent.kind === 'discogsId' ? 'search.intentDiscogsId'
-                                : intent.kind === 'barcode' ? 'search.intentBarcode'
-                                    : 'search.intentCatno'
+                            intent.kind === 'spotifyUrl' ? 'search.intentSpotify'
+                                : intent.kind === 'discogsId' ? 'search.intentDiscogsId'
+                                    : intent.kind === 'barcode' ? 'search.intentBarcode'
+                                        : 'search.intentCatno'
                         )}
                         {': '}
-                        <span className="font-mono font-semibold">{intent.value}</span>
+                        <span className="font-mono font-semibold break-all">{intent.value}</span>
                     </span>
                     <button
-                        className="btn btn-primary btn-sm ml-auto h-11 min-h-11 sm:h-8 sm:min-h-8"
+                        className="btn btn-primary btn-sm ml-auto h-11 min-h-11 sm:h-8 sm:min-h-8 gap-2"
                         onClick={handleReferenceLookup}
-                        disabled={isLoading}
+                        disabled={isLoading || isImportingSpotify}
                     >
-                        {t(
-                            intent.kind === 'discogsId' ? 'search.intentOpenRelease'
-                                : intent.kind === 'barcode' ? 'search.intentFindPressing'
-                                    : 'search.intentSearchCatalog'
+                        {intent.kind === 'spotifyUrl' ? (
+                            <>
+                                {isImportingSpotify ? (
+                                    <span className="loading loading-spinner loading-sm"></span>
+                                ) : (
+                                    <Download className="w-4 h-4" />
+                                )}
+                                {t(isImportingSpotify ? 'search.importingFromSpotify' : 'search.importFromSpotify')}
+                            </>
+                        ) : (
+                            t(
+                                intent.kind === 'discogsId' ? 'search.intentOpenRelease'
+                                    : intent.kind === 'barcode' ? 'search.intentFindPressing'
+                                        : 'search.intentSearchCatalog'
+                            )
                         )}
                     </button>
                 </div>
@@ -543,7 +616,10 @@ const SearchBar: React.FC = () => {
                     <p className="text-sm text-base-content/60 mt-1">{t('search.noResultsHint')}</p>
                     <button
                         className="btn btn-outline btn-sm mt-4 gap-2 h-11 min-h-11 sm:h-8 sm:min-h-8"
-                        onClick={() => setShowManualForm(true)}
+                        onClick={() => {
+                            setSpotifyPrefill(null);
+                            setShowManualForm(true);
+                        }}
                     >
                         <PenLine className="w-4 h-4" />
                         {t('search.modeManual')}

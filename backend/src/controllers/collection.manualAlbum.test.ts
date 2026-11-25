@@ -94,6 +94,29 @@ describe('manual album custom fields', () => {
         expect(res.status).toHaveBeenCalledWith(201);
     });
 
+    it('stores a cover localized by the Spotify importer', async () => {
+        vi.mocked(validateCustomFieldValues).mockResolvedValue({ valid: true, sanitized: {} });
+
+        const res = response();
+        await addManualAlbum(
+            request({
+                title: 'Blue Train',
+                artist: 'John Coltrane',
+                format: 'Vinyl',
+                coverImage: '/uploads/covers/spotify.jpg',
+            }),
+            res as never
+        );
+
+        expect(vi.mocked(Album)).toHaveBeenCalledWith(
+            expect.objectContaining({
+                cover_image: '/uploads/covers/spotify.jpg',
+                thumb: '/uploads/covers/spotify.jpg',
+            })
+        );
+        expect(res.status).toHaveBeenCalledWith(201);
+    });
+
     it('rejects malformed custom field JSON', async () => {
         const res = response();
         await addManualAlbum(

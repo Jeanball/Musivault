@@ -26,7 +26,7 @@ import {
     ReleaseAlbumFields,
     DiscogsFormat
 } from '../types/discogs.types';
-import { getPriceTTLHours } from '../utils/price.utils';
+import { getPriceTTLHours, isPriceFallbackEnabled } from '../utils/price.utils';
 import {
     DISCOGS_BASE_URL,
     DISCOGS_HEADERS,
@@ -1029,6 +1029,53 @@ export async function searchByCatalogNumber(
 const priceCache = new Map<number, { stats: MarketplaceStats | null; expiresAt: number }>();
 const NO_PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 
+/** Shape of `/marketplace/stats/{release_id}`; only the fields the fallback needs. */
+interface MarketplaceStatsResponse {
+    num_for_sale?: number;
+    lowest_price?: { value: number; currency: string } | null;
+    blocked_from_sale?: boolean;
+}
+
+/**
+ * Last-resort value when seller price suggestions are unavailable: the cheapest
+ * current marketplace listing. Deliberately requested without the user's PAT
+ * (instance key/secret only), because that quote is in USD instead of the
+ * seller's configured currency. The same amount is used for every condition
+ * grade; it is a market floor, not a grade-specific suggestion.
+ */
+async function getLowestPriceStats(
+    releaseId: number,
+    retryOnRateLimit: boolean
+): Promise<MarketplaceStats | null> {
+    await delay(RATE_LIMIT_MS);
+
+    const request = () => discogsRequest<MarketplaceStatsResponse>(
+        `/marketplace/stats/${releaseId}`
+    );
+    const stats = retryOnRateLimit
+        ? await withRateLimitRetry(request, { context: `marketplace stats of release ${releaseId}` })
+        : await request();
+
+    if (stats?.blocked_from_sale) return null;
+    const lowest = stats?.lowest_price;
+    if (!lowest || !(lowest.value > 0) || (stats.num_for_sale ?? 0) <= 0) return null;
+
+    const price = lowest.value;
+    return {
+        mint: price,
+        nearMint: price,
+        veryGoodPlus: price,
+        veryGood: price,
+        goodPlus: price,
+        good: price,
+        fair: price,
+        poor: price,
+        // Prices are stored in USD everywhere in Musivault; the unauthenticated
+        // stats endpoint quotes USD, so ignore any other currency label here.
+        currency: 'USD',
+    };
+}
+
 function cachePriceSuggestions(releaseId: number, stats: MarketplaceStats | null): MarketplaceStats | null {
     const ttlMs = stats ? getPriceTTLHours() * 60 * 60 * 1000 : NO_PRICE_CACHE_TTL_MS;
     priceCache.set(releaseId, { stats, expiresAt: Date.now() + ttlMs });
@@ -1047,47 +1094,83 @@ export async function getMarketplaceStats(
     releaseId: number,
     { forceRefresh = false, retryOnRateLimit = false }: { forceRefresh?: boolean; retryOnRateLimit?: boolean } = {}
 ): Promise<MarketplaceStats | null> {
-    if (!hasPAT()) {
+    const fallbackEnabled = isPriceFallbackEnabled();
+    const hasToken = hasPAT();
+
+    if (!hasToken && !fallbackEnabled) {
         return null;
     }
 
     const cached = priceCache.get(releaseId);
     if (!forceRefresh && cached && cached.expiresAt > Date.now()) return cached.stats;
 
-    try {
-        await delay(RATE_LIMIT_MS);
+    let fallbackReason: string | null = null;
 
-        const request = () => discogsRequest<Record<string, { value: number; currency: string }>>(
-            `/marketplace/price_suggestions/${releaseId}`,
-            {},
-            { useTokenAuth: true }
-        );
-        const suggestions = retryOnRateLimit
-            ? await withRateLimitRetry(request, { context: `price of release ${releaseId}` })
-            : await request();
+    if (hasToken) {
+        try {
+            await delay(RATE_LIMIT_MS);
 
-        // If empty response, no data available
-        if (!suggestions || Object.keys(suggestions).length === 0) {
-            return cachePriceSuggestions(releaseId, null);
+            const request = () => discogsRequest<Record<string, { value: number; currency: string }>>(
+                `/marketplace/price_suggestions/${releaseId}`,
+                {},
+                { useTokenAuth: true }
+            );
+            const suggestions = retryOnRateLimit
+                ? await withRateLimitRetry(request, { context: `price of release ${releaseId}` })
+                : await request();
+
+            // If empty response, no data available
+            if (!suggestions || Object.keys(suggestions).length === 0) {
+                fallbackReason = 'empty price suggestions';
+            } else {
+                const currency = Object.values(suggestions)[0]?.currency || 'USD';
+
+                return cachePriceSuggestions(releaseId, {
+                    mint: suggestions['Mint (M)']?.value ?? null,
+                    nearMint: suggestions['Near Mint (NM or M-)']?.value ?? null,
+                    veryGoodPlus: suggestions['Very Good Plus (VG+)']?.value ?? null,
+                    veryGood: suggestions['Very Good (VG)']?.value ?? null,
+                    goodPlus: suggestions['Good Plus (G+)']?.value ?? null,
+                    good: suggestions['Good (G)']?.value ?? null,
+                    fair: suggestions['Fair (F)']?.value ?? null,
+                    poor: suggestions['Poor (P)']?.value ?? null,
+                    currency,
+                });
+            }
+        } catch (err: any) {
+            logger.warn({ err }, `[Discogs] Price suggestions error for release ${releaseId}`);
+            const status = err?.response?.status as number | undefined;
+            fallbackReason = status === 404
+                ? 'price suggestions unavailable (404)'
+                : 'price suggestions request failed';
         }
-
-        const currency = Object.values(suggestions)[0]?.currency || 'USD';
-
-        return cachePriceSuggestions(releaseId, {
-            mint: suggestions['Mint (M)']?.value ?? null,
-            nearMint: suggestions['Near Mint (NM or M-)']?.value ?? null,
-            veryGoodPlus: suggestions['Very Good Plus (VG+)']?.value ?? null,
-            veryGood: suggestions['Very Good (VG)']?.value ?? null,
-            goodPlus: suggestions['Good Plus (G+)']?.value ?? null,
-            good: suggestions['Good (G)']?.value ?? null,
-            fair: suggestions['Fair (F)']?.value ?? null,
-            poor: suggestions['Poor (P)']?.value ?? null,
-            currency,
-        });
-    } catch (err: any) {
-        logger.warn({ err }, `[Discogs] Price suggestions error for release ${releaseId}`);
-        return null;
+    } else {
+        fallbackReason = 'no DISCOGS_PAT configured';
     }
+
+    if (fallbackEnabled && fallbackReason) {
+        try {
+            const fallback = await getLowestPriceStats(releaseId, retryOnRateLimit);
+            if (fallback) {
+                logger.info(
+                    { reason: fallbackReason, price: fallback.veryGoodPlus, currency: fallback.currency },
+                    `[Discogs] Using marketplace lowest-price fallback for release ${releaseId}`
+                );
+                return cachePriceSuggestions(releaseId, fallback);
+            }
+            logger.warn(
+                { reason: fallbackReason },
+                `[Discogs] Marketplace stats fallback found no listing for release ${releaseId}`
+            );
+        } catch (err: any) {
+            logger.warn({ err }, `[Discogs] Marketplace stats fallback error for release ${releaseId}`);
+        }
+        // Remember the miss briefly so a systematic failure is not retried for
+        // every album during one sync.
+        return cachePriceSuggestions(releaseId, null);
+    }
+
+    return null;
 }
 
 // ===== Export for CSV Import Service =====
