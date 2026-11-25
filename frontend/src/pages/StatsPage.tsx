@@ -25,7 +25,9 @@ const StatsPage: React.FC = () => {
 
     // The chart reads the snapshot table, the KPIs read the collection. Refresh
     // both together or the last point of the curve stops matching the total
-    // value tile right above it.
+    // value tile right above it. The hook also refreshes on mount, so opening
+    // Stats after a server-side price sync cannot leave the KPIs on the stale
+    // collection loaded earlier by the provider.
     useRefreshOnVisible(useCallback(() => {
         void reload();
         void refreshCollection();

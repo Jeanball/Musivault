@@ -62,10 +62,16 @@ export function mergeAlbumOverrides<T extends AlbumLike>(
 function normalizeValue(field: AlbumOverrideField, value: unknown): unknown {
     if (field === 'labels') {
         // discogsId is internal: a label the user did not change must compare equal.
-        return ((value as IAlbum['labels']) || []).map(label => ({
-            name: label?.name || '',
-            catno: label?.catno || ''
-        }));
+        // Discogs stores "none" for a label without a catalog number, while the
+        // edit form shows that box empty. They must normalize the same way or
+        // saving only custom fields marks the album as locally modified.
+        return ((value as IAlbum['labels']) || []).map(label => {
+            const catno = label?.catno || '';
+            return {
+                name: (label?.name || '').trim(),
+                catno: catno.trim().toLowerCase() === 'none' ? '' : catno.trim()
+            };
+        });
     }
     if (field === 'tracklist') {
         return ((value as IAlbum['tracklist']) || []).map(track => ({
@@ -76,6 +82,8 @@ function normalizeValue(field: AlbumOverrideField, value: unknown): unknown {
         }));
     }
     if (field === 'genres' || field === 'styles') return (value as string[]) || [];
+    // The edit form trims text fields, so whitespace alone is not a local edit.
+    if (typeof value === 'string') return value.trim();
     return value ?? '';
 }
 

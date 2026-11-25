@@ -8,6 +8,8 @@ import type { MarketplaceStats } from '../types/discogs.types';
 
 // Default: 7 days (168 hours)
 const DEFAULT_PRICE_TTL_HOURS = 168;
+/** Off by default: the seller price suggestions remain the authoritative source. */
+const DEFAULT_PRICE_FALLBACK_ENABLED = false;
 
 /**
  * Get the configured price cache TTL in hours.
@@ -20,6 +22,17 @@ export function getPriceTTLHours(): number {
     if (!isNaN(parsed) && parsed > 0) return parsed;
   }
   return DEFAULT_PRICE_TTL_HOURS;
+}
+
+/**
+ * Whether Discogs price suggestions may fall back to the marketplace's lowest
+ * listing price when they are unavailable (for example on accounts without
+ * seller settings). Accepts the usual boolean spellings, case-insensitively.
+ */
+export function isPriceFallbackEnabled(): boolean {
+    const raw = process.env.DISCOGS_PRICE_FALLBACK;
+    if (raw == null || raw.trim() === '') return DEFAULT_PRICE_FALLBACK_ENABLED;
+    return ['1', 'true', 'yes', 'on'].includes(raw.trim().toLowerCase());
 }
 
 /**
