@@ -3,6 +3,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { getAuthConfig, loginUser, logoutUser, signupUser, userVerification } from '../controllers/auth.controller';
 import oidcRoute from './oidc.route';
+import { audit } from '../services/audit.service';
 
 const router = Router();
 
@@ -16,7 +17,12 @@ const credentialsLimiter = rateLimit({
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { message: 'Too many attempts. Try again in a few minutes.' }
+    message: { message: 'Too many attempts. Try again in a few minutes.' },
+    // The default handler answers without a trace; this one also records who was throttled.
+    handler: (req, res, _next, options) => {
+        audit(req, { action: 'rate_limited', outcome: 'failure', detail: `${req.method} ${req.originalUrl}` });
+        res.status(options.statusCode).send(options.message);
+    }
 });
 
 router.get('/config', getAuthConfig);

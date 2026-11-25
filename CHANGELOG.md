@@ -8,12 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Add and edit users from the Administration page: an "Add user" dialog (username, email, password, administrator) and an edit dialog for the username, email, password and role of an existing user
+- Record security events as structured `audit` lines in the server log, with the client address: logins and signups (a failed login says whether the user exists, never what was typed), throttled login attempts, user creates, edits (which fields changed, not their values, and a role change as `user->admin` or `admin->user`) and deletes, non-administrators calling admin routes, and manual task runs
+
+### Fixed
+- Validate and protect the admin user routes: creating a user no longer always makes an administrator and checks the username, email and a 6-character password; editing checks the same and refuses a username or email another user has; you cannot delete your own account, and the last administrator cannot be demoted; reading a user no longer returns the password hash or the encrypted Discogs token
 - Lint the backend with ESLint, with `npm run lint` and a lint step in the CI workflow. `no-explicit-any` is reported as a warning for now (45 existing uses)
 - Add root npm scripts `lint`, `test`, `build`, `check` (all of them, as CI runs them) and `install:all`
 - Add `CONTRIBUTING.md` (branches, `develop` as the pull request base, commits, `npm run check`, changelog, translations) and point the README and the pull request template to it
 - Add Dependabot with a single monthly pull request against `develop` for the npm packages (root, frontend, backend), the GitHub Actions and both Dockerfiles
-
-### Fixed
 - Resolve the backend ESLint errors (unused imports, parameters and catch bindings, one `let` that is never reassigned) so `npm run lint` passes
 - Accept localhost, 127.0.0.1 and LAN origins on any port in development, so the Vite network URL and a second Vite port no longer fail with `Not allowed by CORS` (production and an explicit `CORS_ORIGINS` are unchanged)
 - Accept a manual value when editing a Discogs album, so a record Discogs has no price for can count in the totals and the value history

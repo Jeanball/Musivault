@@ -5,6 +5,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { logger } from '../config/logger.config';
 import { isSignupEnabled } from '../config/auth.config';
 import { isOIDCEnabled } from '../config/oidc.config';
+import { audit, auditUser } from '../services/audit.service';
 
 export function getAuthConfig(_req: Request, res: Response): void {
     res.json({
@@ -17,12 +18,14 @@ export function getAuthConfig(_req: Request, res: Response): void {
 export async function signupUser(req: Request, res: Response) {
     try {
         if (!isSignupEnabled()) {
+            audit(req, { action: 'signup', outcome: 'failure', reason: 'signup_disabled' });
             res.status(403).json({ message: "Signup is disabled on this server." });
             return;
         }
         const { username, email, password, createdAt } = req.body;
         const existingUser = await User.findOne({ email });
         if (existingUser) {
+            audit(req, { action: 'signup', outcome: 'failure', reason: 'user_exists' });
             res.json({ message: "User already exists" });
             return;
         }
@@ -34,6 +37,7 @@ export async function signupUser(req: Request, res: Response) {
             sameSite: 'lax'
         });
         await newUser.save();
+        audit(req, { action: 'signup', outcome: 'success', actor: auditUser(newUser) });
         res.status(201).json({ message: "User created successfully.", success: true, newUser })
 
     } catch (error) {
@@ -54,7 +58,13 @@ export async function loginUser(req: Request, res: Response) {
             $or: [{ email: identifier }, { username: identifier }],
         });
         if (!user || !(await user.comparePassword(password))) {
-            logger.warn("Login failed: User not found.");
+            // The identifier is not logged: people sometimes type a password into that box.
+            audit(req, {
+                action: 'login',
+                outcome: 'failure',
+                reason: user ? 'wrong_password' : 'unknown_user',
+                target: user ? auditUser(user) : undefined,
+            });
             res.status(401).json({ message: "Invalid credentials" });
             return;
         }
@@ -63,6 +73,7 @@ export async function loginUser(req: Request, res: Response) {
 
         user.lastLogin = new Date();
         await user.save();
+        audit(req, { action: 'login', outcome: 'success', actor: auditUser(user) });
 
         res.cookie('jwt', token, {
             httpOnly: true,
