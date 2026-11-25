@@ -302,6 +302,55 @@ describe('ManualAlbumForm custom fields', () => {
         expect(customFieldsFrom(form)).toEqual({ 'field-binder': 'Shelf 4' });
     });
 
+    describe('value on a Discogs album', () => {
+        const discogsItem = (manualValue?: number | null): CollectionItem => ({
+            ...manualItem({}),
+            album: { ...manualItem({}).album, isManual: false, discogsId: 123 },
+            manualValue,
+        });
+
+        it('offers the value field and sends the amount that replaces the Discogs price', async () => {
+            const item = discogsItem();
+            vi.mocked(updateDiscogsAlbum).mockResolvedValue({ item } as never);
+            render(<ManualAlbumForm item={item} mode="discogs" onSaved={vi.fn()} />);
+
+            const input = screen.getByLabelText(/search\.valueUsd/);
+            expect(input).toHaveValue(null);
+            expect(screen.getByText('search.valueReplacesDiscogs')).toBeInTheDocument();
+
+            fireEvent.change(input, { target: { value: '1250' } });
+            fireEvent.click(screen.getByRole('button', { name: 'common.save' }));
+
+            await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
+            const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
+            expect(form.get('value')).toBe('1250');
+        });
+
+        it('shows the saved value and sends it blank to clear it', async () => {
+            const item = discogsItem(80);
+            vi.mocked(updateDiscogsAlbum).mockResolvedValue({ item } as never);
+            render(<ManualAlbumForm item={item} mode="discogs" onSaved={vi.fn()} />);
+
+            const input = screen.getByLabelText(/search\.valueUsd/);
+            expect(input).toHaveValue(80);
+
+            fireEvent.change(input, { target: { value: '' } });
+            fireEvent.click(screen.getByRole('button', { name: 'common.save' }));
+
+            await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
+            const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
+            expect(form.get('value')).toBe('');
+        });
+
+        it('does not show the Discogs hint on a manual album', async () => {
+            render(<ManualAlbumForm />);
+
+            expect(await screen.findByLabelText(/search\.valueUsd/)).toBeInTheDocument();
+            await screen.findByText('Binder');
+            expect(screen.queryByText('search.valueReplacesDiscogs')).not.toBeInTheDocument();
+        });
+    });
+
     it('edits the condition grades in the form when enabled', async () => {
         const item: CollectionItem = {
             ...manualItem({}),

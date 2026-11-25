@@ -366,6 +366,7 @@
         "changeCover": "Cambiar portada",
         "editManual": "Editar álbum",
         "manualValue": "Valor manual",
+        "discogsPrice": "Precio en Discogs:",
         "showAllTracks": "Mostrar {{n}} pistas más",
         "showFewerTracks": "Mostrar menos"
     },
@@ -464,6 +465,7 @@
         "removeValue": "Quitar {{value}}",
         "noOptions": "Ninguna opción coincide.",
         "valueUsd": "Valor (USD)",
+        "valueReplacesDiscogs": "Sustituye el precio de Discogs cuando se indica.",
         "addTrack": "Añadir pista",
         "removeTrack": "Eliminar pista",
         "trackPosition": "Pos.",

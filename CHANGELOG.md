@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Accept a manual value when editing a Discogs album, so a record Discogs has no price for can count in the totals and the value history
+- Show the value field when editing a Discogs album, and label a hand-entered value as manual on the album page
+- Show the Discogs price next to a manual value on the album page, so a value that has gone stale can be spotted
 - Optional `DISCOGS_PRICE_FALLBACK` switch: when Discogs price suggestions are unavailable (for example without seller settings), use the cheapest current marketplace listing as a USD market-floor estimate for every condition grade
 - Import an album from a Spotify link into the manual-add form, prefilling title, artist, year, tracklist and cover for review before saving (requires optional `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`)
 - Open the edit form right after adding a Discogs album (release page, master version or barcode) only when custom fields are configured, so they can be filled in immediately; otherwise show the album detail view

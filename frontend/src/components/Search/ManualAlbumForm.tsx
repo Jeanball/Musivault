@@ -38,8 +38,8 @@ interface ManualAlbumFormProps {
     item?: CollectionItem | null;
     /**
      * `discogs` edits a Discogs album on this user's copy: item-level data
-     * (format and custom fields) stays editable here, while the manual-only
-     * value field stays hidden and no new album is created.
+     * (format, custom fields, conditions and the value) is editable here and no
+     * new album is created. The value replaces the Discogs price when set.
      */
     mode?: 'manual' | 'discogs';
     /** Show the condition grades when the user enabled condition tracking. */
@@ -200,7 +200,7 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
             formData.append('catno', catno.trim());
             formData.append('genres', genres.join(', '));
             formData.append('styles', styles.join(', '));
-            if (!isDiscogs) formData.append('value', value.trim());
+            formData.append('value', value.trim());
 
             const filledTracks = tracks
                 .map(track => ({
@@ -460,23 +460,25 @@ const ManualAlbumForm: React.FC<ManualAlbumFormProps> = ({
                             onChange={setStyles}
                         />
 
-                        {!isDiscogs && (
-                            <div className="flex flex-col">
-                                <label className="label w-full justify-between">
-                                    <span className="text-sm">{t('search.valueUsd')}</span>
-                                    <span className="text-xs text-base-content/50">{t('search.optional')}</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    value={value}
-                                    onChange={(e) => setValue(e.target.value)}
-                                    placeholder="0.00"
-                                    className="input w-full"
-                                    min={0}
-                                    step="0.01"
-                                />
-                            </div>
-                        )}
+                        <div className="flex flex-col">
+                            <label className="label w-full justify-between" htmlFor="manual-value">
+                                <span className="text-sm">{t('search.valueUsd')}</span>
+                                <span className="text-xs text-base-content/50">{t('search.optional')}</span>
+                            </label>
+                            <input
+                                id="manual-value"
+                                type="number"
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                placeholder="0.00"
+                                className="input w-full"
+                                min={0}
+                                step="0.01"
+                            />
+                            {isDiscogs && (
+                                <span className="text-xs text-base-content/50 mt-1">{t('search.valueReplacesDiscogs')}</span>
+                            )}
+                        </div>
                     </div>
 
                     {/* Condition grades, only when the user enabled them */}
