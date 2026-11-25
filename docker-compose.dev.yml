@@ -45,6 +45,9 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
       # Ticketmaster Discovery API Consumer Key (optional - required for nearby concerts)
       - TICKETMASTER_API_KEY=${TICKETMASTER_API_KEY:-}
+      # Spotify app credentials (optional - required to import albums from a Spotify link)
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-}
       - CORS_ORIGINS=*
       - TRUST_PROXY=true
       # Initial admin (optional - remove after first run)
@@ -62,6 +65,8 @@ services:
       - FRONTEND_URL=${FRONTEND_URL:-}
       # Price cache TTL in hours (default: 168 = 7 days)
       - PRICE_CACHE_TTL_HOURS=${PRICE_CACHE_TTL_HOURS:-168}
+      # Use the lowest marketplace listing when price suggestions are unavailable
+      - DISCOGS_PRICE_FALLBACK=${DISCOGS_PRICE_FALLBACK:-false}
     depends_on:
       mongodb:
         condition: service_healthy

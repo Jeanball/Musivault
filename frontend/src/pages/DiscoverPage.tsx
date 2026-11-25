@@ -8,6 +8,7 @@ import CommunityAlbumCard from '../components/Discover/CommunityAlbumCard';
 import UpcomingReleaseCard from '../components/Discover/UpcomingReleaseCard';
 import UpcomingReleaseModal from '../components/Modal/UpcomingReleaseModal';
 import PreferredGenresDropdown from '../components/Discover/PreferredGenresDropdown';
+import SuggestedStyles from '../components/Discover/SuggestedStyles';
 import RecordShopCard from '../components/Discover/RecordShopCard';
 import ConcertCard from '../components/Discover/ConcertCard';
 import NearbyControls from '../components/Discover/NearbyControls';
@@ -226,10 +227,15 @@ const DiscoverPage: React.FC = () => {
                         <span>{upcomingError}</span>
                     </div>
                 ) : upcomingReleases.length === 0 ? (
-                    <EmptyState
-                        icon={Music}
-                        title={t('discover.newMusicFromArtists')}
-                        description={t('discover.noUpcomingReleases')}
+                    <SuggestedStyles
+                        onFollowed={fetchUpcomingReleases}
+                        fallback={
+                            <EmptyState
+                                icon={Music}
+                                title={t('discover.newMusicFromArtists')}
+                                description={t('discover.noUpcomingReleases')}
+                            />
+                        }
                     />
                 ) : (
                     <div className="space-y-8">

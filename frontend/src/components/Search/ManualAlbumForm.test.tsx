@@ -5,6 +5,7 @@ import { addManualAlbum, updateDiscogsAlbum, updateManualAlbum } from '../../api
 import { getCustomFields } from '../../api/customFields';
 import type { CollectionItem } from '../../types/collection.types';
 import type { CustomFieldDefinition } from '../../types/customFields.types';
+import type { SpotifyAlbumImport } from '../../types/spotify.types';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -75,6 +76,39 @@ describe('ManualAlbumForm custom fields', () => {
         vi.clearAllMocks();
         vi.mocked(getCustomFields).mockResolvedValue(fields);
         vi.mocked(addManualAlbum).mockResolvedValue({ item: manualItem({}) } as never);
+    });
+
+    it('prefills the form from an imported Spotify album', async () => {
+        const prefill: SpotifyAlbumImport = {
+            title: 'Blue Train',
+            artist: 'John Coltrane',
+            year: '1957',
+            coverImage: '/uploads/covers/spotify.jpg',
+            spotifyId: '50E1iPxp3XKXkykr3F2Kaz',
+            externalUrl: 'https://open.spotify.com/album/50E1iPxp3XKXkykr3F2Kaz',
+            tracklist: [
+                { position: '1', title: 'Blue Train', duration: '10:32', artist: '' },
+            ],
+        };
+
+        render(<ManualAlbumForm prefill={prefill} onSaved={vi.fn()} />);
+
+        await screen.findByText('Binder');
+        expect(screen.getByPlaceholderText('search.albumPlaceholder')).toHaveValue('Blue Train');
+        expect(screen.getByPlaceholderText('search.artistPlaceholder')).toHaveValue('John Coltrane');
+        expect(screen.getByPlaceholderText('2024')).toHaveValue('1957');
+        expect(screen.getByPlaceholderText('search.trackTitle')).toHaveValue('Blue Train');
+        expect(screen.getByAltText('Cover preview')).toHaveAttribute('src', '/uploads/covers/spotify.jpg');
+        expect(screen.getByRole('link', { name: 'search.spotifySource' })).toHaveAttribute('href', prefill.externalUrl);
+
+        fireEvent.click(screen.getByRole('button', { name: 'common.add' }));
+
+        await waitFor(() => expect(addManualAlbum).toHaveBeenCalledTimes(1));
+        const form = vi.mocked(addManualAlbum).mock.calls[0][0];
+        expect(form.get('coverImage')).toBe('/uploads/covers/spotify.jpg');
+        expect(JSON.parse(String(form.get('tracklist')))).toEqual([
+            { position: '1', title: 'Blue Train', duration: '10:32', artist: '' },
+        ]);
     });
 
     it('saves the filled custom fields when adding an album', async () => {
@@ -266,6 +300,55 @@ describe('ManualAlbumForm custom fields', () => {
         await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
         const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
         expect(customFieldsFrom(form)).toEqual({ 'field-binder': 'Shelf 4' });
+    });
+
+    describe('value on a Discogs album', () => {
+        const discogsItem = (manualValue?: number | null): CollectionItem => ({
+            ...manualItem({}),
+            album: { ...manualItem({}).album, isManual: false, discogsId: 123 },
+            manualValue,
+        });
+
+        it('offers the value field and sends the amount that replaces the Discogs price', async () => {
+            const item = discogsItem();
+            vi.mocked(updateDiscogsAlbum).mockResolvedValue({ item } as never);
+            render(<ManualAlbumForm item={item} mode="discogs" onSaved={vi.fn()} />);
+
+            const input = screen.getByLabelText(/search\.valueUsd/);
+            expect(input).toHaveValue(null);
+            expect(screen.getByText('search.valueReplacesDiscogs')).toBeInTheDocument();
+
+            fireEvent.change(input, { target: { value: '1250' } });
+            fireEvent.click(screen.getByRole('button', { name: 'common.save' }));
+
+            await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
+            const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
+            expect(form.get('value')).toBe('1250');
+        });
+
+        it('shows the saved value and sends it blank to clear it', async () => {
+            const item = discogsItem(80);
+            vi.mocked(updateDiscogsAlbum).mockResolvedValue({ item } as never);
+            render(<ManualAlbumForm item={item} mode="discogs" onSaved={vi.fn()} />);
+
+            const input = screen.getByLabelText(/search\.valueUsd/);
+            expect(input).toHaveValue(80);
+
+            fireEvent.change(input, { target: { value: '' } });
+            fireEvent.click(screen.getByRole('button', { name: 'common.save' }));
+
+            await waitFor(() => expect(updateDiscogsAlbum).toHaveBeenCalledTimes(1));
+            const [, form] = vi.mocked(updateDiscogsAlbum).mock.calls[0];
+            expect(form.get('value')).toBe('');
+        });
+
+        it('does not show the Discogs hint on a manual album', async () => {
+            render(<ManualAlbumForm />);
+
+            expect(await screen.findByLabelText(/search\.valueUsd/)).toBeInTheDocument();
+            await screen.findByText('Binder');
+            expect(screen.queryByText('search.valueReplacesDiscogs')).not.toBeInTheDocument();
+        });
     });
 
     it('edits the condition grades in the form when enabled', async () => {

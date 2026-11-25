@@ -25,6 +25,7 @@ import adminRoute from './routes/admin.route'
 import customFieldsRoute from './routes/customFields.route'
 import systemRoute from './routes/system.route'
 import discoverRoute from './routes/discover.route'
+import spotifyRoute from './routes/spotify.route'
 
 // Scripts
 import { seedAdminUser } from "./scripts/seed"
@@ -96,6 +97,7 @@ app.use('/api/auth', authRoute);
 app.use('/api/collection', collectionRoute)
 app.use('/api/public', publicRoute)
 app.use('/api/discover', discoverRoute)
+app.use('/api/spotify', spotifyRoute)
 app.use('/api/preferences', preferencesRoute)
 app.use('/api/custom-fields', customFieldsRoute)
 app.use('/api/admin', adminRoute)
