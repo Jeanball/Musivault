@@ -10,6 +10,11 @@
   },
   "scripts": {
     "dev": "concurrently -n backend,frontend \"cd backend && npm run dev\" \"wait-on -t 60000 tcp:127.0.0.1:5001 && cd frontend && npm run dev\"",
+    "install:all": "npm install && npm --prefix frontend install && npm --prefix backend install",
+    "lint": "npm --prefix frontend run lint && npm --prefix backend run lint",
+    "test": "npm --prefix frontend run test:run && npm --prefix backend run test:run",
+    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "check": "npm run lint && npm run test && npm run build",
     "screenshot": "node scripts/screenshot.mjs desktop",
     "screenshot:mobile": "node scripts/screenshot.mjs mobile",
     "screenshot:optimize": "./scripts/optimize-screenshots.sh",

@@ -11,7 +11,7 @@ import { getMarketplaceStats, mapReleaseToAlbumUpdate } from '../services/discog
 import { buildPriceCache, getPriceTTLHours, isPriceStale } from '../utils/price.utils';
 import { getUserStyles } from '../services/collection.service';
 import { discogsRequest, stripArtistSuffixes } from '../utils/discogs.utils';
-import type { DiscogsReleaseResponse, MarketplaceStats } from '../types/discogs.types';
+import type { DiscogsReleaseResponse } from '../types/discogs.types';
 import AdminTaskExecution from '../models/AdminTaskExecution';
 import { getValueForItem, getValueHistory, recordValueSnapshot } from '../services/valueSnapshot.service';
 import { validateCustomFieldValues } from './customFields.controller';

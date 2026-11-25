@@ -20,7 +20,7 @@ const ALLOWED_THEMES = ['light', 'dark', 'abyss', 'caramellatte'];
 
 export async function getExchangeRates(req: Request, res: Response) {
     try {
-        let exchangeRates = await ExchangeRates.findOne({ baseCurrency: 'USD' });
+        const exchangeRates = await ExchangeRates.findOne({ baseCurrency: 'USD' });
         
         // If no rates are cached or they are older than 24 hours (86400000 ms), we could schedule a fetch, but let's just return what we have and let the admin task or startup script fetch it.
         // Actually, if we don't have rates, we should return a sensible default map containing at least USD: 1.

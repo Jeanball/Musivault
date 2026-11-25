@@ -9,6 +9,7 @@ import path from 'path';
 import { connectDB } from "./config/database.config"
 import { VERSION, NODE_ENV, COMMIT_SHA, IMAGE_TAG } from "./config/version.config"
 import { logger } from "./config/logger.config"
+import { allowsLocalNetworkOrigins, getCorsOrigins, isLocalNetworkOrigin } from "./config/cors.config"
 import { ensureUploadDirs } from "./config/uploads.config"
 
 // Routes
@@ -54,34 +55,18 @@ logger.info(`trust proxy: ${trustProxy ? 'enabled' : 'disabled'}`);
 
 const PORT = parseInt(process.env.PORT || '5001', 10);
 
-// CORS configuration
-const getCorsOrigins = (): string[] | true => {
-    if (process.env.CORS_ORIGINS === '*') {
-        return true as const;
-    }
-    if (process.env.NODE_ENV === 'production') {
-        if (process.env.CORS_ORIGINS) {
-            return process.env.CORS_ORIGINS.split(',').map(o => o.trim());
-        }
-        return true as const; // Default: allow all origins (Nginx proxy makes this safe)
-    }
-    if (process.env.CORS_ORIGINS) {
-        return process.env.CORS_ORIGINS.split(',').map(o => o.trim());
-    }
-    return ['http://localhost:5173', 'http://localhost:3000'];
-};
-
 const corsOrigins = getCorsOrigins();
+const acceptLocalNetwork = allowsLocalNetworkOrigins();
 // Resolved rather than raw: getCorsOrigins branches on NODE_ENV, and this is
 // the first thing worth checking when the frontend hits a CORS block.
-logger.info(`cors origins: ${corsOrigins === true ? 'any' : corsOrigins.join(', ')}`);
+logger.info(`cors origins: ${corsOrigins === true ? 'any' : corsOrigins.join(', ')}${acceptLocalNetwork ? ' (and any localhost or LAN origin)' : ''}`);
 
 app.use(cors({
     origin: corsOrigins === true
         ? true
         : (origin, callback) => {
             if (!origin) return callback(null, true);
-            if (corsOrigins.includes(origin)) {
+            if (corsOrigins.includes(origin) || (acceptLocalNetwork && isLocalNetworkOrigin(origin))) {
                 callback(null, true);
             } else {
                 callback(new Error('Not allowed by CORS'));

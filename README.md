@@ -251,10 +251,13 @@ docker compose pull && up -d    # Update to latest
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create your feature branch from `develop` (`git switch -c feature/amazing-feature develop`)
+3. Commit your changes ([Conventional Commits](https://www.conventionalcommits.org/): `git commit -m 'feat(scope): add amazing feature'`)
+4. Run `npm run check` (lint, tests and build)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request **against `develop`**
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the details.
 
 ## License
 
