@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Space the Portfolio Evolution chart by time instead of by position, so quiet and busy periods no longer look alike
 - Rebuild the collection value history after a Discogs apply that only adds or relinks records, so the Portfolio Evolution chart no longer stays hidden behind a single point
 - Update the backend, frontend and root dependencies with `npm audit fix` (lockfiles only, no version range changed): `npm audit` goes from 24 findings to none in the backend, from 23 to one moderate in the frontend (`i18next` needs a major bump) and from 5 to none at the root
+- Add tests that run the real Express, multer and express-rate-limit stack over HTTP: cover and CSV uploads (type, size, field name, memory against disk) and the login rate limit (the 101st attempt, shared by login and signup, never applied to `/verify` or `/config`)
+- Keep the Discogs key and secret out of the logs when a Discogs request fails: axios 1.21 puts the raw request, with the credentials in its URL, on the error, and the logger printed it. Axios errors are now logged as status, method, a URL with credentials redacted and a short response body
 
 ---
 
