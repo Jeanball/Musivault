@@ -2,6 +2,9 @@
   "name": "backend",
   "version": "1.16.2",
   "main": "src/server.ts",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",

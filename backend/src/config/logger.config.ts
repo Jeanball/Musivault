@@ -1,4 +1,5 @@
 import pino from 'pino';
+import { serializeError } from './logger.serializers';
 
 /**
  * Application logger.
@@ -9,6 +10,7 @@ import pino from 'pino';
  */
 export const logger = pino({
     level: process.env.LOG_LEVEL || 'info',
+    serializers: { err: serializeError },
     // Never let credentials reach the logs, whatever gets passed in.
     redact: {
         paths: [
