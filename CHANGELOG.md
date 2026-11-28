@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate and protect the admin user routes: creating a user no longer always makes an administrator and checks the username, email and a 6-character password; editing checks the same and refuses a username or email another user has; you cannot delete your own account, and the last administrator cannot be demoted; reading a user no longer returns the password hash or the encrypted Discogs token
 - Lint the backend with ESLint, with `npm run lint` and a lint step in the CI workflow. `no-explicit-any` is reported as a warning for now (45 existing uses)
 - Add root npm scripts `lint`, `test`, `build`, `check` (all of them, as CI runs them) and `install:all`
+- Forget the stored Discogs instance id when an album is rematched to another release, so the next Discogs check does not offer to undo the rematch
 - Add `CONTRIBUTING.md` (branches, `develop` as the pull request base, commits, `npm run check`, changelog, translations) and point the README and the pull request template to it
 - Add Dependabot with a single monthly pull request against `develop` for the npm packages (root, frontend, backend), the GitHub Actions and both Dockerfiles
 - Resolve the backend ESLint errors (unused imports, parameters and catch bindings, one `let` that is never reassigned) so `npm run lint` passes

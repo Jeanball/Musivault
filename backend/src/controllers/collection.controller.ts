@@ -709,6 +709,13 @@ export async function restoreFormatVerificationAlert(req: Request, res: Response
 
 // ===== Album Rematch =====
 
+/**
+ * Point a collection item at another Discogs release the user picked. The item's album is rewritten in
+ * place; a format sent with the request replaces the item's. Local album edits and the price are reset,
+ * and when the release changes, so are the stored Discogs instance ids of the items on that album.
+ * Replies 404 when the item or release is not found, and 409 on a duplicate key: another album already
+ * has the new release, whether or not the user has an item on it.
+ */
 export async function rematchAlbum(req: Request, res: Response) {
   try {
     if (!req.user) {
@@ -739,6 +746,7 @@ export async function rematchAlbum(req: Request, res: Response) {
 
     // Update the album with new Discogs data
     const album = item.album as any;
+    const releaseChanged = album.discogsId !== newDiscogsId;
     const mapped = mapReleaseToAlbumUpdate(releaseData, album);
     const localCover = await downloadCoverToLocal(mapped.cover_image || mapped.thumb, 'Discogs cover');
     album.discogsId = newDiscogsId;
@@ -764,6 +772,13 @@ export async function rematchAlbum(req: Request, res: Response) {
 
     await album.save();
     await item.save();
+
+    // A stored instance id names a Discogs entry of the old release. Kept, the next check would read it as a
+    // merge and offer to undo this rematch. The album is edited in place, so this covers every item on it;
+    // the next apply links them again.
+    if (releaseChanged) {
+      await CollectionItem.updateMany({ album: album._id }, { $unset: { discogsInstanceId: 1 } });
+    }
 
     // Return the updated item
     const updatedItem = await CollectionItem.findById(itemId).populate('album');
