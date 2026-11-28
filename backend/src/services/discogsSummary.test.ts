@@ -32,7 +32,8 @@ describe('getPendingSummary', () => {
         expect(await getPendingSummary(user({ enabled: true }))).toEqual({
             finishedAt: new Date('2026-10-11T08:00:00Z'),
             newOnDiscogs: 3,
-            merged: 2
+            merged: 2,
+            flagged: 0
         });
     });
 

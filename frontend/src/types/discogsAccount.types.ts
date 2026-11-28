@@ -40,6 +40,14 @@ export interface DiscogsReportMerged {
     match: 'instance' | 'guess';
 }
 
+/** Rows the check relates for the user to look at; see the backend's `IDiscogsReportFlag`. */
+export interface DiscogsReportFlag {
+    kind: 'possibleMove' | 'possibleDuplicate' | 'sharedRelease';
+    item: DiscogsReportItem;
+    release: DiscogsReportRelease;
+    other?: DiscogsReportItem;
+}
+
 export interface DiscogsApplyFailure {
     kind: 'add' | 'relink';
     artist: string;
@@ -95,12 +103,16 @@ export interface DiscogsSyncReport {
     newOnDiscogs: DiscogsReportRelease[];
     merged: DiscogsReportMerged[];
     onlyInMusivault: DiscogsReportItem[];
+    /** Absent on reports saved before flags existed. */
+    flags?: DiscogsReportFlag[];
     apply?: DiscogsApply;
 }
 
 /** What the last check left to act on. Date differences and "only in Musivault" don't count. */
 export interface DiscogsPendingSummary {
     finishedAt: string;
+    /** New records, without those a possible move is flagged for. */
     newOnDiscogs: number;
     merged: number;
+    flagged: number;
 }

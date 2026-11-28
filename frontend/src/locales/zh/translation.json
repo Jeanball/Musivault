@@ -196,7 +196,13 @@
         "moreRows": "还有 {{count}} 项",
         "openOnDiscogs": "在 Discogs 上打开",
         "mergedExact": "同一 Discogs 条目",
-        "mergedLikely": "可能"
+        "mergedLikely": "可能",
+        "flagsTitle": "请核对",
+        "flagsHint": "这些唱片似乎与 Discogs 上的内容有关。仅供参考：不会更改任何内容。请将两个版本与你手中的唱片对照。",
+        "flagPossibleMove": "可能已移动：此唱片位于版本 {{from}}，而版本 {{to}} 是 Discogs 上的新增。",
+        "flagPossibleDuplicate": "可能重复：此唱片位于版本 {{from}}，而你的另一张唱片已使用版本 {{to}}。",
+        "flagSharedRelease": "共用版本：此唱片的 Discogs 条目现在位于版本 {{to}}，你的另一张唱片已使用该版本。Discogs 上该版本不止一张，因此并非重复。此唱片仍位于版本 {{from}}。",
+        "newPossibleMove": "可能已移动，仅当它是另一张唱片时才勾选"
     },
     "discogsApply": {
         "queued": "正在等待其他 Discogs 任务完成…",
@@ -220,7 +226,7 @@
         "applyAll": "全部应用（{{count}}）",
         "useDates": "使用 Discogs 的日期",
         "confirmAllTitle": "全部应用？",
-        "confirmAllBody": "这将添加 {{added}} 张新唱片，无论是否勾选。不包括已合并的唱片：如需应用，请勾选它们并使用“应用所选”。每张新唱片需要几秒钟，列表较长时可能需要一段时间。离开此页面后任务会继续运行。",
+        "confirmAllBody": "这将添加 {{added}} 张新唱片，无论是否勾选。不包括已合并的唱片：如需应用，请勾选它们并使用“应用所选”。每张新唱片需要几秒钟，列表较长时可能需要一段时间。离开此页面后任务会继续运行。不包括可能已移动的唱片。",
         "confirmDatesTitle": "使用 Discogs 的日期？",
         "confirmDatesBody": "{{count}} 张唱片的添加日期将改为你在 Discogs 上添加它们的日期，收藏的价值历史也会据此重建。",
         "cancel": "取消",
@@ -239,7 +245,7 @@
         "showAll": "显示全部"
     },
     "discogsPending": {
-        "message": "上次 Discogs 检查有 {{count}} 项变化待处理：新增 {{newOnDiscogs}}，已合并 {{merged}}。",
+        "message": "上次 Discogs 检查有 {{count}} 项变更待处理：新增 {{newOnDiscogs}}，合并 {{merged}}，待核对 {{flagged}}。",
         "review": "查看",
         "dismiss": "忽略",
         "badge": "{{count}} 项 Discogs 变化待处理"

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Forget the stored Discogs instance id when an album is rematched to another release, so the next Discogs check does not offer to undo the rematch
 - Make merged rows in the Discogs check opt-in: they start unticked and "Apply all" leaves them out, because a merge can combine different editions
 - Save the link between a record and its Discogs collection entry during the check (only when one record and one Discogs entry have the release), so a later merge is recognised even when it changes the year; applying uses the same rule instead of linking the earliest of several copies
+- Flag records the Discogs check can relate but not match, as a possible move, a possible duplicate or a shared release, with links to both releases; nothing is changed, the new release of a possible move is added only when ticked by hand, and flags count in the "changes waiting" notice
 - Add `CONTRIBUTING.md` (branches, `develop` as the pull request base, commits, `npm run check`, changelog, translations) and point the README and the pull request template to it
 - Add Dependabot with a single monthly pull request against `develop` for the npm packages (root, frontend, backend), the GitHub Actions and both Dockerfiles
 - Resolve the backend ESLint errors (unused imports, parameters and catch bindings, one `let` that is never reassigned) so `npm run lint` passes

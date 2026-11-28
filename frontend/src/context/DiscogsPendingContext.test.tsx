@@ -7,7 +7,9 @@ import { getDiscogsSummary } from '../api/discogsSync';
 vi.mock('../api/discogsSync', () => ({ getDiscogsSummary: vi.fn() }));
 
 const wrapper = ({ children }: { children: ReactNode }) => <DiscogsPendingProvider>{children}</DiscogsPendingProvider>;
-const summary = (newOnDiscogs: number, merged = 0) => ({ finishedAt: '2026-10-11T08:00:00Z', newOnDiscogs, merged });
+const summary = (newOnDiscogs: number, merged = 0, flagged = 0) => ({
+    finishedAt: '2026-10-11T08:00:00Z', newOnDiscogs, merged, flagged
+});
 const KEY = 'musivault.discogsNoticeDismissed';
 
 /** An in-memory localStorage: the one in the test runtime is not reliably there. */
@@ -44,6 +46,13 @@ describe('DiscogsPendingContext', () => {
 
         await waitFor(() => expect(result.current.count).toBe(5));
         expect(result.current).toMatchObject({ newOnDiscogs: 3, merged: 2, showNotice: true });
+    });
+
+    it('counts flagged rows too, so a check that only flags something still gets noticed', async () => {
+        const { result } = await mount(summary(0, 0, 2));
+
+        await waitFor(() => expect(result.current.count).toBe(2));
+        expect(result.current).toMatchObject({ flagged: 2, showNotice: true });
     });
 
     it('shows nothing when there is nothing to act on, or no check', async () => {

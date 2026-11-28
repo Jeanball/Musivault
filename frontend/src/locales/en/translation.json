@@ -214,7 +214,13 @@
         "moreRows": "and {{count}} more",
         "openOnDiscogs": "Open on Discogs",
         "mergedExact": "same Discogs entry",
-        "mergedLikely": "likely"
+        "mergedLikely": "likely",
+        "flagsTitle": "Please check",
+        "flagsHint": "These records look related to something on Discogs. For information only: nothing is changed. Compare both releases with your copy.",
+        "flagPossibleMove": "Possible move: this record is on release {{from}}, and release {{to}} is new on Discogs.",
+        "flagPossibleDuplicate": "Possible duplicate: this record is on release {{from}}, and another record of yours already has release {{to}}.",
+        "flagSharedRelease": "Shared release: this record's Discogs entry is now on release {{to}}, which another record of yours has. Discogs has more than one copy there, so this is not a duplicate. This record is still on release {{from}}.",
+        "newPossibleMove": "possible move, tick only if it is another copy"
     },
     "discogsApply": {
         "queued": "Waiting for another Discogs job to finish…",
@@ -238,7 +244,7 @@
         "applyAll": "Apply all ({{count}})",
         "useDates": "Use Discogs dates",
         "confirmAllTitle": "Apply everything?",
-        "confirmAllBody": "This adds {{added}} new records, ticked or not. Merged records are not included: to apply them, tick them and use Apply selected. Each new record takes a couple of seconds, so a large list can take a while. It keeps running if you leave this page.",
+        "confirmAllBody": "This adds {{added}} new records, ticked or not. Merged records are not included: to apply them, tick them and use Apply selected. Each new record takes a couple of seconds, so a large list can take a while. It keeps running if you leave this page. Possible moves are not included.",
         "confirmDatesTitle": "Use the dates from Discogs?",
         "confirmDatesBody": "The date added of {{count}} records is set to the date you added them on Discogs, and the collection value history is rebuilt from those dates.",
         "cancel": "Cancel",
@@ -257,7 +263,7 @@
         "showAll": "Show all"
     },
     "discogsPending": {
-        "message": "{{count}} changes from your last Discogs check are waiting: {{newOnDiscogs}} new, {{merged}} merged.",
+        "message": "{{count}} changes from your last Discogs check are waiting: {{newOnDiscogs}} new, {{merged}} merged, {{flagged}} to check.",
         "review": "Review",
         "dismiss": "Dismiss",
         "badge": "{{count}} Discogs changes waiting"

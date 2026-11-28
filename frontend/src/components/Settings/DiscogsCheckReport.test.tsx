@@ -375,6 +375,69 @@ describe('DiscogsCheckReport', () => {
             expect(screen.queryByRole('button', { name: /^discogsApply.applyAll/ })).not.toBeInTheDocument();
         });
 
+        describe('flags', () => {
+            const flagged = () => drift({
+                flags: [
+                    {
+                        kind: 'possibleMove',
+                        item: { itemId: 'c', artist: 'Moved Band', title: 'Old Pressing', discogsId: 100 },
+                        release: { releaseId: 2, instanceId: 12, artist: 'Slayer', title: 'Reign In Blood', dateAdded: '2022-01-01T00:00:00Z' }
+                    },
+                    {
+                        kind: 'sharedRelease',
+                        item: { itemId: 'd', artist: 'Twice Owned', title: 'Both', discogsId: 300 },
+                        release: { releaseId: 400, instanceId: 14, artist: 'Twice Owned', title: 'Both', dateAdded: '2022-01-01T00:00:00Z' }
+                    }
+                ]
+            });
+            const box = (name: string) => screen.getByRole('checkbox', { name });
+
+            it('lists each flag with links to both releases, and nothing to tick', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(flagged());
+
+                render(<DiscogsCheckReport />);
+
+                await screen.findByText('discogsCheck.flagsTitle');
+                const row = screen.getByText('Twice Owned').closest('li') as HTMLElement;
+                expect(row).toHaveTextContent('discogsCheck.flagSharedRelease:{"from":300,"to":400}');
+                expect(row.querySelector('input')).toBeNull();
+                expect([...row.querySelectorAll('a')].map(a => a.getAttribute('href'))).toEqual([
+                    'https://www.discogs.com/release/300',
+                    'https://www.discogs.com/release/400'
+                ]);
+                expect(screen.getByText('Moved Band').closest('li')).toHaveTextContent('discogsCheck.flagPossibleMove');
+            });
+
+            it('starts the new release of a possible move unticked, and leaves it out of "Tick all" and "Apply all"', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(flagged());
+
+                render(<DiscogsCheckReport />);
+                await screen.findByText('discogsCheck.flagsTitle');
+                expect(box('Nirvana — Nevermind')).toBeChecked();
+                expect(box('Slayer — Reign In Blood')).not.toBeChecked();
+                expect(box('Slayer — Reign In Blood').closest('li')).toHaveTextContent('discogsCheck.newPossibleMove');
+
+                fireEvent.click(screen.getAllByRole('button', { name: 'discogsApply.selectAll' })[0]);
+                expect(box('Slayer — Reign In Blood')).not.toBeChecked();
+
+                fireEvent.click(await applyButton('discogsApply.applyAll'));
+                expect(screen.getByText('discogsApply.confirmAllBody:{"added":1}')).toBeInTheDocument();
+                fireEvent.click(screen.getByRole('button', { name: 'discogsApply.confirm' }));
+                await waitFor(() => expect(applyDiscogsSelection).toHaveBeenCalledWith({ add: [1], relink: [], useDiscogsDates: false }));
+            });
+
+            it('adds a possible move when it is ticked by hand', async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(flagged());
+
+                render(<DiscogsCheckReport />);
+                await screen.findByText('discogsCheck.flagsTitle');
+                fireEvent.click(box('Slayer — Reign In Blood'));
+                fireEvent.click(await applyButton('discogsApply.applySelected'));
+
+                await waitFor(() => expect(applyDiscogsSelection).toHaveBeenCalledWith({ add: [1, 2], relink: [], useDiscogsDates: false }));
+            });
+        });
+
         describe('large applies', () => {
             const many = (count: number) => drift({
                 counts: { discogs: 2000, matched: 10, newOnDiscogs: count, merged: 0, onlyInMusivault: 0, dateDiffers: 0 },

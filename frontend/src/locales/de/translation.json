@@ -193,7 +193,13 @@
         "moreRows": "und {{count}} weitere",
         "openOnDiscogs": "Auf Discogs öffnen",
         "mergedExact": "derselbe Discogs-Eintrag",
-        "mergedLikely": "wahrscheinlich"
+        "mergedLikely": "wahrscheinlich",
+        "flagsTitle": "Bitte prüfen",
+        "flagsHint": "Diese Platten scheinen mit etwas auf Discogs zusammenzuhängen. Nur zur Information: Es wird nichts geändert. Vergleiche beide Veröffentlichungen mit deinem Exemplar.",
+        "flagPossibleMove": "Möglicherweise verschoben: Diese Platte ist unter Release {{from}}, und Release {{to}} ist neu auf Discogs.",
+        "flagPossibleDuplicate": "Mögliches Duplikat: Diese Platte ist unter Release {{from}}, und eine andere deiner Platten hat bereits Release {{to}}.",
+        "flagSharedRelease": "Gemeinsames Release: Der Discogs-Eintrag dieser Platte liegt jetzt unter Release {{to}}, das eine andere deiner Platten hat. Discogs führt dort mehr als ein Exemplar, es ist also kein Duplikat. Diese Platte ist weiterhin unter Release {{from}}.",
+        "newPossibleMove": "möglicherweise verschoben, nur anhaken, wenn es ein weiteres Exemplar ist"
     },
     "discogsApply": {
         "queued": "Warte auf das Ende eines anderen Discogs-Auftrags…",
@@ -217,7 +223,7 @@
         "applyAll": "Alle übernehmen ({{count}})",
         "useDates": "Discogs-Daten verwenden",
         "confirmAllTitle": "Alles übernehmen?",
-        "confirmAllBody": "Das fügt {{added}} neue Platten hinzu, angehakt oder nicht. Zusammengeführte Platten sind nicht enthalten: Um sie zu übernehmen, hake sie an und nutze „Auswahl übernehmen“. Jede neue Platte braucht ein paar Sekunden, eine lange Liste kann also dauern. Es läuft weiter, wenn du die Seite verlässt.",
+        "confirmAllBody": "Das fügt {{added}} neue Platten hinzu, angehakt oder nicht. Zusammengeführte Platten sind nicht enthalten: Um sie zu übernehmen, hake sie an und nutze „Auswahl übernehmen“. Jede neue Platte braucht ein paar Sekunden, eine lange Liste kann also dauern. Es läuft weiter, wenn du die Seite verlässt. Möglicherweise verschobene Platten sind nicht enthalten.",
         "confirmDatesTitle": "Daten von Discogs verwenden?",
         "confirmDatesBody": "Das Hinzufügedatum von {{count}} Platten wird auf das Datum gesetzt, an dem du sie auf Discogs hinzugefügt hast, und der Wertverlauf der Sammlung wird daraus neu aufgebaut.",
         "cancel": "Abbrechen",
@@ -236,7 +242,7 @@
         "showAll": "Alle anzeigen"
     },
     "discogsPending": {
-        "message": "{{count}} Änderungen deiner letzten Discogs-Prüfung warten: {{newOnDiscogs}} neu, {{merged}} zusammengeführt.",
+        "message": "{{count}} Änderungen aus deiner letzten Discogs-Prüfung warten: {{newOnDiscogs}} neu, {{merged}} zusammengeführt, {{flagged}} zu prüfen.",
         "review": "Ansehen",
         "dismiss": "Ausblenden",
         "badge": "{{count}} Discogs-Änderungen warten"

@@ -214,7 +214,13 @@
         "moreRows": "e altri {{count}}",
         "openOnDiscogs": "Apri su Discogs",
         "mergedExact": "stessa voce Discogs",
-        "mergedLikely": "probabile"
+        "mergedLikely": "probabile",
+        "flagsTitle": "Da controllare",
+        "flagsHint": "Questi dischi sembrano collegati a qualcosa su Discogs. Solo a scopo informativo: non viene modificato nulla. Confronta entrambe le release con la tua copia.",
+        "flagPossibleMove": "Possibile spostamento: questo disco è sulla release {{from}} e la release {{to}} è nuova su Discogs.",
+        "flagPossibleDuplicate": "Possibile duplicato: questo disco è sulla release {{from}} e un altro tuo disco ha già la release {{to}}.",
+        "flagSharedRelease": "Release condivisa: la voce Discogs di questo disco è ora sulla release {{to}}, che un altro tuo disco ha già. Discogs ha più di una copia lì, quindi non è un duplicato. Questo disco è ancora sulla release {{from}}.",
+        "newPossibleMove": "possibile spostamento, seleziona solo se è un'altra copia"
     },
     "discogsApply": {
         "queued": "In attesa che un altro lavoro Discogs termini…",
@@ -238,7 +244,7 @@
         "applyAll": "Applica tutto ({{count}})",
         "useDates": "Usa le date di Discogs",
         "confirmAllTitle": "Applicare tutto?",
-        "confirmAllBody": "Verranno aggiunti {{added}} nuovi dischi, selezionati o no. I dischi uniti non sono inclusi: per applicarli, selezionali e usa «Applica selezionati». Ogni nuovo disco richiede un paio di secondi, quindi un elenco lungo può richiedere tempo. Il lavoro continua se lasci questa pagina.",
+        "confirmAllBody": "Verranno aggiunti {{added}} nuovi dischi, selezionati o no. I dischi uniti non sono inclusi: per applicarli, selezionali e usa «Applica selezionati». Ogni nuovo disco richiede un paio di secondi, quindi un elenco lungo può richiedere tempo. Il lavoro continua se lasci questa pagina. I possibili spostamenti non sono inclusi.",
         "confirmDatesTitle": "Usare le date di Discogs?",
         "confirmDatesBody": "La data di aggiunta di {{count}} dischi viene impostata alla data in cui li hai aggiunti su Discogs e lo storico del valore della collezione viene ricostruito da quelle date.",
         "cancel": "Annulla",
@@ -257,7 +263,7 @@
         "showAll": "Mostra tutto"
     },
     "discogsPending": {
-        "message": "{{count}} modifiche dalla tua ultima verifica Discogs sono in attesa: {{newOnDiscogs}} nuove, {{merged}} unite.",
+        "message": "{{count}} modifiche dall'ultimo controllo Discogs sono in attesa: {{newOnDiscogs}} nuovi, {{merged}} uniti, {{flagged}} da controllare.",
         "review": "Rivedi",
         "dismiss": "Ignora",
         "badge": "{{count}} modifiche Discogs in attesa"

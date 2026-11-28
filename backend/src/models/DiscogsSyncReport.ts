@@ -37,6 +37,22 @@ export interface IDiscogsReportMerged {
     match: 'instance' | 'guess';
 }
 
+/**
+ * Something the check relates for the user to look at, without offering to change anything.
+ * `item` is "only in Musivault"; `release` is the Discogs release it seems to belong with.
+ * - `possibleMove`: `release` is new, looks like `item` and has another year.
+ * - `possibleDuplicate`: `other`, a look-alike or the holder of `item`'s Discogs entry, already has
+ *   `release`, and Discogs has one copy of it.
+ * - `sharedRelease`: `item`'s Discogs entry is now on `release`, which `other` has, and Discogs has two
+ *   or more copies: both are real.
+ */
+export interface IDiscogsReportFlag {
+    kind: 'possibleMove' | 'possibleDuplicate' | 'sharedRelease';
+    item: IDiscogsReportItem;
+    release: IDiscogsReportRelease;
+    other?: IDiscogsReportItem;
+}
+
 /** A record the last apply could not add or relink. */
 export interface IDiscogsApplyFailure {
     kind: 'add' | 'relink';
@@ -94,6 +110,8 @@ export interface IDiscogsSyncReport extends Document {
     newOnDiscogs: IDiscogsReportRelease[];
     merged: IDiscogsReportMerged[];
     onlyInMusivault: IDiscogsReportItem[];
+    /** Absent on reports saved before flags existed. */
+    flags?: IDiscogsReportFlag[];
     /** Absent until the user applies something. */
     apply?: IDiscogsApply;
 }
@@ -124,6 +142,13 @@ const mergedSchema = new Schema<IDiscogsReportMerged>({
     item: { type: itemSchema, required: true },
     release: { type: releaseSchema, required: true },
     match: { type: String, enum: ['instance', 'guess'], default: 'guess' }
+}, { _id: false });
+
+const flagSchema = new Schema<IDiscogsReportFlag>({
+    kind: { type: String, enum: ['possibleMove', 'possibleDuplicate', 'sharedRelease'], required: true },
+    item: { type: itemSchema, required: true },
+    release: { type: releaseSchema, required: true },
+    other: { type: itemSchema }
 }, { _id: false });
 
 const applyFailureSchema = new Schema<IDiscogsApplyFailure>({
@@ -177,6 +202,7 @@ const discogsSyncReportSchema = new Schema<IDiscogsSyncReport>({
     newOnDiscogs: { type: [releaseSchema], default: [] },
     merged: { type: [mergedSchema], default: [] },
     onlyInMusivault: { type: [itemSchema], default: [] },
+    flags: { type: [flagSchema], default: [] },
     apply: { type: applySchema }
 });
 

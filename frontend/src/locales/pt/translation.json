@@ -196,7 +196,13 @@
         "moreRows": "e mais {{count}}",
         "openOnDiscogs": "Abrir no Discogs",
         "mergedExact": "mesma entrada do Discogs",
-        "mergedLikely": "provável"
+        "mergedLikely": "provável",
+        "flagsTitle": "A verificar",
+        "flagsHint": "Estes discos parecem relacionados com algo no Discogs. Apenas informativo: nada é alterado. Compare as duas edições com o seu exemplar.",
+        "flagPossibleMove": "Possível mudança: este disco está na edição {{from}} e a edição {{to}} é nova no Discogs.",
+        "flagPossibleDuplicate": "Possível duplicado: este disco está na edição {{from}} e outro dos seus discos já tem a edição {{to}}.",
+        "flagSharedRelease": "Edição partilhada: a entrada do Discogs deste disco está agora na edição {{to}}, que outro dos seus discos já tem. O Discogs tem mais do que um exemplar aí, por isso não é um duplicado. Este disco continua na edição {{from}}.",
+        "newPossibleMove": "possível mudança, selecione apenas se for outro exemplar"
     },
     "discogsApply": {
         "queued": "A aguardar o fim de outra tarefa do Discogs…",
@@ -220,7 +226,7 @@
         "applyAll": "Aplicar tudo ({{count}})",
         "useDates": "Usar as datas do Discogs",
         "confirmAllTitle": "Aplicar tudo?",
-        "confirmAllBody": "Isto adiciona {{added}} discos novos, selecionados ou não. Os discos fundidos não estão incluídos: para os aplicar, selecione-os e use «Aplicar seleção». Cada disco novo demora alguns segundos, por isso uma lista longa pode demorar. Continua a correr se sair da página.",
+        "confirmAllBody": "Isto adiciona {{added}} discos novos, selecionados ou não. Os discos fundidos não estão incluídos: para os aplicar, selecione-os e use «Aplicar seleção». Cada disco novo demora alguns segundos, por isso uma lista longa pode demorar. Continua a correr se sair da página. As possíveis mudanças não estão incluídas.",
         "confirmDatesTitle": "Usar as datas do Discogs?",
         "confirmDatesBody": "A data de adição de {{count}} discos passa a ser a data em que os adicionou no Discogs, e o histórico de valor da coleção é reconstruído a partir delas.",
         "cancel": "Cancelar",
@@ -239,7 +245,7 @@
         "showAll": "Mostrar tudo"
     },
     "discogsPending": {
-        "message": "{{count}} alterações da sua última verificação do Discogs aguardam: {{newOnDiscogs}} novas, {{merged}} fundidas.",
+        "message": "{{count}} alterações da sua última verificação do Discogs aguardam: {{newOnDiscogs}} novas, {{merged}} fundidas, {{flagged}} a verificar.",
         "review": "Rever",
         "dismiss": "Dispensar",
         "badge": "{{count}} alterações do Discogs pendentes"

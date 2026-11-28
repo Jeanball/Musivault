@@ -2,6 +2,7 @@ import axios from 'axios';
 import mongoose from 'mongoose';
 import CollectionItem from '../models/CollectionItem';
 import DiscogsSyncReport, {
+    IDiscogsReportFlag,
     IDiscogsReportItem,
     IDiscogsReportMerged,
     IDiscogsReportRelease,
@@ -45,6 +46,7 @@ export interface ComparisonResult {
     matchedItems: { itemId: mongoose.Types.ObjectId; release: IDiscogsReportRelease }[];
     /** Matched items whose Discogs collection entry is beyond doubt and not stored yet, to be saved. */
     clearLinks: InstanceLink[];
+    flags: IDiscogsReportFlag[];
     newOnDiscogs: IDiscogsReportRelease[];
     merged: IDiscogsReportMerged[];
     onlyInMusivault: IDiscogsReportItem[];
@@ -69,19 +71,66 @@ function releaseOf(entry: DiscogsCollectionRelease): IDiscogsReportRelease {
 
 const pairKey = (artist: string, title: string) => `${normalizeString(artist)}|${normalizeString(title)}`;
 
-/**
- * Whether a Discogs entry could be the release an item was meant to be: the same format
- * (compared by name, ignoring case; an item with no format fits any) and the same year
- * (only compared when both sides have one; Discogs reports 0 for "unknown").
- */
-function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease): boolean {
+/** The same format, compared by name ignoring case; an item with no format fits any. */
+function formatFits(item: ComparableItem, entry: DiscogsCollectionRelease): boolean {
     const itemFormat = item.format?.toLowerCase();
-    if (itemFormat && !entry.basic_information.formats?.some(f => f.name.toLowerCase() === itemFormat)) {
-        return false;
-    }
+    return !itemFormat || !!entry.basic_information.formats?.some(f => f.name.toLowerCase() === itemFormat);
+}
+
+/** The same year, compared only when both sides have one (Discogs reports 0 for "unknown"). */
+function yearFits(item: ComparableItem, entry: DiscogsCollectionRelease): boolean {
     const itemYear = Number(item.year);
     const releaseYear = entry.basic_information.year;
     return !(itemYear && releaseYear && itemYear !== releaseYear);
+}
+
+const reportItem = ({ addedAt: _addedAt, instanceId: _instanceId, ...item }: ComparableItem): IDiscogsReportItem => item;
+
+/**
+ * Relate the items left "only in Musivault" to what they might be, for the user to judge (see
+ * `IDiscogsReportFlag`). At most one flag per item, the surest first: its own Discogs entry on another
+ * item's release, then a look-alike item that already has a release, then a look-alike new release.
+ * Look-alike means the same normalized artist and title and a fitting format. Items without a Discogs id
+ * (manual albums) are not flagged: Discogs can't have moved them. Pure.
+ */
+function findFlags(
+    leftovers: ComparableItem[],
+    items: ComparableItem[],
+    newReleases: IDiscogsReportRelease[],
+    discogs: { earliestByRelease: Map<number, DiscogsCollectionRelease>; byInstance: Map<number, DiscogsCollectionRelease>; copies: Map<number, number> }
+): IDiscogsReportFlag[] {
+    const { earliestByRelease, byInstance, copies } = discogs;
+    const claimedMoves = new Set<number>();
+    const keyOf = (item: ComparableItem) => pairKey(item.artist, item.title);
+
+    return leftovers.flatMap((comparable): IDiscogsReportFlag[] => {
+        if (comparable.discogsId === undefined) return [];
+        const item = reportItem(comparable);
+
+        const own = comparable.instanceId !== undefined ? byInstance.get(comparable.instanceId) : undefined;
+        const holder = own && items.find(i => i.itemId !== comparable.itemId && i.discogsId === own.id);
+        if (own && holder) {
+            const kind = (copies.get(own.id) ?? 0) > 1 ? 'sharedRelease' : 'possibleDuplicate';
+            return [{ kind, item, release: releaseOf(own), other: reportItem(holder) }];
+        }
+
+        for (const other of items) {
+            if (other.itemId === comparable.itemId || other.discogsId === undefined || keyOf(other) !== keyOf(comparable)) continue;
+            const entry = earliestByRelease.get(other.discogsId);
+            if (entry && copies.get(entry.id) === 1 && formatFits(comparable, entry)) {
+                return [{ kind: 'possibleDuplicate', item, release: releaseOf(entry), other: reportItem(other) }];
+            }
+        }
+
+        const move = newReleases.find(release => {
+            const entry = earliestByRelease.get(release.releaseId);
+            return entry && !claimedMoves.has(release.releaseId) && pairKey(release.artist, release.title) === keyOf(comparable)
+                && formatFits(comparable, entry) && !yearFits(comparable, entry);
+        });
+        if (!move) return [];
+        claimedMoves.add(move.releaseId);
+        return [{ kind: 'possibleMove', item, release: move }];
+    });
 }
 
 /**
@@ -107,6 +156,8 @@ function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease
  * - `clearLinks`: matched items with no stored instance id, where one item and one Discogs entry have that
  *   release and no item stores the entry's id. With several items or copies nothing is linked: a wrong
  *   link would later move the wrong record.
+ * - `flags`: leftovers related to a release or another item, for the user to look at (see `findFlags`).
+ *   Flagged rows stay in `onlyInMusivault` and `newOnDiscogs`.
  * - `newOnDiscogs`: releases in Discogs that no item has and that no merge explains.
  * - `onlyInMusivault`: items left over, including manually added albums with no Discogs id.
  *
@@ -175,7 +226,7 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
     for (const comparable of unmatched) {
         const { addedAt: _addedAt, instanceId: _instanceId, ...item } = comparable;
         const options = candidates.get(pairKey(item.artist, item.title)) ?? [];
-        const index = options.findIndex(entry => couldBeSameRecord(comparable, entry));
+        const index = options.findIndex(entry => formatFits(comparable, entry) && yearFits(comparable, entry));
         if (index === -1) {
             onlyInMusivault.push(item);
             continue;
@@ -196,12 +247,19 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
         return isClear ? [{ itemId: item.itemId, instanceId: entry.instance_id }] : [];
     });
 
+    const stillNew = newOnDiscogs.filter(r => !paired.has(r.releaseId));
+    const leftoverIds = new Set(onlyInMusivault.map(i => i.itemId));
+    const flags = findFlags(
+        items.filter(i => leftoverIds.has(i.itemId)), items, stillNew, { earliestByRelease, byInstance, copies }
+    );
+
     return {
         matched,
         dateDiffers,
         matchedItems,
         clearLinks,
-        newOnDiscogs: newOnDiscogs.filter(r => !paired.has(r.releaseId)),
+        flags,
+        newOnDiscogs: stillNew,
         merged,
         onlyInMusivault
     };
@@ -322,7 +380,8 @@ export async function saveResult(
             },
             newOnDiscogs: result.newOnDiscogs,
             merged: result.merged,
-            onlyInMusivault: result.onlyInMusivault
+            onlyInMusivault: result.onlyInMusivault,
+            flags: result.flags
         }
     });
 }
@@ -419,7 +478,8 @@ async function beginCheck(userId: mongoose.Types.ObjectId): Promise<{ report: ID
                 counts: { discogs: 0, matched: 0, newOnDiscogs: 0, merged: 0, onlyInMusivault: 0, dateDiffers: 0 },
                 newOnDiscogs: [],
                 merged: [],
-                onlyInMusivault: []
+                onlyInMusivault: [],
+                flags: []
             },
             $unset: { errorCode: '', finishedAt: '', apply: '' }
         },
@@ -476,8 +536,11 @@ export async function checkAllUsers(
 /** What the last check left to act on, for the badge and the notice. */
 export interface PendingSummary {
     finishedAt: Date;
+    /** New records, without those a possible move is flagged for. */
     newOnDiscogs: number;
     merged: number;
+    /** Rows flagged for the user to look at. */
+    flagged: number;
 }
 
 /**
@@ -489,12 +552,14 @@ export interface PendingSummary {
 export async function getPendingSummary(user: IUser): Promise<PendingSummary | null> {
     if (!user.discogs?.enabled || user.discogs.needsReconnect) return null;
     const report = await DiscogsSyncReport.findOne({ user: user._id, status: 'completed' })
-        .select('finishedAt startedAt counts');
+        .select('finishedAt startedAt counts flags.kind');
     if (!report) return null;
     return {
         finishedAt: report.finishedAt ?? report.startedAt,
-        newOnDiscogs: report.counts.newOnDiscogs,
-        merged: report.counts.merged
+        // A possible move relates a new release: count it once, as a flag.
+        newOnDiscogs: report.counts.newOnDiscogs - (report.flags ?? []).filter(f => f.kind === 'possibleMove').length,
+        merged: report.counts.merged,
+        flagged: report.flags?.length ?? 0
     };
 }
 

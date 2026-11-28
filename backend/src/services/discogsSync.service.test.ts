@@ -50,6 +50,7 @@ describe('compareCollections', () => {
             dateDiffers: 0,
             matchedItems: [],
             clearLinks: [],
+            flags: [],
             newOnDiscogs: [],
             merged: [],
             onlyInMusivault: []
@@ -335,6 +336,78 @@ describe('compareCollections', () => {
             const [merged] = compareCollections([entry(6, { instanceId: 66 })], [old]).merged;
             expect(merged.item).not.toHaveProperty('instanceId');
             expect(merged.item).not.toHaveProperty('addedAt');
+        });
+    });
+
+    describe('flags', () => {
+        const look = { artist: 'Obituary', title: 'Cause Of Death' };
+        const old = (overrides: Partial<ComparableItem> = {}) => item({ ...look, discogsId: 8499267, year: '1997', ...overrides });
+        const survivor = (overrides: Parameters<typeof entry>[1] = {}) => entry(2467355, { ...look, year: 2010, instanceId: 900, ...overrides });
+        const twin = () => item({ ...look, discogsId: 2467355, year: '2010' });
+
+        it('flags a possible move when a look-alike new release has another year', () => {
+            const record = old();
+            const result = compareCollections([survivor()], [record]);
+
+            expect(result.merged).toEqual([]);
+            expect(result.flags).toEqual([expect.objectContaining({
+                kind: 'possibleMove', item: expect.objectContaining({ itemId: record.itemId }),
+                release: expect.objectContaining({ releaseId: 2467355 })
+            })]);
+            expect(result.flags[0].item).not.toHaveProperty('addedAt');
+            // Both rows stay where they were: the flag only relates them.
+            expect(result.newOnDiscogs).toHaveLength(1);
+            expect(result.onlyInMusivault).toHaveLength(1);
+        });
+
+        it('flags a possible duplicate when a look-alike record already has the release, with one Discogs copy', () => {
+            const other = twin();
+            const result = compareCollections([survivor()], [old(), other]);
+
+            expect(result.flags).toEqual([expect.objectContaining({
+                kind: 'possibleDuplicate', other: expect.objectContaining({ itemId: other.itemId }),
+                release: expect.objectContaining({ releaseId: 2467355 })
+            })]);
+        });
+
+        it('calls it a possible duplicate by the stored id too, even when artist and title differ', () => {
+            const record = old({ instanceId: 900, title: 'Renamed' });
+
+            expect(compareCollections([survivor()], [record, twin()]).flags.map(f => f.kind)).toEqual(['possibleDuplicate']);
+        });
+
+        it('says the release is shared, not duplicated, when Discogs has two copies and one is this record\'s', () => {
+            const result = compareCollections([survivor(), survivor({ instanceId: 901 })], [old({ instanceId: 901 }), twin()]);
+
+            expect(result.flags.map(f => f.kind)).toEqual(['sharedRelease']);
+        });
+
+        it('does not flag a duplicate without a stored id when Discogs has two copies', () => {
+            expect(compareCollections([survivor(), survivor({ instanceId: 901 })], [old(), twin()]).flags).toEqual([]);
+        });
+
+        it('does not flag two pressings that each match their own Discogs entry', () => {
+            const result = compareCollections([entry(8499267, { ...look, year: 1997 }), survivor()], [old(), twin()]);
+
+            expect(result.flags).toEqual([]);
+        });
+
+        it('does not flag across formats, or a manually added album', () => {
+            expect(compareCollections([survivor({ format: 'CD' })], [old()]).flags).toEqual([]);
+            expect(compareCollections([survivor()], [old({ discogsId: undefined })]).flags).toEqual([]);
+        });
+
+        it('gives a new release to one possible move only', () => {
+            const result = compareCollections([survivor()], [old(), old({ discogsId: 7, year: '1998' })]);
+
+            expect(result.flags).toHaveLength(1);
+        });
+
+        it('does not flag a pair the guess already reports as merged', () => {
+            const result = compareCollections([survivor()], [old({ year: '2010' })]);
+
+            expect(result.merged).toHaveLength(1);
+            expect(result.flags).toEqual([]);
         });
     });
 
