@@ -152,14 +152,14 @@ describe('planApply', () => {
             expect(plan.linkInstances).toEqual([{ itemId: unlinked.itemId, instanceId: 11 }]);
         });
 
-        it('links an item with copies to the earliest one', () => {
+        it('does not link an item when Discogs has several copies of its release', () => {
             const owner = item({ discogsId: 1 });
             const result = compareCollections(
                 [entry(1, { instanceId: 12, dateAdded: '2021-01-01T00:00:00Z' }), entry(1, { instanceId: 11, dateAdded: '2019-01-01T00:00:00Z' })],
                 [owner]
             );
 
-            expect(planApply(result, [owner], none).linkInstances).toEqual([{ itemId: owner.itemId, instanceId: 11 }]);
+            expect(planApply(result, [owner], none).linkInstances).toEqual([]);
         });
 
         it('does not link items that are only in Musivault or merged', () => {

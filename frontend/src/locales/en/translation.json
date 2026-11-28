@@ -193,7 +193,7 @@
     },
     "discogsCheck": {
         "title": "Check against Discogs",
-        "description": "Compare your Discogs collection with Musivault. Nothing is changed: this only shows the differences.",
+        "description": "Compare your Discogs collection with Musivault. Your records are not changed: this only shows the differences.",
         "checkNow": "Check now",
         "queued": "Waiting for another check to finish…",
         "starting": "Starting…",

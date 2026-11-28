@@ -126,7 +126,8 @@ interface Ticks {
 
 /**
  * Check the Discogs collection against Musivault and apply what the user ticks: a button, progress,
- * the last report with tickable rows, and the apply buttons. Nothing changes until the user applies.
+ * the last report with tickable rows, and the apply buttons. No record changes until the user applies (a check
+ * only saves the hidden link between a record and its Discogs entry).
  */
 const DiscogsCheckReport: React.FC = () => {
     const { t } = useTranslation();

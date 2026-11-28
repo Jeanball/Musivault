@@ -172,7 +172,7 @@
     },
     "discogsCheck": {
         "title": "Mit Discogs abgleichen",
-        "description": "Vergleicht deine Discogs-Sammlung mit Musivault. Es wird nichts geändert: Es werden nur die Unterschiede angezeigt.",
+        "description": "Vergleicht deine Discogs-Sammlung mit Musivault. Deine Platten werden nicht geändert: Es werden nur die Unterschiede angezeigt.",
         "checkNow": "Jetzt prüfen",
         "queued": "Warte, bis eine andere Prüfung abgeschlossen ist…",
         "starting": "Wird gestartet…",

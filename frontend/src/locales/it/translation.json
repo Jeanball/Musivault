@@ -193,7 +193,7 @@
     },
     "discogsCheck": {
         "title": "Verifica su Discogs",
-        "description": "Confronta la tua collezione Discogs con Musivault. Nulla viene modificato: vengono mostrate solo le differenze.",
+        "description": "Confronta la tua collezione Discogs con Musivault. I tuoi dischi non vengono modificati: vengono mostrate solo le differenze.",
         "checkNow": "Verifica ora",
         "queued": "In attesa che un'altra verifica termini…",
         "starting": "Avvio…",

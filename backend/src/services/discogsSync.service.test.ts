@@ -49,6 +49,7 @@ describe('compareCollections', () => {
             matched: 0,
             dateDiffers: 0,
             matchedItems: [],
+            clearLinks: [],
             newOnDiscogs: [],
             merged: [],
             onlyInMusivault: []
@@ -334,6 +335,44 @@ describe('compareCollections', () => {
             const [merged] = compareCollections([entry(6, { instanceId: 66 })], [old]).merged;
             expect(merged.item).not.toHaveProperty('instanceId');
             expect(merged.item).not.toHaveProperty('addedAt');
+        });
+    });
+
+    describe('clear links', () => {
+        it('links a matched item when it is the only item and Discogs has one entry on the release', () => {
+            const owner = item({ discogsId: 1 });
+            const result = compareCollections([entry(1, { instanceId: 11 })], [owner]);
+
+            expect(result.clearLinks).toEqual([{ itemId: owner.itemId, instanceId: 11 }]);
+        });
+
+        it('does not guess between several Discogs copies of the release', () => {
+            const result = compareCollections([entry(1), entry(1)], [item({ discogsId: 1 })]);
+
+            expect(result.clearLinks).toEqual([]);
+        });
+
+        it('does not guess between several items on the release', () => {
+            const items = [item({ discogsId: 1, format: 'Vinyl' }), item({ discogsId: 1, format: 'CD' })];
+
+            expect(compareCollections([entry(1)], items).clearLinks).toEqual([]);
+        });
+
+        it('leaves an item that already has an instance id alone, even a stale one', () => {
+            expect(compareCollections([entry(1, { instanceId: 11 })], [item({ discogsId: 1, instanceId: 404 })]).clearLinks).toEqual([]);
+        });
+
+        it('does not give an entry to a second item when another one stores its id', () => {
+            const holder = item({ discogsId: 9, instanceId: 11, artist: 'Other', title: 'Other' });
+            const unlinked = item({ discogsId: 1 });
+
+            expect(compareCollections([entry(1, { instanceId: 11 })], [holder, unlinked]).clearLinks).toEqual([]);
+        });
+
+        it('does not link items that are only in Musivault or merged by a guess', () => {
+            const guessed = item({ discogsId: 5 });
+
+            expect(compareCollections([entry(6, { artist: 'Some Artist', title: 'Some Title' })], [guessed]).clearLinks).toEqual([]);
         });
     });
 

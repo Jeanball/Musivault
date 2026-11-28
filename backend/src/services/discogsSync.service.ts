@@ -33,11 +33,18 @@ export interface ComparableItem extends IDiscogsReportItem {
     instanceId?: number;
 }
 
+export interface InstanceLink {
+    itemId: mongoose.Types.ObjectId;
+    instanceId: number;
+}
+
 export interface ComparisonResult {
     matched: number;
     dateDiffers: number;
     /** The matched items with the Discogs entry (the earliest copy) they matched, for the apply step. */
     matchedItems: { itemId: mongoose.Types.ObjectId; release: IDiscogsReportRelease }[];
+    /** Matched items whose Discogs collection entry is beyond doubt and not stored yet, to be saved. */
+    clearLinks: InstanceLink[];
     newOnDiscogs: IDiscogsReportRelease[];
     merged: IDiscogsReportMerged[];
     onlyInMusivault: IDiscogsReportItem[];
@@ -97,6 +104,9 @@ function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease
  *
  * - `matched`: items matched by release id. `dateDiffers` counts those whose `addedAt` is more than
  *   a day from the Discogs `date_added` (e.g. everything a CSV import stamped with the import date).
+ * - `clearLinks`: matched items with no stored instance id, where one item and one Discogs entry have that
+ *   release and no item stores the entry's id. With several items or copies nothing is linked: a wrong
+ *   link would later move the wrong record.
  * - `newOnDiscogs`: releases in Discogs that no item has and that no merge explains.
  * - `onlyInMusivault`: items left over, including manually added albums with no Discogs id.
  *
@@ -105,8 +115,10 @@ function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease
 export function compareCollections(discogs: DiscogsCollectionRelease[], items: ComparableItem[]): ComparisonResult {
     const earliestByRelease = new Map<number, DiscogsCollectionRelease>();
     const byInstance = new Map<number, DiscogsCollectionRelease>();
+    const copies = new Map<number, number>();
     for (const entry of discogs) {
         byInstance.set(entry.instance_id, entry);
+        copies.set(entry.id, (copies.get(entry.id) ?? 0) + 1);
         const known = earliestByRelease.get(entry.id);
         if (!known || new Date(entry.date_added) < new Date(known.date_added)) {
             earliestByRelease.set(entry.id, entry);
@@ -173,10 +185,22 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
         paired.add(entry.id);
     }
 
+    const storedInstanceIds = new Set(items.map(i => i.instanceId));
+    const clearLinks = unmoved.flatMap(item => {
+        const entry = item.discogsId !== undefined ? earliestByRelease.get(item.discogsId) : undefined;
+        const isClear = entry
+            && item.instanceId === undefined
+            && copies.get(entry.id) === 1
+            && items.filter(other => other.discogsId === entry.id).length === 1
+            && !storedInstanceIds.has(entry.instance_id);
+        return isClear ? [{ itemId: item.itemId, instanceId: entry.instance_id }] : [];
+    });
+
     return {
         matched,
         dateDiffers,
         matchedItems,
+        clearLinks,
         newOnDiscogs: newOnDiscogs.filter(r => !paired.has(r.releaseId)),
         merged,
         onlyInMusivault
@@ -234,7 +258,7 @@ export async function loadItems(userId: mongoose.Types.ObjectId): Promise<Compar
             format: item.format?.name,
             discogsId: item.album.discogsId,
             addedAt: item.addedAt,
-            instanceId: item.discogsInstanceId
+            instanceId: item.discogsInstanceId ?? undefined
         }));
 }
 
@@ -262,6 +286,20 @@ export async function fetchCollection(
         page++;
     } while (page <= pages);
     return releases;
+}
+
+/**
+ * Save the Discogs entry of items that have none stored, so a later merge is found exactly. Writes only
+ * `discogsInstanceId`, and never over an id that is already there.
+ */
+export async function storeInstanceLinks(userId: mongoose.Types.ObjectId, links: InstanceLink[]): Promise<void> {
+    if (links.length === 0) return;
+    await CollectionItem.bulkWrite(links.map(l => ({
+        updateOne: {
+            filter: { _id: l.itemId, user: userId, discogsInstanceId: null },
+            update: { $set: { discogsInstanceId: l.instanceId } }
+        }
+    })));
 }
 
 /** Store a comparison as the user's report, replacing the previous result (the apply state is kept). */
@@ -308,8 +346,9 @@ async function runCheck(userId: mongoose.Types.ObjectId): Promise<void> {
 
         const result = compareCollections(releases, await loadItems(userId));
         logConfirmedMerges(result, 'DiscogsCheck');
+        await storeInstanceLinks(userId, result.clearLinks);
         await saveResult(userId, releases, result);
-        logger.info({ userId: String(userId), releases: releases.length }, '[DiscogsCheck] Completed');
+        logger.info({ userId: String(userId), releases: releases.length, linked: result.clearLinks.length }, '[DiscogsCheck] Completed');
     } catch (error) {
         const rejected = await flagRejectedToken(userId, error);
         logger.error({ err: error, userId: String(userId) }, '[DiscogsCheck] Failed');

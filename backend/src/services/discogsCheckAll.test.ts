@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import mongoose from 'mongoose';
 
-const { reports, users, discogsRequest } = vi.hoisted(() => ({
+const { reports, users, discogsRequest, storedItems, bulkWrite } = vi.hoisted(() => ({
+    storedItems: [] as unknown[],
+    bulkWrite: vi.fn(),
     reports: new Map<string, { status: string }>(),
     users: [] as { _id: unknown; discogs: { enabled: boolean; source: string; username: string; needsReconnect?: boolean } }[],
     discogsRequest: vi.fn()
@@ -33,7 +35,7 @@ vi.mock('../models/DiscogsSyncReport', () => ({
     }
 }));
 vi.mock('../models/CollectionItem', () => ({
-    default: { find: () => ({ populate: () => ({ lean: async () => [] }) }) }
+    default: { find: () => ({ populate: () => ({ lean: async () => storedItems }) }), bulkWrite }
 }));
 vi.mock('../utils/discogs.utils', async importOriginal => ({
     ...(await importOriginal<typeof import('../utils/discogs.utils')>()),
@@ -58,8 +60,34 @@ describe('checkAllUsers', () => {
         process.env.DISCOGS_PAT = 'server-token';
         reports.clear();
         users.length = 0;
+        storedItems.length = 0;
         discogsRequest.mockReset();
         discogsRequest.mockResolvedValue(emptyPage);
+    });
+
+    it('saves the clear Discogs links it finds, without waiting for an apply', async () => {
+        const user = addUser('linked');
+        const itemId = new mongoose.Types.ObjectId();
+        storedItems.push({
+            _id: itemId, addedAt: new Date('2020-01-01T00:00:00Z'), format: { name: 'Vinyl' },
+            album: { discogsId: 1, title: 'T', artist: 'A', year: '1990' }
+        });
+        discogsRequest.mockResolvedValue({
+            pagination: { page: 1, pages: 1, items: 1 },
+            releases: [{
+                id: 1, instance_id: 11, date_added: '2020-01-01T00:00:00Z',
+                basic_information: { id: 1, title: 'T', year: 1990, artists: [{ name: 'A' }], formats: [{ name: 'Vinyl' }] }
+            }]
+        });
+
+        await checkAllUsers();
+
+        expect(bulkWrite).toHaveBeenCalledWith([{
+            updateOne: {
+                filter: { _id: itemId, user: user._id, discogsInstanceId: null },
+                update: { $set: { discogsInstanceId: 11 } }
+            }
+        }]);
     });
 
     it('does nothing when no one has sync on', async () => {

@@ -175,7 +175,7 @@
     },
     "discogsCheck": {
         "title": "与 Discogs 对比",
-        "description": "将你的 Discogs 收藏与 Musivault 对比。不会更改任何内容：只显示差异。",
+        "description": "将你的 Discogs 收藏与 Musivault 对比。不会更改你的唱片：只显示差异。",
         "checkNow": "立即检查",
         "queued": "正在等待另一项检查完成…",
         "starting": "正在开始…",

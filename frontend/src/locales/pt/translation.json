@@ -175,7 +175,7 @@
     },
     "discogsCheck": {
         "title": "Comparar com o Discogs",
-        "description": "Compara a sua coleção do Discogs com o Musivault. Nada é alterado: apenas mostra as diferenças.",
+        "description": "Compara a sua coleção do Discogs com o Musivault. Os seus discos não são alterados: apenas mostra as diferenças.",
         "checkNow": "Verificar agora",
         "queued": "A aguardar o fim de outra verificação…",
         "starting": "A iniciar…",
