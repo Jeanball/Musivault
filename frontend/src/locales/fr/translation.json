@@ -207,13 +207,13 @@
         "newTitle": "Nouveau sur Discogs",
         "newHint": "Dans votre collection Discogs mais pas dans Musivault.",
         "mergedTitle": "Fusionné sur Discogs",
-        "mergedHint": "Cette édition n'est plus dans votre collection Discogs. Discogs a déplacé l'entrée vers l'édition indiquée, ou contient une entrée avec le même artiste, titre, format et année. Appliquer relie le disque à la nouvelle édition et conserve votre état, vos notes et vos champs personnalisés.",
+        "mergedHint": "Cette édition n'est plus dans votre collection Discogs. Discogs a déplacé l'entrée vers l'édition indiquée, ou contient une entrée avec le même artiste, titre, format et année. Appliquer relie le disque à la nouvelle édition et conserve votre état, vos notes et vos champs personnalisés. Les disques fusionnés sont décochés au départ : vérifiez que la nouvelle édition correspond à votre exemplaire avant de les cocher.",
         "mergedDetail": "maintenant l'édition Discogs {{id}}",
         "onlyTitle": "Uniquement dans Musivault",
         "onlyHint": "Dans Musivault mais pas dans votre collection Discogs. À titre d'information, rien ne sera supprimé.",
         "moreRows": "et {{count}} de plus",
         "openOnDiscogs": "Ouvrir sur Discogs",
-        "mergedExact": "confirmé",
+        "mergedExact": "même entrée Discogs",
         "mergedLikely": "probable"
     },
     "discogsApply": {
@@ -238,7 +238,7 @@
         "applyAll": "Tout appliquer ({{count}})",
         "useDates": "Utiliser les dates de Discogs",
         "confirmAllTitle": "Tout appliquer ?",
-        "confirmAllBody": "Cela ajoute {{added}} nouveaux disques et relie {{relinked}} disques fusionnés, cochés ou non. Chaque nouveau disque prend quelques secondes, une longue liste peut donc durer un moment. La tâche continue si vous quittez la page.",
+        "confirmAllBody": "Cela ajoute {{added}} nouveaux disques, cochés ou non. Les disques fusionnés ne sont pas inclus : pour les appliquer, cochez-les et utilisez « Appliquer la sélection ». Chaque nouveau disque prend quelques secondes, une longue liste peut donc durer un moment. La tâche continue si vous quittez la page.",
         "confirmDatesTitle": "Utiliser les dates de Discogs ?",
         "confirmDatesBody": "La date d'ajout de {{count}} disques est remplacée par la date à laquelle vous les avez ajoutés sur Discogs, et l'historique de valeur de la collection est reconstruit à partir de ces dates.",
         "cancel": "Annuler",
@@ -253,7 +253,7 @@
         "stopping": "Arrêt après le disque en cours…",
         "stoppedDone": "Arrêté après {{done}} disques sur {{total}} : {{added}} ajoutés, {{relinked}} reliés. Le reste n'a pas été appliqué.",
         "stopFailed": "Impossible d'arrêter. Réessayez dans un instant.",
-        "moreHidden": "et {{count}} de plus non affichés. Tout afficher pour les voir et les décocher.",
+        "moreHidden": "et {{count}} de plus non affichés. Affichez tout pour les voir et modifier leur sélection.",
         "showAll": "Tout afficher"
     },
     "discogsPending": {

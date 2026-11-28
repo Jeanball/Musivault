@@ -250,7 +250,9 @@ describe('DiscogsCheckReport', () => {
             vi.mocked(applyDiscogsSelection).mockResolvedValue(undefined);
         });
 
-        it('ticks every new and merged row, and none of the rows that are only in Musivault', async () => {
+        const merge = (name: string) => screen.getByRole('checkbox', { name });
+
+        it('ticks every new row, leaves merged rows unticked, and offers no tick for rows only in Musivault', async () => {
             vi.mocked(getDiscogsReport).mockResolvedValue(drift());
 
             render(<DiscogsCheckReport />);
@@ -258,7 +260,10 @@ describe('DiscogsCheckReport', () => {
             await screen.findByText('discogsCheck.newTitle');
             const boxes = screen.getAllByRole('checkbox');
             expect(boxes).toHaveLength(4);
-            boxes.forEach(box => expect(box).toBeChecked());
+            expect(merge('Nirvana — Nevermind')).toBeChecked();
+            expect(merge('Slayer — Reign In Blood')).toBeChecked();
+            expect(merge('Pink Floyd — The Wall')).not.toBeChecked();
+            expect(merge('Obituary — Cause Of Death')).not.toBeChecked();
             expect(screen.getByText('Manual Band').closest('li')?.querySelector('input')).toBeNull();
         });
 
@@ -268,7 +273,7 @@ describe('DiscogsCheckReport', () => {
             render(<DiscogsCheckReport />);
             await screen.findByText('discogsCheck.newTitle');
             fireEvent.click(screen.getByRole('checkbox', { name: 'Slayer — Reign In Blood' }));
-            fireEvent.click(screen.getByRole('checkbox', { name: 'Obituary — Cause Of Death' }));
+            fireEvent.click(screen.getByRole('checkbox', { name: 'Pink Floyd — The Wall' }));
             fireEvent.click(await applyButton('discogsApply.applySelected'));
 
             await waitFor(() => expect(applyDiscogsSelection).toHaveBeenCalledWith({
@@ -286,13 +291,20 @@ describe('DiscogsCheckReport', () => {
             fireEvent.click(screen.getAllByRole('button', { name: 'discogsApply.selectNone' })[0]);
 
             expect(screen.getByRole('checkbox', { name: 'Nirvana — Nevermind' })).not.toBeChecked();
-            expect(screen.getByRole('checkbox', { name: 'Pink Floyd — The Wall' })).toBeChecked();
+            expect(merge('Pink Floyd — The Wall')).not.toBeChecked();
 
             fireEvent.click(screen.getAllByRole('button', { name: 'discogsApply.selectAll' })[0]);
             expect(screen.getByRole('checkbox', { name: 'Nirvana — Nevermind' })).toBeChecked();
+
+            const [, tickMerged] = screen.getAllByRole('button', { name: 'discogsApply.selectAll' });
+            fireEvent.click(tickMerged);
+            expect(merge('Pink Floyd — The Wall')).toBeChecked();
+            expect(merge('Obituary — Cause Of Death')).toBeChecked();
+            fireEvent.click(screen.getAllByRole('button', { name: 'discogsApply.selectNone' })[1]);
+            expect(merge('Pink Floyd — The Wall')).not.toBeChecked();
         });
 
-        it('ticks every row again when a new result arrives', async () => {
+        it('goes back to the default ticks when a new result arrives', async () => {
             vi.useFakeTimers({ shouldAdvanceTime: true });
             vi.mocked(getDiscogsReport)
                 .mockResolvedValueOnce(drift({ apply: apply() }))
@@ -301,6 +313,7 @@ describe('DiscogsCheckReport', () => {
             render(<DiscogsCheckReport />);
             await screen.findByText('discogsCheck.newTitle');
             fireEvent.click(screen.getByRole('checkbox', { name: 'Nirvana — Nevermind' }));
+            fireEvent.click(merge('Pink Floyd — The Wall'));
             expect(screen.getByRole('checkbox', { name: 'Nirvana — Nevermind' })).not.toBeChecked();
 
             await act(async () => {
@@ -308,6 +321,7 @@ describe('DiscogsCheckReport', () => {
             });
 
             await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Nirvana — Nevermind' })).toBeChecked());
+            expect(merge('Pink Floyd — The Wall')).not.toBeChecked();
         });
 
         it('cannot apply with nothing ticked', async () => {
@@ -315,7 +329,7 @@ describe('DiscogsCheckReport', () => {
 
             render(<DiscogsCheckReport />);
             await screen.findByText('discogsCheck.newTitle');
-            screen.getAllByRole('checkbox').forEach(box => fireEvent.click(box));
+            screen.getAllByRole('checkbox').filter(box => (box as HTMLInputElement).checked).forEach(box => fireEvent.click(box));
 
             expect(await applyButton('discogsApply.applySelected')).toBeDisabled();
         });
@@ -329,23 +343,36 @@ describe('DiscogsCheckReport', () => {
             expect(screen.getByText(/Cause Of Death/)).toHaveTextContent('discogsCheck.mergedLikely');
         });
 
-        it('asks before applying everything, and then applies even the unticked rows', async () => {
+        it('asks before applying everything: every new record, ticked or not, and no merge even when ticked', async () => {
             vi.mocked(getDiscogsReport).mockResolvedValue(drift());
 
             render(<DiscogsCheckReport />);
             await screen.findByText('discogsCheck.newTitle');
             fireEvent.click(screen.getByRole('checkbox', { name: 'Slayer — Reign In Blood' }));
+            fireEvent.click(merge('Pink Floyd — The Wall'));
             fireEvent.click(await applyButton('discogsApply.applyAll'));
 
             expect(applyDiscogsSelection).not.toHaveBeenCalled();
-            expect(screen.getByText('discogsApply.confirmAllBody:{"added":2,"relinked":2}')).toBeInTheDocument();
+            expect(screen.getByText('discogsApply.confirmAllBody:{"added":2}')).toBeInTheDocument();
             fireEvent.click(screen.getByRole('button', { name: 'discogsApply.confirm' }));
 
             await waitFor(() => expect(applyDiscogsSelection).toHaveBeenCalledWith({
                 add: [1, 2],
-                relink: [{ itemId: 'a', releaseId: 7 }, { itemId: 'b', releaseId: 8 }],
+                relink: [],
                 useDiscogsDates: false
             }));
+        });
+
+        it('offers no "Apply all" when there are only merges', async () => {
+            vi.mocked(getDiscogsReport).mockResolvedValue(drift({
+                counts: { discogs: 150, matched: 144, newOnDiscogs: 0, merged: 2, onlyInMusivault: 0, dateDiffers: 0 },
+                newOnDiscogs: []
+            }));
+
+            render(<DiscogsCheckReport />);
+
+            expect(await applyButton('discogsApply.applySelected')).toBeDisabled();
+            expect(screen.queryByRole('button', { name: /^discogsApply.applyAll/ })).not.toBeInTheDocument();
         });
 
         describe('large applies', () => {

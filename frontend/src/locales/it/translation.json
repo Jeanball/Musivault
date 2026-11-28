@@ -207,13 +207,13 @@
         "newTitle": "Nuovi su Discogs",
         "newHint": "Presenti nella tua collezione Discogs ma non in Musivault.",
         "mergedTitle": "Uniti su Discogs",
-        "mergedHint": "Non più presenti nella tua collezione Discogs con questa release. Discogs ha spostato la voce nella release indicata, oppure ne ha una con lo stesso artista, titolo, formato e anno. Applicando, il disco viene collegato alla nuova release e mantieni condizioni, note e campi personalizzati.",
+        "mergedHint": "Non più presenti nella tua collezione Discogs con questa release. Discogs ha spostato la voce nella release indicata, oppure ne ha una con lo stesso artista, titolo, formato e anno. Applicando, il disco viene collegato alla nuova release e mantieni condizioni, note e campi personalizzati. I dischi uniti non sono selezionati in partenza: controlla che la nuova release corrisponda alla tua copia prima di selezionarli.",
         "mergedDetail": "ora release Discogs {{id}}",
         "onlyTitle": "Solo in Musivault",
         "onlyHint": "Presenti in Musivault ma non nella tua collezione Discogs. Solo a scopo informativo: non verrà rimosso nulla.",
         "moreRows": "e altri {{count}}",
         "openOnDiscogs": "Apri su Discogs",
-        "mergedExact": "confermato",
+        "mergedExact": "stessa voce Discogs",
         "mergedLikely": "probabile"
     },
     "discogsApply": {
@@ -238,7 +238,7 @@
         "applyAll": "Applica tutto ({{count}})",
         "useDates": "Usa le date di Discogs",
         "confirmAllTitle": "Applicare tutto?",
-        "confirmAllBody": "Verranno aggiunti {{added}} nuovi dischi e ricollegati {{relinked}} uniti, selezionati o no. Ogni nuovo disco richiede un paio di secondi, quindi un elenco lungo può richiedere tempo. Il lavoro continua se lasci questa pagina.",
+        "confirmAllBody": "Verranno aggiunti {{added}} nuovi dischi, selezionati o no. I dischi uniti non sono inclusi: per applicarli, selezionali e usa «Applica selezionati». Ogni nuovo disco richiede un paio di secondi, quindi un elenco lungo può richiedere tempo. Il lavoro continua se lasci questa pagina.",
         "confirmDatesTitle": "Usare le date di Discogs?",
         "confirmDatesBody": "La data di aggiunta di {{count}} dischi viene impostata alla data in cui li hai aggiunti su Discogs e lo storico del valore della collezione viene ricostruito da quelle date.",
         "cancel": "Annulla",
@@ -253,7 +253,7 @@
         "stopping": "Interruzione dopo il disco corrente…",
         "stoppedDone": "Interrotto dopo {{done}} di {{total}} dischi: {{added}} aggiunti, {{relinked}} ricollegati. Il resto non è stato applicato.",
         "stopFailed": "Impossibile interrompere. Riprova tra un momento.",
-        "moreHidden": "e altri {{count}} non mostrati. Mostra tutto per vederli e deselezionarli.",
+        "moreHidden": "e altri {{count}} non mostrati. Mostra tutto per vederli e cambiare la selezione.",
         "showAll": "Mostra tutto"
     },
     "discogsPending": {

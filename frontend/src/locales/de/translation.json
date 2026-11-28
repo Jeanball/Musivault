@@ -186,13 +186,13 @@
         "newTitle": "Neu auf Discogs",
         "newHint": "In deiner Discogs-Sammlung, aber nicht in Musivault.",
         "mergedTitle": "Auf Discogs zusammengeführt",
-        "mergedHint": "Nicht mehr unter dieser Veröffentlichung in deiner Discogs-Sammlung. Discogs hat den Eintrag zur gezeigten Veröffentlichung verschoben oder hat einen Eintrag mit gleichem Künstler, Titel, Format und Jahr. Übernehmen verknüpft die Platte mit der neuen Veröffentlichung und behält Zustand, Notizen und eigene Felder.",
+        "mergedHint": "Nicht mehr unter dieser Veröffentlichung in deiner Discogs-Sammlung. Discogs hat den Eintrag zur gezeigten Veröffentlichung verschoben oder hat einen Eintrag mit gleichem Künstler, Titel, Format und Jahr. Übernehmen verknüpft die Platte mit der neuen Veröffentlichung und behält Zustand, Notizen und eigene Felder. Zusammengeführte Platten sind zunächst nicht angehakt: Prüfe, ob die neue Veröffentlichung zu deinem Exemplar passt, bevor du sie anhakst.",
         "mergedDetail": "jetzt Discogs-Release {{id}}",
         "onlyTitle": "Nur in Musivault",
         "onlyHint": "In Musivault, aber nicht in deiner Discogs-Sammlung. Nur zur Information, es wird nichts entfernt.",
         "moreRows": "und {{count}} weitere",
         "openOnDiscogs": "Auf Discogs öffnen",
-        "mergedExact": "bestätigt",
+        "mergedExact": "derselbe Discogs-Eintrag",
         "mergedLikely": "wahrscheinlich"
     },
     "discogsApply": {
@@ -217,7 +217,7 @@
         "applyAll": "Alle übernehmen ({{count}})",
         "useDates": "Discogs-Daten verwenden",
         "confirmAllTitle": "Alles übernehmen?",
-        "confirmAllBody": "Das fügt {{added}} neue Platten hinzu und verknüpft {{relinked}} zusammengeführte neu, angehakt oder nicht. Jede neue Platte braucht ein paar Sekunden, eine lange Liste kann also dauern. Es läuft weiter, wenn du die Seite verlässt.",
+        "confirmAllBody": "Das fügt {{added}} neue Platten hinzu, angehakt oder nicht. Zusammengeführte Platten sind nicht enthalten: Um sie zu übernehmen, hake sie an und nutze „Auswahl übernehmen“. Jede neue Platte braucht ein paar Sekunden, eine lange Liste kann also dauern. Es läuft weiter, wenn du die Seite verlässt.",
         "confirmDatesTitle": "Daten von Discogs verwenden?",
         "confirmDatesBody": "Das Hinzufügedatum von {{count}} Platten wird auf das Datum gesetzt, an dem du sie auf Discogs hinzugefügt hast, und der Wertverlauf der Sammlung wird daraus neu aufgebaut.",
         "cancel": "Abbrechen",
@@ -232,7 +232,7 @@
         "stopping": "Wird nach der aktuellen Platte gestoppt…",
         "stoppedDone": "Gestoppt nach {{done}} von {{total}} Platten: {{added}} hinzugefügt, {{relinked}} neu verknüpft. Der Rest wurde nicht übernommen.",
         "stopFailed": "Stoppen nicht möglich. Versuche es gleich noch einmal.",
-        "moreHidden": "und {{count}} weitere nicht angezeigt. Alle anzeigen, um sie zu sehen und abzuwählen.",
+        "moreHidden": "und {{count}} weitere nicht angezeigt. Alle anzeigen, um sie zu sehen und die Haken zu ändern.",
         "showAll": "Alle anzeigen"
     },
     "discogsPending": {

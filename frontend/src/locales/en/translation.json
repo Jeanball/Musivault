@@ -207,13 +207,13 @@
         "newTitle": "New on Discogs",
         "newHint": "In your Discogs collection but not in Musivault.",
         "mergedTitle": "Merged on Discogs",
-        "mergedHint": "No longer in your Discogs collection under this release. Discogs moved the entry to the release shown, or has an entry with the same artist, title, format and year. Applying points the record to the new release and keeps your condition, notes and custom fields.",
+        "mergedHint": "No longer in your Discogs collection under this release. Discogs moved the entry to the release shown, or has an entry with the same artist, title, format and year. Applying points the record to the new release and keeps your condition, notes and custom fields. Merged records start unticked: check that the new release matches your copy before you tick it.",
         "mergedDetail": "now Discogs release {{id}}",
         "onlyTitle": "Only in Musivault",
         "onlyHint": "In Musivault but not in your Discogs collection. For information only, nothing will be removed.",
         "moreRows": "and {{count}} more",
         "openOnDiscogs": "Open on Discogs",
-        "mergedExact": "confirmed",
+        "mergedExact": "same Discogs entry",
         "mergedLikely": "likely"
     },
     "discogsApply": {
@@ -238,7 +238,7 @@
         "applyAll": "Apply all ({{count}})",
         "useDates": "Use Discogs dates",
         "confirmAllTitle": "Apply everything?",
-        "confirmAllBody": "This adds {{added}} new records and relinks {{relinked}} merged ones, ticked or not. Each new record takes a couple of seconds, so a large list can take a while. It keeps running if you leave this page.",
+        "confirmAllBody": "This adds {{added}} new records, ticked or not. Merged records are not included: to apply them, tick them and use Apply selected. Each new record takes a couple of seconds, so a large list can take a while. It keeps running if you leave this page.",
         "confirmDatesTitle": "Use the dates from Discogs?",
         "confirmDatesBody": "The date added of {{count}} records is set to the date you added them on Discogs, and the collection value history is rebuilt from those dates.",
         "cancel": "Cancel",
@@ -253,7 +253,7 @@
         "stopping": "Stopping after the current record…",
         "stoppedDone": "Stopped after {{done}} of {{total}} records: {{added}} added, {{relinked}} relinked. The rest was not applied.",
         "stopFailed": "Could not stop. Try again in a moment.",
-        "moreHidden": "and {{count}} more not shown. Show all to see and untick them.",
+        "moreHidden": "and {{count}} more not shown. Show all to see them and change their ticks.",
         "showAll": "Show all"
     },
     "discogsPending": {

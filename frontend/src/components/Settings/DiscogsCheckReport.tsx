@@ -72,7 +72,7 @@ const Section: React.FC<SectionProps> = ({ title, hint, count, children, selecte
     const { t } = useTranslation();
     const [showAll, setShowAll] = useState(false);
     if (count === 0) return null;
-    // Rows that can be ticked are all ticked to start with, so the ones past the cap can be revealed to untick them.
+    // Rows past the cap have ticks too (new ones start ticked), so they can be revealed to change them.
     const tickable = !!onSelectAll;
     return (
         <details className="collapse collapse-arrow bg-base-100">
@@ -113,11 +113,15 @@ const SECONDS_PER_RECORD = 5;
 /** From this many records to add, the user is told it will take a while before it starts. */
 const LARGE_APPLY = 100;
 
-/** The rows the user unticked in the result identified by `result` (its finish time). */
-interface Unticked {
+/**
+ * What the user changed from the default ticks, for the result identified by `result` (its finish time).
+ * New records start ticked. Merged ones start unticked: a merge can combine different editions, so each
+ * is applied only when the user chose it.
+ */
+interface Ticks {
     result: string | null;
-    new: Set<number>;
-    merged: Set<string>;
+    untickedNew: Set<number>;
+    tickedMerged: Set<string>;
 }
 
 /**
@@ -130,8 +134,7 @@ const DiscogsCheckReport: React.FC = () => {
     const { refresh: refreshPending } = useDiscogsPending();
     const [report, setReport] = useState<DiscogsSyncReport | null>(null);
     const [isStarting, setIsStarting] = useState(false);
-    // Every row of a result starts ticked, so what is kept is the rows the user unticked, for that result.
-    const [unticked, setUntickedState] = useState<Unticked>({ result: null, new: new Set(), merged: new Set() });
+    const [ticks, setTicksState] = useState<Ticks>({ result: null, untickedNew: new Set(), tickedMerged: new Set() });
     const [confirm, setConfirm] = useState<Confirm>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const wasApplying = useRef(false);
@@ -174,11 +177,12 @@ const DiscogsCheckReport: React.FC = () => {
     }, [applying, checking, refreshCollection, refreshPending]);
 
     const resultKey = report?.status === 'completed' ? report.finishedAt ?? report.startedAt : null;
-    const current = unticked.result === resultKey ? unticked : { result: resultKey, new: new Set<number>(), merged: new Set<string>() };
-    const selectedNew = new Set((report?.newOnDiscogs ?? []).map(r => r.releaseId).filter(id => !current.new.has(id)));
-    const selectedMerged = new Set((report?.merged ?? []).map(m => m.item.itemId).filter(id => !current.merged.has(id)));
-    const setUnticked = (change: Partial<Pick<Unticked, 'new' | 'merged'>>) =>
-        setUntickedState({ ...current, ...change });
+    const current: Ticks = ticks.result === resultKey
+        ? ticks
+        : { result: resultKey, untickedNew: new Set(), tickedMerged: new Set() };
+    const selectedNew = new Set((report?.newOnDiscogs ?? []).map(r => r.releaseId).filter(id => !current.untickedNew.has(id)));
+    const selectedMerged = new Set((report?.merged ?? []).map(m => m.item.itemId).filter(id => current.tickedMerged.has(id)));
+    const setTicks = (change: Partial<Omit<Ticks, 'result'>>) => setTicksState({ ...current, ...change });
 
     const start = async () => {
         setIsStarting(true);
@@ -217,11 +221,12 @@ const DiscogsCheckReport: React.FC = () => {
 
     const completed = report?.status === 'completed' ? report : null;
 
+    // "Apply all" adds every new record, ticked or not, and relinks nothing: merges are opt-in.
     const selectionOf = (all: boolean): DiscogsApplySelection => ({
         add: completed ? completed.newOnDiscogs.filter(r => all || selectedNew.has(r.releaseId)).map(r => r.releaseId) : [],
-        relink: completed
+        relink: completed && !all
             ? completed.merged
-                .filter(m => all || selectedMerged.has(m.item.itemId))
+                .filter(m => selectedMerged.has(m.item.itemId))
                 .map(m => ({ itemId: m.item.itemId, releaseId: m.release.releaseId }))
             : [],
         useDiscogsDates: false
@@ -236,10 +241,11 @@ const DiscogsCheckReport: React.FC = () => {
             : t('discogsApply.durationHoursMinutes', { hours, minutes });
     };
     const tickedCount = selectedNew.size + selectedMerged.size;
-    const allCount = completed ? completed.counts.newOnDiscogs + completed.counts.merged : 0;
+    const allCount = completed ? completed.counts.newOnDiscogs : 0;
+    const applicableCount = completed ? completed.counts.newOnDiscogs + completed.counts.merged : 0;
 
-    const toggle = <K extends number | string>(unticks: Set<K>, key: K): Set<K> => {
-        const next = new Set(unticks);
+    const toggle = <K extends number | string>(keys: Set<K>, key: K): Set<K> => {
+        const next = new Set(keys);
         if (!next.delete(key)) next.add(key);
         return next;
     };
@@ -296,7 +302,7 @@ const DiscogsCheckReport: React.FC = () => {
                         <p className="text-sm text-success">{t('discogsCheck.inSync')}</p>
                     )}
 
-                    {allCount > 0 && (
+                    {applicableCount > 0 && (
                         <div className="flex flex-wrap gap-2">
                             <button
                                 className="btn btn-primary btn-sm"
@@ -305,9 +311,11 @@ const DiscogsCheckReport: React.FC = () => {
                             >
                                 {t('discogsApply.applySelected', { count: tickedCount })}
                             </button>
-                            <button className="btn btn-outline btn-sm" disabled={busy} onClick={() => setConfirm('all')}>
-                                {t('discogsApply.applyAll', { count: allCount })}
-                            </button>
+                            {allCount > 0 && (
+                                <button className="btn btn-outline btn-sm" disabled={busy} onClick={() => setConfirm('all')}>
+                                    {t('discogsApply.applyAll', { count: allCount })}
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -316,8 +324,8 @@ const DiscogsCheckReport: React.FC = () => {
                         hint={t('discogsCheck.newHint')}
                         count={completed.counts.newOnDiscogs}
                         selected={selectedNew.size}
-                        onSelectAll={() => setUnticked({ new: new Set() })}
-                        onSelectNone={() => setUnticked({ new: new Set(completed.newOnDiscogs.map(r => r.releaseId)) })}
+                        onSelectAll={() => setTicks({ untickedNew: new Set() })}
+                        onSelectNone={() => setTicks({ untickedNew: new Set(completed.newOnDiscogs.map(r => r.releaseId)) })}
                     >
                         {completed.newOnDiscogs.map(r => (
                             <Row
@@ -327,7 +335,7 @@ const DiscogsCheckReport: React.FC = () => {
                                 detail={[r.year, r.format].filter(Boolean).join(' · ')}
                                 discogsId={r.releaseId}
                                 checked={selectedNew.has(r.releaseId)}
-                                onToggle={() => setUnticked({ new: toggle(current.new, r.releaseId) })}
+                                onToggle={() => setTicks({ untickedNew: toggle(current.untickedNew, r.releaseId) })}
                             />
                         ))}
                     </Section>
@@ -336,8 +344,8 @@ const DiscogsCheckReport: React.FC = () => {
                         hint={t('discogsCheck.mergedHint')}
                         count={completed.counts.merged}
                         selected={selectedMerged.size}
-                        onSelectAll={() => setUnticked({ merged: new Set() })}
-                        onSelectNone={() => setUnticked({ merged: new Set(completed.merged.map(m => m.item.itemId)) })}
+                        onSelectAll={() => setTicks({ tickedMerged: new Set(completed.merged.map(m => m.item.itemId)) })}
+                        onSelectNone={() => setTicks({ tickedMerged: new Set() })}
                     >
                         {completed.merged.map(m => (
                             <Row
@@ -350,7 +358,7 @@ const DiscogsCheckReport: React.FC = () => {
                                 ].join(' · ')}
                                 discogsId={m.release.releaseId}
                                 checked={selectedMerged.has(m.item.itemId)}
-                                onToggle={() => setUnticked({ merged: toggle(current.merged, m.item.itemId) })}
+                                onToggle={() => setTicks({ tickedMerged: toggle(current.tickedMerged, m.item.itemId) })}
                             />
                         ))}
                     </Section>
@@ -380,10 +388,7 @@ const DiscogsCheckReport: React.FC = () => {
                             {confirm === 'dates'
                                 ? t('discogsApply.confirmDatesBody', { count: completed.counts.dateDiffers })
                                 : confirm === 'all'
-                                    ? t('discogsApply.confirmAllBody', {
-                                        added: completed.counts.newOnDiscogs,
-                                        relinked: completed.counts.merged
-                                    })
+                                    ? t('discogsApply.confirmAllBody', { added: completed.counts.newOnDiscogs })
                                     : t('discogsApply.confirmLargeBody', { count: selectedNew.size })}
                         </p>
                         {confirm !== 'dates' && (confirm === 'selected' || completed.counts.newOnDiscogs > LARGE_APPLY) && (

@@ -189,13 +189,13 @@
         "newTitle": "Nuevo en Discogs",
         "newHint": "En tu colección de Discogs pero no en Musivault.",
         "mergedTitle": "Fusionado en Discogs",
-        "mergedHint": "Ya no está en tu colección de Discogs con esta edición. Discogs movió la entrada a la edición indicada, o tiene una entrada con el mismo artista, título, formato y año. Al aplicar, el disco apunta a la nueva edición y conserva tu estado, notas y campos personalizados.",
+        "mergedHint": "Ya no está en tu colección de Discogs con esta edición. Discogs movió la entrada a la edición indicada, o tiene una entrada con el mismo artista, título, formato y año. Al aplicar, el disco apunta a la nueva edición y conserva tu estado, notas y campos personalizados. Los discos fusionados aparecen sin marcar: comprueba que la nueva edición coincide con tu ejemplar antes de marcarlos.",
         "mergedDetail": "ahora la edición de Discogs {{id}}",
         "onlyTitle": "Solo en Musivault",
         "onlyHint": "En Musivault pero no en tu colección de Discogs. Solo informativo, no se eliminará nada.",
         "moreRows": "y {{count}} más",
         "openOnDiscogs": "Abrir en Discogs",
-        "mergedExact": "confirmado",
+        "mergedExact": "misma entrada de Discogs",
         "mergedLikely": "probable"
     },
     "discogsApply": {
@@ -220,7 +220,7 @@
         "applyAll": "Aplicar todo ({{count}})",
         "useDates": "Usar las fechas de Discogs",
         "confirmAllTitle": "¿Aplicar todo?",
-        "confirmAllBody": "Esto añade {{added}} discos nuevos y reenlaza {{relinked}} fusionados, marcados o no. Cada disco nuevo tarda unos segundos, así que una lista larga puede tardar. Sigue en marcha si sales de la página.",
+        "confirmAllBody": "Esto añade {{added}} discos nuevos, marcados o no. Los discos fusionados no se incluyen: para aplicarlos, márcalos y usa «Aplicar selección». Cada disco nuevo tarda unos segundos, así que una lista larga puede tardar. Sigue en marcha si sales de la página.",
         "confirmDatesTitle": "¿Usar las fechas de Discogs?",
         "confirmDatesBody": "La fecha de adición de {{count}} discos se cambia a la fecha en que los añadiste en Discogs, y el historial de valor de la colección se reconstruye a partir de ellas.",
         "cancel": "Cancelar",
@@ -235,7 +235,7 @@
         "stopping": "Deteniendo tras el disco actual…",
         "stoppedDone": "Detenido tras {{done}} de {{total}} discos: {{added}} añadidos, {{relinked}} reenlazados. El resto no se aplicó.",
         "stopFailed": "No se pudo detener. Inténtalo de nuevo en un momento.",
-        "moreHidden": "y {{count}} más sin mostrar. Mostrar todo para verlos y desmarcarlos.",
+        "moreHidden": "y {{count}} más sin mostrar. Muestra todo para verlos y cambiar sus marcas.",
         "showAll": "Mostrar todo"
     },
     "discogsPending": {
