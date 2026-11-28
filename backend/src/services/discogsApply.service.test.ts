@@ -107,6 +107,21 @@ describe('planApply', () => {
             expect(plan.relinks[0].merged).toMatchObject({ match: 'instance', release: { releaseId: 6 } });
         });
 
+        it('plans the relink of a moved copy and the add of its old release independently (#69)', () => {
+            const moved = item({ discogsId: 375491, instanceId: 100 });
+            const result = compareCollections([entry(2891664, { instanceId: 100 }), entry(375491, { instanceId: 200 })], [moved]);
+
+            const plan = planApply(result, [moved], {
+                ...none,
+                relink: [{ itemId: String(moved.itemId), releaseId: 2891664 }],
+                add: [375491]
+            });
+
+            expect(plan.relinks[0].merged).toMatchObject({ match: 'instance', release: { releaseId: 2891664, instanceId: 100 } });
+            expect(plan.adds[0].release).toMatchObject({ releaseId: 375491, instanceId: 200 });
+            expect(plan.linkInstances).toEqual([]);
+        });
+
         it('drops a tick whose pairing changed since the user saw it', () => {
             const old = item({ discogsId: 5, instanceId: 60 });
             const result = compareCollections([entry(6, { instanceId: 60 })], [old]);

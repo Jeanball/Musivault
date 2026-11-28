@@ -81,13 +81,15 @@ function couldBeSameRecord(item: ComparableItem, entry: DiscogsCollectionRelease
  * Compare a user's Discogs collection with their Musivault items. Pure: no I/O.
  *
  * An item is matched to Discogs in this order, each step only for items the one before left over:
- * 1. **Release id.** The item's album is in the Discogs collection. Never release + format, so an LP
+ * 1. **A moved instance id.** The item's stored `instanceId` is a Discogs entry on another release than
+ *    the item's, and no item has that release: Discogs moved the entry, so the release was merged. Exact
+ *    (`match: 'instance'`). It comes first because the item's old release can still be in the collection
+ *    through another copy, which is not this item's (#69). Instance ids are stored by the apply step, so
+ *    this only works from then on. Only one item can claim a release.
+ * 2. **Release id.** The item's album is in the Discogs collection. Never release + format, so an LP
  *    and a CD release of the same album stay separate, while an item matches its release whatever
  *    format Discogs lists. Several copies of one release count once; the earliest `date_added` is
  *    the one that counts.
- * 2. **Instance id.** The item's stored `instanceId` is a Discogs entry whose release is not owned
- *    by another item: Discogs moved the entry to another release, so the release was merged. Exact
- *    (`match: 'instance'`). Instance ids are stored by the apply step, so this only works from then on.
  * 3. **The guess.** The same normalized artist and title, the same format (an item's LP never pairs with
  *    a CD or cassette release) and the same year when both are known, with a "new" Discogs entry. A
  *    guess (`match: 'guess'`), shown as "likely". Each Discogs entry is used at most once; when in doubt
@@ -111,13 +113,29 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
         }
     }
 
+    const itemReleaseIds = new Set(items.map(i => i.discogsId));
+    const merged: IDiscogsReportMerged[] = [];
+    const paired = new Set<number>();
+    const unmoved: ComparableItem[] = [];
+    for (const comparable of items) {
+        const entry = comparable.instanceId !== undefined ? byInstance.get(comparable.instanceId) : undefined;
+        // `itemReleaseIds` also rules out an entry that is still on the item's own release.
+        if (entry && !itemReleaseIds.has(entry.id) && !paired.has(entry.id)) {
+            const { addedAt: _addedAt, instanceId: _instanceId, ...item } = comparable;
+            merged.push({ item, release: releaseOf(entry), match: 'instance' });
+            paired.add(entry.id);
+        } else {
+            unmoved.push(comparable);
+        }
+    }
+
     let matched = 0;
     let dateDiffers = 0;
     const matchedItems: ComparisonResult['matchedItems'] = [];
     const unmatched: ComparableItem[] = [];
     const ownedReleaseIds = new Set<number>();
 
-    for (const item of items) {
+    for (const item of unmoved) {
         const entry = item.discogsId !== undefined ? earliestByRelease.get(item.discogsId) : undefined;
         if (!entry) {
             unmatched.push(item);
@@ -128,20 +146,6 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
         matchedItems.push({ itemId: item.itemId, release: releaseOf(entry) });
         if (Math.abs(item.addedAt.getTime() - new Date(entry.date_added).getTime()) > DATE_TOLERANCE_MS) {
             dateDiffers++;
-        }
-    }
-
-    const merged: IDiscogsReportMerged[] = [];
-    const paired = new Set<number>();
-    const afterInstance: ComparableItem[] = [];
-    for (const comparable of unmatched) {
-        const entry = comparable.instanceId !== undefined ? byInstance.get(comparable.instanceId) : undefined;
-        if (entry && !ownedReleaseIds.has(entry.id) && !paired.has(entry.id)) {
-            const { addedAt: _addedAt, instanceId: _instanceId, ...item } = comparable;
-            merged.push({ item, release: releaseOf(entry), match: 'instance' });
-            paired.add(entry.id);
-        } else {
-            afterInstance.push(comparable);
         }
     }
 
@@ -156,7 +160,7 @@ export function compareCollections(discogs: DiscogsCollectionRelease[], items: C
     }
 
     const onlyInMusivault: IDiscogsReportItem[] = [];
-    for (const comparable of afterInstance) {
+    for (const comparable of unmatched) {
         const { addedAt: _addedAt, instanceId: _instanceId, ...item } = comparable;
         const options = candidates.get(pairKey(item.artist, item.title)) ?? [];
         const index = options.findIndex(entry => couldBeSameRecord(comparable, entry));

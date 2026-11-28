@@ -202,13 +202,67 @@ describe('compareCollections', () => {
         });
     });
 
-    describe('matching order: release id, then instance id, then the guess', () => {
-        it('matches by release id even when the stored instance id now sits under another release', () => {
-            const owner = item({ discogsId: 1, instanceId: 500 });
-            const result = compareCollections([entry(1, { instanceId: 11 }), entry(2, { instanceId: 500 })], [owner]);
+    describe('matching order: a moved instance id, then release id, then the guess', () => {
+        it('follows the stored instance id to another release even when the old release is still on Discogs', () => {
+            const moved = item({ discogsId: 1, instanceId: 500 });
+            const result = compareCollections([entry(1, { instanceId: 11 }), entry(2, { instanceId: 500 })], [moved]);
+
+            expect(result.matched).toBe(0);
+            expect(result.matchedItems).toEqual([]);
+            expect(result.merged).toHaveLength(1);
+            expect(result.merged[0]).toMatchObject({ match: 'instance', release: { releaseId: 2, instanceId: 500 } });
+            expect(result.newOnDiscogs.map(r => r.releaseId)).toEqual([1]);
+        });
+
+        it('reports the other pressing as new when one of two copies was moved (#69)', () => {
+            const moved = item({ discogsId: 375491, instanceId: 100, addedAt: new Date('2018-03-01T10:00:00Z') });
+            const entryA = entry(2891664, { instanceId: 100, dateAdded: '2018-03-01T10:00:00Z' });
+            const entryB = entry(375491, { instanceId: 200, dateAdded: '2020-07-01T10:00:00Z' });
+
+            const result = compareCollections([entryA, entryB], [moved]);
+
+            expect(result.merged).toHaveLength(1);
+            expect(result.merged[0]).toMatchObject({ match: 'instance', release: { releaseId: 2891664 } });
+            expect(result.newOnDiscogs).toEqual([expect.objectContaining({ releaseId: 375491, instanceId: 200 })]);
+            expect(result.matched).toBe(0);
+            expect(result.dateDiffers).toBe(0);
+            expect(result.onlyInMusivault).toEqual([]);
+        });
+
+        it('matches normally when the stored instance id is any copy of the item release', () => {
+            const owner = item({ discogsId: 1, instanceId: 12 });
+            const result = compareCollections([entry(1, { instanceId: 11 }), entry(1, { instanceId: 12 })], [owner]);
+
             expect(result.matched).toBe(1);
             expect(result.merged).toEqual([]);
-            expect(result.newOnDiscogs.map(r => r.releaseId)).toEqual([2]);
+            expect(result.newOnDiscogs).toEqual([]);
+        });
+
+        it('matches by release id when the moved entry now sits on a release another item has', () => {
+            const owner = item({ discogsId: 2 });
+            const other = item({ discogsId: 1, instanceId: 500 });
+            const result = compareCollections([entry(1, { instanceId: 11 }), entry(2, { instanceId: 500 })], [other, owner]);
+
+            expect(result.matched).toBe(2);
+            expect(result.merged).toEqual([]);
+            expect(result.newOnDiscogs).toEqual([]);
+        });
+
+        it('falls back to the release id when the stored instance id is no longer on Discogs', () => {
+            const owner = item({ discogsId: 1, instanceId: 404 });
+            const result = compareCollections([entry(1, { instanceId: 11 })], [owner]);
+
+            expect(result.matched).toBe(1);
+            expect(result.merged).toEqual([]);
+        });
+
+        it('gives a moved release to one item, and lets the other match by release id', () => {
+            const first = item({ discogsId: 1, instanceId: 500 });
+            const second = item({ discogsId: 1, instanceId: 500, format: 'CD' });
+            const result = compareCollections([entry(1, { instanceId: 11 }), entry(2, { instanceId: 500 })], [first, second]);
+
+            expect(result.merged.map(m => m.item.itemId)).toEqual([first.itemId]);
+            expect(result.matchedItems.map(m => m.itemId)).toEqual([second.itemId]);
         });
 
         it('finds a merge by the stored instance id and calls it exact', () => {
