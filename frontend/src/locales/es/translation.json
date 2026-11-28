@@ -189,7 +189,7 @@
         "newTitle": "Nuevo en Discogs",
         "newHint": "En tu colección de Discogs pero no en Musivault.",
         "mergedTitle": "Fusionado en Discogs",
-        "mergedHint": "Ya no está en tu colección de Discogs con esta edición. Discogs movió la entrada a la edición indicada, o tiene una entrada con el mismo artista, título, formato y año. Al aplicar, el disco apunta a la nueva edición y conserva tu estado, notas y campos personalizados. Los discos fusionados aparecen sin marcar: comprueba que la nueva edición coincide con tu ejemplar antes de marcarlos.",
+        "mergedHint": "El ejemplar de este disco se ha movido, o puede haberse movido, a la edición indicada. «misma entrada de Discogs» significa que Discogs lo movió; «probable», que allí hay una entrada con el mismo artista, título, formato y año. Al aplicar, el disco apunta a esa edición y conserva tu estado, notas y campos personalizados. Los discos fusionados aparecen sin marcar: comprueba que la nueva edición coincide con tu ejemplar antes de marcarlos.",
         "mergedDetail": "ahora la edición de Discogs {{id}}",
         "onlyTitle": "Solo en Musivault",
         "onlyHint": "En Musivault pero no en tu colección de Discogs. Solo informativo, no se eliminará nada.",
@@ -202,7 +202,8 @@
         "flagPossibleMove": "Posible traslado: este disco está en la edición {{from}} y la edición {{to}} es nueva en Discogs.",
         "flagPossibleDuplicate": "Posible duplicado: este disco está en la edición {{from}} y otro de tus discos ya tiene la edición {{to}}.",
         "flagSharedRelease": "Edición compartida: la entrada de Discogs de este disco está ahora en la edición {{to}}, que ya tiene otro de tus discos. Discogs tiene más de un ejemplar ahí, así que no es un duplicado. Este disco sigue en la edición {{from}}.",
-        "newPossibleMove": "posible traslado, márcalo solo si es otro ejemplar"
+        "newPossibleMove": "posible traslado, márcalo solo si es otro ejemplar",
+        "newNeedsMerge": "marca también el disco fusionado para añadir este ejemplar"
     },
     "discogsApply": {
         "queued": "Esperando a que termine otra tarea de Discogs…",
@@ -226,7 +227,7 @@
         "applyAll": "Aplicar todo ({{count}})",
         "useDates": "Usar las fechas de Discogs",
         "confirmAllTitle": "¿Aplicar todo?",
-        "confirmAllBody": "Esto añade {{added}} discos nuevos, marcados o no. Los discos fusionados no se incluyen: para aplicarlos, márcalos y usa «Aplicar selección». Cada disco nuevo tarda unos segundos, así que una lista larga puede tardar. Sigue en marcha si sales de la página. Los posibles traslados no se incluyen.",
+        "confirmAllBody": "Esto añade {{added}} discos nuevos, marcados o no. Los discos fusionados no se incluyen: para aplicarlos, márcalos y usa «Aplicar selección». Cada disco nuevo tarda unos segundos, así que una lista larga puede tardar. Sigue en marcha si sales de la página. No se incluyen los posibles traslados ni los discos que requieren marcar antes uno fusionado.",
         "confirmDatesTitle": "¿Usar las fechas de Discogs?",
         "confirmDatesBody": "La fecha de adición de {{count}} discos se cambia a la fecha en que los añadiste en Discogs, y el historial de valor de la colección se reconstruye a partir de ellas.",
         "cancel": "Cancelar",

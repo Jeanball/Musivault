@@ -207,7 +207,7 @@
         "newTitle": "Nuovi su Discogs",
         "newHint": "Presenti nella tua collezione Discogs ma non in Musivault.",
         "mergedTitle": "Uniti su Discogs",
-        "mergedHint": "Non più presenti nella tua collezione Discogs con questa release. Discogs ha spostato la voce nella release indicata, oppure ne ha una con lo stesso artista, titolo, formato e anno. Applicando, il disco viene collegato alla nuova release e mantieni condizioni, note e campi personalizzati. I dischi uniti non sono selezionati in partenza: controlla che la nuova release corrisponda alla tua copia prima di selezionarli.",
+        "mergedHint": "La copia di questo disco è stata spostata, o potrebbe esserlo stata, nella release indicata. «stessa voce Discogs» significa che Discogs l'ha spostata; «probabile» significa che lì c'è una voce con lo stesso artista, titolo, formato e anno. Applicando, il disco viene collegato a quella release e mantieni condizioni, note e campi personalizzati. I dischi uniti non sono selezionati in partenza: controlla che la nuova release corrisponda alla tua copia prima di selezionarli.",
         "mergedDetail": "ora release Discogs {{id}}",
         "onlyTitle": "Solo in Musivault",
         "onlyHint": "Presenti in Musivault ma non nella tua collezione Discogs. Solo a scopo informativo: non verrà rimosso nulla.",
@@ -220,7 +220,8 @@
         "flagPossibleMove": "Possibile spostamento: questo disco è sulla release {{from}} e la release {{to}} è nuova su Discogs.",
         "flagPossibleDuplicate": "Possibile duplicato: questo disco è sulla release {{from}} e un altro tuo disco ha già la release {{to}}.",
         "flagSharedRelease": "Release condivisa: la voce Discogs di questo disco è ora sulla release {{to}}, che un altro tuo disco ha già. Discogs ha più di una copia lì, quindi non è un duplicato. Questo disco è ancora sulla release {{from}}.",
-        "newPossibleMove": "possibile spostamento, seleziona solo se è un'altra copia"
+        "newPossibleMove": "possibile spostamento, seleziona solo se è un'altra copia",
+        "newNeedsMerge": "seleziona anche il disco unito per aggiungere questa copia"
     },
     "discogsApply": {
         "queued": "In attesa che un altro lavoro Discogs termini…",
@@ -244,7 +245,7 @@
         "applyAll": "Applica tutto ({{count}})",
         "useDates": "Usa le date di Discogs",
         "confirmAllTitle": "Applicare tutto?",
-        "confirmAllBody": "Verranno aggiunti {{added}} nuovi dischi, selezionati o no. I dischi uniti non sono inclusi: per applicarli, selezionali e usa «Applica selezionati». Ogni nuovo disco richiede un paio di secondi, quindi un elenco lungo può richiedere tempo. Il lavoro continua se lasci questa pagina. I possibili spostamenti non sono inclusi.",
+        "confirmAllBody": "Verranno aggiunti {{added}} nuovi dischi, selezionati o no. I dischi uniti non sono inclusi: per applicarli, selezionali e usa «Applica selezionati». Ogni nuovo disco richiede un paio di secondi, quindi un elenco lungo può richiedere tempo. Il lavoro continua se lasci questa pagina. Non sono inclusi i possibili spostamenti né i dischi per cui va prima selezionato uno unito.",
         "confirmDatesTitle": "Usare le date di Discogs?",
         "confirmDatesBody": "La data di aggiunta di {{count}} dischi viene impostata alla data in cui li hai aggiunti su Discogs e lo storico del valore della collezione viene ricostruito da quelle date.",
         "cancel": "Annulla",

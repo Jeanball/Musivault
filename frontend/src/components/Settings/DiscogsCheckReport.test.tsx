@@ -375,6 +375,88 @@ describe('DiscogsCheckReport', () => {
             expect(screen.queryByRole('button', { name: /^discogsApply.applyAll/ })).not.toBeInTheDocument();
         });
 
+        describe('a new release a merged record is still on (#69)', () => {
+            // Two copies: the record still points at release 100, where Discogs now has the other copy.
+            const blocked = () => drift({
+                merged: [{
+                    item: { itemId: 'a', artist: 'Two Copies', title: 'Moved', discogsId: 2 },
+                    release: { releaseId: 7, instanceId: 17, artist: 'Two Copies', title: 'Moved', dateAdded: '2022-01-01T00:00:00Z' },
+                    match: 'instance'
+                }]
+            });
+            const box = (name: string) => screen.getByRole('checkbox', { name });
+            const other = () => box('Slayer — Reign In Blood');
+            const move = () => box('Two Copies — Moved');
+            const show = async () => {
+                vi.mocked(getDiscogsReport).mockResolvedValue(blocked());
+                render(<DiscogsCheckReport />);
+                await screen.findByText('discogsCheck.newTitle');
+            };
+
+            it('cannot be ticked until the merged record is, and says why', async () => {
+                await show();
+
+                expect(other()).toBeDisabled();
+                expect(other()).not.toBeChecked();
+                expect(other().closest('li')).toHaveTextContent('discogsCheck.newNeedsMerge');
+                expect(box('Nirvana — Nevermind')).toBeEnabled();
+                expect(await applyButton('discogsApply.applySelected')).toHaveTextContent('"count":1');
+            });
+
+            it('becomes available, still unticked, once the merge is ticked, and is applied when ticked too', async () => {
+                await show();
+                fireEvent.click(move());
+
+                expect(other()).toBeEnabled();
+                expect(other()).not.toBeChecked();
+                expect(other().closest('li')).not.toHaveTextContent('discogsCheck.newNeedsMerge');
+
+                fireEvent.click(other());
+                fireEvent.click(await applyButton('discogsApply.applySelected'));
+
+                await waitFor(() => expect(applyDiscogsSelection).toHaveBeenCalledWith({
+                    add: [1, 2], relink: [{ itemId: 'a', releaseId: 7 }], useDiscogsDates: false
+                }));
+            });
+
+            it('drops its tick when the merge is unticked again', async () => {
+                await show();
+                fireEvent.click(move());
+                fireEvent.click(other());
+                fireEvent.click(move());
+
+                expect(other()).not.toBeChecked();
+                expect(other()).toBeDisabled();
+                expect(other().closest('li')).toHaveTextContent('discogsCheck.newNeedsMerge');
+                fireEvent.click(await applyButton('discogsApply.applySelected'));
+                await waitFor(() => expect(applyDiscogsSelection).toHaveBeenCalledWith({
+                    add: [1], relink: [], useDiscogsDates: false
+                }));
+            });
+
+            it('is left out of "Apply all" and its count, even with the merge ticked', async () => {
+                await show();
+                fireEvent.click(move());
+                fireEvent.click(other());
+                const applyAll = await applyButton('discogsApply.applyAll');
+                expect(applyAll).toHaveTextContent('"count":1');
+
+                fireEvent.click(applyAll);
+                fireEvent.click(screen.getByRole('button', { name: 'discogsApply.confirm' }));
+
+                await waitFor(() => expect(applyDiscogsSelection).toHaveBeenCalledWith({
+                    add: [1], relink: [], useDiscogsDates: false
+                }));
+            });
+
+            it('is not ticked by "Tick all" while the merge is unticked', async () => {
+                await show();
+                fireEvent.click(screen.getAllByRole('button', { name: 'discogsApply.selectAll' })[0]);
+
+                expect(other()).not.toBeChecked();
+            });
+        });
+
         describe('flags', () => {
             const flagged = () => drift({
                 flags: [

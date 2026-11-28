@@ -21,10 +21,12 @@ interface RowProps {
     discogsId?: number;
     /** Rows that can be applied have a checkbox; the others are for information. */
     checked?: boolean;
+    /** The row can't be ticked yet; `detail` says why. */
+    disabled?: boolean;
     onToggle?: () => void;
 }
 
-const Row: React.FC<RowProps> = ({ artist, title, detail, discogsId, checked, onToggle }) => {
+const Row: React.FC<RowProps> = ({ artist, title, detail, discogsId, checked, disabled, onToggle }) => {
     const { t } = useTranslation();
     return (
         <li className="py-1 text-sm flex items-center gap-2">
@@ -33,6 +35,7 @@ const Row: React.FC<RowProps> = ({ artist, title, detail, discogsId, checked, on
                     type="checkbox"
                     className="checkbox checkbox-sm"
                     checked={!!checked}
+                    disabled={disabled}
                     onChange={onToggle}
                     aria-label={`${artist} — ${title}`}
                 />
@@ -148,14 +151,15 @@ const LARGE_APPLY = 100;
 
 /**
  * What the user changed from the default ticks, for the result identified by `result` (its finish time).
- * New records start ticked, except the new release of a possible move, which is added only when ticked by
- * hand: it may be a record the user already has. Merged ones start unticked: a merge can combine different editions, so each
+ * New records start ticked, except the opt-in ones, added only when ticked by hand: the new release of a
+ * possible move (it may be a record the user already has), and a release a merged record is still on
+ * (it can't be added until that record moves). Merged ones start unticked: a merge can combine different editions, so each
  * is applied only when the user chose it.
  */
 interface Ticks {
     result: string | null;
     untickedNew: Set<number>;
-    tickedMoves: Set<number>;
+    tickedOptIn: Set<number>;
     tickedMerged: Set<string>;
 }
 
@@ -170,7 +174,7 @@ const DiscogsCheckReport: React.FC = () => {
     const { refresh: refreshPending } = useDiscogsPending();
     const [report, setReport] = useState<DiscogsSyncReport | null>(null);
     const [isStarting, setIsStarting] = useState(false);
-    const [ticks, setTicksState] = useState<Ticks>({ result: null, untickedNew: new Set(), tickedMoves: new Set(), tickedMerged: new Set() });
+    const [ticks, setTicksState] = useState<Ticks>({ result: null, untickedNew: new Set(), tickedOptIn: new Set(), tickedMerged: new Set() });
     const [confirm, setConfirm] = useState<Confirm>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const wasApplying = useRef(false);
@@ -215,13 +219,19 @@ const DiscogsCheckReport: React.FC = () => {
     const resultKey = report?.status === 'completed' ? report.finishedAt ?? report.startedAt : null;
     const current: Ticks = ticks.result === resultKey
         ? ticks
-        : { result: resultKey, untickedNew: new Set(), tickedMoves: new Set(), tickedMerged: new Set() };
+        : { result: resultKey, untickedNew: new Set(), tickedOptIn: new Set(), tickedMerged: new Set() };
     const flags = report?.flags ?? [];
     const possibleMoves = new Set(flags.filter(f => f.kind === 'possibleMove').map(f => f.release.releaseId));
-    const selectedNew = new Set((report?.newOnDiscogs ?? []).map(r => r.releaseId).filter(
-        id => possibleMoves.has(id) ? current.tickedMoves.has(id) : !current.untickedNew.has(id)
-    ));
     const selectedMerged = new Set((report?.merged ?? []).map(m => m.item.itemId).filter(id => current.tickedMerged.has(id)));
+    // The releases merged records are still on: adding one is skipped as "already in your collection" until
+    // those records move, which happens first in the same apply.
+    const heldReleases = new Set((report?.merged ?? []).map(m => m.item.discogsId));
+    const awaitsMerge = (releaseId: number) =>
+        (report?.merged ?? []).some(m => m.item.discogsId === releaseId && !selectedMerged.has(m.item.itemId));
+    const isOptIn = (releaseId: number) => possibleMoves.has(releaseId) || heldReleases.has(releaseId);
+    const selectedNew = new Set((report?.newOnDiscogs ?? []).map(r => r.releaseId).filter(
+        id => isOptIn(id) ? current.tickedOptIn.has(id) && !awaitsMerge(id) : !current.untickedNew.has(id)
+    ));
     const setTicks = (change: Partial<Omit<Ticks, 'result'>>) => setTicksState({ ...current, ...change });
 
     const start = async () => {
@@ -261,11 +271,11 @@ const DiscogsCheckReport: React.FC = () => {
 
     const completed = report?.status === 'completed' ? report : null;
 
-    // "Apply all" adds every new record, ticked or not, except possible moves, and relinks nothing: merges are opt-in.
+    // "Apply all" adds every new record, ticked or not, except the opt-in ones, and relinks nothing: merges are opt-in.
     const selectionOf = (all: boolean): DiscogsApplySelection => ({
         add: completed
             ? completed.newOnDiscogs
-                .filter(r => all ? !possibleMoves.has(r.releaseId) : selectedNew.has(r.releaseId))
+                .filter(r => all ? !isOptIn(r.releaseId) : selectedNew.has(r.releaseId))
                 .map(r => r.releaseId)
             : [],
         relink: completed && !all
@@ -374,7 +384,7 @@ const DiscogsCheckReport: React.FC = () => {
                         onSelectAll={() => setTicks({ untickedNew: new Set() })}
                         onSelectNone={() => setTicks({
                             untickedNew: new Set(completed.newOnDiscogs.map(r => r.releaseId)),
-                            tickedMoves: new Set()
+                            tickedOptIn: new Set()
                         })}
                     >
                         {completed.newOnDiscogs.map(r => (
@@ -382,12 +392,17 @@ const DiscogsCheckReport: React.FC = () => {
                                 key={r.releaseId}
                                 artist={r.artist}
                                 title={r.title}
-                                detail={[r.year, r.format, possibleMoves.has(r.releaseId) && t('discogsCheck.newPossibleMove')]
-                                    .filter(Boolean).join(' · ')}
+                                detail={[
+                                    r.year,
+                                    r.format,
+                                    possibleMoves.has(r.releaseId) && t('discogsCheck.newPossibleMove'),
+                                    awaitsMerge(r.releaseId) && t('discogsCheck.newNeedsMerge')
+                                ].filter(Boolean).join(' · ')}
                                 discogsId={r.releaseId}
                                 checked={selectedNew.has(r.releaseId)}
-                                onToggle={() => setTicks(possibleMoves.has(r.releaseId)
-                                    ? { tickedMoves: toggle(current.tickedMoves, r.releaseId) }
+                                disabled={awaitsMerge(r.releaseId)}
+                                onToggle={() => setTicks(isOptIn(r.releaseId)
+                                    ? { tickedOptIn: toggle(current.tickedOptIn, r.releaseId) }
                                     : { untickedNew: toggle(current.untickedNew, r.releaseId) })}
                             />
                         ))}
