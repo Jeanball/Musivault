@@ -193,7 +193,7 @@
     },
     "discogsCheck": {
         "title": "Comparer avec Discogs",
-        "description": "Compare votre collection Discogs avec Musivault. Rien n'est modifié : seules les différences sont affichées.",
+        "description": "Compare votre collection Discogs avec Musivault. Vos disques ne sont pas modifiés : seules les différences sont affichées.",
         "checkNow": "Vérifier maintenant",
         "queued": "En attente de la fin d'une autre vérification…",
         "starting": "Démarrage…",
@@ -207,14 +207,21 @@
         "newTitle": "Nouveau sur Discogs",
         "newHint": "Dans votre collection Discogs mais pas dans Musivault.",
         "mergedTitle": "Fusionné sur Discogs",
-        "mergedHint": "Cette édition n'est plus dans votre collection Discogs. Discogs a déplacé l'entrée vers l'édition indiquée, ou contient une entrée avec le même artiste, titre, format et année. Appliquer relie le disque à la nouvelle édition et conserve votre état, vos notes et vos champs personnalisés.",
+        "mergedHint": "L'exemplaire de ce disque a été déplacé, ou l'a peut-être été, vers l'édition indiquée. « même entrée Discogs » signifie que Discogs l'a déplacé ; « probable » signifie qu'une entrée y a le même artiste, titre, format et année. Appliquer relie le disque à cette édition et conserve votre état, vos notes et vos champs personnalisés. Les disques fusionnés sont décochés au départ : vérifiez que la nouvelle édition correspond à votre exemplaire avant de les cocher.",
         "mergedDetail": "maintenant l'édition Discogs {{id}}",
         "onlyTitle": "Uniquement dans Musivault",
         "onlyHint": "Dans Musivault mais pas dans votre collection Discogs. À titre d'information, rien ne sera supprimé.",
         "moreRows": "et {{count}} de plus",
         "openOnDiscogs": "Ouvrir sur Discogs",
-        "mergedExact": "confirmé",
-        "mergedLikely": "probable"
+        "mergedExact": "même entrée Discogs",
+        "mergedLikely": "probable",
+        "flagsTitle": "À vérifier",
+        "flagsHint": "Ces disques semblent liés à un élément de Discogs. À titre d'information : rien n'est modifié. Comparez les deux éditions avec votre exemplaire.",
+        "flagPossibleMove": "Déplacement possible : ce disque est sur l'édition {{from}}, et l'édition {{to}} est nouvelle sur Discogs.",
+        "flagPossibleDuplicate": "Doublon possible : ce disque est sur l'édition {{from}}, et un autre de vos disques a déjà l'édition {{to}}.",
+        "flagSharedRelease": "Édition partagée : l'entrée Discogs de ce disque est maintenant sur l'édition {{to}}, qu'un autre de vos disques a déjà. Discogs y compte plus d'un exemplaire, ce n'est donc pas un doublon. Ce disque est toujours sur l'édition {{from}}.",
+        "newPossibleMove": "déplacement possible, cochez seulement s'il s'agit d'un autre exemplaire",
+        "newNeedsMerge": "cochez aussi le disque fusionné pour ajouter cet exemplaire"
     },
     "discogsApply": {
         "queued": "En attente de la fin d'une autre tâche Discogs…",
@@ -238,7 +245,7 @@
         "applyAll": "Tout appliquer ({{count}})",
         "useDates": "Utiliser les dates de Discogs",
         "confirmAllTitle": "Tout appliquer ?",
-        "confirmAllBody": "Cela ajoute {{added}} nouveaux disques et relie {{relinked}} disques fusionnés, cochés ou non. Chaque nouveau disque prend quelques secondes, une longue liste peut donc durer un moment. La tâche continue si vous quittez la page.",
+        "confirmAllBody": "Cela ajoute {{added}} nouveaux disques, cochés ou non. Les disques fusionnés ne sont pas inclus : pour les appliquer, cochez-les et utilisez « Appliquer la sélection ». Chaque nouveau disque prend quelques secondes, une longue liste peut donc durer un moment. La tâche continue si vous quittez la page. Les déplacements possibles, et les disques qui exigent de cocher d'abord un disque fusionné, ne sont pas inclus.",
         "confirmDatesTitle": "Utiliser les dates de Discogs ?",
         "confirmDatesBody": "La date d'ajout de {{count}} disques est remplacée par la date à laquelle vous les avez ajoutés sur Discogs, et l'historique de valeur de la collection est reconstruit à partir de ces dates.",
         "cancel": "Annuler",
@@ -253,11 +260,11 @@
         "stopping": "Arrêt après le disque en cours…",
         "stoppedDone": "Arrêté après {{done}} disques sur {{total}} : {{added}} ajoutés, {{relinked}} reliés. Le reste n'a pas été appliqué.",
         "stopFailed": "Impossible d'arrêter. Réessayez dans un instant.",
-        "moreHidden": "et {{count}} de plus non affichés. Tout afficher pour les voir et les décocher.",
+        "moreHidden": "et {{count}} de plus non affichés. Affichez tout pour les voir et modifier leur sélection.",
         "showAll": "Tout afficher"
     },
     "discogsPending": {
-        "message": "{{count}} changements de votre dernière vérification Discogs vous attendent : {{newOnDiscogs}} nouveaux, {{merged}} fusionnés.",
+        "message": "{{count}} changements de votre dernière vérification Discogs sont en attente : {{newOnDiscogs}} nouveaux, {{merged}} fusionnés, {{flagged}} à vérifier.",
         "review": "Voir",
         "dismiss": "Ignorer",
         "badge": "{{count}} changements Discogs en attente"

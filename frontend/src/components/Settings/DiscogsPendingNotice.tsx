@@ -14,7 +14,7 @@ interface Props {
  */
 const DiscogsPendingNotice: React.FC<Props> = ({ onReview }) => {
     const { t } = useTranslation();
-    const { showNotice, newOnDiscogs, merged, count, dismissNotice } = useDiscogsPending();
+    const { showNotice, newOnDiscogs, merged, flagged, count, dismissNotice } = useDiscogsPending();
 
     if (!showNotice) return null;
 
@@ -22,7 +22,7 @@ const DiscogsPendingNotice: React.FC<Props> = ({ onReview }) => {
         <div role="status" className="alert alert-info mb-6 text-sm" data-testid="discogs-notice">
             <Disc3 size={18} />
             <span className="flex-1">
-                {t('discogsPending.message', { count, newOnDiscogs, merged })}
+                {t('discogsPending.message', { count, newOnDiscogs, merged, flagged })}
             </span>
             <button
                 className="btn btn-sm"

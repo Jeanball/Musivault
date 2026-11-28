@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
 import type { Express } from 'express';
 import axios from 'axios';
+import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import Album, { IAlbum, ITrack, ILabel } from '../models/Album';
 import CollectionItem, { ICollectionItem, IAlbumOverrides } from '../models/CollectionItem';
-import { csvImportService } from '../services/import.service';
+import { csvImportService, upsertAlbumFromDiscogs } from '../services/import.service';
 import { csvExportService } from '../services/export.service';
 import { getMarketplaceStats, mapReleaseToAlbumUpdate } from '../services/discogs.service';
 import { buildPriceCache, getPriceTTLHours, isPriceStale } from '../utils/price.utils';
@@ -709,6 +710,15 @@ export async function restoreFormatVerificationAlert(req: Request, res: Response
 
 // ===== Album Rematch =====
 
+/**
+ * Point one collection item at another Discogs release the user picked. Only this item changes: the target
+ * album is found or created (never overwritten, since other records and users share album entries). A
+ * format sent with the request replaces the item's; the price, the format check and local album edits are
+ * reset, and the stored Discogs instance id is cleared when the release changes, or the next check would
+ * offer to undo the rematch. A custom cover is deleted only once the item is saved.
+ * Replies 404 when the item or release is not found, and 409, with nothing changed, when the user has
+ * another item on that release in the same format.
+ */
 export async function rematchAlbum(req: Request, res: Response) {
   try {
     if (!req.user) {
@@ -737,16 +747,25 @@ export async function rematchAlbum(req: Request, res: Response) {
 
     const releaseData = await discogsRequest<DiscogsReleaseResponse>(`/releases/${newDiscogsId}`);
 
-    // Update the album with new Discogs data
-    const album = item.album as any;
-    const mapped = mapReleaseToAlbumUpdate(releaseData, album);
-    const localCover = await downloadCoverToLocal(mapped.cover_image || mapped.thumb, 'Discogs cover');
-    album.discogsId = newDiscogsId;
-    Object.assign(album, {
-      ...mapped,
-      cover_image: localCover || mapped.cover_image,
-      thumb: localCover || mapped.thumb
+    const current = item.album as unknown as IAlbum;
+    const releaseChanged = current.discogsId !== newDiscogsId;
+    // Only the artist falls back to the old album: its cover, year and genres belong to the old pressing.
+    const mapped = mapReleaseToAlbumUpdate(releaseData, {
+      artist: current.artist, year: '', cover_image: '', thumb: '', genres: [], styles: []
     });
+    const album = await upsertAlbumFromDiscogs({ discogsId: newDiscogsId, ...mapped });
+    const albumId = album._id as mongoose.Types.ObjectId;
+
+    const duplicate = await CollectionItem.exists({
+      user: req.user._id,
+      album: albumId,
+      'format.name': format?.name || item.format.name,
+      _id: { $ne: item._id }
+    });
+    if (duplicate) {
+      res.status(409).json({ message: 'This album already exists in your collection' });
+      return;
+    }
 
     if (format?.name) {
       item.format = {
@@ -756,14 +775,22 @@ export async function rematchAlbum(req: Request, res: Response) {
       };
     }
 
-    item.formatVerification = null;
     item.priceCache = buildPriceCache(await getMarketplaceStats(newDiscogsId));
 
     // Rematching replaces the edition, so edits made to the old one no longer apply.
-    await clearAlbumOverrides(item, album.cover_image);
+    const customCover = item.albumOverrides?.cover_image;
+    item.albumOverrides = null;
+    item.locallyModified = false;
+    item.formatVerification = null;
+    if (releaseChanged) item.discogsInstanceId = undefined;
+    item.album = albumId;
 
-    await album.save();
     await item.save();
+
+    // Only after the save, so a failed rematch keeps the cover. A cover an album entry uses is not this item's.
+    if (customCover && customCover !== current.cover_image && customCover !== album.cover_image) {
+      await removeStoredCover(customCover);
+    }
 
     // Return the updated item
     const updatedItem = await CollectionItem.findById(itemId).populate('album');
@@ -776,11 +803,6 @@ export async function rematchAlbum(req: Request, res: Response) {
     }
     if (error.response?.status === 429) {
       res.status(429).json({ message: 'Too many requests! Please wait about 30 seconds before trying again.' });
-      return;
-    }
-    // MongoDB duplicate key error - album already exists in collection
-    if (error.code === 11000) {
-      res.status(409).json({ message: 'This album already exists in your collection' });
       return;
     }
     res.status(500).json({ message: 'Internal server error' });

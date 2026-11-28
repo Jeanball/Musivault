@@ -49,6 +49,8 @@ describe('compareCollections', () => {
             matched: 0,
             dateDiffers: 0,
             matchedItems: [],
+            clearLinks: [],
+            flags: [],
             newOnDiscogs: [],
             merged: [],
             onlyInMusivault: []
@@ -202,13 +204,67 @@ describe('compareCollections', () => {
         });
     });
 
-    describe('matching order: release id, then instance id, then the guess', () => {
-        it('matches by release id even when the stored instance id now sits under another release', () => {
-            const owner = item({ discogsId: 1, instanceId: 500 });
-            const result = compareCollections([entry(1, { instanceId: 11 }), entry(2, { instanceId: 500 })], [owner]);
+    describe('matching order: a moved instance id, then release id, then the guess', () => {
+        it('follows the stored instance id to another release even when the old release is still on Discogs', () => {
+            const moved = item({ discogsId: 1, instanceId: 500 });
+            const result = compareCollections([entry(1, { instanceId: 11 }), entry(2, { instanceId: 500 })], [moved]);
+
+            expect(result.matched).toBe(0);
+            expect(result.matchedItems).toEqual([]);
+            expect(result.merged).toHaveLength(1);
+            expect(result.merged[0]).toMatchObject({ match: 'instance', release: { releaseId: 2, instanceId: 500 } });
+            expect(result.newOnDiscogs.map(r => r.releaseId)).toEqual([1]);
+        });
+
+        it('reports the other pressing as new when one of two copies was moved (#69)', () => {
+            const moved = item({ discogsId: 375491, instanceId: 100, addedAt: new Date('2018-03-01T10:00:00Z') });
+            const entryA = entry(2891664, { instanceId: 100, dateAdded: '2018-03-01T10:00:00Z' });
+            const entryB = entry(375491, { instanceId: 200, dateAdded: '2020-07-01T10:00:00Z' });
+
+            const result = compareCollections([entryA, entryB], [moved]);
+
+            expect(result.merged).toHaveLength(1);
+            expect(result.merged[0]).toMatchObject({ match: 'instance', release: { releaseId: 2891664 } });
+            expect(result.newOnDiscogs).toEqual([expect.objectContaining({ releaseId: 375491, instanceId: 200 })]);
+            expect(result.matched).toBe(0);
+            expect(result.dateDiffers).toBe(0);
+            expect(result.onlyInMusivault).toEqual([]);
+        });
+
+        it('matches normally when the stored instance id is any copy of the item release', () => {
+            const owner = item({ discogsId: 1, instanceId: 12 });
+            const result = compareCollections([entry(1, { instanceId: 11 }), entry(1, { instanceId: 12 })], [owner]);
+
             expect(result.matched).toBe(1);
             expect(result.merged).toEqual([]);
-            expect(result.newOnDiscogs.map(r => r.releaseId)).toEqual([2]);
+            expect(result.newOnDiscogs).toEqual([]);
+        });
+
+        it('matches by release id when the moved entry now sits on a release another item has', () => {
+            const owner = item({ discogsId: 2 });
+            const other = item({ discogsId: 1, instanceId: 500 });
+            const result = compareCollections([entry(1, { instanceId: 11 }), entry(2, { instanceId: 500 })], [other, owner]);
+
+            expect(result.matched).toBe(2);
+            expect(result.merged).toEqual([]);
+            expect(result.newOnDiscogs).toEqual([]);
+        });
+
+        it('falls back to the release id when the stored instance id is no longer on Discogs', () => {
+            const owner = item({ discogsId: 1, instanceId: 404 });
+            const result = compareCollections([entry(1, { instanceId: 11 })], [owner]);
+
+            expect(result.matched).toBe(1);
+            expect(result.merged).toEqual([]);
+        });
+
+        it('gives a moved release to one item, and lets the other match by release id', () => {
+            const first = item({ discogsId: 1, instanceId: 500 });
+            const second = item({ discogsId: 1, instanceId: 500, format: 'CD' });
+            const result = compareCollections([entry(1, { instanceId: 11 }), entry(2, { instanceId: 500 })], [first, second]);
+
+            expect(result.merged.map(m => m.item.itemId)).toEqual([first.itemId]);
+            expect(result.matchedItems.map(m => m.itemId)).toEqual([second.itemId]);
         });
 
         it('finds a merge by the stored instance id and calls it exact', () => {
@@ -280,6 +336,116 @@ describe('compareCollections', () => {
             const [merged] = compareCollections([entry(6, { instanceId: 66 })], [old]).merged;
             expect(merged.item).not.toHaveProperty('instanceId');
             expect(merged.item).not.toHaveProperty('addedAt');
+        });
+    });
+
+    describe('flags', () => {
+        const look = { artist: 'Obituary', title: 'Cause Of Death' };
+        const old = (overrides: Partial<ComparableItem> = {}) => item({ ...look, discogsId: 8499267, year: '1997', ...overrides });
+        const survivor = (overrides: Parameters<typeof entry>[1] = {}) => entry(2467355, { ...look, year: 2010, instanceId: 900, ...overrides });
+        const twin = () => item({ ...look, discogsId: 2467355, year: '2010' });
+
+        it('flags a possible move when a look-alike new release has another year', () => {
+            const record = old();
+            const result = compareCollections([survivor()], [record]);
+
+            expect(result.merged).toEqual([]);
+            expect(result.flags).toEqual([expect.objectContaining({
+                kind: 'possibleMove', item: expect.objectContaining({ itemId: record.itemId }),
+                release: expect.objectContaining({ releaseId: 2467355 })
+            })]);
+            expect(result.flags[0].item).not.toHaveProperty('addedAt');
+            // Both rows stay where they were: the flag only relates them.
+            expect(result.newOnDiscogs).toHaveLength(1);
+            expect(result.onlyInMusivault).toHaveLength(1);
+        });
+
+        it('flags a possible duplicate when a look-alike record already has the release, with one Discogs copy', () => {
+            const other = twin();
+            const result = compareCollections([survivor()], [old(), other]);
+
+            expect(result.flags).toEqual([expect.objectContaining({
+                kind: 'possibleDuplicate', other: expect.objectContaining({ itemId: other.itemId }),
+                release: expect.objectContaining({ releaseId: 2467355 })
+            })]);
+        });
+
+        it('calls it a possible duplicate by the stored id too, even when artist and title differ', () => {
+            const record = old({ instanceId: 900, title: 'Renamed' });
+
+            expect(compareCollections([survivor()], [record, twin()]).flags.map(f => f.kind)).toEqual(['possibleDuplicate']);
+        });
+
+        it('says the release is shared, not duplicated, when Discogs has two copies and one is this record\'s', () => {
+            const result = compareCollections([survivor(), survivor({ instanceId: 901 })], [old({ instanceId: 901 }), twin()]);
+
+            expect(result.flags.map(f => f.kind)).toEqual(['sharedRelease']);
+        });
+
+        it('does not flag a duplicate without a stored id when Discogs has two copies', () => {
+            expect(compareCollections([survivor(), survivor({ instanceId: 901 })], [old(), twin()]).flags).toEqual([]);
+        });
+
+        it('does not flag two pressings that each match their own Discogs entry', () => {
+            const result = compareCollections([entry(8499267, { ...look, year: 1997 }), survivor()], [old(), twin()]);
+
+            expect(result.flags).toEqual([]);
+        });
+
+        it('does not flag across formats, or a manually added album', () => {
+            expect(compareCollections([survivor({ format: 'CD' })], [old()]).flags).toEqual([]);
+            expect(compareCollections([survivor()], [old({ discogsId: undefined })]).flags).toEqual([]);
+        });
+
+        it('gives a new release to one possible move only', () => {
+            const result = compareCollections([survivor()], [old(), old({ discogsId: 7, year: '1998' })]);
+
+            expect(result.flags).toHaveLength(1);
+        });
+
+        it('does not flag a pair the guess already reports as merged', () => {
+            const result = compareCollections([survivor()], [old({ year: '2010' })]);
+
+            expect(result.merged).toHaveLength(1);
+            expect(result.flags).toEqual([]);
+        });
+    });
+
+    describe('clear links', () => {
+        it('links a matched item when it is the only item and Discogs has one entry on the release', () => {
+            const owner = item({ discogsId: 1 });
+            const result = compareCollections([entry(1, { instanceId: 11 })], [owner]);
+
+            expect(result.clearLinks).toEqual([{ itemId: owner.itemId, instanceId: 11 }]);
+        });
+
+        it('does not guess between several Discogs copies of the release', () => {
+            const result = compareCollections([entry(1), entry(1)], [item({ discogsId: 1 })]);
+
+            expect(result.clearLinks).toEqual([]);
+        });
+
+        it('does not guess between several items on the release', () => {
+            const items = [item({ discogsId: 1, format: 'Vinyl' }), item({ discogsId: 1, format: 'CD' })];
+
+            expect(compareCollections([entry(1)], items).clearLinks).toEqual([]);
+        });
+
+        it('leaves an item that already has an instance id alone, even a stale one', () => {
+            expect(compareCollections([entry(1, { instanceId: 11 })], [item({ discogsId: 1, instanceId: 404 })]).clearLinks).toEqual([]);
+        });
+
+        it('does not give an entry to a second item when another one stores its id', () => {
+            const holder = item({ discogsId: 9, instanceId: 11, artist: 'Other', title: 'Other' });
+            const unlinked = item({ discogsId: 1 });
+
+            expect(compareCollections([entry(1, { instanceId: 11 })], [holder, unlinked]).clearLinks).toEqual([]);
+        });
+
+        it('does not link items that are only in Musivault or merged by a guess', () => {
+            const guessed = item({ discogsId: 5 });
+
+            expect(compareCollections([entry(6, { artist: 'Some Artist', title: 'Some Title' })], [guessed]).clearLinks).toEqual([]);
         });
     });
 

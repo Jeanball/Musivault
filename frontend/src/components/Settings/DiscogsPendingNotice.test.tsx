@@ -9,7 +9,7 @@ vi.mock('react-i18next', () => ({
 vi.mock('../../context/DiscogsPendingContext', () => ({ useDiscogsPending: vi.fn() }));
 
 const pending = (overrides: Partial<ReturnType<typeof useDiscogsPending>> = {}) => ({
-    newOnDiscogs: 3, merged: 2, count: 5, showNotice: true, dismissNotice: vi.fn(), refresh: vi.fn(), ...overrides
+    newOnDiscogs: 3, merged: 2, flagged: 1, count: 6, showNotice: true, dismissNotice: vi.fn(), refresh: vi.fn(), ...overrides
 });
 
 describe('DiscogsPendingNotice', () => {
@@ -20,7 +20,8 @@ describe('DiscogsPendingNotice', () => {
 
         render(<DiscogsPendingNotice onReview={vi.fn()} />);
 
-        expect(screen.getByRole('status')).toHaveTextContent('"count":5');
+        expect(screen.getByRole('status')).toHaveTextContent('"count":6');
+        expect(screen.getByRole('status')).toHaveTextContent('"flagged":1');
         expect(screen.getByRole('status')).toHaveTextContent('"newOnDiscogs":3');
         expect(screen.getByRole('status')).toHaveTextContent('"merged":2');
     });

@@ -10,7 +10,7 @@ vi.mock('react-i18next', () => ({
 vi.mock('../../context/DiscogsPendingContext', () => ({ useDiscogsPending: vi.fn() }));
 
 const pending = (count: number) => ({
-    newOnDiscogs: count, merged: 0, count, showNotice: false, dismissNotice: vi.fn(), refresh: vi.fn()
+    newOnDiscogs: count, merged: 0, flagged: 0, count, showNotice: false, dismissNotice: vi.fn(), refresh: vi.fn()
 });
 const renderNavbar = () => render(<MemoryRouter><Navbar username="alex" isAdmin={false} onLogout={vi.fn()} /></MemoryRouter>);
 

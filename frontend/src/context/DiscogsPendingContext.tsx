@@ -5,10 +5,11 @@ import { useRefreshOnVisible } from '../hooks/useRefreshOnVisible';
 const STORAGE_KEY = 'musivault.discogsNoticeDismissed';
 
 interface DiscogsPendingContextType {
-    /** Records new on Discogs and merged ones the last check left to act on. */
+    /** Records new on Discogs, merged ones and rows flagged for review that the last check left. */
     newOnDiscogs: number;
     merged: number;
-    /** `newOnDiscogs + merged`. Drives the badge, which stays until nothing is left. */
+    flagged: number;
+    /** `newOnDiscogs + merged + flagged`. Drives the badge, which stays until nothing is left. */
     count: number;
     /** The notice: shown while there is more to act on than when it was last dismissed. */
     showNotice: boolean;
@@ -19,7 +20,7 @@ interface DiscogsPendingContextType {
 
 const noop = async () => undefined;
 const DiscogsPendingContext = createContext<DiscogsPendingContextType>({
-    newOnDiscogs: 0, merged: 0, count: 0, showNotice: false, dismissNotice: () => undefined, refresh: noop
+    newOnDiscogs: 0, merged: 0, flagged: 0, count: 0, showNotice: false, dismissNotice: () => undefined, refresh: noop
 });
 
 // Per browser, not per account: a dismissed notice comes back on another device. Storage can be
@@ -46,15 +47,19 @@ const writeDismissed = (value: number) => {
  * one down, so new items after an apply are noticed again.
  */
 export const DiscogsPendingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [counts, setCounts] = useState({ newOnDiscogs: 0, merged: 0 });
+    const [counts, setCounts] = useState({ newOnDiscogs: 0, merged: 0, flagged: 0 });
     const [dismissed, setDismissed] = useState(readDismissed);
 
     const refresh = useCallback(async () => {
         try {
             const summary = await getDiscogsSummary();
-            const next = { newOnDiscogs: summary?.newOnDiscogs ?? 0, merged: summary?.merged ?? 0 };
+            const next = {
+                newOnDiscogs: summary?.newOnDiscogs ?? 0,
+                merged: summary?.merged ?? 0,
+                flagged: summary?.flagged ?? 0
+            };
             setCounts(next);
-            const total = next.newOnDiscogs + next.merged;
+            const total = next.newOnDiscogs + next.merged + next.flagged;
             setDismissed(current => {
                 if (total >= current) return current;
                 writeDismissed(total);
@@ -71,7 +76,7 @@ export const DiscogsPendingProvider: React.FC<{ children: ReactNode }> = ({ chil
     }, [refresh]);
     useRefreshOnVisible(() => void refresh());
 
-    const count = counts.newOnDiscogs + counts.merged;
+    const count = counts.newOnDiscogs + counts.merged + counts.flagged;
     const dismissNotice = useCallback(() => {
         writeDismissed(count);
         setDismissed(count);

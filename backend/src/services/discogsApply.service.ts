@@ -18,9 +18,11 @@ import {
     flagRejectedToken,
     getReport,
     hasActiveJob,
+    InstanceLink,
     loadItems,
     logConfirmedMerges,
-    saveResult
+    saveResult,
+    storeInstanceLinks
 } from './discogsSync.service';
 import { discogsService } from './discogs.service';
 import { processImportRow, upsertAlbumFromDiscogs } from './import.service';
@@ -95,8 +97,8 @@ export async function relinkItem(
 
 /** What an apply will do, worked out from today's comparison and the user's ticks. */
 export interface ApplyPlan {
-    /** Matched items that have no stored Discogs entry yet, with the one to store. */
-    linkInstances: { itemId: mongoose.Types.ObjectId; instanceId: number }[];
+    /** The comparison's clear links: matched items whose Discogs entry is beyond doubt and not stored yet. */
+    linkInstances: InstanceLink[];
     /** Ticked merges. `merged` is missing when the row no longer holds (it was merged elsewhere, or is gone). */
     relinks: { itemId: string; releaseId: number; merged?: IDiscogsReportMerged }[];
     /** Ticked new records. `release` is missing when the record is no longer new (already added, or gone from Discogs). */
@@ -113,7 +115,7 @@ export interface ApplyPlan {
  * and is skipped, never guessed at. A relink also needs the release the user saw (`releaseId`) to still
  * be the one the item pairs with. Dates are planned only with `useDiscogsDates`, and only for items
  * matched by release id, so relinked and added items keep their own date. The instance ids to store
- * are not a tick: they are invisible link data, only ever set on items that don't have one.
+ * are not a tick: they are invisible link data, the same `clearLinks` a check saves.
  */
 export function planApply(result: ComparisonResult, items: ComparableItem[], selection: ApplySelection): ApplyPlan {
     const itemById = new Map(items.map(i => [String(i.itemId), i]));
@@ -121,9 +123,7 @@ export function planApply(result: ComparisonResult, items: ComparableItem[], sel
     const newById = new Map(result.newOnDiscogs.map(r => [r.releaseId, r]));
 
     return {
-        linkInstances: result.matchedItems
-            .filter(m => itemById.get(String(m.itemId))?.instanceId === undefined)
-            .map(m => ({ itemId: m.itemId, instanceId: m.release.instanceId })),
+        linkInstances: result.clearLinks,
         relinks: selection.relink.map(r => {
             const merged = mergedByItem.get(r.itemId);
             return { ...r, merged: merged?.release.releaseId === r.releaseId ? merged : undefined };
@@ -167,14 +167,7 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
         const plan = planApply(result, items, selection);
 
         // Link matched items to their Discogs entry. Invisible to the user, and what makes later merges exact.
-        if (plan.linkInstances.length > 0) {
-            await CollectionItem.bulkWrite(plan.linkInstances.map(l => ({
-                updateOne: {
-                    filter: { _id: l.itemId, user: userId },
-                    update: { $set: { discogsInstanceId: l.instanceId } }
-                }
-            })));
-        }
+        await storeInstanceLinks(userId, plan.linkInstances);
         await update({ instanceIdsStored: plan.linkInstances.length });
         await update({ phase: 'records', total: plan.relinks.length + plan.adds.length });
 
@@ -290,8 +283,8 @@ async function runApply(userId: mongoose.Types.ObjectId, selection: ApplySelecti
  * records, and optionally set dates added from Discogs. Whenever it added, relinked or re-dated
  * something it rebuilds the value history, keeping the rows the price sync measured.
  * The job re-reads the Discogs collection first and only does what still holds; a ticked row whose
- * situation changed is skipped, never guessed at. It also links the user's matched items to their
- * Discogs entries (`discogsInstanceId`) so later merges are found exactly.
+ * situation changed is skipped, never guessed at. Like a check, it also saves the clear links from
+ * matched items to their Discogs entries (`discogsInstanceId`) so later merges are found exactly.
  * Runs in the same queue as checks (one Discogs job at a time). Each added record costs about two
  * Discogs calls, so a large apply takes a while; poll `getReport` for `apply`.
  * @throws DiscogsApplyError if no account is connected or it needs reconnecting, there is no check
